@@ -127,12 +127,21 @@
 
     <M-DEBUG-EXPORT NAME="DebugExport" TYPE="UTILITY" LAYER="4" ORDER="13" STATUS="implemented">
       <contract>
-        <purpose>Generate debug artifacts: diff_scores.csv, timeline.png, contact_sheet.jpg.</purpose>
+        <purpose>Generate debug artifacts: diff_scores.csv, timeline.png, contact_sheet.jpg</purpose>
       </contract>
       <target><source>src/video_slide_md/debug_export.py</source><tests>tests/test_debug_export.py</tests></target>
       <verification-ref>V-M-DEBUG-EXPORT</verification-ref>
       <depends>M-MODELS</depends>
     </M-DEBUG-EXPORT>
+
+    <M-PIPELINE NAME="PipelineOrchestrator" TYPE="CORE_LOGIC" LAYER="5" ORDER="14" STATUS="implemented">
+      <contract>
+        <purpose>Wire all modules together in cli.py detect/export-md/debug commands</purpose>
+      </contract>
+      <target><source>src/video_slide_md/cli.py</source><tests>tests/test_cli_e2e.py</tests></target>
+      <verification-ref>V-M-CLI-E2E</verification-ref>
+      <depends>all modules</depends>
+    </M-PIPELINE>
   </Modules>
 
   <DataFlow>
@@ -187,6 +196,11 @@
       <step-12 module="M-MD-EXPORT" status="done" verification="V-M-MD-EXPORT">Marp Markdown export</step-12>
       <step-13 module="M-DEBUG-EXPORT" status="done" verification="V-M-DEBUG-EXPORT">Debug artifacts generation</step-13>
     </Phase-4>
+
+    <Phase-5 name="PipelineIntegration" status="done">
+      <goal>Wire all modules into CLI detect/export-md/debug commands, E2E tests with synthetic video.</goal>
+      <step-14 module="M-PIPELINE" status="done" verification="V-M-CLI-E2E">Orchestrate full pipeline in CLI</step-14>
+    </Phase-5>
 
     <Phase-5 name="GPUBackend" status="pending">
       <goal>Add Decord and NVDEC backends with auto-detection. Verifiable on RTX 4090.</goal>

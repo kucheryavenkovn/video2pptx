@@ -108,6 +108,13 @@
       <verification-ref>V-M-DEBUG-EXPORT</verification-ref>
     </M-DEBUG-EXPORT>
 
+    <M-PIPELINE NAME="PipelineOrchestrator" TYPE="CORE_LOGIC" STATUS="implemented">
+      <purpose>Wire all modules together in CLI detect/export-md/debug commands</purpose>
+      <path>src/video_slide_md/cli.py</path>
+      <depends>all modules</depends>
+      <verification-ref>V-M-CLI-E2E</verification-ref>
+    </M-PIPELINE>
+
     <CrossLink from="M-CLI" to="M-CONFIG" relation="reads config, passes to pipeline" />
     <CrossLink from="M-CLI" to="M-VIDEO-DECODE" relation="orchestrates" />
     <CrossLink from="M-CLI" to="M-SLIDE-DETECTOR" relation="orchestrates" />
@@ -115,6 +122,11 @@
     <CrossLink from="M-CLI" to="M-SUBTITLES" relation="orchestrates" />
     <CrossLink from="M-CLI" to="M-MD-EXPORT" relation="orchestrates" />
     <CrossLink from="M-CLI" to="M-DEDUPE" relation="orchestrates" />
+    <CrossLink from="M-CLI" to="M-ROI" relation="orchestrates" />
+    <CrossLink from="M-CLI" to="M-FRAME-FEATURES" relation="orchestrates via slide_detector" />
+    <CrossLink from="M-CLI" to="M-DEBUG-EXPORT" relation="orchestrates" />
+    <CrossLink from="M-PIPELINE" to="M-CLI" relation="implements" />
+    <CrossLink from="M-PIPELINE" to="all-modules" relation="wires" />
     <CrossLink from="M-VIDEO-DECODE" to="M-BACKENDS" relation="selects and uses" />
     <CrossLink from="M-SLIDE-DETECTOR" to="M-FRAME-FEATURES" relation="extracts and compares" />
     <CrossLink from="M-SLIDE-DETECTOR" to="M-ROI" relation="crops and masks" />
