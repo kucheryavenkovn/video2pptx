@@ -1,0 +1,74 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "video-slide-md"
+version = "0.1.0"
+description = "Extract slide intervals from educational videos, link to SRT/VTT subtitles, and export Markdown presentations."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "video-slide-md contributors" }]
+keywords = ["video", "slides", "presentation", "markdown", "marp", "subtitle", "detection", "open-cv"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Topic :: Multimedia :: Video",
+    "Private :: Do Not Upload",
+]
+dependencies = [
+    "typer>=0.12",
+    "pydantic>=2.6",
+    "rich>=13.7",
+    "pyyaml>=6.0",
+    "loguru>=0.7",
+    "Pillow>=10.0",
+    "numpy>=1.24",
+    "opencv-python>=4.8",
+    "pysubs2>=1.7",
+    "imagehash>=4.3",
+    "scikit-image>=0.21",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+gpu = [
+    "decord>=0.6",
+    "av>=12.0",
+    "torch>=2.1",
+]
+dev = [
+    "pytest>=8.0",
+]
+review = [
+    "streamlit>=1.30",
+]
+pptx = [
+    "python-pptx>=0.6",
+]
+
+[project.scripts]
+video-slide-md = "video_slide_md.cli:run"
+
+[project.urls]
+Documentation = "https://github.com/user/video-slide-md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/video_slide_md"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/video_slide_md", "examples", "docs", "README.md", "pyproject.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+markers = [
+    "integration: tests that require real video files or network access",
+]

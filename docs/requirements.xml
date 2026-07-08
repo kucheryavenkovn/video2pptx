@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RequirementsAnalysis VERSION="0.1.0">
+  <Project>
+    <name>video-slide-md</name>
+    <annotation>Automatically extract slide intervals from educational videos, link to SRT/VTT subtitles, and export Markdown presentations.</annotation>
+    <keywords>video, slides, markdown, presentation, open-cv, computer-vision, slide-detection, subtitle-alignment, srt, vtt, marp</keywords>
+  </Project>
+
+  <Actors>
+    <actor-User>Content creator with a lecture video and prepared SRT/VTT subtitles</actor-User>
+  </Actors>
+
+  <UseCases>
+    <UC-001>
+      <Actor>User</Actor>
+      <Action>Runs video-slide-md detect with video + subtitles</Action>
+      <Goal>Get slides.json with slide intervals, representative images, and aligned transcript</Goal>
+      <Preconditions>Video file exists (.mp4/.mkv/.mov/.webm), subtitles exist (.srt/.vtt)</Preconditions>
+      <AcceptanceCriteria>slides.json passes JSON schema validation, all slides have images, transcript is aligned</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-001</RelatedFlows>
+    </UC-001>
+
+    <UC-002>
+      <Actor>User</Actor>
+      <Action>Runs video-slide-md export-md with slides.json</Action>
+      <Goal>Get deck.md — a Marp-formatted Markdown presentation</Goal>
+      <Preconditions>slides.json exists and is valid</Preconditions>
+      <AcceptanceCriteria>deck.md renders correctly in Marp-compatible viewer</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-002</RelatedFlows>
+    </UC-002>
+
+    <UC-003>
+      <Actor>User</Actor>
+      <Action>Applies --debug flag during detect</Action>
+      <Goal>Get debug artifacts: diff_scores.csv, timeline.png, contact_sheet.jpg</Goal>
+      <Preconditions>Detection pipeline ran successfully</Preconditions>
+      <AcceptanceCriteria>Artifacts exist and contain correct data, timeline shows slide changes</AcceptanceCriteria>
+      <Priority>medium</Priority>
+    </UC-003>
+  </UseCases>
+
+  <NonGoals>
+    <item-1>No automatic speech recognition (ASR) in MVP — subtitles already prepared</item-1>
+    <item-2>No editable PPTX generation in MVP</item-1>
+    <item-3>No OCR text extraction in MVP</item-1>
+    <item-4>No LLM-based slide description in MVP</item-1>
+    <item-5>No cloud/remote processing — local only</item-1>
+    <item-6>No web UI with user management</item-1>
+    <item-7>No automatic video download from YouTube/Zoom/Meet</item-1>
+  </NonGoals>
+
+  <Constraints>
+    <constraint-1>Must process video without loading entire file into memory (streaming)</constraint-1>
+    <constraint-2>Must support Windows, Linux, macOS paths cross-platform</constraint-2>
+    <constraint-3>Must support Cyrillic in paths and subtitle text</constraint-3>
+    <constraint-4>Must not hard-depend on CUDA — CPU fallback required</constraint-4>
+    <constraint-5>Slide detection is deterministic CV — no LLM for change detection</constraint-5>
+    <constraint-6>Core processing must not be coupled to UI</constraint-6>
+  </Constraints>
+
+  <Risks>
+    <risk-1>Low-quality or highly compressed video may cause false positives in slide detection</risk-1>
+    <risk-2>Cyrillic subtitle encoding issues on some platforms</risk-2>
+    <risk-3>GPU backend may not be available on all systems</risk-3>
+    <risk-4>Animations and transitions between slides may cause split or missed segments</risk-4>
+    <risk-5>Webcam overlay and UI elements may cause false slide splits</risk-5>
+  </Risks>
+
+  <OpenQuestions>
+    <question-1>Should representative timestamp be configurable or fixed at 80% into segment?</question-1>
+    <question-2>Should multiple ignore_rois be specified as repeated --ignore-roi flags or comma-separated?</question-2>
+  </OpenQuestions>
+</RequirementsAnalysis>

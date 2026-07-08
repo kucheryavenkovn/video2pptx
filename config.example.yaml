@@ -1,0 +1,28 @@
+# video-slide-md — example configuration
+# Copy to config.local.yaml (git-ignored) and adjust. CLI arguments override these.
+
+video:
+  sample_fps: 2
+  decoder_backend: auto
+
+detection:
+  slide_roi: auto
+  ignore_rois: []
+  threshold: auto
+  min_slide_duration: 3.0
+  min_stable_duration: 1.5
+  dedupe_enabled: true
+
+export:
+  markdown_format: marp
+  include_transcript_as_notes: true
+  include_timecodes: true
+
+debug:
+  save_sampled_frames: false
+  save_diff_scores: true
+  save_timeline: true
+  save_contact_sheet: true
+
+logging:
+  level: "INFO"

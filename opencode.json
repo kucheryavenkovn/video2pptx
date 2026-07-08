@@ -1,0 +1,30 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "skills": {
+    "paths": [
+      "./.opencode/skills"
+    ]
+  },
+  "mcp": {
+    "zread": {
+      "type": "remote",
+      "url": "https://api.z.ai/api/mcp/zread/sse",
+      "enabled": true
+    },
+    "web-search-prime": {
+      "type": "remote",
+      "url": "https://api.z.ai/api/mcp/web_search_prime/mcp",
+      "enabled": true
+    },
+    "web-reader": {
+      "type": "remote",
+      "url": "https://api.z.ai/api/mcp/web_reader/mcp",
+      "enabled": true
+    }
+  },
+  "permission": {
+    "web-search-prime_*": "allow",
+    "web-reader_*": "allow",
+    "zread_*": "allow"
+  }
+}

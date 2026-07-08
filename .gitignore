@@ -1,0 +1,88 @@
+# Secrets / local config (INV-SAFE-4)
+.env
+.env.*
+!.env.example
+config.json
+config.local.yaml
+config.local.yml
+*.pem
+*.key
+.secrets/
+
+# Runtime data (generated locally, not in git)
+artifacts/
+logs/
+temp/
+out/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+.installed.cfg
+MANIFEST
+
+# Build artifacts
+/build/
+/dist/
+/sdist/
+/wheels/
+/downloads/
+/develop-eggs/
+/.eggs/
+
+# Virtual environments
+.venv/
+.venv-*/
+venv/
+env/
+ENV/
+.python-version
+
+# Testing / coverage
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.cache
+nosetests.xml
+
+# Type checkers / linters
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+
+# Logs
+*.log
+
+# IDE / editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints
+
+# Video/output (generated)
+*.mp4
+*.mkv
+*.mov
+*.webm
+out/
+slides/
+debug/

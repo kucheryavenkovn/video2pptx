@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TechnologyStack VERSION="0.1.0">
+  <Runtime>Python</Runtime>
+  <Language>Python 3.10+</Language>
+  <Framework>Typer (CLI), Pydantic (models)</Framework>
+
+  <Dependencies>
+    <dep name="typer" version=">=0.12" purpose="CLI framework" />
+    <dep name="pydantic" version=">=2.6" purpose="Data validation and serialization" />
+    <dep name="rich" version=">=13.7" purpose="Terminal output formatting" />
+    <dep name="pyyaml" version=">=6.0" purpose="YAML configuration parsing" />
+    <dep name="loguru" version=">=0.7" purpose="Structured logging" />
+    <dep name="Pillow" version=">=10.0" purpose="Image processing" />
+    <dep name="numpy" version=">=1.24" purpose="Array operations" />
+    <dep name="opencv-python" version=">=4.8" purpose="Video decoding (CPU), image processing" />
+    <dep name="pysubs2" version=">=1.7" purpose="SRT/VTT subtitle parsing" />
+    <dep name="imagehash" version=">=4.3" purpose="Perceptual hashing (pHash, dHash)" />
+    <dep name="scikit-image" version=">=0.21" purpose="SSIM comparison, image metrics" />
+    <dep name="matplotlib" version=">=3.7" purpose="Debug chart generation" />
+  </Dependencies>
+
+  <VersionConstraints>
+    <constraint lib="python" min="3.10" max="3.13" reason="Type hints and match/case syntax" />
+  </VersionConstraints>
+
+  <Tooling>
+    <tool name="build-backend" value="hatchling" version=">=1.24" />
+    <tool name="test-runner" value="pytest" version=">=8.0" />
+  </Tooling>
+
+  <PreferredAgentStack>
+    <preferred-cli-framework>typer (with rich for output)</preferred-cli-framework>
+    <preferred-config-library>pydantic + pyyaml</preferred-config-library>
+    <preferred-logger>loguru</preferred-logger>
+    <preferred-serialization>pydantic .model_dump_json()</preferred-serialization>
+  </PreferredAgentStack>
+
+  <Testing>
+    <module-level>
+      <command>pytest tests/test_*.py</command>
+      <focus>Fast deterministic unit checks for each module</focus>
+    </module-level>
+    <wave-level>
+      <command>pytest tests/</command>
+      <focus>Integration tests across pipeline stages</focus>
+    </wave-level>
+    <phase-level>
+      <command>pytest tests/ -m integration</command>
+      <focus>Synthetic video tests with real pipeline execution</focus>
+    </phase-level>
+    <mocking-policy>Prefer fakes (e.g., in-memory frame generators) over monkey-patching.</mocking-policy>
+  </Testing>
+
+  <Observability>
+    <logger>loguru</logger>
+    <log-format>[ModuleName][function_name][BLOCK_NAME] message | key=value</log-format>
+    <redaction>Never log file paths that may contain secrets, raw subtitle text with sensitive data, or credentials.</redaction>
+  </Observability>
+
+  <AutonomyPolicy>
+    <default-execution-profile>balanced</default-execution-profile>
+    <max-fix-attempts-per-step>2</max-fix-attempts-per-step>
+    <replan-trigger>Missing dependency, contradictory contract, or unclear third-party surface.</replan-trigger>
+  </AutonomyPolicy>
+
+  <DeliveryShape>
+    <shape>Local CLI tool, single Python package installed via pip, console_script entry point.</shape>
+  </DeliveryShape>
+</TechnologyStack>

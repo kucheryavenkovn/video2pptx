@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentPlan VERSION="0.1.0">
+  <ArchitectureNotes>
+    <objective>Build a reliable pipeline: video → slide detection → intervals → subtitle alignment → slide images + JSON + Markdown.</objective>
+    <non-goal>Do not build PPTX export, OCR, LLM descriptions, or web UI in MVP.</non-goal>
+    <risk-1>False slide splits due to cursor movement, webcam, or compression artifacts.</risk-1>
+    <risk-2>GPU backend may not be available — CPU fallback must always work.</risk-2>
+  </ArchitectureNotes>
+
+  <Modules>
+    <M-MODELS NAME="Models" TYPE="UTILITY" LAYER="0" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Define all Pydantic data models used across the pipeline.</purpose>
+        <inputs><param name="none" type="none" /></inputs>
+        <outputs><param name="SlidesDocument, SlideSegment, VideoInfo, Roi, SubtitleCue, FrameFeatures" type="Pydantic BaseModel classes" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/models.py</source><tests>tests/test_models.py</tests></target>
+      <observability><log-prefix>[Models]</log-prefix></observability>
+      <verification-ref>V-M-MODELS</verification-ref>
+      <depends>none</depends>
+    </M-MODELS>
+
+    <M-CONFIG NAME="Config" TYPE="UTILITY" LAYER="0" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Load configuration from YAML file and merge with CLI arguments.</purpose>
+        <inputs><param name="config_path" type="Path|None" /><param name="cli_kwargs" type="dict" /></inputs>
+        <outputs><param name="Config" type="Config object with validated fields" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/config.py</source><tests>tests/test_config.py</tests></target>
+      <verification-ref>V-M-CONFIG</verification-ref>
+      <depends>M-MODELS</depends>
+    </M-CONFIG>
+
+    <M-CLI NAME="CLI" TYPE="ENTRY_POINT" LAYER="0" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Typer CLI with detect, export-md, debug, review commands.</purpose>
+        <inputs><param name="cli args" type="argv" /></inputs>
+        <outputs><param name="exit code" type="int" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/cli.py</source><tests>tests/test_cli.py</tests></target>
+      <verification-ref>V-M-CLI</verification-ref>
+      <depends>M-CONFIG</depends>
+    </M-CLI>
+
+    <M-BACKENDS NAME="Backends" TYPE="INTEGRATION" LAYER="0" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Video decoder backends: OpenCV (CPU), PyAV, Decord, NVDEC. Auto-select best available.</purpose>
+        <inputs><param name="video_path" type="Path" /></inputs>
+        <outputs><param name="VideoFrame iterator" type="Iterator[VideoFrame]" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/backends/</source><tests>tests/test_backends.py</tests></target>
+      <verification-ref>V-M-BACKENDS</verification-ref>
+      <depends>none</depends>
+    </M-BACKENDS>
+
+    <M-VIDEO-DECODE NAME="VideoDecode" TYPE="CORE_LOGIC" LAYER="1" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Unified video decoder — select backend, iterate sampled frames.</purpose>
+      </contract>
+      <target><source>src/video_slide_md/video_decode.py</source></target>
+      <verification-ref>V-M-VIDEO-DECODE</verification-ref>
+      <depends>M-BACKENDS</depends>
+    </M-VIDEO-DECODE>
+
+    <M-ROI NAME="ROI" TYPE="CORE_LOGIC" LAYER="0" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Crop slide region, apply ignore masks. auto = full for MVP.</purpose>
+      </contract>
+      <target><source>src/video_slide_md/roi.py</source><tests>tests/test_roi.py</tests></target>
+      <verification-ref>V-M-ROI</verification-ref>
+      <depends>M-MODELS</depends>
+    </M-ROI>
+
+    <M-FRAME-FEATURES NAME="FrameFeatures" TYPE="CORE_LOGIC" LAYER="1" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Extract pHash, dHash, grayscale, histogram. Compute weighted visual distance.</purpose>
+      </contract>
+      <target><source>src/video_slide_md/frame_features.py</source><tests>tests/test_frame_features.py</tests></target>
+      <verification-ref>V-M-FRAME-FEATURES</verification-ref>
+      <depends>M-ROI</depends>
+    </M-FRAME-FEATURES>
+
+    <M-SLIDE-DETECTOR NAME="SlideDetector" TYPE="CORE_LOGIC" LAYER="2" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Compare consecutive frames, detect changes, apply debounce.</purpose>
+      </contract>
+      <target><source>src/video_slide_md/slide_detector.py</source><tests>tests/test_slide_detector.py</tests></target>
+      <verification-ref>V-M-SLIDE-DETECTOR</verification-ref>
+      <depends>M-FRAME-FEATURES, M-ROI</depends>
+    </M-SLIDE-DETECTOR>
+
+    <M-SEGMENTER NAME="Segmenter" TYPE="CORE_LOGIC" LAYER="3" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Convert change events to slide intervals, choose representative timestamps.</purpose>
+      </contract>
+      <target><source>src/video_slide_md/segmenter.py</source><tests>tests/test_segmenter.py</tests></target>
+      <verification-ref>V-M-SEGMENTER</verification-ref>
+      <depends>M-MODELS</depends>
+    </M-SEGMENTER>
+
+    <M-DEDUPE NAME="Dedupe" TYPE="CORE_LOGIC" LAYER="3" ORDER="10" STATUS="planned">
+      <contract>
+        <purpose>Merge duplicate adjacent segments via hash/SSIM similarity.</purpose>
+      </contract>
+      <target><source>src/video_slide_md/dedupe.py</source><tests>tests/test_dedupe.py</tests></target>
+      <verification-ref>V-M-DEDUPE</verification-ref>
+      <depends>M-MODELS, M-FRAME-FEATURES</depends>
+    </M-DEDUPE>
+
+    <M-SUBTITLES NAME="Subtitles" TYPE="CORE_LOGIC" LAYER="4" ORDER="11" STATUS="planned">
+      <contract>
+        <purpose>Parse SRT/VTT, align cues to slide intervals by timestamp overlap.</purpose>
+      </contract>
+      <target><source>src/video_slide_md/subtitles.py</source><tests>tests/test_subtitles.py</tests></target>
+      <verification-ref>V-M-SUBTITLES</verification-ref>
+      <depends>M-MODELS</depends>
+    </M-SUBTITLES>
+
+    <M-MD-EXPORT NAME="MarkdownExport" TYPE="CORE_LOGIC" LAYER="4" ORDER="12" STATUS="planned">
+      <contract>
+        <purpose>Export slides.json to Marp-formatted deck.md.</purpose>
+      </contract>
+      <target><source>src/video_slide_md/markdown_export.py</source><tests>tests/test_markdown_export.py</tests></target>
+      <verification-ref>V-M-MD-EXPORT</verification-ref>
+      <depends>M-MODELS</depends>
+    </M-MD-EXPORT>
+
+    <M-DEBUG-EXPORT NAME="DebugExport" TYPE="UTILITY" LAYER="4" ORDER="13" STATUS="planned">
+      <contract>
+        <purpose>Generate debug artifacts: diff_scores.csv, timeline.png, contact_sheet.jpg.</purpose>
+      </contract>
+      <target><source>src/video_slide_md/debug_export.py</source><tests>tests/test_debug_export.py</tests></target>
+      <verification-ref>V-M-DEBUG-EXPORT</verification-ref>
+      <depends>M-MODELS</depends>
+    </M-DEBUG-EXPORT>
+  </Modules>
+
+  <DataFlow>
+    <DF-001 NAME="DetectPipeline" TRIGGER="CLI detect command">
+      <step-1>Load config from YAML + CLI args (M-CONFIG)</step-1>
+      <step-2>Open video, get metadata, iterate sampled frames (M-VIDEO-DECODE via M-BACKENDS)</step-2>
+      <step-3>For each frame: crop ROI, mask ignore regions (M-ROI)</step-3>
+      <step-4>Extract features: pHash, dHash, grayscale, histogram (M-FRAME-FEATURES)</step-4>
+      <step-5>Compare consecutive frames, detect changes with threshold and debounce (M-SLIDE-DETECTOR)</step-5>
+      <step-6>Build slide segments with representative timestamps (M-SEGMENTER)</step-6>
+      <step-7>Deduplicate adjacent similar segments (M-DEDUPE)</step-7>
+      <step-8>Parse subtitles and align cues to slide intervals (M-SUBTITLES)</step-8>
+      <step-9>Save representative screenshots and slides.json (M-CLI orchestration)</step-9>
+      <step-10>Generate debug artifacts if --debug (M-DEBUG-EXPORT)</step-10>
+      <evidence>slides.json exists and validates, slides/*.png files created, debug artifacts present</evidence>
+    </DF-001>
+
+    <DF-002 NAME="ExportMDPipeline" TRIGGER="CLI export-md command">
+      <step-1>Load slides.json (M-CLI)</step-1>
+      <step-2>Generate Marp-formatted Markdown with images and transcript (M-MD-EXPORT)</step-2>
+      <step-3>Write deck.md to output directory</step-3>
+      <evidence>deck.md opens correctly in Marp-compatible viewer</evidence>
+    </DF-002>
+  </DataFlow>
+
+  <ImplementationOrder>
+    <Phase-1 name="Foundation" status="pending">
+      <goal>Project skeleton, CLI, models, config — verifiable that tool runs and accepts arguments.</goal>
+      <step-1 module="M-MODELS" status="pending" verification="V-M-MODELS">Define Pydantic data models</step-1>
+      <step-2 module="M-CONFIG" status="pending" verification="V-M-CONFIG">Implement config loading (YAML + CLI merge)</step-2>
+      <step-3 module="M-CLI" status="pending" verification="V-M-CLI">CLI entry point with detect/export-md commands</step-3>
+    </Phase-1>
+
+    <Phase-2 name="VideoDecoding" status="pending">
+      <goal>Decode video, iterate sampled frames. Verifiable via debug frame export.</goal>
+      <step-4 module="M-BACKENDS" status="pending" verification="V-M-BACKENDS">OpenCV backend with frame iteration</step-4>
+      <step-5 module="M-VIDEO-DECODE" status="pending" verification="V-M-VIDEO-DECODE">Backend selection + frame sampling</step-5>
+    </Phase-2>
+
+    <Phase-3 name="SlideDetection" status="pending">
+      <goal>Detect slide changes and produce intervals. Verifiable via slides.json and debug artifacts.</goal>
+      <step-6 module="M-ROI" status="pending" verification="V-M-ROI">ROI crop and ignore mask</step-6>
+      <step-7 module="M-FRAME-FEATURES" status="pending" verification="V-M-FRAME-FEATURES">Feature extraction + visual distance</step-7>
+      <step-8 module="M-SLIDE-DETECTOR" status="pending" verification="V-M-SLIDE-DETECTOR">Change detection + debounce</step-8>
+      <step-9 module="M-SEGMENTER" status="pending" verification="V-M-SEGMENTER">Segment builder + representative timestamps</step-9>
+      <step-10 module="M-DEDUPE" status="pending" verification="V-M-DEDUPE">Neighbor segment deduplication</step-10>
+    </Phase-3>
+
+    <Phase-4 name="SubtitlesAndExport" status="pending">
+      <goal>Align subtitles and produce output files. Verifiable via full pipeline with synthetic video.</goal>
+      <step-11 module="M-SUBTITLES" status="pending" verification="V-M-SUBTITLES">SRT/VTT parsing + cue alignment</step-11>
+      <step-12 module="M-MD-EXPORT" status="pending" verification="V-M-MD-EXPORT">Marp Markdown export</step-12>
+      <step-13 module="M-DEBUG-EXPORT" status="pending" verification="V-M-DEBUG-EXPORT">Debug artifacts generation</step-13>
+    </Phase-4>
+
+    <Phase-5 name="GPUBackend" status="pending">
+      <goal>Add Decord and NVDEC backends with auto-detection. Verifiable on RTX 4090.</goal>
+    </Phase-5>
+  </ImplementationOrder>
+</DevelopmentPlan>

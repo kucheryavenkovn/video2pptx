@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<KnowledgeGraph>
+  <Project NAME="video-slide-md" VERSION="0.1.0">
+    <keywords>video, slides, markdown, presentation, open-cv, computer-vision, slide-detection, subtitle-alignment</keywords>
+    <annotation>Automatically extract slide intervals from educational videos, link to SRT/VTT subtitles, and export Markdown presentations.</annotation>
+
+    <M-MODELS NAME="Models" TYPE="UTILITY" STATUS="planned">
+      <purpose>Pydantic data models for slides document</purpose>
+      <path>src/video_slide_md/models.py</path>
+      <depends>none</depends>
+      <verification-ref>V-M-MODELS</verification-ref>
+      <annotations>
+        <type-SlidesDocument PURPOSE="Root document containing all slide segments" />
+        <type-SlideSegment PURPOSE="Single slide interval with transcript and metadata" />
+        <type-VideoInfo PURPOSE="Source video metadata" />
+        <type-SubtitleCue PURPOSE="Single subtitle entry with time and text" />
+      </annotations>
+    </M-MODELS>
+
+    <M-CLI NAME="CLI" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Typer CLI entry point for detect, export-md, debug, review commands</purpose>
+      <path>src/video_slide_md/cli.py</path>
+      <depends>M-CONFIG</depends>
+      <verification-ref>V-M-CLI</verification-ref>
+      <annotations>
+        <fn-detect PURPOSE="Main detect command: video + subtitles -> slides.json + images" />
+        <fn-export-md PURPOSE="Export slides.json to Marp Markdown presentation" />
+      </annotations>
+    </M-CLI>
+
+    <M-CONFIG NAME="Config" TYPE="UTILITY" STATUS="planned">
+      <purpose>Configuration loading — YAML file + CLI arg merge</purpose>
+      <path>src/video_slide_md/config.py</path>
+      <depends>M-MODELS</depends>
+      <verification-ref>V-M-CONFIG</verification-ref>
+    </M-CONFIG>
+
+    <M-VIDEO-DECODE NAME="VideoDecode" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Video frame decoding and sampling at given fps with multi-backend support</purpose>
+      <path>src/video_slide_md/video_decode.py</path>
+      <depends>M-BACKENDS</depends>
+      <verification-ref>V-M-VIDEO-DECODE</verification-ref>
+      <annotations>
+        <fn-iter_frames PURPOSE="Iterator yielding VideoFrame at sample_fps" />
+      </annotations>
+    </M-VIDEO-DECODE>
+
+    <M-BACKENDS NAME="Backends" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Video decoder backends: OpenCV, PyAV, Decord, NVDEC</purpose>
+      <path>src/video_slide_md/backends/</path>
+      <depends>none</depends>
+      <verification-ref>V-M-BACKENDS</verification-ref>
+    </M-BACKENDS>
+
+    <M-ROI NAME="ROI" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Slide ROI management — crop and mask ignore regions</purpose>
+      <path>src/video_slide_md/roi.py</path>
+      <depends>M-MODELS</depends>
+      <verification-ref>V-M-ROI</verification-ref>
+    </M-ROI>
+
+    <M-FRAME-FEATURES NAME="FrameFeatures" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Frame feature extraction: pHash, dHash, histogram, grayscale, visual distance</purpose>
+      <path>src/video_slide_md/frame_features.py</path>
+      <depends>M-ROI</depends>
+      <verification-ref>V-M-FRAME-FEATURES</verification-ref>
+    </M-FRAME-FEATURES>
+
+    <M-SLIDE-DETECTOR NAME="SlideDetector" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Slide change detection via frame comparison with threshold and debounce</purpose>
+      <path>src/video_slide_md/slide_detector.py</path>
+      <depends>M-FRAME-FEATURES, M-ROI</depends>
+      <verification-ref>V-M-SLIDE-DETECTOR</verification-ref>
+    </M-SLIDE-DETECTOR>
+
+    <M-SEGMENTER NAME="Segmenter" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Convert change events to slide intervals with representative timestamps</purpose>
+      <path>src/video_slide_md/segmenter.py</path>
+      <depends>M-MODELS</depends>
+      <verification-ref>V-M-SEGMENTER</verification-ref>
+    </M-SEGMENTER>
+
+    <M-DEDUPE NAME="Dedupe" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Deduplicate adjacent slide segments via hash/SSIM similarity</purpose>
+      <path>src/video_slide_md/dedupe.py</path>
+      <depends>M-MODELS, M-FRAME-FEATURES</depends>
+      <verification-ref>V-M-DEDUPE</verification-ref>
+    </M-DEDUPE>
+
+    <M-SUBTITLES NAME="Subtitles" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>SRT/VTT parsing and alignment of cues to slide intervals</purpose>
+      <path>src/video_slide_md/subtitles.py</path>
+      <depends>M-MODELS</depends>
+      <verification-ref>V-M-SUBTITLES</verification-ref>
+    </M-SUBTITLES>
+
+    <M-MD-EXPORT NAME="MarkdownExport" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Export slides.json to Marp-formatted deck.md</purpose>
+      <path>src/video_slide_md/markdown_export.py</path>
+      <depends>M-MODELS</depends>
+      <verification-ref>V-M-MD-EXPORT</verification-ref>
+    </M-MD-EXPORT>
+
+    <M-DEBUG-EXPORT NAME="DebugExport" TYPE="UTILITY" STATUS="planned">
+      <purpose>Generate debug artifacts: diff_scores.csv, timeline.png, contact_sheet.jpg</purpose>
+      <path>src/video_slide_md/debug_export.py</path>
+      <depends>M-MODELS</depends>
+      <verification-ref>V-M-DEBUG-EXPORT</verification-ref>
+    </M-DEBUG-EXPORT>
+
+    <CrossLink from="M-CLI" to="M-CONFIG" relation="reads config, passes to pipeline" />
+    <CrossLink from="M-CLI" to="M-VIDEO-DECODE" relation="orchestrates" />
+    <CrossLink from="M-CLI" to="M-SLIDE-DETECTOR" relation="orchestrates" />
+    <CrossLink from="M-CLI" to="M-SEGMENTER" relation="orchestrates" />
+    <CrossLink from="M-CLI" to="M-SUBTITLES" relation="orchestrates" />
+    <CrossLink from="M-CLI" to="M-MD-EXPORT" relation="orchestrates" />
+    <CrossLink from="M-VIDEO-DECODE" to="M-BACKENDS" relation="selects and uses" />
+    <CrossLink from="M-SLIDE-DETECTOR" to="M-FRAME-FEATURES" relation="extracts and compares" />
+    <CrossLink from="M-SLIDE-DETECTOR" to="M-ROI" relation="crops and masks" />
+    <CrossLink from="M-SEGMENTER" to="M-DEDUPE" relation="deduplicates after segmentation" />
+    <CrossLink from="M-MD-EXPORT" to="M-MODELS" relation="reads SlidesDocument" />
+  </Project>
+</KnowledgeGraph>

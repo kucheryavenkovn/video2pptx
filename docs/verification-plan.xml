@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VerificationPlan VERSION="0.1.0">
+  <GlobalPolicy>
+    <log-format>[ModuleName][function_name][BLOCK_NAME] message | key=value</log-format>
+    <deterministic-first>true</deterministic-first>
+    <module-level-focus>Fast deterministic unit checks for each module.</module-level-focus>
+    <wave-level-focus>Integration checks across pipeline stages with synthetic videos.</wave-level-focus>
+    <phase-level-focus>Synthetic video end-to-end tests with metric assertions.</phase-level-focus>
+    <mvp-metrics>
+      <missed_slide_rate val="<=5%" source="synthetic dataset" />
+      <false_split_rate val="<=10%" source="synthetic dataset" />
+      <timestamp_error_seconds val="<=1.5" source="at sample_fps=2" />
+    </mvp-metrics>
+    <redaction>Never log secrets, credentials, or raw high-risk payloads.</redaction>
+  </GlobalPolicy>
+
+  <CriticalFlows>
+    <VF-001 NAME="DetectHappyPath" USE_CASES="UC-001" DATA_FLOW="DF-001" PRIORITY="high">
+      <scenario>User provides valid MP4 + SRT — pipeline produces slides.json + images with correct intervals.</scenario>
+      <expected-outcome>slides.json validates, slide images saved, transcript aligned.</expected-outcome>
+      <required-signals>
+        <log-marker>[SlideDetector][detect_changes][BLOCK_COMPARE_FRAMES]</log-marker>
+        <log-marker>[Segmenter][build_segments][BLOCK_BUILD_INTERVALS]</log-marker>
+        <log-marker>[Subtitles][align_cues][BLOCK_OVERLAP_CALC]</log-marker>
+      </required-signals>
+    </VF-001>
+
+    <VF-002 NAME="ExportMDPath" USE_CASES="UC-002" DATA_FLOW="DF-002" PRIORITY="high">
+      <scenario>Valid slides.json → deck.md with correct Marp formatting.</scenario>
+      <expected-outcome>deck.md renders in Marp viewer with images and transcript.</expected-outcome>
+      <required-signals>
+        <log-marker>[MarkdownExport][export_deck][BLOCK_GENERATE_MD]</log-marker>
+      </required-signals>
+    </VF-002>
+
+    <VF-003 NAME="GPUAutoFallback" USE_CASES="UC-001" DATA_FLOW="DF-001" PRIORITY="medium">
+      <scenario>System without CUDA — auto backend falls back to OpenCV with warning.</scenario>
+      <expected-outcome>Pipeline completes on CPU with WARNING log line.</expected-outcome>
+      <required-signals>
+        <log-marker>[VideoDecode][select_backend][BLOCK_FALLBACK_CPU] (level=WARNING)</log-marker>
+      </required-signals>
+    </VF-003>
+  </CriticalFlows>
+
+  <ModuleVerification>
+    <V-M-MODELS MODULE="M-MODELS" PRIORITY="high">
+      <test-files><file>tests/test_models.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_models.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">SlidesDocument serialization round-trip works.</scenario-1>
+        <scenario-2 kind="success">SlideSegment defaults are correct.</scenario-2>
+        <scenario-3 kind="failure">Invalid schema_version is rejected.</scenario-3>
+      </scenarios>
+    </V-M-MODELS>
+
+    <V-M-CONFIG MODULE="M-CONFIG" PRIORITY="high">
+      <test-files><file>tests/test_config.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_config.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">YAML + CLI arg merge gives correct precedence.</scenario-1>
+        <scenario-2 kind="success">Missing config file falls back to defaults.</scenario-2>
+      </scenarios>
+    </V-M-CONFIG>
+
+    <V-M-SUBTITLES MODULE="M-SUBTITLES" PRIORITY="high">
+      <test-files><file>tests/test_subtitles.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_subtitles.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">SRT parsing returns correct cues.</scenario-1>
+        <scenario-2 kind="success">VTT parsing returns correct cues.</scenario-2>
+        <scenario-3 kind="success">Overlap calculation assigns cues correctly.</scenario-3>
+        <scenario-4 kind="success">Cue crossing slide boundary assigned to max overlap slide.</scenario-4>
+        <scenario-5 kind="success">Cyrillic text is preserved correctly.</scenario-5>
+      </scenarios>
+    </V-M-SUBTITLES>
+
+    <V-M-SEGMENTER MODULE="M-SEGMENTER" PRIORITY="high">
+      <test-files><file>tests/test_segmenter.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_segmenter.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Change timestamps produce correct intervals.</scenario-1>
+        <scenario-2 kind="success">Short segments handled correctly (merge/warn).</scenario-2>
+        <scenario-3 kind="success">Representative timestamp chosen correctly (80% for long, 50% for short).</scenario-3>
+      </scenarios>
+    </V-M-SEGMENTER>
+
+    <V-M-DEDUPE MODULE="M-DEDUPE" PRIORITY="high">
+      <test-files><file>tests/test_dedupe.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_dedupe.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Adjacent identical slides are merged.</scenario-1>
+        <scenario-2 kind="success">Similar slides with warning are flagged.</scenario-2>
+        <scenario-3 kind="success">Different slides are left separate.</scenario-3>
+      </scenarios>
+    </V-M-DEDUPE>
+
+    <V-M-MD-EXPORT MODULE="M-MD-EXPORT" PRIORITY="medium">
+      <test-files><file>tests/test_markdown_export.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_markdown_export.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Marp header and slide content is generated correctly.</scenario-1>
+        <scenario-2 kind="success">Timecodes are included in HTML comments.</scenario-2>
+      </scenarios>
+    </V-M-MD-EXPORT>
+
+    <V-M-SLIDE-DETECTOR MODULE="M-SLIDE-DETECTOR" PRIORITY="high">
+      <test-files><file>tests/test_slide_detector.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_slide_detector.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Static frames produce no changes.</scenario-1>
+        <scenario-2 kind="success">Clear slide transition is detected.</scenario-2>
+        <scenario-3 kind="success">Short noise (cursor flicker) does not trigger false change.</scenario-3>
+        <scenario-4 kind="success">min_stable_duration debounce works correctly.</scenario-4>
+      </scenarios>
+    </V-M-SLIDE-DETECTOR>
+  </ModuleVerification>
+
+  <PhaseGates>
+    <Gate-Phase-1 PHASE="Phase-1">
+      <goal>CLI runs, models validate, config loads.</goal>
+      <commands><command-1>pytest tests/test_models.py tests/test_config.py -v</command-1></commands>
+    </Gate-Phase-1>
+
+    <Gate-Phase-2 PHASE="Phase-2">
+      <goal>OpenCV backend decodes video and iterates frames.</goal>
+      <commands><command-1>pytest tests/test_backends.py -v</command-1></commands>
+    </Gate-Phase-2>
+
+    <Gate-Phase-3 PHASE="Phase-3">
+      <goal>Synthetic video pipeline produces correct slide intervals.</goal>
+      <commands><command-1>pytest tests/test_slide_detector.py tests/test_segmenter.py tests/test_dedupe.py -v</command-1></commands>
+    </Gate-Phase-3>
+
+    <Gate-Phase-4 PHASE="Phase-4">
+      <goal>Full pipeline: video + subtitles → slides.json + deck.md.</goal>
+      <commands><command-1>pytest tests/test_subtitles.py tests/test_markdown_export.py -v</command-1></commands>
+      <commands><command-1>pytest tests/test_synthetic_video.py -v -m integration</command-1></commands>
+    </Gate-Phase-4>
+  </PhaseGates>
+</VerificationPlan>

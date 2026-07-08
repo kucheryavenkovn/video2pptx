@@ -1,0 +1,6 @@
+name: video-slide-md
+dependencies:
+- name: gh@osovv/grace-marketplace/plugins/grace
+  base: plugins/grace
+  url: https://github.com/osovv/grace-marketplace.git
+dev-dependencies: []

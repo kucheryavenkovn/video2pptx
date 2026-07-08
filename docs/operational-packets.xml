@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OperationalPackets VERSION="0.1.0">
+  <ExecutionPacketTemplate>
+    <ExecutionPacket>
+      <module-id>M-EXAMPLE</module-id>
+      <module-name>Example</module-name>
+      <purpose>Implement the approved module without architectural drift.</purpose>
+      <write-scope>
+        <file-1>src/video_slide_md/example.py</file-1>
+        <file-2>tests/test_example.py</file-2>
+      </write-scope>
+      <contract-excerpt><![CDATA[
+Planned module contract excerpt goes here.
+      ]]></contract-excerpt>
+      <notes><note-1>Workers should only read more context when the packet is insufficient.</note-1></notes>
+    </ExecutionPacket>
+  </ExecutionPacketTemplate>
+
+  <GraphDeltaTemplate>
+    <GraphDelta module="M-EXAMPLE">
+      <imports-added /><imports-removed />
+      <exports-added><export-1>example_func</export-1></exports-added>
+      <exports-removed />
+      <cross-links-added /><cross-links-removed />
+    </GraphDelta>
+  </GraphDeltaTemplate>
+
+  <VerificationDeltaTemplate>
+    <VerificationDelta module="M-EXAMPLE">
+      <test-files-added><file-1>tests/test_example.py</file-1></test-files-added>
+      <test-files-removed />
+      <module-checks><command-1>pytest tests/test_example.py -v</command-1></module-checks>
+    </VerificationDelta>
+  </VerificationDeltaTemplate>
+
+  <FailurePacketTemplate>
+    <FailurePacket>
+      <scenario>Expected behavior fails.</scenario>
+      <contract-ref>M-EXAMPLE / V-M-EXAMPLE / scenario-1</contract-ref>
+      <expected-evidence /><observed-evidence />
+      <first-divergent-block>BLOCK_EXAMPLE</first-divergent-block>
+      <suggested-next-action>Read the contract, inspect the divergent block, apply smallest safe fix.</suggested-next-action>
+    </FailurePacket>
+  </FailurePacketTemplate>
+</OperationalPackets>
