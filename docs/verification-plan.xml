@@ -78,6 +78,19 @@
       </scenarios>
     </V-M-CLI>
 
+    <V-M-BACKENDS MODULE="M-BACKENDS" PRIORITY="high" STATUS="passed">
+      <test-files><file>tests/test_backends.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_backends.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">OpenCV backend returns correct frame count.</scenario-1>
+        <scenario-2 kind="success">Backend auto-selection falls back to OpenCV.</scenario-2>
+        <scenario-3 kind="success">Video metadata is extracted correctly.</scenario-3>
+        <scenario-4 kind="failure">Missing video raises FileNotFoundError.</scenario-4>
+      </scenarios>
+    </V-M-BACKENDS>
+
     <V-M-SUBTITLES MODULE="M-SUBTITLES" PRIORITY="high">
       <test-files><file>tests/test_subtitles.py</file></test-files>
       <module-checks>

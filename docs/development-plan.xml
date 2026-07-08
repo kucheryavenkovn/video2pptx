@@ -42,7 +42,7 @@
       <depends>M-CONFIG</depends>
     </M-CLI>
 
-    <M-BACKENDS NAME="Backends" TYPE="INTEGRATION" LAYER="0" ORDER="4" STATUS="planned">
+    <M-BACKENDS NAME="Backends" TYPE="INTEGRATION" LAYER="0" ORDER="4" STATUS="implemented">
       <contract>
         <purpose>Video decoder backends: OpenCV (CPU), PyAV, Decord, NVDEC. Auto-select best available.</purpose>
         <inputs><param name="video_path" type="Path" /></inputs>
@@ -168,7 +168,7 @@
 
     <Phase-2 name="VideoDecoding" status="pending">
       <goal>Decode video, iterate sampled frames. Verifiable via debug frame export.</goal>
-      <step-4 module="M-BACKENDS" status="pending" verification="V-M-BACKENDS">OpenCV backend with frame iteration</step-4>
+      <step-4 module="M-BACKENDS" status="done" verification="V-M-BACKENDS">OpenCV backend with frame iteration</step-4>
       <step-5 module="M-VIDEO-DECODE" status="pending" verification="V-M-VIDEO-DECODE">Backend selection + frame sampling</step-5>
     </Phase-2>
 

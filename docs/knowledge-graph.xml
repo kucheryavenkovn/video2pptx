@@ -45,7 +45,7 @@
       </annotations>
     </M-VIDEO-DECODE>
 
-    <M-BACKENDS NAME="Backends" TYPE="INTEGRATION" STATUS="planned">
+    <M-BACKENDS NAME="Backends" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Video decoder backends: OpenCV, PyAV, Decord, NVDEC</purpose>
       <path>src/video_slide_md/backends/</path>
       <depends>none</depends>
