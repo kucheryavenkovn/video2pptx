@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "video-slide-md"
-version = "0.1.0"
+version = "0.5.0"
 description = "Extract slide intervals from educational videos, link to SRT/VTT subtitles, and export Markdown presentations."
 readme = "README.md"
 requires-python = ">=3.10"
