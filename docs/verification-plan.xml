@@ -43,7 +43,7 @@
   </CriticalFlows>
 
   <ModuleVerification>
-    <V-M-MODELS MODULE="M-MODELS" PRIORITY="high">
+    <V-M-MODELS MODULE="M-MODELS" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_models.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_models.py -v</check-1>
@@ -51,7 +51,7 @@
       <scenarios>
         <scenario-1 kind="success">SlidesDocument serialization round-trip works.</scenario-1>
         <scenario-2 kind="success">SlideSegment defaults are correct.</scenario-2>
-        <scenario-3 kind="failure">Invalid schema_version is rejected.</scenario-3>
+        <scenario-3 kind="failure">Invalid duration is rejected by ge=0 constraint.</scenario-3>
       </scenarios>
     </V-M-MODELS>
 
