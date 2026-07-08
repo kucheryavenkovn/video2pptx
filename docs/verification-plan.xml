@@ -104,7 +104,31 @@
       </scenarios>
     </V-M-VIDEO-DECODE>
 
-    <V-M-SUBTITLES MODULE="M-SUBTITLES" PRIORITY="high">
+    <V-M-ROI MODULE="M-ROI" PRIORITY="high" STATUS="passed">
+      <test-files><file>tests/test_roi.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_roi.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">ROI parsing from various formats.</scenario-1>
+        <scenario-2 kind="success">Crop clips to frame boundaries.</scenario-2>
+        <scenario-3 kind="success">Ignore regions are blacked out.</scenario-3>
+      </scenarios>
+    </V-M-ROI>
+
+    <V-M-FRAME-FEATURES MODULE="M-FRAME-FEATURES" PRIORITY="high" STATUS="passed">
+      <test-files><file>tests/test_frame_features.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_frame_features.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Feature extraction returns valid hashes.</scenario-1>
+        <scenario-2 kind="success">Visual distance is symmetric.</scenario-2>
+        <scenario-3 kind="success">Auto threshold computation returns reasonable value.</scenario-3>
+      </scenarios>
+    </V-M-FRAME-FEATURES>
+
+    <V-M-SUBTITLES MODULE="M-SUBTITLES" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_subtitles.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_subtitles.py -v</check-1>
@@ -118,7 +142,7 @@
       </scenarios>
     </V-M-SUBTITLES>
 
-    <V-M-SEGMENTER MODULE="M-SEGMENTER" PRIORITY="high">
+    <V-M-SEGMENTER MODULE="M-SEGMENTER" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_segmenter.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_segmenter.py -v</check-1>
@@ -130,7 +154,7 @@
       </scenarios>
     </V-M-SEGMENTER>
 
-    <V-M-DEDUPE MODULE="M-DEDUPE" PRIORITY="high">
+    <V-M-DEDUPE MODULE="M-DEDUPE" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_dedupe.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_dedupe.py -v</check-1>
@@ -142,7 +166,7 @@
       </scenarios>
     </V-M-DEDUPE>
 
-    <V-M-MD-EXPORT MODULE="M-MD-EXPORT" PRIORITY="medium">
+    <V-M-MD-EXPORT MODULE="M-MD-EXPORT" PRIORITY="medium" STATUS="passed">
       <test-files><file>tests/test_markdown_export.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_markdown_export.py -v</check-1>
@@ -153,7 +177,18 @@
       </scenarios>
     </V-M-MD-EXPORT>
 
-    <V-M-SLIDE-DETECTOR MODULE="M-SLIDE-DETECTOR" PRIORITY="high">
+    <V-M-DEBUG-EXPORT MODULE="M-DEBUG-EXPORT" PRIORITY="low" STATUS="passed">
+      <test-files><file>tests/test_debug_export.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_debug_export.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">CSV export writes correct format.</scenario-1>
+        <scenario-2 kind="success">Report contains segment details.</scenario-2>
+      </scenarios>
+    </V-M-DEBUG-EXPORT>
+
+    <V-M-SLIDE-DETECTOR MODULE="M-SLIDE-DETECTOR" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_slide_detector.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_slide_detector.py -v</check-1>
@@ -165,6 +200,21 @@
         <scenario-4 kind="success">min_stable_duration debounce works correctly.</scenario-4>
       </scenarios>
     </V-M-SLIDE-DETECTOR>
+
+    <V-M-CLI-E2E MODULE="M-PIPELINE" PRIORITY="high" STATUS="passed">
+      <test-files><file>tests/test_cli_e2e.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_cli_e2e.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Detect command produces slides.json with correct structure.</scenario-1>
+        <scenario-2 kind="success">Detect with SRT aligns transcript to slides.</scenario-2>
+        <scenario-3 kind="success">Detect with --export-md generates valid deck.md.</scenario-3>
+        <scenario-4 kind="success">Detect with --debug creates debug artifacts.</scenario-4>
+        <scenario-5 kind="success">Export-md command processes existing slides.json.</scenario-5>
+        <scenario-6 kind="success">Debug command processes existing slides.json.</scenario-6>
+      </scenarios>
+    </V-M-CLI-E2E>
   </ModuleVerification>
 
   <PhaseGates>
@@ -186,7 +236,11 @@
     <Gate-Phase-4 PHASE="Phase-4">
       <goal>Full pipeline: video + subtitles → slides.json + deck.md.</goal>
       <commands><command-1>pytest tests/test_subtitles.py tests/test_markdown_export.py -v</command-1></commands>
-      <commands><command-1>pytest tests/test_synthetic_video.py -v -m integration</command-1></commands>
     </Gate-Phase-4>
+
+    <Gate-Phase-5 PHASE="Phase-5">
+      <goal>End-to-end: CLI detect/export-md/debug all work with synthetic video.</goal>
+      <commands><command-1>pytest tests/test_cli_e2e.py -v</command-1></commands>
+    </Gate-Phase-5>
   </PhaseGates>
 </VerificationPlan>
