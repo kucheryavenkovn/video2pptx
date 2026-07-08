@@ -55,7 +55,7 @@
       </scenarios>
     </V-M-MODELS>
 
-    <V-M-CONFIG MODULE="M-CONFIG" PRIORITY="high">
+    <V-M-CONFIG MODULE="M-CONFIG" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_config.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_config.py -v</check-1>

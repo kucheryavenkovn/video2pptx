@@ -28,7 +28,7 @@
       </annotations>
     </M-CLI>
 
-    <M-CONFIG NAME="Config" TYPE="UTILITY" STATUS="planned">
+    <M-CONFIG NAME="Config" TYPE="UTILITY" STATUS="implemented">
       <purpose>Configuration loading — YAML file + CLI arg merge</purpose>
       <path>src/video_slide_md/config.py</path>
       <depends>M-MODELS</depends>
