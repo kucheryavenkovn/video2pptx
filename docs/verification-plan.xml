@@ -35,11 +35,19 @@
 
     <VF-004 NAME="ExportPptxPath" USE_CASES="UC-002" DATA_FLOW="DF-002" PRIORITY="high">
       <scenario>Valid slides.json + images → deck.pptx with full-slide pictures and speaker notes.</scenario>
-      <expected-outcome>deck.pptx has correct slide count, notes contain transcript, images embedded.</expected-outcome>
+      <expected-outcome>deck.pptx has correct slide count, notes contain cleaned transcript, images embedded.</expected-outcome>
       <required-signals>
         <log-marker>[PptxExport][export_to_pptx][BLOCK_PPTX_BUILD]</log-marker>
       </required-signals>
     </VF-004>
+
+    <VF-005 NAME="NotesProcessingPath" USE_CASES="UC-001" DATA_FLOW="DF-002" PRIORITY="medium">
+      <scenario>Segment with SRT cues → process_notes(basic) → clean speaker notes text.</scenario>
+      <expected-outcome>Raw subtitle fragments joined, punctuated, deduplicated into flowing text.</expected-outcome>
+      <required-signals>
+        <log-marker>[NotesProcessor][_basic_cleanup]</log-marker>
+      </required-signals>
+    </VF-005>
 
     <VF-003 NAME="GPUAutoFallback" USE_CASES="UC-001" DATA_FLOW="DF-001" PRIORITY="medium">
       <scenario>System without CUDA — auto backend falls back to OpenCV with warning.</scenario>
@@ -210,8 +218,23 @@
         <scenario-2 kind="success">Each slide has notes with formatted timestamps and cues.</scenario-2>
         <scenario-3 kind="success">Slide images are embedded when image files exist.</scenario-3>
         <scenario-4 kind="success">Minimal slides.json with no images or cues still exports.</scenario-4>
+        <scenario-5 kind="success">Notes mode parameter passed through to process_notes.</scenario-5>
       </scenarios>
     </V-M-PPTX-EXPORT>
+
+    <V-M-NOTES-PROCESSOR MODULE="M-NOTES-PROCESSOR" PRIORITY="medium" STATUS="implemented">
+      <test-files><file>tests/test_notes_processor.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_notes_processor.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Basic mode joins SRT cues into continuous text.</scenario-1>
+        <scenario-2 kind="success">Basic mode fixes punctuation and capitalizes.</scenario-2>
+        <scenario-3 kind="success">Basic mode deduplicates repeated words from SRT overlap.</scenario-3>
+        <scenario-4 kind="success">Empty text returns empty string.</scenario-4>
+        <scenario-5 kind="success">process_notes with basic mode returns cleaned text.</scenario-5>
+      </scenarios>
+    </V-M-NOTES-PROCESSOR>
 
     <V-M-DEBUG-EXPORT MODULE="M-DEBUG-EXPORT" PRIORITY="low" STATUS="passed">
       <test-files><file>tests/test_debug_export.py</file></test-files>

@@ -117,12 +117,23 @@
     <M-PPTX-EXPORT NAME="PptxExport" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Export slides.json to PPTX presentation with slide images and speaker notes</purpose>
       <path>src/video_slide_md/pptx_export.py</path>
-      <depends>M-MODELS, python-pptx</depends>
+      <depends>M-MODELS, M-NOTES-PROCESSOR, python-pptx</depends>
       <verification-ref>V-M-PPTX-EXPORT</verification-ref>
       <annotations>
         <fn-export_to_pptx PURPOSE="Write .pptx with slide images as full-slide pictures and speaker notes" />
       </annotations>
     </M-PPTX-EXPORT>
+
+    <M-NOTES-PROCESSOR NAME="NotesProcessor" TYPE="CORE_LOGIC" STATUS="implemented">
+      <purpose>Process raw subtitle transcript into clean speaker notes for PPTX export</purpose>
+      <path>src/video_slide_md/notes_processor.py</path>
+      <depends>M-MODELS</depends>
+      <verification-ref>V-M-NOTES-PROCESSOR</verification-ref>
+      <annotations>
+        <fn-process_notes PURPOSE="Main entry: raw text + cues → clean speaker notes" />
+        <fn-SYSTEM_PROMPT_REPHRASE PURPOSE="System prompt template for LLM-based rephrasing" />
+      </annotations>
+    </M-NOTES-PROCESSOR>
 
     <M-DEBUG-EXPORT NAME="DebugExport" TYPE="UTILITY" STATUS="implemented">
       <purpose>Generate debug artifacts: diff_scores.csv, timeline.png, contact_sheet.jpg</purpose>
@@ -158,6 +169,8 @@
     <CrossLink from="M-DEDUPE" to="M-FRAME-FEATURES" relation="uses for comparison" />
     <CrossLink from="M-MD-EXPORT" to="M-MODELS" relation="reads SlidesDocument" />
     <CrossLink from="M-PPTX-EXPORT" to="M-MODELS" relation="reads SlidesDocument" />
+    <CrossLink from="M-PPTX-EXPORT" to="M-NOTES-PROCESSOR" relation="uses for notes cleanup" />
+    <CrossLink from="M-CLI" to="M-NOTES-PROCESSOR" relation="configures notes_mode and passes to export" />
     <CrossLink from="M-DEBUG-EXPORT" to="M-MODELS" relation="reads SlideSegment" />
 
     <M-COLAB NAME="ColabDeployment" TYPE="DEPLOYMENT" STATUS="planned">

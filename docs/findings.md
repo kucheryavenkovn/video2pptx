@@ -82,3 +82,12 @@
 - Impact: Deduplication silently did nothing.
 - Resolution: Changed `rep_frames[vf.timestamp] = ...` to `rep_frames[ts] = ...` using the segment's representative timestamp.
 - LINKS: M-DEDUPE, M-CLI
+
+### F-0010 — `notes_processor` basic cleanup does not rephrase — only joins + fixes typography
+- Date: 2026-07-08
+- Area: export
+- Finding: `_basic_cleanup()` joins SRT cue fragments, collapses whitespace, fixes punctuation spacing, capitalizes sentences, merges short orphan lines, and deduplicates repeated words. It does NOT rephrase sentences or rewrite anything — that's the `llm` mode's job.
+- Symptom/Reproduction: process_notes(basic) on "привет мир, , как дела" → "Привет мир, как дела" — punctuation fixed but sentence structure preserved.
+- Impact: Basic mode is safe (no quality risk, no LLM dependency) but produces note-like text rather than polished speaker notes. Users who want rephrasing must set up LM Studio.
+- Resolution: Designed as designed — two-tier approach. Basic mode for instant use, LLM mode for quality.
+- LINKS: M-NOTES-PROCESSOR, M-PPTX-EXPORT
