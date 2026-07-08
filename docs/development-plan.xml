@@ -53,7 +53,7 @@
       <depends>none</depends>
     </M-BACKENDS>
 
-    <M-VIDEO-DECODE NAME="VideoDecode" TYPE="CORE_LOGIC" LAYER="1" ORDER="5" STATUS="planned">
+    <M-VIDEO-DECODE NAME="VideoDecode" TYPE="CORE_LOGIC" LAYER="1" ORDER="5" STATUS="implemented">
       <contract>
         <purpose>Unified video decoder — select backend, iterate sampled frames.</purpose>
       </contract>
@@ -166,10 +166,10 @@
       <step-3 module="M-CLI" status="done" verification="V-M-CLI">CLI entry point with detect/export-md commands</step-3>
     </Phase-1>
 
-    <Phase-2 name="VideoDecoding" status="pending">
+    <Phase-2 name="VideoDecoding" status="done">
       <goal>Decode video, iterate sampled frames. Verifiable via debug frame export.</goal>
       <step-4 module="M-BACKENDS" status="done" verification="V-M-BACKENDS">OpenCV backend with frame iteration</step-4>
-      <step-5 module="M-VIDEO-DECODE" status="pending" verification="V-M-VIDEO-DECODE">Backend selection + frame sampling</step-5>
+      <step-5 module="M-VIDEO-DECODE" status="done" verification="V-M-VIDEO-DECODE">Backend selection + frame sampling</step-5>
     </Phase-2>
 
     <Phase-3 name="SlideDetection" status="pending">

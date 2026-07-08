@@ -35,7 +35,7 @@
       <verification-ref>V-M-CONFIG</verification-ref>
     </M-CONFIG>
 
-    <M-VIDEO-DECODE NAME="VideoDecode" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-VIDEO-DECODE NAME="VideoDecode" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Video frame decoding and sampling at given fps with multi-backend support</purpose>
       <path>src/video_slide_md/video_decode.py</path>
       <depends>M-BACKENDS</depends>

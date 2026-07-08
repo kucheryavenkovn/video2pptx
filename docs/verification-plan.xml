@@ -91,6 +91,19 @@
       </scenarios>
     </V-M-BACKENDS>
 
+    <V-M-VIDEO-DECODE MODULE="M-VIDEO-DECODE" PRIORITY="high" STATUS="passed">
+      <test-files><file>tests/test_video_decode.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_video_decode.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">VideoDecoder returns correct metadata.</scenario-1>
+        <scenario-2 kind="success">Frame iteration returns correct count.</scenario-2>
+        <scenario-3 kind="success">Auto backend selection works.</scenario-3>
+        <scenario-4 kind="success">Timestamps are increasing.</scenario-4>
+      </scenarios>
+    </V-M-VIDEO-DECODE>
+
     <V-M-SUBTITLES MODULE="M-SUBTITLES" PRIORITY="high">
       <test-files><file>tests/test_subtitles.py</file></test-files>
       <module-checks>
