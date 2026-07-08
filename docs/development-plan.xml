@@ -62,7 +62,7 @@
       <depends>M-BACKENDS</depends>
     </M-VIDEO-DECODE>
 
-    <M-ROI NAME="ROI" TYPE="CORE_LOGIC" LAYER="0" ORDER="6" STATUS="planned">
+    <M-ROI NAME="ROI" TYPE="CORE_LOGIC" LAYER="0" ORDER="6" STATUS="implemented">
       <contract>
         <purpose>Crop slide region, apply ignore masks. auto = full for MVP.</purpose>
       </contract>
@@ -71,7 +71,7 @@
       <depends>M-MODELS</depends>
     </M-ROI>
 
-    <M-FRAME-FEATURES NAME="FrameFeatures" TYPE="CORE_LOGIC" LAYER="1" ORDER="7" STATUS="planned">
+    <M-FRAME-FEATURES NAME="FrameFeatures" TYPE="CORE_LOGIC" LAYER="1" ORDER="7" STATUS="implemented">
       <contract>
         <purpose>Extract pHash, dHash, grayscale, histogram. Compute weighted visual distance.</purpose>
       </contract>
@@ -80,7 +80,7 @@
       <depends>M-ROI</depends>
     </M-FRAME-FEATURES>
 
-    <M-SLIDE-DETECTOR NAME="SlideDetector" TYPE="CORE_LOGIC" LAYER="2" ORDER="8" STATUS="planned">
+    <M-SLIDE-DETECTOR NAME="SlideDetector" TYPE="CORE_LOGIC" LAYER="2" ORDER="8" STATUS="implemented">
       <contract>
         <purpose>Compare consecutive frames, detect changes, apply debounce.</purpose>
       </contract>
@@ -89,7 +89,7 @@
       <depends>M-FRAME-FEATURES, M-ROI</depends>
     </M-SLIDE-DETECTOR>
 
-    <M-SEGMENTER NAME="Segmenter" TYPE="CORE_LOGIC" LAYER="3" ORDER="9" STATUS="planned">
+    <M-SEGMENTER NAME="Segmenter" TYPE="CORE_LOGIC" LAYER="3" ORDER="9" STATUS="implemented">
       <contract>
         <purpose>Convert change events to slide intervals, choose representative timestamps.</purpose>
       </contract>
@@ -98,7 +98,7 @@
       <depends>M-MODELS</depends>
     </M-SEGMENTER>
 
-    <M-DEDUPE NAME="Dedupe" TYPE="CORE_LOGIC" LAYER="3" ORDER="10" STATUS="planned">
+    <M-DEDUPE NAME="Dedupe" TYPE="CORE_LOGIC" LAYER="3" ORDER="10" STATUS="implemented">
       <contract>
         <purpose>Merge duplicate adjacent segments via hash/SSIM similarity.</purpose>
       </contract>
@@ -172,13 +172,13 @@
       <step-5 module="M-VIDEO-DECODE" status="done" verification="V-M-VIDEO-DECODE">Backend selection + frame sampling</step-5>
     </Phase-2>
 
-    <Phase-3 name="SlideDetection" status="pending">
+    <Phase-3 name="SlideDetection" status="done">
       <goal>Detect slide changes and produce intervals. Verifiable via slides.json and debug artifacts.</goal>
-      <step-6 module="M-ROI" status="pending" verification="V-M-ROI">ROI crop and ignore mask</step-6>
-      <step-7 module="M-FRAME-FEATURES" status="pending" verification="V-M-FRAME-FEATURES">Feature extraction + visual distance</step-7>
-      <step-8 module="M-SLIDE-DETECTOR" status="pending" verification="V-M-SLIDE-DETECTOR">Change detection + debounce</step-8>
-      <step-9 module="M-SEGMENTER" status="pending" verification="V-M-SEGMENTER">Segment builder + representative timestamps</step-9>
-      <step-10 module="M-DEDUPE" status="pending" verification="V-M-DEDUPE">Neighbor segment deduplication</step-10>
+      <step-6 module="M-ROI" status="done" verification="V-M-ROI">ROI crop and ignore mask</step-6>
+      <step-7 module="M-FRAME-FEATURES" status="done" verification="V-M-FRAME-FEATURES">Feature extraction + visual distance</step-7>
+      <step-8 module="M-SLIDE-DETECTOR" status="done" verification="V-M-SLIDE-DETECTOR">Change detection + debounce</step-8>
+      <step-9 module="M-SEGMENTER" status="done" verification="V-M-SEGMENTER">Segment builder + representative timestamps</step-9>
+      <step-10 module="M-DEDUPE" status="done" verification="V-M-DEDUPE">Neighbor segment deduplication</step-10>
     </Phase-3>
 
     <Phase-4 name="SubtitlesAndExport" status="pending">
