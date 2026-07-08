@@ -38,3 +38,47 @@
 - Symptom/Reproduction: test_markdown_export.py::TestExportToMarkdown — Pydantic validation error "Field required: video"
 - Impact: Tests fail to construct model instances
 - Resolution: Updated test constructors to use `video=VideoInfo(...)` and `slides=[...]` instead of `video_path` and `segments`
+
+### F-0005 — PyAV 18.0.0 HWAccel API: create via `av.open(path, hwaccel=HWAccel(...))`, not via codec context
+- Date: 2026-07-08
+- Area: tooling
+- Finding: PyAV 18.0.0 exposes hardware acceleration via `av.codec.hwaccel.HWAccel` class. Setting `hwaccel` attribute on `CodecContext` is read-only. The correct approach is: `hw = HWAccel('cuda', 0)` then `av.open(path, hwaccel=hw)`. The `HWAccel.create(codec)` method is called internally by `av.open()`. `frame.to_ndarray(format='rgb24')` handles GPU→CPU transfer automatically for HW-decoded frames.
+- Symptom/Reproduction: `stream.codec_context.hwaccel = 'cuda'` raises `AttributeError: not writable`; calling `HWAccel.create(codec)` before `av.open()` raises `RuntimeError: Hardware context already initialized`.
+- Impact: Naive approach fails — must pass HWAccel to `av.open()` directly.
+- Resolution: Implemented `pyav_iter_frames` with correct pattern: `_pick_hw_device()` → `_create_hwaccel()` → `av.open(path, hwaccel=hwaccel)`.
+- LINKS: M-BACKEND-PYAV, src/video_slide_md/backends/pyav_backend.py
+
+### F-0006 — `hwdevices_available()` returns ['cuda', 'dxva2', 'qsv', 'd3d11va', 'd3d12va', 'amf'] on RTX 4090 + Windows
+- Date: 2026-07-08
+- Area: tooling
+- Finding: `av.codec.hwaccel.hwdevices_available()` lists all FFmpeg-compiled HW accelerators regardless of actual GPU. CUDA device creation succeeds on RTX 4090. Priority order in auto-select: cuda > d3d12va > d3d11va > qsv > dxva2.
+- Symptom/Reproduction: `av.codec.hwaccel.hwdevices_available()` returns 6 device types; `HWAccel('cuda', 0)` succeeds.
+- Impact: Auto-selection picks CUDA which works correctly.
+- Resolution: Used in `_pick_hw_device()` with prioritized list.
+- LINKS: M-BACKEND-PYAV
+### F-0007 — `python-pptx` 1.0.2 blank layout index is 6
+- Date: 2026-07-08
+- Area: export
+- Finding: `python-pptx` default template has layouts at indices 0-10. Index 6 is the blank layout (no placeholders). `prs.slide_layouts[6]` gives a completely empty slide suitable for full-bleed images.
+- Symptom/Reproduction: Using `slide_layouts[0]` (title slide) leaves title/subtitle placeholders overlapping the image.
+- Impact: Image would be partially hidden by text placeholders.
+- Resolution: Use `prs.slide_layouts[6]` for all slides in `export_to_pptx()`.
+- LINKS: M-PPTX-EXPORT
+
+### F-0008 — `visual_distance` weights dominated by histograms — pixel MAE needed for slide dedupe
+- Date: 2026-07-08
+- Area: detection
+- Finding: Original `visual_distance` used 70% hash (phash+dhash) and 20% histogram MSE. For lecture slides with uniform backgrounds, hash/histogram distances are tiny even for different content. Added `gray_thumb` (48x48 grayscale thumbnail) with 80% weight for pixel MAE.
+- Symptom/Reproduction: Slides with similar white backgrounds but different text had `visual_distance` < 0.05 while pixel_diff was 0.05-0.07.
+- Impact: Dedupe merged genuinely different slides.
+- Resolution: Added `gray_thumb` to `FrameFeatures`, `_pixel_mae()` to `visual_distance`, weight 0.80.
+- LINKS: M-FRAME-FEATURES, M-DEDUPE
+
+### F-0009 — `rep_frames` dict keys must use segment `representative_timestamp`, not `vf.timestamp`
+- Date: 2026-07-08
+- Area: detection
+- Finding: In `deduplicate_segments()`, `frames.get(seg.representative_timestamp)` always returned `None` because `rep_frames` was keyed by `vf.timestamp` (the actual sample frame timestamp like 195.0), not by the segment's `representative_timestamp` (like 156.0).
+- Symptom/Reproduction: `rep_frame is None` for all segments, dedupe never triggered = before=17 after=17.
+- Impact: Deduplication silently did nothing.
+- Resolution: Changed `rep_frames[vf.timestamp] = ...` to `rep_frames[ts] = ...` using the segment's representative timestamp.
+- LINKS: M-DEDUPE, M-CLI

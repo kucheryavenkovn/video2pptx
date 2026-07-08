@@ -24,7 +24,7 @@ from video_slide_md.models import FrameFeatures, SlideSegment
 def deduplicate_segments(
     segments: list[SlideSegment],
     frames: dict,
-    max_distance: float = 0.15,
+    max_distance: float = 0.03,
 ) -> list[SlideSegment]:
     # START_CONTRACT: deduplicate_segments
     #   PURPOSE: Remove near-duplicate segments based on representative frame similarity

@@ -14,6 +14,7 @@
 #   run - entry point for console_scripts
 #   detect - detect command: video + subtitles → slides.json + images
 #   export_md - export-md command: slides.json → deck.md
+#   export_pptx - export-pptx command: slides.json → deck.pptx
 #   debug_cmd - debug command: slides.json → debug artifacts
 # END_MODULE_MAP
 
@@ -33,6 +34,7 @@ from video_slide_md.config import load_config, AppConfig
 from video_slide_md.dedupe import deduplicate_segments
 from video_slide_md.frame_features import extract_features
 from video_slide_md.markdown_export import export_to_markdown
+from video_slide_md.pptx_export import export_to_pptx
 from video_slide_md.models import SlideSegment, SlidesDocument, VideoInfo, SubtitleCue
 from video_slide_md.roi import SlideRegion, parse_roi, parse_ignore_rois
 from video_slide_md.segmenter import build_segments
@@ -59,6 +61,7 @@ def detect(
     min_stable_duration: Optional[float] = typer.Option(None, "--min-stable-duration", help="Min stable seconds"),
     dedupe: bool = typer.Option(True, "--dedupe/--no-dedupe", help="Enable neighbor deduplication"),
     export_md: bool = typer.Option(False, "--export-md", help="Export deck.md after detection"),
+    export_pptx: bool = typer.Option(False, "--export-pptx", help="Export .pptx after detection"),
     debug: bool = typer.Option(False, "--debug", help="Enable debug artifacts"),
 ):
     # START_CONTRACT: detect
@@ -124,6 +127,8 @@ def detect(
     )
     # END_BLOCK_PARSE_ROI
 
+    sample_tolerance = 0.5 / max(cfg.video.sample_fps, 0.1)
+
     # START_BLOCK_DETECT_CHANGES
     frames_iter = ((f.timestamp, f.image) for f in decoder.iter_frames())
     changes, all_features, all_scores = detect_changes(
@@ -132,6 +137,7 @@ def detect(
         threshold=cfg.detection.threshold,
         min_stable_duration=cfg.detection.min_stable_duration,
         sample_fps=cfg.video.sample_fps,
+        video_duration=info.duration,
     )
     # END_BLOCK_DETECT_CHANGES
 
@@ -145,12 +151,14 @@ def detect(
 
     # START_BLOCK_DEDUPE
     if cfg.detection.dedupe_enabled and len(segments) > 1:
-        # Re-iterate frames to collect representative images
+        # Re-iterate frames to collect representative images keyed by segment ts
         rep_frames: dict[float, np.ndarray] = {}
         for vf in decoder.iter_frames():
-            if any(abs(vf.timestamp - s.representative_timestamp) < 0.1 for s in segments):
-                cropped = slide_region.process(vf.image)
-                rep_frames[vf.timestamp] = cropped
+            for s in segments:
+                ts = s.representative_timestamp
+                if ts not in rep_frames and abs(vf.timestamp - ts) < sample_tolerance:
+                    rep_frames[ts] = slide_region.process(vf.image)
+                    break
         segments = deduplicate_segments(segments, rep_frames)
     # END_BLOCK_DEDUPE
 
@@ -168,7 +176,7 @@ def detect(
     for vf in decoder.iter_frames():
         for seg in segments:
             ts = seg.representative_timestamp
-            if ts not in saved_timestamps and abs(vf.timestamp - ts) < 0.1:
+            if ts not in saved_timestamps and abs(vf.timestamp - ts) < sample_tolerance:
                 cropped = slide_region.process(vf.image)
                 fname = f"slide_{seg.index:03d}.png"
                 cv2.imwrite(str(slides_dir / fname), cv2.cvtColor(cropped, cv2.COLOR_RGB2BGR))
@@ -199,6 +207,11 @@ def detect(
         export_to_markdown(doc, md_path, slides_dir="slides", title=video_path.stem)
         console.print(f"[green]✓[/green] Deck: {md_path.resolve()}")
 
+    if export_pptx:
+        pptx_path = out_dir / "deck.pptx"
+        export_to_pptx(doc, pptx_path, slides_dir=out_dir, title=video_path.stem)
+        console.print(f"[green]✓[/green] PPTX: {pptx_path.resolve()}")
+
     if debug:
         debug_dir = out_dir / "debug"
         debug_dir.mkdir(exist_ok=True)
@@ -215,7 +228,7 @@ def detect(
         for vf in decoder.iter_frames():
             for seg in segments:
                 ts = seg.representative_timestamp
-                if ts not in rep_frames_contact and abs(vf.timestamp - ts) < 0.1:
+                if ts not in rep_frames_contact and abs(vf.timestamp - ts) < sample_tolerance:
                     rep_frames_contact[ts] = slide_region.process(vf.image)
                     break
         if rep_frames_contact:
@@ -258,6 +271,36 @@ def export_md(
     out_path = Path(out) if out else json_path.parent / "deck.md"
     export_to_markdown(doc, out_path)
     console.print(f"[green]✓[/green] Deck: {out_path.resolve()}")
+
+
+@app.command()
+def export_pptx(
+    slides_json: str = typer.Argument(..., help="Path to slides.json"),
+    out: Optional[str] = typer.Option(None, "--out", "-o", help="Output path (default: next to slides.json)"),
+):
+    # START_CONTRACT: export_pptx
+    #   PURPOSE: Export slides.json to PPTX presentation
+    #   INPUTS: slides.json path, output path
+    #   OUTPUTS: deck.pptx file
+    #   SIDE_EFFECTS: writes .pptx
+    #   LINKS: M-CLI
+    # END_CONTRACT: export_pptx
+
+    json_path = Path(slides_json)
+    if not json_path.is_file():
+        console.print(f"[red]File not found: {slides_json}[/red]")
+        raise typer.Exit(code=1)
+
+    logger.info(f"[CLI][export_pptx] Exporting slides from {slides_json}")
+
+    import json
+    from video_slide_md.models import SlidesDocument
+    from video_slide_md.pptx_export import export_to_pptx
+
+    doc = SlidesDocument.model_validate_json(json_path.read_text(encoding="utf-8"))
+    out_path = Path(out) if out else json_path.parent / "deck.pptx"
+    export_to_pptx(doc, out_path, slides_dir=json_path.parent)
+    console.print(f"[green]✓[/green] PPTX: {out_path.resolve()}")
 
 
 @app.command(name="debug")

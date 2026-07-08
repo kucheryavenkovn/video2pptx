@@ -25,6 +25,7 @@
       <annotations>
         <fn-detect PURPOSE="Main detect command: video + subtitles -> slides.json + images" />
         <fn-export-md PURPOSE="Export slides.json to Marp Markdown presentation" />
+        <fn-export-pptx PURPOSE="Export slides.json to PPTX presentation" />
       </annotations>
     </M-CLI>
 
@@ -50,6 +51,18 @@
       <path>src/video_slide_md/backends/</path>
       <depends>none</depends>
       <verification-ref>V-M-BACKENDS</verification-ref>
+      <submodules>
+        <M-BACKEND-OPENCV NAME="OpenCVBackend" STATUS="implemented">
+          <purpose>OpenCV-based CPU decoder</purpose>
+          <path>src/video_slide_md/backends/opencv_backend.py</path>
+        </M-BACKEND-OPENCV>
+        <M-BACKEND-PYAV NAME="PyAVBackend" STATUS="implemented">
+          <purpose>PyAV/FFmpeg decoder with CUDA NVDEC hwaccel</purpose>
+          <path>src/video_slide_md/backends/pyav_backend.py</path>
+          <depends>av</depends>
+          <verification-ref>V-M-BACKEND-PYAV</verification-ref>
+        </M-BACKEND-PYAV>
+      </submodules>
     </M-BACKENDS>
 
     <M-ROI NAME="ROI" TYPE="CORE_LOGIC" STATUS="implemented">
@@ -101,6 +114,16 @@
       <verification-ref>V-M-MD-EXPORT</verification-ref>
     </M-MD-EXPORT>
 
+    <M-PPTX-EXPORT NAME="PptxExport" TYPE="CORE_LOGIC" STATUS="implemented">
+      <purpose>Export slides.json to PPTX presentation with slide images and speaker notes</purpose>
+      <path>src/video_slide_md/pptx_export.py</path>
+      <depends>M-MODELS, python-pptx</depends>
+      <verification-ref>V-M-PPTX-EXPORT</verification-ref>
+      <annotations>
+        <fn-export_to_pptx PURPOSE="Write .pptx with slide images as full-slide pictures and speaker notes" />
+      </annotations>
+    </M-PPTX-EXPORT>
+
     <M-DEBUG-EXPORT NAME="DebugExport" TYPE="UTILITY" STATUS="implemented">
       <purpose>Generate debug artifacts: diff_scores.csv, timeline.png, contact_sheet.jpg</purpose>
       <path>src/video_slide_md/debug_export.py</path>
@@ -121,6 +144,7 @@
     <CrossLink from="M-CLI" to="M-SEGMENTER" relation="orchestrates" />
     <CrossLink from="M-CLI" to="M-SUBTITLES" relation="orchestrates" />
     <CrossLink from="M-CLI" to="M-MD-EXPORT" relation="orchestrates" />
+    <CrossLink from="M-CLI" to="M-PPTX-EXPORT" relation="orchestrates" />
     <CrossLink from="M-CLI" to="M-DEDUPE" relation="orchestrates" />
     <CrossLink from="M-CLI" to="M-ROI" relation="orchestrates" />
     <CrossLink from="M-CLI" to="M-FRAME-FEATURES" relation="orchestrates via slide_detector" />
@@ -133,6 +157,7 @@
     <CrossLink from="M-SEGMENTER" to="M-DEDUPE" relation="deduplicates after segmentation" />
     <CrossLink from="M-DEDUPE" to="M-FRAME-FEATURES" relation="uses for comparison" />
     <CrossLink from="M-MD-EXPORT" to="M-MODELS" relation="reads SlidesDocument" />
+    <CrossLink from="M-PPTX-EXPORT" to="M-MODELS" relation="reads SlidesDocument" />
     <CrossLink from="M-DEBUG-EXPORT" to="M-MODELS" relation="reads SlideSegment" />
   </Project>
 </KnowledgeGraph>

@@ -50,10 +50,12 @@ def detect_changes(
     threshold: float | str = "auto",
     min_stable_duration: float = 1.5,
     sample_fps: float = 2.0,
+    video_duration: float | None = None,
 ) -> tuple[list[ChangeEvent], list[FrameFeatures], list[float]]:
     # START_CONTRACT: detect_changes
     #   PURPOSE: Scan frames, compare consecutive, detect slide changes
-    #   INPUTS: { frames: timestamp+image iterator, slide_region, threshold, min_stable_duration, sample_fps }
+    #   INPUTS: { frames: timestamp+image iterator, slide_region, threshold,
+    #             min_stable_duration, sample_fps, video_duration }
     #   OUTPUTS: (changes: list[ChangeEvent], all_features: list[FrameFeatures], all_scores: list[float])
     #   SIDE_EFFECTS: none
     #   LINKS: M-SLIDE-DETECTOR
@@ -68,6 +70,8 @@ def detect_changes(
 
     # START_BLOCK_PROCESS_FRAMES
     prev_features: FrameFeatures | None = None
+    progress_step: float = max(30.0, (video_duration or 600.0) * 0.1)
+    next_progress: float = progress_step
     for timestamp, image in frames:
         cropped = slide_region.process(image)
         ff = extract_features(cropped)
@@ -78,7 +82,6 @@ def detect_changes(
             score = visual_distance(prev_features, ff)
             all_scores.append(score)
 
-            # If score exceeds threshold, register candidate change
             actual_threshold = _resolve_threshold(threshold, all_scores, timestamp)
             if score > actual_threshold:
                 changes.append(ChangeEvent(timestamp=timestamp, score=score, features=ff))
@@ -86,6 +89,14 @@ def detect_changes(
                     f"[SlideDetector][detect_changes] Candidate change | "
                     f"ts={timestamp:.2f} score={score:.4f} threshold={actual_threshold:.4f}"
                 )
+
+        if timestamp >= next_progress:
+            pct = f"{timestamp / video_duration * 100:.0f}%" if video_duration else f"{timestamp:.0f}s"
+            logger.info(
+                f"[SlideDetector][detect_changes] Progress | "
+                f"{pct} ts={timestamp:.0f}s changes={len(changes)}"
+            )
+            next_progress += progress_step
 
         prev_features = ff
     # END_BLOCK_PROCESS_FRAMES

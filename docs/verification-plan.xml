@@ -33,6 +33,14 @@
       </required-signals>
     </VF-002>
 
+    <VF-004 NAME="ExportPptxPath" USE_CASES="UC-002" DATA_FLOW="DF-002" PRIORITY="high">
+      <scenario>Valid slides.json + images → deck.pptx with full-slide pictures and speaker notes.</scenario>
+      <expected-outcome>deck.pptx has correct slide count, notes contain transcript, images embedded.</expected-outcome>
+      <required-signals>
+        <log-marker>[PptxExport][export_to_pptx][BLOCK_PPTX_BUILD]</log-marker>
+      </required-signals>
+    </VF-004>
+
     <VF-003 NAME="GPUAutoFallback" USE_CASES="UC-001" DATA_FLOW="DF-001" PRIORITY="medium">
       <scenario>System without CUDA — auto backend falls back to OpenCV with warning.</scenario>
       <expected-outcome>Pipeline completes on CPU with WARNING log line.</expected-outcome>
@@ -90,6 +98,21 @@
         <scenario-4 kind="failure">Missing video raises FileNotFoundError.</scenario-4>
       </scenarios>
     </V-M-BACKENDS>
+
+    <V-M-BACKEND-PYAV MODULE="M-BACKEND-PYAV" PRIORITY="medium" STATUS="implemented">
+      <test-files><file>tests/test_backends.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_backends.py -k "pyav" -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">PyAV backend returns correct metadata.</scenario-1>
+        <scenario-2 kind="success">PyAV frame iteration returns correct count at sample_fps.</scenario-2>
+        <scenario-3 kind="success">PyAV iter_frames yields RGB ndarrays with increasing timestamps.</scenario-3>
+        <scenario-4 kind="success">PyAV backend is picked by auto when available.</scenario-4>
+        <scenario-5 kind="failure">PyAV missing video raises FileNotFoundError.</scenario-5>
+        <scenario-6 kind="success">PyAV with CUDA hwaccel decodes correctly.</scenario-6>
+      </scenarios>
+    </V-M-BACKEND-PYAV>
 
     <V-M-VIDEO-DECODE MODULE="M-VIDEO-DECODE" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_video_decode.py</file></test-files>
@@ -176,6 +199,19 @@
         <scenario-2 kind="success">Timecodes are included in HTML comments.</scenario-2>
       </scenarios>
     </V-M-MD-EXPORT>
+
+    <V-M-PPTX-EXPORT MODULE="M-PPTX-EXPORT" PRIORITY="medium" STATUS="implemented">
+      <test-files><file>tests/test_pptx_export.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_pptx_export.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Export creates valid .pptx with correct slide count.</scenario-1>
+        <scenario-2 kind="success">Each slide has notes with formatted timestamps and cues.</scenario-2>
+        <scenario-3 kind="success">Slide images are embedded when image files exist.</scenario-3>
+        <scenario-4 kind="success">Minimal slides.json with no images or cues still exports.</scenario-4>
+      </scenarios>
+    </V-M-PPTX-EXPORT>
 
     <V-M-DEBUG-EXPORT MODULE="M-DEBUG-EXPORT" PRIORITY="low" STATUS="passed">
       <test-files><file>tests/test_debug_export.py</file></test-files>

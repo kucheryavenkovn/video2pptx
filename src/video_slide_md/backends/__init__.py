@@ -54,6 +54,20 @@ BACKENDS: dict[str, dict[str, Any]] = {
 _AUTO_ORDER = ["pynv", "decord", "pyav", "opencv"]
 # END_BLOCK_AUTO_ORDER
 
+# START_BLOCK_DETECT_PYAV
+try:
+    import av  # noqa: F401
+    from video_slide_md.backends.pyav_backend import pyav_iter_frames, pyav_video_info
+    BACKENDS["pyav"] = {
+        "available": True,
+        "iter_frames": pyav_iter_frames,
+        "video_info": pyav_video_info,
+    }
+    logger.debug("[Backends] PyAV backend detected and registered")
+except ImportError:
+    logger.debug("[Backends] PyAV not installed, using OpenCV fallback")
+# END_BLOCK_DETECT_PYAV
+
 
 def _resolve_backend(name: str) -> tuple[str, dict[str, Any]]:
     # START_CONTRACT: _resolve_backend

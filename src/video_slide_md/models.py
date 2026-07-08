@@ -93,6 +93,7 @@ class FrameFeatures(BaseModel):
     dhash: str = Field(default="", description="Difference hash hex string")
     hist: list[float] = Field(default_factory=list, description="Normalized color histogram")
     gray_mean: float = Field(default=0.0, description="Mean grayscale brightness")
+    gray_thumb: list[float] = Field(default_factory=list, description="48x48 grayscale thumbnail flattened")
 
 
 @dataclass

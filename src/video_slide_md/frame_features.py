@@ -30,10 +30,11 @@ from video_slide_md.models import FrameFeatures
 
 # START_BLOCK_DEFAULT_WEIGHTS
 DISTANCE_WEIGHTS: dict[str, float] = {
-    "phash": 0.40,
-    "dhash": 0.30,
-    "mse": 0.20,
-    "hist": 0.10,
+    "phash": 0.05,
+    "dhash": 0.05,
+    "mse": 0.05,
+    "hist": 0.05,
+    "pixel_mse": 0.80,
 }
 # END_BLOCK_DEFAULT_WEIGHTS
 
@@ -64,12 +65,16 @@ def extract_features(image: np.ndarray) -> FrameFeatures:
     # Color histogram (256 bins per channel → 768 values)
     hist = compute_histogram(image)
 
+    # Gray thumbnail 48x48 for pixel-level comparison
+    gray_thumb = cv2.resize(gray, (48, 48), interpolation=cv2.INTER_LINEAR).ravel().tolist()
+
     features = FrameFeatures(
         timestamp=0.0,
         phash=phash_str,
         dhash=dhash_str,
         hist=hist,
         gray_mean=gray_mean,
+        gray_thumb=gray_thumb,
     )
     return features
     # END_BLOCK_EXTRACT
@@ -108,6 +113,11 @@ def visual_distance(a: FrameFeatures, b: FrameFeatures) -> float:
     if a.hist and b.hist:
         hist_dist = _histogram_distance(a.hist, b.hist)
         score += DISTANCE_WEIGHTS["hist"] * hist_dist
+
+    # Pixel MAE on 16x16 grayscale thumbnail
+    if a.gray_thumb and b.gray_thumb:
+        pixel_mae_val = _pixel_mae(a.gray_thumb, b.gray_thumb)
+        score += DISTANCE_WEIGHTS["pixel_mse"] * pixel_mae_val
     # END_BLOCK_DISTANCE
 
     return score
@@ -200,6 +210,16 @@ def cv2_calc_hist(image: np.ndarray, channel: int, bins: int = 256) -> list[floa
     if total > 0:
         hist = hist / total
     return hist.tolist()
+
+
+def _pixel_mae(thumb_a: list[float], thumb_b: list[float]) -> float:
+    """Normalized MAE between two flattened grayscale thumbnails (0-1 range)."""
+    if not thumb_a or not thumb_b or len(thumb_a) != len(thumb_b):
+        return 0.0
+    a = np.array(thumb_a, dtype=np.float32)
+    b = np.array(thumb_b, dtype=np.float32)
+    mae = float(np.mean(np.abs(a - b)))
+    return min(1.0, mae / 255.0)
 
 
 def array_to_pil(image: np.ndarray) -> Image.Image:
