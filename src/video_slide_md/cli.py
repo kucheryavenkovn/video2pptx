@@ -22,12 +22,23 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
+import cv2
+import numpy as np
 import typer
 from loguru import logger
 from rich.console import Console
 from rich.table import Table
 
-from video_slide_md.config import load_config
+from video_slide_md.config import load_config, AppConfig
+from video_slide_md.dedupe import deduplicate_segments
+from video_slide_md.frame_features import extract_features
+from video_slide_md.markdown_export import export_to_markdown
+from video_slide_md.models import SlideSegment, SlidesDocument, VideoInfo, SubtitleCue
+from video_slide_md.roi import SlideRegion, parse_roi, parse_ignore_rois
+from video_slide_md.segmenter import build_segments
+from video_slide_md.slide_detector import detect_changes
+from video_slide_md.subtitles import align_cues_to_segments, parse_subtitles
+from video_slide_md.video_decode import VideoDecoder
 
 app = typer.Typer(name="video-slide-md")
 console = Console()
@@ -75,6 +86,8 @@ def detect(
 
     out_dir = Path(out)
     out_dir.mkdir(parents=True, exist_ok=True)
+    slides_dir = out_dir / "slides"
+    slides_dir.mkdir(exist_ok=True)
 
     video_path = Path(video)
     if not video_path.is_file():
@@ -93,10 +106,122 @@ def detect(
     if subs_path:
         console.print(f"[green]✓[/green] Subtitles: {subs_path.resolve()}")
 
+    # START_BLOCK_OPEN_VIDEO
+    decoder = VideoDecoder(
+        video_path=video_path,
+        sample_fps=cfg.video.sample_fps,
+        backend=cfg.video.decoder_backend,
+    )
+    info = decoder.get_info()
+    logger.info(f"[CLI][detect] Video info | duration={info.duration:.2f} {info.width}x{info.height} fps={info.fps:.2f}")
+    # END_BLOCK_OPEN_VIDEO
+
+    # START_BLOCK_PARSE_ROI
+    ignore_rois = parse_ignore_rois(cfg.detection.ignore_rois)
+    slide_region = SlideRegion(
+        roi=parse_roi(cfg.detection.slide_roi).roi,
+        ignore_rois=ignore_rois,
+    )
+    # END_BLOCK_PARSE_ROI
+
+    # START_BLOCK_DETECT_CHANGES
+    frames_iter = ((f.timestamp, f.image) for f in decoder.iter_frames())
+    changes, all_features, all_scores = detect_changes(
+        frames=frames_iter,
+        slide_region=slide_region,
+        threshold=cfg.detection.threshold,
+        min_stable_duration=cfg.detection.min_stable_duration,
+        sample_fps=cfg.video.sample_fps,
+    )
+    # END_BLOCK_DETECT_CHANGES
+
+    # START_BLOCK_BUILD_SEGMENTS
+    segments: list[SlideSegment] = build_segments(
+        changes=changes,
+        video_duration=info.duration,
+        min_slide_duration=cfg.detection.min_slide_duration,
+    )
+    # END_BLOCK_BUILD_SEGMENTS
+
+    # START_BLOCK_DEDUPE
+    if cfg.detection.dedupe_enabled and len(segments) > 1:
+        # Re-iterate frames to collect representative images
+        rep_frames: dict[float, np.ndarray] = {}
+        for vf in decoder.iter_frames():
+            if any(abs(vf.timestamp - s.representative_timestamp) < 0.1 for s in segments):
+                cropped = slide_region.process(vf.image)
+                rep_frames[vf.timestamp] = cropped
+        segments = deduplicate_segments(segments, rep_frames)
+    # END_BLOCK_DEDUPE
+
+    # START_BLOCK_ALIGN_SUBTITLES
+    cues: list[SubtitleCue] = []
+    if subs_path:
+        content = subs_path.read_text(encoding="utf-8")
+        fmt = "vtt" if subs_path.suffix.lower() == ".vtt" else "srt"
+        cues = parse_subtitles(content, format=fmt)
+        segments = align_cues_to_segments(segments, cues)
+    # END_BLOCK_ALIGN_SUBTITLES
+
+    # START_BLOCK_SAVE_SCREENSHOTS
+    saved_timestamps: set[float] = set()
+    for vf in decoder.iter_frames():
+        for seg in segments:
+            ts = seg.representative_timestamp
+            if ts not in saved_timestamps and abs(vf.timestamp - ts) < 0.1:
+                cropped = slide_region.process(vf.image)
+                fname = f"slide_{seg.index:03d}.png"
+                cv2.imwrite(str(slides_dir / fname), cv2.cvtColor(cropped, cv2.COLOR_RGB2BGR))
+                seg.image = f"slides/{fname}"
+                saved_timestamps.add(ts)
+                break
+    # END_BLOCK_SAVE_SCREENSHOTS
+
+    # START_BLOCK_BUILD_DOCUMENT
+    doc = SlidesDocument(
+        video=VideoInfo(
+            path=str(video_path.resolve()),
+            duration=info.duration,
+            width=info.width,
+            height=info.height,
+            fps=info.fps,
+        ),
+        slides=segments,
+    )
+    json_path = out_dir / "slides.json"
+    json_path.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
+    logger.info(f"[CLI][detect] Document saved | path={json_path} slides={len(segments)}")
+    # END_BLOCK_BUILD_DOCUMENT
+
+    # START_BLOCK_OPTIONAL_EXPORT
+    if export_md:
+        md_path = out_dir / "deck.md"
+        export_to_markdown(doc, md_path, slides_dir="slides", title=video_path.stem)
+        console.print(f"[green]✓[/green] Deck: {md_path.resolve()}")
+
     if debug:
         debug_dir = out_dir / "debug"
         debug_dir.mkdir(exist_ok=True)
-        logger.info(f"[CLI][detect] Debug artifacts enabled | dir={debug_dir}")
+        from video_slide_md.debug_export import export_debug_csv, export_debug_report
+
+        if all_scores:
+            ts_list = [f.timestamp for f in all_features[1:]]  # scores align with frame 1..N
+            export_debug_csv(all_scores, ts_list, debug_dir / "diff_scores.csv")
+
+        export_debug_report(segments, str(video_path), debug_dir / "debug_report.txt")
+
+        # Contact sheet if PIL available
+        rep_frames_contact: dict[float, np.ndarray] = {}
+        for vf in decoder.iter_frames():
+            for seg in segments:
+                ts = seg.representative_timestamp
+                if ts not in rep_frames_contact and abs(vf.timestamp - ts) < 0.1:
+                    rep_frames_contact[ts] = slide_region.process(vf.image)
+                    break
+        if rep_frames_contact:
+            from video_slide_md.debug_export import export_contact_sheet
+            export_contact_sheet(segments, rep_frames_contact, debug_dir / "contact_sheet.jpg")
+        # END_BLOCK_OPTIONAL_EXPORT
 
     logger.info(f"[CLI][detect] Detection complete | output={out_dir}")
     console.print(f"[green]Done.[/green]")
@@ -124,7 +249,15 @@ def export_md(
         raise typer.Exit(code=1)
 
     logger.info(f"[CLI][export_md] Exporting slides from {slides_json}")
-    console.print("[green]✓[/green] Export ready (pending markdown_export module)")
+
+    import json
+    from video_slide_md.models import SlidesDocument
+    from video_slide_md.markdown_export import export_to_markdown
+
+    doc = SlidesDocument.model_validate_json(json_path.read_text(encoding="utf-8"))
+    out_path = Path(out) if out else json_path.parent / "deck.md"
+    export_to_markdown(doc, out_path)
+    console.print(f"[green]✓[/green] Deck: {out_path.resolve()}")
 
 
 @app.command(name="debug")
@@ -146,7 +279,17 @@ def debug_cmd(
         raise typer.Exit(code=1)
 
     logger.info(f"[CLI][debug] Generating debug for {slides_json}")
-    console.print("[green]✓[/green] Debug ready (pending debug_export module)")
+
+    import json
+    from video_slide_md.models import SlidesDocument
+    from video_slide_md.debug_export import export_debug_report
+
+    doc = SlidesDocument.model_validate_json(json_path.read_text(encoding="utf-8"))
+    out_dir = Path(out) if out else json_path.parent / "debug"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    report = export_debug_report(doc.slides, doc.video.path, out_dir / "debug_report.txt")
+    console.print(f"[green]✓[/green] Report: {report.resolve()}")
 
 
 def _build_cli_overrides(**kwargs) -> dict:

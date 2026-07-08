@@ -35,10 +35,17 @@ class TestDetectCommand:
 
     def test_detect_with_valid_file(self, tmp_path):
         video = tmp_path / "video.mp4"
-        video.write_text("dummy")
+        # Create minimal valid video with OpenCV
+        import cv2
+        import numpy as np
+        fourcc = cv2.VideoWriter.fourcc(*"mp4v")
+        writer = cv2.VideoWriter(str(video), fourcc, 10.0, (100, 100))
+        for _ in range(5):
+            writer.write(np.full((100, 100, 3), 128, dtype=np.uint8))
+        writer.release()
         result = runner.invoke(app, ["detect", str(video), "--out", str(tmp_path / "out")])
         assert result.exit_code == 0
-        assert "Output:" in result.stdout
+        assert (tmp_path / "out" / "slides.json").is_file()
 
 
 class TestExportMdCommand:

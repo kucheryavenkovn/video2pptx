@@ -1,0 +1,16 @@
+1
+00:00:00,000 --> 00:00:03,000
+Welcome to the presentation
+
+2
+00:00:03,000 --> 00:00:06,000
+First topic overview
+
+3
+00:00:06,000 --> 00:00:09,000
+Key concept explanation
+
+4
+00:00:09,000 --> 00:00:12,000
+Example demonstration
+
