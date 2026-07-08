@@ -1,10 +1,162 @@
 # FILE: src/video_slide_md/config.py
 # VERSION: 0.1.0
 # START_MODULE_CONTRACT
-#   PURPOSE: Configuration loading (YAML + CLI merge)
-#   SCOPE: Load config from file, merge with CLI args, provide typed config object
-#   DEPENDS: pyyaml, pydantic
+#   PURPOSE: Configuration loading — YAML file + CLI arg merge into typed config
+#   SCOPE: Load config from YAML file, merge with CLI argument overrides, return validated AppConfig
+#   DEPENDS: pyyaml, pydantic, pathlib
 #   LINKS: M-CONFIG
 #   ROLE: RUNTIME
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   AppConfig - root typed config aggregating all subsections
+#   VideoConfig - video source and decoding backend config
+#   DetectionConfig - slide detection parameters
+#   ExportConfig - output format configuration
+#   DebugConfig - debug artifact toggle flags
+#   LoggingConfig - logging level
+#   load_config - load config from YAML path, merge with CLI overrides
+#   merge_config - merge CLI kwargs into AppConfig, CLI takes precedence
+# END_MODULE_MAP
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+import yaml
+from pydantic import BaseModel, Field
+
+
+class VideoConfig(BaseModel):
+    # START_CONTRACT: VideoConfig
+    #   PURPOSE: Video source and decoding backend configuration
+    #   INPUTS: { sample_fps: float, decoder_backend: str }
+    #   OUTPUTS: { VideoConfig }
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-CONFIG
+    # END_CONTRACT: VideoConfig
+    sample_fps: float = Field(default=2.0, ge=0.1, le=30.0, description="Frame sampling rate")
+    decoder_backend: str = Field(default="auto", description="Decoder backend: auto, opencv, pyav, decord, pynv")
+
+
+class DetectionConfig(BaseModel):
+    # START_CONTRACT: DetectionConfig
+    #   PURPOSE: Slide detection parameters
+    #   INPUTS: { slide_roi, ignore_rois, threshold, min_slide_duration, min_stable_duration, dedupe_enabled }
+    #   OUTPUTS: { DetectionConfig }
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-CONFIG
+    # END_CONTRACT: DetectionConfig
+    slide_roi: str = Field(default="auto", description="ROI mode or coordinates: auto, full, x1,y1,x2,y2")
+    ignore_rois: list[list[int]] = Field(default_factory=list, description="Regions to ignore [[x1,y1,x2,y2], ...]")
+    threshold: str | float = Field(default="auto", description="Diff score threshold or auto")
+    min_slide_duration: float = Field(default=3.0, ge=0.5, description="Minimum slide duration in seconds")
+    min_stable_duration: float = Field(default=1.5, ge=0.5, description="Minimum stable duration to confirm change")
+    dedupe_enabled: bool = Field(default=True, description="Enable neighbor deduplication")
+
+
+class ExportConfig(BaseModel):
+    # START_CONTRACT: ExportConfig
+    #   PURPOSE: Output format configuration
+    #   INPUTS: { markdown_format, include_transcript_as_notes, include_timecodes }
+    #   OUTPUTS: { ExportConfig }
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-CONFIG
+    # END_CONTRACT: ExportConfig
+    markdown_format: str = Field(default="marp", description="Markdown format: marp, revealjs")
+    include_transcript_as_notes: bool = Field(default=True, description="Include transcript in speaker notes")
+    include_timecodes: bool = Field(default=True, description="Include start/end timecodes in output")
+
+
+class DebugConfig(BaseModel):
+    # START_CONTRACT: DebugConfig
+    #   PURPOSE: Debug artifact toggle flags
+    #   INPUTS: { save_sampled_frames, save_diff_scores, save_timeline, save_contact_sheet }
+    #   OUTPUTS: { DebugConfig }
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-CONFIG
+    # END_CONTRACT: DebugConfig
+    save_sampled_frames: bool = Field(default=False, description="Save individual sampled frames")
+    save_diff_scores: bool = Field(default=True, description="Save diff_scores.csv")
+    save_timeline: bool = Field(default=True, description="Save timeline.png")
+    save_contact_sheet: bool = Field(default=True, description="Save contact_sheet.jpg")
+
+
+class LoggingConfig(BaseModel):
+    # START_CONTRACT: LoggingConfig
+    #   PURPOSE: Logging level configuration
+    #   INPUTS: { level: str }
+    #   OUTPUTS: { LoggingConfig }
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-CONFIG
+    # END_CONTRACT: LoggingConfig
+    level: str = Field(default="INFO", description="Logging level: DEBUG, INFO, WARNING, ERROR")
+
+
+class AppConfig(BaseModel):
+    # START_CONTRACT: AppConfig
+    #   PURPOSE: Root typed config aggregating all subsections
+    #   INPUTS: { video, detection, export, debug, logging }
+    #   OUTPUTS: { AppConfig }
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-CONFIG
+    # END_CONTRACT: AppConfig
+    video: VideoConfig = Field(default_factory=VideoConfig)
+    detection: DetectionConfig = Field(default_factory=DetectionConfig)
+    export: ExportConfig = Field(default_factory=ExportConfig)
+    debug: DebugConfig = Field(default_factory=DebugConfig)
+    logging: LoggingConfig = Field(default_factory=LoggingConfig)
+
+
+def load_config(
+    config_path: str | Path | None = None,
+    cli_overrides: dict[str, Any] | None = None,
+) -> AppConfig:
+    # START_CONTRACT: load_config
+    #   PURPOSE: Load config from YAML path, merge with CLI overrides
+    #   INPUTS: { config_path: str|Path|None, cli_overrides: dict|None }
+    #   OUTPUTS: { AppConfig }
+    #   SIDE_EFFECTS: reads YAML file if path provided
+    #   LINKS: M-CONFIG
+    # END_CONTRACT: load_config
+
+    # START_BLOCK_LOAD_YAML
+    config: dict[str, Any] = {}
+    if config_path:
+        path = Path(config_path)
+        if path.is_file():
+            with open(path, encoding="utf-8") as f:
+                config = yaml.safe_load(f) or {}
+        else:
+            import warnings
+            warnings.warn(f"Config file not found: {config_path}")
+    # END_BLOCK_LOAD_YAML
+
+    if cli_overrides:
+        config = merge_config(config, cli_overrides)
+
+    return AppConfig.model_validate(config)
+
+
+def merge_config(base: dict[str, Any], overrides: dict[str, Any]) -> dict[str, Any]:
+    # START_CONTRACT: merge_config
+    #   PURPOSE: Merge CLI kwargs into AppConfig dict, CLI takes precedence (deep merge)
+    #   INPUTS: { base: dict, overrides: dict }
+    #   OUTPUTS: { dict }
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-CONFIG
+    # END_CONTRACT: merge_config
+
+    # START_BLOCK_MERGE_CONFIG
+    result = base.copy()
+    for key, value in overrides.items():
+        if value is None:
+            continue
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = {**result[key], **value}
+        else:
+            result[key] = value
+    return result
+    # END_BLOCK_MERGE_CONFIG
