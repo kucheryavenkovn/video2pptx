@@ -131,6 +131,8 @@ class SlideSegment(BaseModel):
     ocr_text: str | None = Field(default=None, description="Optional OCR-extracted text")
     transcript: str = Field(default="", description="Subtitle/transcript text aligned to this slide")
     subtitle_cues: list[SubtitleCue] = Field(default_factory=list, description="Subtitle cues overlapping this interval")
+    llm_description: str | None = Field(default=None, description="LLM-generated description of slide visual content")
+    slide_context: str | None = Field(default=None, description="LLM-extracted key terms and context from slide for transcript correction")
     confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Detection confidence score")
     warnings: list[str] = Field(default_factory=list, description="Non-critical issues with this segment")
 

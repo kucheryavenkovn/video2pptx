@@ -95,10 +95,28 @@ class LoggingConfig(BaseModel):
     level: str = Field(default="INFO", description="Logging level: DEBUG, INFO, WARNING, ERROR")
 
 
+class LlmConfig(BaseModel):
+    # START_CONTRACT: LlmConfig
+    #   PURPOSE: LLM provider and model configuration for LM Studio integration
+    #   INPUTS: { enabled, provider, base_url, model, context_window, temperature, max_tokens, unload_when_done }
+    #   OUTPUTS: { LlmConfig }
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-CONFIG
+    # END_CONTRACT: LlmConfig
+    enabled: bool = Field(default=False, description="Enable LLM processing")
+    provider: str = Field(default="openai-compat", description="Provider: openai-compat (LM Studio)")
+    base_url: str = Field(default="http://localhost:1234/v1", description="LM Studio API base URL")
+    model: str = Field(default="gemma-4-26b-a4b-it@q4_k_xl", description="Model name for chat/vision")
+    context_window: int = Field(default=60000, ge=1024, description="Context window size in tokens")
+    temperature: float = Field(default=0.2, ge=0.0, le=2.0, description="LLM temperature")
+    max_tokens: int = Field(default=4096, ge=64, le=128000, description="Max output tokens")
+    unload_when_done: bool = Field(default=True, description="Unload model from VRAM after processing")
+
+
 class AppConfig(BaseModel):
     # START_CONTRACT: AppConfig
     #   PURPOSE: Root typed config aggregating all subsections
-    #   INPUTS: { video, detection, export, debug, logging }
+    #   INPUTS: { video, detection, export, debug, logging, llm }
     #   OUTPUTS: { AppConfig }
     #   SIDE_EFFECTS: none
     #   LINKS: M-CONFIG
@@ -108,6 +126,7 @@ class AppConfig(BaseModel):
     export: ExportConfig = Field(default_factory=ExportConfig)
     debug: DebugConfig = Field(default_factory=DebugConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
+    llm: LlmConfig = Field(default_factory=LlmConfig)
 
 
 def load_config(
