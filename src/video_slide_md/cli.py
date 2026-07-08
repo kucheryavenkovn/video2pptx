@@ -16,6 +16,7 @@
 #   export_md - export-md command: slides.json → deck.md
 #   export_pptx - export-pptx command: slides.json → deck.pptx
 #   debug_cmd - debug command: slides.json → debug artifacts
+#   llm_process - llm-process command: slides.json → enriched slides.json with LLM vision + transcript correction
 # END_MODULE_MAP
 
 from __future__ import annotations
@@ -30,7 +31,7 @@ from loguru import logger
 from rich.console import Console
 from rich.table import Table
 
-from video_slide_md.config import load_config, AppConfig
+from video_slide_md.config import load_config, AppConfig, LlmConfig
 from video_slide_md.dedupe import deduplicate_segments
 from video_slide_md.frame_features import extract_features
 from video_slide_md.markdown_export import export_to_markdown
@@ -63,6 +64,7 @@ def detect(
     export_md: bool = typer.Option(False, "--export-md", help="Export deck.md after detection"),
     export_pptx: bool = typer.Option(False, "--export-pptx", help="Export .pptx after detection"),
     notes_mode: str = typer.Option("basic", "--notes-mode", help="Notes processing mode: basic or llm"),
+    llm: bool = typer.Option(False, "--llm", help="Enable LLM vision analysis + transcript correction via LM Studio"),
     debug: bool = typer.Option(False, "--debug", help="Enable debug artifacts"),
 ):
     # START_CONTRACT: detect
@@ -202,6 +204,18 @@ def detect(
     logger.info(f"[CLI][detect] Document saved | path={json_path} slides={len(segments)}")
     # END_BLOCK_BUILD_DOCUMENT
 
+    # START_BLOCK_LLM_PROCESSING
+    if llm:
+        console.print("[blue]i[/blue] Starting LLM vision analysis + transcript correction...")
+        from video_slide_md.llm_orchestrator import run_llm_pipeline
+        run_llm_pipeline(
+            slides_path=json_path,
+            llm_config=cfg.llm,
+            slides_dir=slides_dir,
+        )
+        console.print(f"[green]✓[/green] LLM enriched: {json_path.resolve()}")
+    # END_BLOCK_LLM_PROCESSING
+
     # START_BLOCK_OPTIONAL_EXPORT
     if export_md:
         md_path = out_dir / "deck.md"
@@ -335,6 +349,60 @@ def debug_cmd(
 
     report = export_debug_report(doc.slides, doc.video.path, out_dir / "debug_report.txt")
     console.print(f"[green]✓[/green] Report: {report.resolve()}")
+
+
+@app.command(name="llm-process")
+def llm_process(
+    slides_json: str = typer.Argument(..., help="Path to slides.json from detect"),
+    out: Optional[str] = typer.Option(None, "--out", "-o", help="Output path for enriched slides.json"),
+    slides_dir: Optional[str] = typer.Option(None, "--slides-dir", help="Directory with slide images"),
+    config: Optional[str] = typer.Option(None, "--config", "-c", help="Path to YAML config file"),
+    model: Optional[str] = typer.Option(None, "--model", help="LLM model name override"),
+    base_url: Optional[str] = typer.Option(None, "--base-url", help="LM Studio API base URL override"),
+):
+    # START_CONTRACT: llm_process
+    #   PURPOSE: LLM process command — enrich slides.json with vision analysis and corrected transcript
+    #   INPUTS: slides.json path, output path, slides dir, config, model/base_url overrides
+    #   OUTPUTS: enriched slides.json with llm_description, slide_context, corrected transcript
+    #   SIDE_EFFECTS: calls LM Studio API, writes enriched slides.json + analysis sidecars
+    #   LINKS: M-CLI
+    # END_CONTRACT: llm_process
+
+    json_path = Path(slides_json)
+    if not json_path.is_file():
+        console.print(f"[red]File not found: {slides_json}[/red]")
+        raise typer.Exit(code=1)
+
+    logger.info(f"[CLI][llm_process] Starting LLM processing for {slides_json}")
+
+    cfg = load_config(config_path=config)
+    llm_cfg = cfg.llm
+
+    # CLI overrides for LLM config
+    if model:
+        llm_cfg.model = model
+    if base_url:
+        llm_cfg.base_url = base_url
+
+    if not llm_cfg.enabled:
+        llm_cfg.enabled = True
+
+    slides_dir_path = Path(slides_dir) if slides_dir else json_path.parent / "slides"
+    out_path = Path(out) if out else json_path
+
+    console.print(f"[green]✓[/green] Model: {llm_cfg.model}")
+    console.print(f"[green]✓[/green] Base URL: {llm_cfg.base_url}")
+    console.print(f"[green]✓[/green] Slides dir: {slides_dir_path.resolve()}")
+
+    from video_slide_md.llm_orchestrator import run_llm_pipeline
+
+    result = run_llm_pipeline(
+        slides_path=json_path,
+        llm_config=llm_cfg,
+        slides_dir=slides_dir_path,
+        output_path=out_path,
+    )
+    console.print(f"[green]✓[/green] Enriched: {result.resolve()}")
 
 
 def _build_cli_overrides(**kwargs) -> dict:
