@@ -5,6 +5,26 @@
 
 ---
 
+### F-0011 — LM Studio API: model load/unload endpoints are optional
+- Date: 2026-07-08
+- Area: llm
+- Finding: LM Studio exposes OpenAI-compatible `/v1/chat/completions` but model load (`POST /v1/model/load`) and unload (`POST /v1/model/unload`) endpoints may not be available in all versions. The `LlmClient.load_model()` and `unload_model()` gracefully fall back if these endpoints return connection errors — the model is assumed to already be loaded by the user in LM Studio UI.
+- Symptom/Reproduction: `POST /v1/model/load` returns 404 or connection refused if LM Studio version doesn't support the endpoint.
+- Impact: Model lifecycle management is best-effort. The pipeline works regardless — model must be pre-loaded in LM Studio UI for first use.
+- Resolution: `load_model()` catches `httpx.RequestError` and sets `_model_loaded = True` to continue. `unload_model()` logs warning and returns False.
+- LINKS: M-LLM-CLIENT, src/video_slide_md/llm_client.py
+
+### F-0012 — Vision API requires base64 data URIs for image content
+- Date: 2026-07-08
+- Area: llm
+- Finding: OpenAI-compatible vision API (used by LM Studio) requires images as base64-encoded data URIs in the format `data:image/{ext};base64,{b64}`, passed as `image_url` content part. File paths or raw bytes are not accepted. The `LlmClient.vision()` method reads the file, base64-encodes it, and constructs the correct data URI.
+- Symptom/Reproduction: Passing raw bytes as `image_url` causes 400 error from LM Studio.
+- Impact: Must read full image into memory and base64-encode — acceptable for slide screenshots (typically <500KB).
+- Resolution: Implemented base64 encoding with correct MIME type detection from file extension.
+- LINKS: M-LLM-CLIENT, src/video_slide_md/llm_client.py
+
+---
+
 <!-- Записи добавляются агентом по мере обнаружения -->
 
 ### F-0001 — `parse_roi` crashes on invalid string format
