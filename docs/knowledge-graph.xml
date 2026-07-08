@@ -193,7 +193,7 @@
       </annotations>
     </M-LLM-CLIENT>
 
-    <M-SLIDE-ANALYZER NAME="SlideAnalyzer" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-SLIDE-ANALYZER NAME="SlideAnalyzer" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Analyze slide screenshot via LLM vision — extract visual description and on-screen text terms</purpose>
       <path>src/video_slide_md/slide_analyzer.py</path>
       <depends>M-LLM-CLIENT, M-MODELS</depends>
@@ -204,7 +204,7 @@
       </annotations>
     </M-SLIDE-ANALYZER>
 
-    <M-LLM-ORCHESTRATOR NAME="LlmOrchestrator" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-LLM-ORCHESTRATOR NAME="LlmOrchestrator" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Coordinate full LLM processing pipeline: load model, analyze all slides, rephrase transcript, unload model, save enriched slides.json</purpose>
       <path>src/video_slide_md/llm_orchestrator.py</path>
       <depends>M-LLM-CLIENT, M-SLIDE-ANALYZER, M-NOTES-PROCESSOR, M-MODELS</depends>

@@ -264,8 +264,8 @@
     <Phase-7 name="LLMProcessing" status="planned">
       <goal>Local LLM (LM Studio) vision analysis of slide screenshots + transcript correction using slide context. Verifiable via enriched slides.json with llm_description fields.</goal>
       <step-17 module="M-LLM-CLIENT" status="done" verification="V-M-LLM-CLIENT">OpenAI-compatible LLM client with vision support, model load/unload lifecycle</step-17>
-      <step-18 module="M-SLIDE-ANALYZER" status="planned" verification="V-M-SLIDE-ANALYZER">Slide screenshot vision analysis → description + term extraction</step-18>
-      <step-19 module="M-LLM-ORCHESTRATOR" status="planned" verification="V-M-LLM-ORCHESTRATOR">Orchestrate: load model → analyze all slides → rephrase transcript → unload model → save enriched slides.json</step-19>
+      <step-18 module="M-SLIDE-ANALYZER" status="done" verification="V-M-SLIDE-ANALYZER">Slide screenshot vision analysis → description + term extraction</step-18>
+      <step-19 module="M-LLM-ORCHESTRATOR" status="done" verification="V-M-LLM-ORCHESTRATOR">Orchestrate: load model → analyze all slides → rephrase transcript → unload model → save enriched slides.json</step-19>
     </Phase-7>
   </ImplementationOrder>
 

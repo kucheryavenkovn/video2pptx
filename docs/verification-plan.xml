@@ -287,7 +287,7 @@
       </scenarios>
     </V-M-LLM-CLIENT>
 
-    <V-M-SLIDE-ANALYZER MODULE="M-SLIDE-ANALYZER" PRIORITY="high" STATUS="planned">
+    <V-M-SLIDE-ANALYZER MODULE="M-SLIDE-ANALYZER" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_slide_analyzer.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_slide_analyzer.py -v</check-1>
@@ -300,7 +300,7 @@
       </scenarios>
     </V-M-SLIDE-ANALYZER>
 
-    <V-M-LLM-ORCHESTRATOR MODULE="M-LLM-ORCHESTRATOR" PRIORITY="high" STATUS="planned">
+    <V-M-LLM-ORCHESTRATOR MODULE="M-LLM-ORCHESTRATOR" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_llm_orchestrator.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_llm_orchestrator.py -v</check-1>
