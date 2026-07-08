@@ -274,6 +274,18 @@
       <commands><command-1>pytest tests/test_subtitles.py tests/test_markdown_export.py -v</command-1></commands>
     </Gate-Phase-4>
 
+    <V-M-COLAB MODULE="M-COLAB" PRIORITY="low" STATUS="planned">
+      <test-files><file>colab/video_slide_md_colab.ipynb</file></test-files>
+      <module-checks>
+        <check-1>Open in Colab, Runtime → T4 GPU, Run All — pipeline completes without error</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Notebook runs end-to-end: install → detect → export → download works with sample video.</scenario-1>
+        <scenario-2 kind="success">PyAV with CUDA hwaccel auto-detects T4 GPU.</scenario-2>
+        <scenario-3 kind="failure">Missing video file shows clear error message.</scenario-3>
+      </scenarios>
+    </V-M-COLAB>
+
     <Gate-Phase-5 PHASE="Phase-5">
       <goal>End-to-end: CLI detect/export-md/debug all work with synthetic video.</goal>
       <commands><command-1>pytest tests/test_cli_e2e.py -v</command-1></commands>

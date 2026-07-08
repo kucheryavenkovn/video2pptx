@@ -159,5 +159,17 @@
     <CrossLink from="M-MD-EXPORT" to="M-MODELS" relation="reads SlidesDocument" />
     <CrossLink from="M-PPTX-EXPORT" to="M-MODELS" relation="reads SlidesDocument" />
     <CrossLink from="M-DEBUG-EXPORT" to="M-MODELS" relation="reads SlideSegment" />
+
+    <M-COLAB NAME="ColabDeployment" TYPE="DEPLOYMENT" STATUS="planned">
+      <purpose>Google Colab notebook for running the pipeline with free T4 GPU</purpose>
+      <path>colab/video_slide_md_colab.ipynb</path>
+      <depends>M-PIPELINE, M-PPTX-EXPORT</depends>
+      <verification-ref>V-M-COLAB</verification-ref>
+      <annotations>
+        <fn-colab-setup PURPOSE="Install deps, mount Drive, configure environment" />
+        <fn-colab-detect PURPOSE="Run detect with configurable params" />
+        <fn-colab-export PURPOSE="Export MD + PPTX, download results" />
+      </annotations>
+    </M-COLAB>
   </Project>
 </KnowledgeGraph>

@@ -202,8 +202,40 @@
       <step-14 module="M-PIPELINE" status="done" verification="V-M-CLI-E2E">Orchestrate full pipeline in CLI</step-14>
     </Phase-5>
 
-    <Phase-5 name="GPUBackend" status="pending">
-      <goal>Add Decord and NVDEC backends with auto-detection. Verifiable on RTX 4090.</goal>
+    <Phase-5 name="GPUBackend" status="done">
+      <goal>PyAV backend with CUDA NVDEC for RTX 4090. Auto-detect + fallback to CPU.</goal>
+      <step-15 module="M-BACKEND-PYAV" status="done">PyAV backend with CUDA hwaccel support</step-15>
     </Phase-5>
+
+    <Phase-6 name="ColabDeployment" status="pending">
+      <goal>Google Colab notebook with T4 GPU — install, mount Drive, run detect + export-pptx, download results.</goal>
+      <step-16 module="M-COLAB" status="pending" verification="V-M-COLAB">Colab notebook: install deps, detect, export pptx/md, Drive upload/download</step-16>
+    </Phase-6>
   </ImplementationOrder>
+
+  <DeploymentScenarios>
+    <DS-COLAB NAME="GoogleColab" STATUS="pending" PRIORITY="medium">
+      <purpose>Run the full video-slide-md pipeline on Google Colab with free T4 GPU acceleration.</purpose>
+      <target>colab/video_slide_md_colab.ipynb</target>
+      <prerequisites>
+        <item>Google account (for Colab + Drive)</item>
+        <item>Video file (.mp4) uploaded to Drive or local upload</item>
+        <item>Optional: SRT/VTT subtitle file</item>
+      </prerequisites>
+      <workflow>
+        <step-1>Open notebook in Colab (File → Open notebook → GitHub or Upload)</step-1>
+        <step-2>Runtime → Change runtime type → T4 GPU</step-2>
+        <step-3>Run all cells — mounts Drive, installs deps, uploads video</step-3>
+        <step-4>Configure detection parameters (sample-fps, threshold, etc.)</step-4>
+        <step-5>Run detection → slides.json, slides/, deck.md, deck.pptx</step-5>
+        <step-6>Download results from Drive or Colab files panel</step-6>
+      </workflow>
+      <limitations>
+        <item>Colab session timeout after ~2h inactivity (use Drive mount to persist)</item>
+        <item>Free T4 has 16GB VRAM — sufficient for 1080p video</item>
+        <item>Video upload via Colab UI is slow for large files — prefer Drive mount</item>
+      </limitations>
+      <verification-ref>V-M-COLAB</verification-ref>
+    </DS-COLAB>
+  </DeploymentScenarios>
 </DevelopmentPlan>
