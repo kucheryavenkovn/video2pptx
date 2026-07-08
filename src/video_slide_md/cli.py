@@ -62,6 +62,7 @@ def detect(
     dedupe: bool = typer.Option(True, "--dedupe/--no-dedupe", help="Enable neighbor deduplication"),
     export_md: bool = typer.Option(False, "--export-md", help="Export deck.md after detection"),
     export_pptx: bool = typer.Option(False, "--export-pptx", help="Export .pptx after detection"),
+    notes_mode: str = typer.Option("basic", "--notes-mode", help="Notes processing mode: basic or llm"),
     debug: bool = typer.Option(False, "--debug", help="Enable debug artifacts"),
 ):
     # START_CONTRACT: detect
@@ -209,7 +210,7 @@ def detect(
 
     if export_pptx:
         pptx_path = out_dir / "deck.pptx"
-        export_to_pptx(doc, pptx_path, slides_dir=out_dir, title=video_path.stem)
+        export_to_pptx(doc, pptx_path, slides_dir=out_dir, title=video_path.stem, notes_mode=notes_mode)
         console.print(f"[green]✓[/green] PPTX: {pptx_path.resolve()}")
 
     if debug:
@@ -277,10 +278,11 @@ def export_md(
 def export_pptx(
     slides_json: str = typer.Argument(..., help="Path to slides.json"),
     out: Optional[str] = typer.Option(None, "--out", "-o", help="Output path (default: next to slides.json)"),
+    notes_mode: str = typer.Option("basic", "--notes-mode", help="Notes processing mode: basic or llm"),
 ):
     # START_CONTRACT: export_pptx
     #   PURPOSE: Export slides.json to PPTX presentation
-    #   INPUTS: slides.json path, output path
+    #   INPUTS: slides.json path, output path, notes_mode
     #   OUTPUTS: deck.pptx file
     #   SIDE_EFFECTS: writes .pptx
     #   LINKS: M-CLI
@@ -299,7 +301,7 @@ def export_pptx(
 
     doc = SlidesDocument.model_validate_json(json_path.read_text(encoding="utf-8"))
     out_path = Path(out) if out else json_path.parent / "deck.pptx"
-    export_to_pptx(doc, out_path, slides_dir=json_path.parent)
+    export_to_pptx(doc, out_path, slides_dir=json_path.parent, notes_mode=notes_mode)
     console.print(f"[green]✓[/green] PPTX: {out_path.resolve()}")
 
 

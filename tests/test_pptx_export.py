@@ -50,7 +50,7 @@ class TestGroupCues:
 
 
 class TestFormatSlideNotes:
-    def test_with_cues(self):
+    def test_with_cues_joined(self):
         seg = SlideSegment(
             index=1,
             start=0.0,
@@ -64,10 +64,11 @@ class TestFormatSlideNotes:
         )
         result = _format_slide_notes(seg)
         assert "[ 0:00 – 0:10 ]" in result
+        # Notes processor joins and cleans
         assert "Hello there" in result
         assert "How are you" in result
 
-    def test_no_cues_fallback_transcript(self):
+    def test_transcript_fallback(self):
         seg = SlideSegment(
             index=1,
             start=0.0,
@@ -77,6 +78,7 @@ class TestFormatSlideNotes:
             transcript="Just some transcript text.",
         )
         result = _format_slide_notes(seg)
+        assert "[ 0:00 – 0:05 ]" in result
         assert "Just some transcript text." in result
 
     def test_no_cues_no_transcript(self):
@@ -134,11 +136,10 @@ class TestExportToPptx:
         prs = PptxPresentation(str(out))
         assert len(prs.slides) == 2
 
-        # Check notes on first slide
+        # Check notes on first slide (cues joined by notes_processor)
         notes0 = prs.slides[0].notes_slide.notes_text_frame.text
         assert "[ 0:00 – 0:10 ]" in notes0
-        assert "First cue" in notes0
-        assert "Second cue" in notes0
+        assert "First cue Second cue" in notes0
 
         notes1 = prs.slides[1].notes_slide.notes_text_frame.text
         assert "[ 0:10 – 0:20 ]" in notes1

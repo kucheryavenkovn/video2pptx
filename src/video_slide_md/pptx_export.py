@@ -29,15 +29,17 @@ def export_to_pptx(
     output_path: Path,
     slides_dir: str | Path = "slides",
     title: str = "Presentation",
+    notes_mode: str = "basic",
 ) -> Path:
     # START_CONTRACT: export_to_pptx
     #   PURPOSE: Write .pptx with slide images as full-slide pictures,
-    #            speaker notes containing formatted transcript with timestamps
+    #            speaker notes containing processed transcript
     #   INPUTS: {
     #       document: SlidesDocument — slides with images + cues,
     #       output_path: Path — target .pptx path,
     #       slides_dir: str | Path — relative dir for slide images,
-    #       title: str — presentation title
+    #       title: str — presentation title,
+    #       notes_mode: str — "basic" or "llm"
     #   }
     #   OUTPUTS: Path to .pptx file
     #   SIDE_EFFECTS: Creates .pptx file
@@ -70,7 +72,7 @@ def export_to_pptx(
         # END_BLOCK_ADD_IMAGE
 
         # START_BLOCK_ADD_NOTES
-        notes_text = _format_slide_notes(seg)
+        notes_text = _format_slide_notes(seg, notes_mode=notes_mode)
         if notes_text.strip():
             notes_slide = slide.notes_slide
             notes_slide.notes_text_frame.text = notes_text.strip()
@@ -85,14 +87,16 @@ def export_to_pptx(
     # END_BLOCK_PPTX_BUILD
 
 
-def _format_slide_notes(seg: SlideSegment) -> str:
+def _format_slide_notes(seg: SlideSegment, notes_mode: str = "basic") -> str:
     # START_CONTRACT: _format_slide_notes
-    #   PURPOSE: Format slide transcript + subtitle cues into speaker notes
-    #   INPUTS: { seg: SlideSegment }
+    #   PURPOSE: Format slide transcript into speaker notes via notes_processor
+    #   INPUTS: { seg: SlideSegment, notes_mode: str }
     #   OUTPUTS: str — formatted notes text
-    #   SIDE_EFFECTS: none
+    #   SIDE_EFFECTS: none (basic mode); may call LLM in llm mode
     #   LINKS: M-PPTX-EXPORT
     # END_CONTRACT: _format_slide_notes
+
+    from video_slide_md.notes_processor import process_notes
 
     lines: list[str] = []
 
@@ -100,19 +104,10 @@ def _format_slide_notes(seg: SlideSegment) -> str:
     lines.append(f"[ {_fmt_time(seg.start)} – {_fmt_time(seg.end)} ]")
     lines.append("")
 
-    # Formatted subtitle cues — group by proximity
-    if seg.subtitle_cues:
-        # START_BLOCK_FORMAT_CUES
-        paragraphs = _group_cues(seg.subtitle_cues, gap_threshold=2.0)
-        for i, paragraph in enumerate(paragraphs):
-            first_cue = paragraph[0]
-            lines.append(f"[{_fmt_time(first_cue.start)}] {first_cue.text}")
-            for cue in paragraph[1:]:
-                lines.append(cue.text)
-            lines.append("")
-        # END_BLOCK_FORMAT_CUES
-    elif seg.transcript:
-        lines.append(seg.transcript.strip())
+    # Process notes
+    notes = process_notes(seg, mode=notes_mode)
+    if notes:
+        lines.append(notes)
 
     return "\n".join(lines).strip()
 
