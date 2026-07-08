@@ -261,7 +261,7 @@
       <step-16 module="M-COLAB" status="pending" verification="V-M-COLAB">Colab notebook: install deps, detect, export pptx/md, Drive upload/download</step-16>
     </Phase-6>
 
-    <Phase-7 name="LLMProcessing" status="planned">
+    <Phase-7 name="LLMProcessing" status="done">
       <goal>Local LLM (LM Studio) vision analysis of slide screenshots + transcript correction using slide context. Verifiable via enriched slides.json with llm_description fields.</goal>
       <step-17 module="M-LLM-CLIENT" status="done" verification="V-M-LLM-CLIENT">OpenAI-compatible LLM client with vision support, model load/unload lifecycle</step-17>
       <step-18 module="M-SLIDE-ANALYZER" status="done" verification="V-M-SLIDE-ANALYZER">Slide screenshot vision analysis → description + term extraction</step-18>

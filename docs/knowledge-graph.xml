@@ -26,6 +26,7 @@
         <fn-detect PURPOSE="Main detect command: video + subtitles -> slides.json + images" />
         <fn-export-md PURPOSE="Export slides.json to Marp Markdown presentation" />
         <fn-export-pptx PURPOSE="Export slides.json to PPTX presentation" />
+        <fn-llm-process PURPOSE="LLM process command: enrich slides.json with vision analysis + transcript correction" />
       </annotations>
     </M-CLI>
 
