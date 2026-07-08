@@ -17,7 +17,7 @@
       </annotations>
     </M-MODELS>
 
-    <M-CLI NAME="CLI" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-CLI NAME="CLI" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Typer CLI entry point for detect, export-md, debug, review commands</purpose>
       <path>src/video_slide_md/cli.py</path>
       <depends>M-CONFIG</depends>

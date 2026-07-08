@@ -66,6 +66,18 @@
       </scenarios>
     </V-M-CONFIG>
 
+    <V-M-CLI MODULE="M-CLI" PRIORITY="high" STATUS="passed">
+      <test-files><file>tests/test_cli.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_cli.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">CLI help displays correctly.</scenario-1>
+        <scenario-2 kind="failure">Missing video file exits with code 1.</scenario-2>
+        <scenario-3 kind="success">CLI overrides are built from flat kwargs.</scenario-3>
+      </scenarios>
+    </V-M-CLI>
+
     <V-M-SUBTITLES MODULE="M-SUBTITLES" PRIORITY="high">
       <test-files><file>tests/test_subtitles.py</file></test-files>
       <module-checks>

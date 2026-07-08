@@ -31,7 +31,7 @@
       <depends>M-MODELS</depends>
     </M-CONFIG>
 
-    <M-CLI NAME="CLI" TYPE="ENTRY_POINT" LAYER="0" ORDER="3" STATUS="planned">
+    <M-CLI NAME="CLI" TYPE="ENTRY_POINT" LAYER="0" ORDER="3" STATUS="implemented">
       <contract>
         <purpose>Typer CLI with detect, export-md, debug, review commands.</purpose>
         <inputs><param name="cli args" type="argv" /></inputs>
@@ -159,11 +159,11 @@
   </DataFlow>
 
   <ImplementationOrder>
-    <Phase-1 name="Foundation" status="pending">
+    <Phase-1 name="Foundation" status="done">
       <goal>Project skeleton, CLI, models, config — verifiable that tool runs and accepts arguments.</goal>
       <step-1 module="M-MODELS" status="done" verification="V-M-MODELS">Define Pydantic data models</step-1>
       <step-2 module="M-CONFIG" status="done" verification="V-M-CONFIG">Implement config loading (YAML + CLI merge)</step-2>
-      <step-3 module="M-CLI" status="pending" verification="V-M-CLI">CLI entry point with detect/export-md commands</step-3>
+      <step-3 module="M-CLI" status="done" verification="V-M-CLI">CLI entry point with detect/export-md commands</step-3>
     </Phase-1>
 
     <Phase-2 name="VideoDecoding" status="pending">
