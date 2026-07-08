@@ -49,6 +49,17 @@
       </required-signals>
     </VF-005>
 
+    <VF-006 NAME="LlmProcessPath" USE_CASES="UC-004" DATA_FLOW="DF-003" PRIORITY="high">
+      <scenario>Valid slides.json + slides images + LM Studio running → enriched slides.json with llm_description and corrected transcript.</scenario>
+      <expected-outcome>Each slide gets llm_description with slide content summary, transcript corrected with slide context terms, model unloaded after processing.</expected-outcome>
+      <required-signals>
+        <log-marker>[LlmClient][load_model]</log-marker>
+        <log-marker>[SlideAnalyzer][analyze][BLOCK_VISION_REQUEST]</log-marker>
+        <log-marker>[LlmOrchestrator][process_slide][BLOCK_SAVE_DESCRIPTION]</log-marker>
+        <log-marker>[LlmClient][unload_model]</log-marker>
+      </required-signals>
+    </VF-006>
+
     <VF-003 NAME="GPUAutoFallback" USE_CASES="UC-001" DATA_FLOW="DF-001" PRIORITY="medium">
       <scenario>System without CUDA — auto backend falls back to OpenCV with warning.</scenario>
       <expected-outcome>Pipeline completes on CPU with WARNING log line.</expected-outcome>
@@ -260,6 +271,49 @@
       </scenarios>
     </V-M-SLIDE-DETECTOR>
 
+    <V-M-LLM-CLIENT MODULE="M-LLM-CLIENT" PRIORITY="high" STATUS="passed">
+      <test-files><file>tests/test_llm_client.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_llm_client.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">chat() sends correct request format and returns parsed response.</scenario-1>
+        <scenario-2 kind="success">vision() sends image as base64 and returns description.</scenario-2>
+        <scenario-3 kind="success">load_model() calls LM Studio load endpoint.</scenario-3>
+        <scenario-4 kind="success">unload_model() calls LM Studio unload endpoint.</scenario-4>
+        <scenario-5 kind="failure">Connection refused raises clear error with instructions.</scenario-5>
+        <scenario-6 kind="failure">Model not found raises clear error.</scenario-6>
+        <scenario-7 kind="success">Context window truncation works correctly.</scenario-7>
+      </scenarios>
+    </V-M-LLM-CLIENT>
+
+    <V-M-SLIDE-ANALYZER MODULE="M-SLIDE-ANALYZER" PRIORITY="high" STATUS="planned">
+      <test-files><file>tests/test_slide_analyzer.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_slide_analyzer.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Slide image with text → LLM returns accurate description with visible terms.</scenario-1>
+        <scenario-2 kind="success">Slide image without text → LLM returns visual description only.</scenario-2>
+        <scenario-3 kind="failure">Missing image file raises clear error.</scenario-3>
+        <scenario-4 kind="failure">LLM vision returns empty → fallback description with warning.</scenario-4>
+      </scenarios>
+    </V-M-SLIDE-ANALYZER>
+
+    <V-M-LLM-ORCHESTRATOR MODULE="M-LLM-ORCHESTRATOR" PRIORITY="high" STATUS="planned">
+      <test-files><file>tests/test_llm_orchestrator.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_llm_orchestrator.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Full pipeline: load → analyze slides → rephrase → unload → enriched slides.json with llm_description.</scenario-1>
+        <scenario-2 kind="success">Slide descriptions sidecar files written to disk.</scenario-2>
+        <scenario-3 kind="failure">LM Studio unavailable → graceful abort with clear message, no model leak.</scenario-3>
+        <scenario-4 kind="failure">Single slide vision fails → warning logged, slide skipped, pipeline continues.</scenario-4>
+        <scenario-5 kind="success">Model unloads after processing even on partial failure.</scenario-5>
+      </scenarios>
+    </V-M-LLM-ORCHESTRATOR>
+
     <V-M-CLI-E2E MODULE="M-PIPELINE" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_cli_e2e.py</file></test-files>
       <module-checks>
@@ -313,5 +367,10 @@
       <goal>End-to-end: CLI detect/export-md/debug all work with synthetic video.</goal>
       <commands><command-1>pytest tests/test_cli_e2e.py -v</command-1></commands>
     </Gate-Phase-5>
+
+    <Gate-Phase-7 PHASE="Phase-7">
+      <goal>LLM processing pipeline: llm-process command enriches slides.json with vision descriptions and corrected transcript.</goal>
+      <commands><command-1>pytest tests/test_llm_client.py tests/test_slide_analyzer.py tests/test_llm_orchestrator.py -v</command-1></commands>
+    </Gate-Phase-7>
   </PhaseGates>
 </VerificationPlan>

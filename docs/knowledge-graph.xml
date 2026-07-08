@@ -171,7 +171,48 @@
     <CrossLink from="M-PPTX-EXPORT" to="M-MODELS" relation="reads SlidesDocument" />
     <CrossLink from="M-PPTX-EXPORT" to="M-NOTES-PROCESSOR" relation="uses for notes cleanup" />
     <CrossLink from="M-CLI" to="M-NOTES-PROCESSOR" relation="configures notes_mode and passes to export" />
+    <CrossLink from="M-CLI" to="M-LLM-ORCHESTRATOR" relation="orchestrates llm-process command" />
+    <CrossLink from="M-LLM-ORCHESTRATOR" to="M-LLM-CLIENT" relation="uses for API calls" />
+    <CrossLink from="M-LLM-ORCHESTRATOR" to="M-SLIDE-ANALYZER" relation="delegates per-slide vision analysis" />
+    <CrossLink from="M-LLM-ORCHESTRATOR" to="M-NOTES-PROCESSOR" relation="delegates transcript correction with context" />
+    <CrossLink from="M-LLM-ORCHESTRATOR" to="M-MODELS" relation="reads/writes SlidesDocument" />
+    <CrossLink from="M-SLIDE-ANALYZER" to="M-LLM-CLIENT" relation="uses vision() for image analysis" />
+    <CrossLink from="M-SLIDE-ANALYZER" to="M-MODELS" relation="reads SlideSegment" />
     <CrossLink from="M-DEBUG-EXPORT" to="M-MODELS" relation="reads SlideSegment" />
+
+    <M-LLM-CLIENT NAME="LlmClient" TYPE="INTEGRATION" STATUS="implemented">
+      <purpose>Generic LLM client abstraction over OpenAI-compatible API (LM Studio) with vision support and model lifecycle management</purpose>
+      <path>src/video_slide_md/llm_client.py</path>
+      <depends>M-CONFIG, httpx</depends>
+      <verification-ref>V-M-LLM-CLIENT</verification-ref>
+      <annotations>
+        <fn-chat PURPOSE="Send chat completion request to LLM" />
+        <fn-vision PURPOSE="Send image + prompt for vision analysis" />
+        <fn-load_model PURPOSE="Load model via LM Studio API" />
+        <fn-unload_model PURPOSE="Unload model to free VRAM" />
+      </annotations>
+    </M-LLM-CLIENT>
+
+    <M-SLIDE-ANALYZER NAME="SlideAnalyzer" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Analyze slide screenshot via LLM vision — extract visual description and on-screen text terms</purpose>
+      <path>src/video_slide_md/slide_analyzer.py</path>
+      <depends>M-LLM-CLIENT, M-MODELS</depends>
+      <verification-ref>V-M-SLIDE-ANALYZER</verification-ref>
+      <annotations>
+        <fn-analyze_slide PURPOSE="Analyze single slide image → structured description" />
+        <fn-VISION_SYSTEM_PROMPT PURPOSE="System prompt for slide vision analysis" />
+      </annotations>
+    </M-SLIDE-ANALYZER>
+
+    <M-LLM-ORCHESTRATOR NAME="LlmOrchestrator" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Coordinate full LLM processing pipeline: load model, analyze all slides, rephrase transcript, unload model, save enriched slides.json</purpose>
+      <path>src/video_slide_md/llm_orchestrator.py</path>
+      <depends>M-LLM-CLIENT, M-SLIDE-ANALYZER, M-NOTES-PROCESSOR, M-MODELS</depends>
+      <verification-ref>V-M-LLM-ORCHESTRATOR</verification-ref>
+      <annotations>
+        <fn-run_llm_pipeline PURPOSE="Main entry: slides.json path → enriched slides.json" />
+      </annotations>
+    </M-LLM-ORCHESTRATOR>
 
     <M-COLAB NAME="ColabDeployment" TYPE="DEPLOYMENT" STATUS="planned">
       <purpose>Google Colab notebook for running the pipeline with free T4 GPU</purpose>

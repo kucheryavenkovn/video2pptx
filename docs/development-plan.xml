@@ -134,6 +134,42 @@
       <depends>M-MODELS</depends>
     </M-DEBUG-EXPORT>
 
+    <M-LLM-CLIENT NAME="LlmClient" TYPE="INTEGRATION" LAYER="4" ORDER="15" STATUS="planned">
+      <contract>
+        <purpose>Generic LLM client abstraction over OpenAI-compatible API (LM Studio) with vision support and model lifecycle management.</purpose>
+        <inputs><param name="config" type="LlmConfig — provider, base_url, model, context_window, temperature, max_tokens" /></inputs>
+        <outputs><param name="LlmClient" type="object with chat(), vision(), load_model(), unload_model() methods" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/llm_client.py</source><tests>tests/test_llm_client.py</tests></target>
+      <observability><log-prefix>[LlmClient]</log-prefix></observability>
+      <verification-ref>V-M-LLM-CLIENT</verification-ref>
+      <depends>M-CONFIG, httpx</depends>
+    </M-LLM-CLIENT>
+
+    <M-SLIDE-ANALYZER NAME="SlideAnalyzer" TYPE="CORE_LOGIC" LAYER="4" ORDER="16" STATUS="planned">
+      <contract>
+        <purpose>Analyze slide screenshot via LLM vision: extract visual description and on-screen text terms.</purpose>
+        <inputs><param name="slide" type="SlideSegment" /><param name="image_path" type="Path" /><param name="llm_client" type="LlmClient" /></inputs>
+        <outputs><param name="description" type="str — structured description of slide content and visible text" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/slide_analyzer.py</source><tests>tests/test_slide_analyzer.py</tests></target>
+      <observability><log-prefix>[SlideAnalyzer]</log-prefix></observability>
+      <verification-ref>V-M-SLIDE-ANALYZER</verification-ref>
+      <depends>M-LLM-CLIENT, M-MODELS</depends>
+    </M-SLIDE-ANALYZER>
+
+    <M-LLM-ORCHESTRATOR NAME="LlmOrchestrator" TYPE="CORE_LOGIC" LAYER="5" ORDER="17" STATUS="planned">
+      <contract>
+        <purpose>Coordinate full LLM processing pipeline: load model, analyze all slides (vision → description), rephrase transcript with context, unload model, save enriched slides.json.</purpose>
+        <inputs><param name="slides_json" type="Path — path to slides.json" /><param name="slides_dir" type="Path" /><param name="config" type="LlmConfig" /></inputs>
+        <outputs><param name="enriched_slides.json" type="Path — updated slides.json with llm_description and corrected transcript" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/llm_orchestrator.py</source><tests>tests/test_llm_orchestrator.py</tests></target>
+      <observability><log-prefix>[LlmOrchestrator]</log-prefix></observability>
+      <verification-ref>V-M-LLM-ORCHESTRATOR</verification-ref>
+      <depends>M-LLM-CLIENT, M-SLIDE-ANALYZER, M-NOTES-PROCESSOR, M-MODELS</depends>
+    </M-LLM-ORCHESTRATOR>
+
     <M-PIPELINE NAME="PipelineOrchestrator" TYPE="CORE_LOGIC" LAYER="5" ORDER="14" STATUS="implemented">
       <contract>
         <purpose>Wire all modules together in cli.py detect/export-md/debug commands</purpose>
@@ -158,6 +194,19 @@
       <step-10>Generate debug artifacts if --debug (M-DEBUG-EXPORT)</step-10>
       <evidence>slides.json exists and validates, slides/*.png files created, debug artifacts present</evidence>
     </DF-001>
+
+    <DF-003 NAME="LlmProcessPipeline" TRIGGER="CLI llm-process command or detect --llm flag">
+      <step-1>Load slides.json from detect output (M-CLI)</step-1>
+      <step-2>Read LlmConfig from config YAML + CLI overrides (M-CONFIG)</step-2>
+      <step-3>Initialize LlmClient with provider settings (M-LLM-CLIENT)</step-3>
+      <step-4>Load model via LM Studio API (M-LLM-CLIENT.load_model)</step-4>
+      <step-5>For each slide: read screenshot → vision analyze → structured description (M-SLIDE-ANALYZER)</step-5>
+      <step-6>Save slide descriptions to enriched slides.json, write sidecar JSON per slide (M-LLM-ORCHESTRATOR)</step-6>
+      <step-7>For each slide: description + raw transcript → LLM rephrase with context → corrected transcript (M-NOTES-PROCESSOR with llm mode)</step-7>
+      <step-8>Unload model to free VRAM (M-LLM-CLIENT.unload_model)</step-8>
+      <step-9>Save enriched slides.json with llm_description and corrected transcript fields (M-LLM-ORCHESTRATOR)</step-9>
+      <evidence>enriched slides.json has llm_description on each slide, transcript corrected with slide context terms, model unloaded</evidence>
+    </DF-003>
 
     <DF-002 NAME="ExportMDPipeline" TRIGGER="CLI export-md command">
       <step-1>Load slides.json (M-CLI)</step-1>
@@ -211,9 +260,15 @@
       <goal>Google Colab notebook with T4 GPU — install, mount Drive, run detect + export-pptx, download results.</goal>
       <step-16 module="M-COLAB" status="pending" verification="V-M-COLAB">Colab notebook: install deps, detect, export pptx/md, Drive upload/download</step-16>
     </Phase-6>
+
+    <Phase-7 name="LLMProcessing" status="planned">
+      <goal>Local LLM (LM Studio) vision analysis of slide screenshots + transcript correction using slide context. Verifiable via enriched slides.json with llm_description fields.</goal>
+      <step-17 module="M-LLM-CLIENT" status="done" verification="V-M-LLM-CLIENT">OpenAI-compatible LLM client with vision support, model load/unload lifecycle</step-17>
+      <step-18 module="M-SLIDE-ANALYZER" status="planned" verification="V-M-SLIDE-ANALYZER">Slide screenshot vision analysis → description + term extraction</step-18>
+      <step-19 module="M-LLM-ORCHESTRATOR" status="planned" verification="V-M-LLM-ORCHESTRATOR">Orchestrate: load model → analyze all slides → rephrase transcript → unload model → save enriched slides.json</step-19>
+    </Phase-7>
   </ImplementationOrder>
 
-  <DeploymentScenarios>
     <DS-COLAB NAME="GoogleColab" STATUS="pending" PRIORITY="medium">
       <purpose>Run the full video-slide-md pipeline on Google Colab with free T4 GPU acceleration.</purpose>
       <target>colab/video_slide_md_colab.ipynb</target>
