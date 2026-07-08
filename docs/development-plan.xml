@@ -107,7 +107,7 @@
       <depends>M-MODELS, M-FRAME-FEATURES</depends>
     </M-DEDUPE>
 
-    <M-SUBTITLES NAME="Subtitles" TYPE="CORE_LOGIC" LAYER="4" ORDER="11" STATUS="planned">
+    <M-SUBTITLES NAME="Subtitles" TYPE="CORE_LOGIC" LAYER="4" ORDER="11" STATUS="implemented">
       <contract>
         <purpose>Parse SRT/VTT, align cues to slide intervals by timestamp overlap.</purpose>
       </contract>
@@ -116,7 +116,7 @@
       <depends>M-MODELS</depends>
     </M-SUBTITLES>
 
-    <M-MD-EXPORT NAME="MarkdownExport" TYPE="CORE_LOGIC" LAYER="4" ORDER="12" STATUS="planned">
+    <M-MD-EXPORT NAME="MarkdownExport" TYPE="CORE_LOGIC" LAYER="4" ORDER="12" STATUS="implemented">
       <contract>
         <purpose>Export slides.json to Marp-formatted deck.md.</purpose>
       </contract>
@@ -125,7 +125,7 @@
       <depends>M-MODELS</depends>
     </M-MD-EXPORT>
 
-    <M-DEBUG-EXPORT NAME="DebugExport" TYPE="UTILITY" LAYER="4" ORDER="13" STATUS="planned">
+    <M-DEBUG-EXPORT NAME="DebugExport" TYPE="UTILITY" LAYER="4" ORDER="13" STATUS="implemented">
       <contract>
         <purpose>Generate debug artifacts: diff_scores.csv, timeline.png, contact_sheet.jpg.</purpose>
       </contract>
@@ -181,11 +181,11 @@
       <step-10 module="M-DEDUPE" status="done" verification="V-M-DEDUPE">Neighbor segment deduplication</step-10>
     </Phase-3>
 
-    <Phase-4 name="SubtitlesAndExport" status="pending">
+    <Phase-4 name="SubtitlesAndExport" status="done">
       <goal>Align subtitles and produce output files. Verifiable via full pipeline with synthetic video.</goal>
-      <step-11 module="M-SUBTITLES" status="pending" verification="V-M-SUBTITLES">SRT/VTT parsing + cue alignment</step-11>
-      <step-12 module="M-MD-EXPORT" status="pending" verification="V-M-MD-EXPORT">Marp Markdown export</step-12>
-      <step-13 module="M-DEBUG-EXPORT" status="pending" verification="V-M-DEBUG-EXPORT">Debug artifacts generation</step-13>
+      <step-11 module="M-SUBTITLES" status="done" verification="V-M-SUBTITLES">SRT/VTT parsing + cue alignment</step-11>
+      <step-12 module="M-MD-EXPORT" status="done" verification="V-M-MD-EXPORT">Marp Markdown export</step-12>
+      <step-13 module="M-DEBUG-EXPORT" status="done" verification="V-M-DEBUG-EXPORT">Debug artifacts generation</step-13>
     </Phase-4>
 
     <Phase-5 name="GPUBackend" status="pending">

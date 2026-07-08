@@ -52,56 +52,56 @@
       <verification-ref>V-M-BACKENDS</verification-ref>
     </M-BACKENDS>
 
-    <M-ROI NAME="ROI" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-ROI NAME="ROI" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Slide ROI management — crop and mask ignore regions</purpose>
       <path>src/video_slide_md/roi.py</path>
       <depends>M-MODELS</depends>
       <verification-ref>V-M-ROI</verification-ref>
     </M-ROI>
 
-    <M-FRAME-FEATURES NAME="FrameFeatures" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-FRAME-FEATURES NAME="FrameFeatures" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Frame feature extraction: pHash, dHash, histogram, grayscale, visual distance</purpose>
       <path>src/video_slide_md/frame_features.py</path>
       <depends>M-ROI</depends>
       <verification-ref>V-M-FRAME-FEATURES</verification-ref>
     </M-FRAME-FEATURES>
 
-    <M-SLIDE-DETECTOR NAME="SlideDetector" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-SLIDE-DETECTOR NAME="SlideDetector" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Slide change detection via frame comparison with threshold and debounce</purpose>
       <path>src/video_slide_md/slide_detector.py</path>
       <depends>M-FRAME-FEATURES, M-ROI</depends>
       <verification-ref>V-M-SLIDE-DETECTOR</verification-ref>
     </M-SLIDE-DETECTOR>
 
-    <M-SEGMENTER NAME="Segmenter" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-SEGMENTER NAME="Segmenter" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Convert change events to slide intervals with representative timestamps</purpose>
       <path>src/video_slide_md/segmenter.py</path>
       <depends>M-MODELS</depends>
       <verification-ref>V-M-SEGMENTER</verification-ref>
     </M-SEGMENTER>
 
-    <M-DEDUPE NAME="Dedupe" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-DEDUPE NAME="Dedupe" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Deduplicate adjacent slide segments via hash/SSIM similarity</purpose>
       <path>src/video_slide_md/dedupe.py</path>
       <depends>M-MODELS, M-FRAME-FEATURES</depends>
       <verification-ref>V-M-DEDUPE</verification-ref>
     </M-DEDUPE>
 
-    <M-SUBTITLES NAME="Subtitles" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-SUBTITLES NAME="Subtitles" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>SRT/VTT parsing and alignment of cues to slide intervals</purpose>
       <path>src/video_slide_md/subtitles.py</path>
       <depends>M-MODELS</depends>
       <verification-ref>V-M-SUBTITLES</verification-ref>
     </M-SUBTITLES>
 
-    <M-MD-EXPORT NAME="MarkdownExport" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-MD-EXPORT NAME="MarkdownExport" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Export slides.json to Marp-formatted deck.md</purpose>
       <path>src/video_slide_md/markdown_export.py</path>
       <depends>M-MODELS</depends>
       <verification-ref>V-M-MD-EXPORT</verification-ref>
     </M-MD-EXPORT>
 
-    <M-DEBUG-EXPORT NAME="DebugExport" TYPE="UTILITY" STATUS="planned">
+    <M-DEBUG-EXPORT NAME="DebugExport" TYPE="UTILITY" STATUS="implemented">
       <purpose>Generate debug artifacts: diff_scores.csv, timeline.png, contact_sheet.jpg</purpose>
       <path>src/video_slide_md/debug_export.py</path>
       <depends>M-MODELS</depends>
@@ -114,10 +114,13 @@
     <CrossLink from="M-CLI" to="M-SEGMENTER" relation="orchestrates" />
     <CrossLink from="M-CLI" to="M-SUBTITLES" relation="orchestrates" />
     <CrossLink from="M-CLI" to="M-MD-EXPORT" relation="orchestrates" />
+    <CrossLink from="M-CLI" to="M-DEDUPE" relation="orchestrates" />
     <CrossLink from="M-VIDEO-DECODE" to="M-BACKENDS" relation="selects and uses" />
     <CrossLink from="M-SLIDE-DETECTOR" to="M-FRAME-FEATURES" relation="extracts and compares" />
     <CrossLink from="M-SLIDE-DETECTOR" to="M-ROI" relation="crops and masks" />
     <CrossLink from="M-SEGMENTER" to="M-DEDUPE" relation="deduplicates after segmentation" />
+    <CrossLink from="M-DEDUPE" to="M-FRAME-FEATURES" relation="uses for comparison" />
     <CrossLink from="M-MD-EXPORT" to="M-MODELS" relation="reads SlidesDocument" />
+    <CrossLink from="M-DEBUG-EXPORT" to="M-MODELS" relation="reads SlideSegment" />
   </Project>
 </KnowledgeGraph>
