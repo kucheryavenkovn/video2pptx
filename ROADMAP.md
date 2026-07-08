@@ -1,59 +1,70 @@
 # Roadmap
 
-## MVP (v0.1–v0.4) — надёжное ядро
+## MVP (v0.1–v0.4) — стабильное ядро ✓
 
-### Phase 1: Foundation (v0.1)
-- [ ] Pydantic-модели: `VideoInfo`, `SlideSegment`, `SlidesDocument`, `SubtitleCue`
-- [ ] Загрузка конфига: YAML + CLI merge (pydantic + pyyaml)
-- [ ] CLI: `detect`, `export-md`, `debug` (typer + rich)
-- [ ] Логирование: loguru, двойной вывод в stderr + файл
+### Phase 1: Foundation (v0.1) ✓
+- [x] Pydantic-модели: `VideoInfo`, `SlideSegment`, `SlidesDocument`, `SubtitleCue`
+- [x] Загрузка конфига: YAML + CLI merge (pydantic + pyyaml)
+- [x] CLI: `detect`, `export-md`, `debug` (typer + rich)
+- [x] Логирование: loguru, двойной вывод в stderr + файл
 
-### Phase 2: Video decoding (v0.2)
-- [ ] OpenCV backend: `cv2.VideoCapture`, metadata, итерация кадров
-- [ ] Sampling по `sample_fps`, возврат `(timestamp, np.ndarray)`
-- [ ] Backend selection stub: `auto` → OpenCV (другие бэкенды позже)
-- [ ] Debug: сохранение sampled frames
+### Phase 2: Video decoding (v0.2) ✓
+- [x] OpenCV backend: `cv2.VideoCapture`, metadata, итерация кадров
+- [x] Sampling по `sample_fps`, возврат `(timestamp, np.ndarray)`
+- [x] Backend selection stub: `auto` → OpenCV (другие бэкенды позже)
+- [x] Debug: сохранение sampled frames
 
-### Phase 3: Slide detection (v0.3)
-- [ ] ROI: crop `slide_roi`, mask `ignore_rois`
-- [ ] Feature extraction: pHash, dHash, grayscale, histogram
-- [ ] Visual distance: взвешенная сумма (0.4/0.3/0.2/0.1)
-- [ ] Threshold: `auto` = median + k*MAD, или ручной
-- [ ] Debounce: `min_stable_duration` — не принимать смену без стабилизации
-- [ ] Segment builder: интервалы, min_slide_duration, representative timestamp (80%/50%)
-- [ ] Dedupe: объединение соседей по pHash/SSIM, warnings при сомнениях
+### Phase 3: Slide detection (v0.3) ✓
+- [x] ROI: crop `slide_roi`, mask `ignore_rois`
+- [x] Feature extraction: pHash, dHash, grayscale, histogram, pixel MAE
+- [x] Visual distance: взвешенная сумма (pixel MAE 80%, hash+hist 20%)
+- [x] Threshold: `auto` = медиана + k×MAD, или ручной
+- [x] Debounce: `min_stable_duration` — не принимать смену без стабилизации
+- [x] Segment builder: интервалы, min_slide_duration, representative timestamp (80%/50%)
+- [x] Dedupe: объединение соседей по visual_distance, warnings при сомнениях
+- [x] Дедупликация по `representative_timestamp`, не по `vf.timestamp`
 
-### Phase 4: Subtitles + Export (v0.4)
-- [ ] SRT парсер (pysubs2)
-- [ ] VTT парсер
-- [ ] Overlap-алгоритм: пересечение интервалов, max overlap при конфликте
-- [ ] Marp Markdown export: bg-изображения, транскрипт в body, timecode в comment
-- [ ] Debug artifacts: `diff_scores.csv`, `timeline.png`, `contact_sheet.jpg`
-- [ ] Метрики качества на synthetic dataset
+### Phase 4: Subtitles + Export (v0.4) ✓
+- [x] SRT парсер (pysubs2)
+- [x] VTT парсер
+- [x] Overlap-алгоритм: пересечение интервалов, max overlap при конфликте
+- [x] Marp Markdown export: bg-изображения, транскрипт в body, timecode в comment
+- [x] Debug artifacts: `diff_scores.csv`, `timeline.png`, `contact_sheet.jpg`
 
-### GPU backend (v0.5)
+### Phase 5: GPU backend ✓
+- [x] PyAV backend с CUDA NVDEC hwaccel (RTX 4090)
 - [ ] Decord backend
 - [ ] PyNvVideoCodec backend (NVDEC)
-- [ ] PyAV backend (fallback)
-- [ ] Auto-detection: pynv → decord → pyav → opencv
-- [ ] Graceful degradation: CUDA missing → WARNING + CPU
+- [x] Auto-detection: pyav → opencv
+- [x] Graceful degradation: CUDA missing → WARNING + CPU
 
 ---
 
+## Текущая версия — v0.5 (реализовано, но не задокументировано в плане)
+
+| Фича | Статус |
+|------|--------|
+| PPTX export: python-pptx с картинками + speaker notes | ✓ Реализовано |
+| Notes processor (basic): склейка, пунктуация, капитализация | ✓ Реализовано |
+| Notes processor (llm): перефразирование через LM Studio | ✓ Реализовано (требуется LM Studio) |
+| `--notes-mode basic\|llm` | ✓ Реализовано |
+| `export-pptx` команда + `--export-pptx` флаг | ✓ Реализовано |
+| Google Colab ноутбук с T4 GPU | ✓ Реализовано |
+
 ## Post-MVP (v0.6+)
 
-| Версия | Фича |
-|--------|------|
-| v0.6 | Auto slide_roi detection (наиболее стабильная область кадра) |
-| v0.7 | OCR текста слайдов (Tesseract/PaddleOCR) |
-| v0.8 | Review UI (Streamlit): просмотр, merge/split/delete слайдов |
-| v0.9 | PPTX export: python-pptx с картинками + speaker notes |
-| v1.0 | LLM-описания: тезисы, заголовки, speaker notes, группировка по темам |
-| v1.1 | PDF export (через Marp CLI) |
-| v1.2 | Batch-обработка директории с видео |
-| v1.3 | Chapter markers из метаданных видео |
-| v1.4 | HTML/reveal.js export |
-| v1.5 | Поиск по слайдам и транскрипту |
+| Версия | Фича | Статус |
+|--------|------|--------|
+| v0.6 | Auto slide_roi detection (наиболее стабильная область кадра) | 🟡 Планируется |
+| v0.7 | OCR текста слайдов (Tesseract/PaddleOCR) | 🟡 Планируется |
+| v0.8 | Review UI (Streamlit): просмотр, merge/split/delete слайдов | 🟡 Заглушка |
+| v0.9 | Decord backend | 🟡 Заглушка |
+| v1.0 | PyNvVideoCodec backend | 🟡 Заглушка |
+| v1.1 | PDF export (через Marp CLI) | 🟡 Планируется |
+| v1.2 | Batch-обработка директории с видео | 🟡 Планируется |
+| v1.3 | Chapter markers из метаданных видео | 🟡 Планируется |
+| v1.4 | HTML/reveal.js export | 🟡 Планируется |
+| v1.5 | Поиск по слайдам и транскрипту | 🟡 Планируется |
 
 ---
 
