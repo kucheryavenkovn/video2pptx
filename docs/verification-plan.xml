@@ -391,7 +391,7 @@
       </scenarios>
     </V-M-GUI-SUBTITLE-OVERLAY>
 
-    <V-M-GUI-TIMELINE-V2 MODULE="M-GUI-TIMELINE-V2" PRIORITY="high" STATUS="pending">
+    <V-M-GUI-TIMELINE-V2 MODULE="M-GUI-TIMELINE-V2" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_gui_timeline_v2.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_timeline_v2.py -v</check-1>

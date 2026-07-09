@@ -334,7 +334,7 @@
       </annotations>
     </M-GUI-SUBTITLE-OVERLAY>
 
-    <M-GUI-TIMELINE-V2 NAME="TimelineV2" TYPE="UI_COMPONENT" STATUS="pending">
+    <M-GUI-TIMELINE-V2 NAME="TimelineV2" TYPE="UI_COMPONENT" STATUS="implemented">
       <purpose>Enhanced timeline: green (detected) and blue (manual) markers. Double-click green → open image. Right-click → add/edit/delete marker. Context menu with snap options.</purpose>
       <path>src/video_slide_md/gui/timeline_v2.py</path>
       <depends>M-MODELS, M-GUI-MARKER-MANAGER</depends>
