@@ -652,6 +652,8 @@ class MainWindow(QMainWindow):
             start=ts,
             end=ts + 5.0,
             duration=5.0,
+            representative_timestamp=ts,
+            image="",
             manual=True,
         )
         self._project.slides.append(new_slide)
@@ -777,6 +779,9 @@ class MainWindow(QMainWindow):
         self._status.finish(f"Detection complete: {path}")
         update_project_state(self._project, detect_done=True, slides_json=path)
         load_slides_into_project(self._project)
+        # Set score waveform from slides.json
+        if self._project.score_timestamps and self._project.score_values:
+            self._timeline.set_scores(self._project.score_timestamps, self._project.score_values)
         if self._project.slides:
             dur = max(self._project.slides[-1].end, self._video_player.duration())
             self._timeline.set_slides(self._project.slides)

@@ -151,3 +151,5 @@ class SlidesDocument(BaseModel):
     config: dict[str, Any] = Field(default_factory=dict, description="Detection config used")
     slides: list[SlideSegment] = Field(default_factory=list, description="Detected slide segments")
     debug: dict[str, str] = Field(default_factory=dict, description="Paths to debug artifacts")
+    score_timestamps: list[float] = Field(default_factory=list, description="Score waveform timestamps")
+    score_values: list[float] = Field(default_factory=list, description="Score waveform values (visual_distance)")

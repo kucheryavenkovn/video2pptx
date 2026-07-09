@@ -69,6 +69,8 @@ class Project(BaseModel):
     slides: list[SlideSegment] = Field(default_factory=list, description="Loaded slide segments (populated from slides_json)")
     backend: str = Field(default="auto", description="Preferred decoder backend: auto, opencv, pyav")
     output_dir: str = Field(default=".", description="Output directory (relative to project dir)")
+    score_timestamps: list[float] = Field(default_factory=list, description="Score waveform timestamps from slides.json")
+    score_values: list[float] = Field(default_factory=list, description="Score waveform values from slides.json")
 
 
 def create_project(
@@ -291,6 +293,10 @@ def load_slides_into_project(project: Project) -> Project:
         raw = json.loads(slides_path.read_text(encoding="utf-8"))
         project.slides = [SlideSegment(**s) for s in raw.get("slides", [])]
         logger.info(f"[ProjectManager][load_slides_into_project] Loaded | count={len(project.slides)}")
+
+        # Store score waveform from document
+        project.score_timestamps = raw.get("score_timestamps", [])
+        project.score_values = raw.get("score_values", [])
     except Exception as exc:
         logger.error(f"[ProjectManager][load_slides_into_project] Failed | error={exc}")
         project.slides = []

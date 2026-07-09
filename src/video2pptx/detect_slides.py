@@ -146,6 +146,8 @@ def run_detect_slides(
             fps=info.fps,
         ),
         slides=segments,
+        score_timestamps=[f.timestamp for f in all_features[1:]],
+        score_values=all_scores,
     )
 
     json_path = out_dir / "slides.json"
