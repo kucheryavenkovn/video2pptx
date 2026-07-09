@@ -180,7 +180,7 @@
       <verification-ref>V-M-ROI-TOOL</verification-ref>
     </M-ROI-TOOL>
 
-    <M-PROJECT NAME="ProjectManager" TYPE="DATA_LAYER" STATUS="pending">
+    <M-PROJECT NAME="ProjectManager" TYPE="DATA_LAYER" STATUS="implemented">
       <purpose>Project management: create, open, save project.json with configs and pipeline state</purpose>
       <path>src/video_slide_md/project_manager.py</path>
       <depends>M-MODELS, M-CONFIG</depends>

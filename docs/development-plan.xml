@@ -225,7 +225,7 @@
       <depends>M-VIDEO-DECODE, opencv-python</depends>
     </M-ROI-TOOL>
 
-    <M-PROJECT NAME="ProjectManager" TYPE="DATA_LAYER" LAYER="5" ORDER="23" STATUS="pending">
+    <M-PROJECT NAME="ProjectManager" TYPE="DATA_LAYER" LAYER="5" ORDER="23" STATUS="implemented">
       <contract>
         <purpose>Project management: create, open, save projects. Project JSON schema with video/subtitle paths, detection/LLM configs, pipeline state.</purpose>
         <inputs><param name="project_dir" type="Path" /><param name="video_path" type="Path|None" /><param name="subtitles_path" type="Path|None" /></inputs>
@@ -423,7 +423,7 @@
 
     <Phase-9 name="ProjectManagement" status="pending">
       <goal>Create project system: project.json schema, CRUD operations, CLI subcommands. Projects tie video, subtitles, configs, and pipeline state into a single output folder.</goal>
-      <step-26 module="M-PROJECT" status="pending" verification="V-M-PROJECT">
+      <step-26 module="M-PROJECT" status="done" verification="V-M-PROJECT">
         Create src/video_slide_md/project_manager.py with Project model (pydantic), project.json I/O, state management. Add project create/open/info CLI subcommands in cli.py.
       </step-26>
       <stop-condition>project.json must be human-readable and re-openable. CLI project commands must round-trip (create → open → verify paths resolve).</stop-condition>

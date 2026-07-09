@@ -209,7 +209,7 @@
       </scenarios>
     </V-M-ROI-TOOL>
 
-    <V-M-PROJECT MODULE="M-PROJECT" PRIORITY="high" STATUS="pending">
+    <V-M-PROJECT MODULE="M-PROJECT" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_project_manager.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_project_manager.py -v</check-1>
