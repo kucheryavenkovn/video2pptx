@@ -591,7 +591,7 @@
       <step-2 module="M-GUI-SMART-SNAP" status="done" verification="V-M-GUI-SMART-SNAP">
         Create src/video_slide_md/gui/smart_snap.py: three snap strategies. diff_only: load diff_scores from slides.json, window ±5s, find nearest local max. fallback_analyze: try diff_scores first, if none decode ±3s window sample_fps=5, compute frame differences. hybrid: diff_scores, if flat (max-min < threshold) high-res ±2s sample_fps=10.
       </step-2>
-      <step-3 module="M-GUI-MARKER-MANAGER" status="pending" verification="V-M-GUI-MARKER-MANAGER">
+      <step-3 module="M-GUI-MARKER-MANAGER" status="done" verification="V-M-GUI-MARKER-MANAGER">
         Create src/video_slide_md/gui/marker_manager.py: CRUD for blue markers on Project model. Persist in project.json as list of {original_ts, snapped_ts, snap_mode}. Calls M-GUI-SMART-SNAP on creation.
       </step-3>
       <step-4 module="M-GUI-SETTINGS-PROJECT" status="pending" verification="V-M-GUI-SETTINGS-PROJECT">

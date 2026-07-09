@@ -272,7 +272,7 @@
       </annotations>
     </M-GUI-SMART-SNAP>
 
-    <M-GUI-MARKER-MANAGER NAME="MarkerManager" TYPE="CORE_LOGIC" STATUS="pending">
+    <M-GUI-MARKER-MANAGER NAME="MarkerManager" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>CRUD for user-defined blue markers on Project. Persisted in project.json. Calls SmartSnap on creation. Stores both original and snapped timestamps.</purpose>
       <path>src/video_slide_md/gui/marker_manager.py</path>
       <depends>M-PROJECT, M-GUI-SMART-SNAP</depends>
