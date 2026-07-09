@@ -85,17 +85,19 @@ class SubtitleOverlayWidget(QLabel):
     # END_BLOCK_LOAD_SUBTITLES
 
     # START_BLOCK_SYNC
-    def sync_to_position(self, seconds: float) -> None:
+    def sync_to_position(self, seconds: float) -> str | None:
         if self._subs is None:
             self.hide()
-            return
+            return None
 
         text = self._get_text_at_time(seconds)
         if text:
             self.setText(text)
             self.show()
+            return text
         else:
             self.hide()
+            return None
     # END_BLOCK_SYNC
 
     # START_BLOCK_GET_TEXT

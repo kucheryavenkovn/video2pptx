@@ -42,7 +42,8 @@ class TestVideoPlayerWidget:
         _ensure_app()
         from video_slide_md.gui.video_player import VideoPlayerWidget
         widget = VideoPlayerWidget()
-        assert widget._video_widget is not None
+        assert widget._video_item is not None
+        assert widget._view is not None
         assert widget._play_btn is not None
         assert widget._stop_btn is not None
         assert widget._time_label is not None
@@ -116,6 +117,33 @@ class TestVideoPlayerWidget:
         assert VideoPlayerWidget._fmt_time(0) == "00:00"
         assert VideoPlayerWidget._fmt_time(65) == "01:05"
         assert VideoPlayerWidget._fmt_time(3661) == "61:01"
+
+    def test_set_subtitle_text_shows(self) -> None:
+        _ensure_app()
+        from video_slide_md.gui.video_player import VideoPlayerWidget
+        widget = VideoPlayerWidget()
+        widget.set_subtitle_text("Hello subtitles")
+        assert widget._subtitle_item.text() == "Hello subtitles"
+        assert widget._subtitle_item.isVisible()
+        widget.deleteLater()
+
+    def test_set_subtitle_text_none_hides(self) -> None:
+        _ensure_app()
+        from video_slide_md.gui.video_player import VideoPlayerWidget
+        widget = VideoPlayerWidget()
+        widget.set_subtitle_text("Hello")
+        widget.set_subtitle_text(None)
+        assert widget._subtitle_item.text() == ""
+        assert not widget._subtitle_item.isVisible()
+        widget.deleteLater()
+
+    def test_set_subtitle_text_empty_hides(self) -> None:
+        _ensure_app()
+        from video_slide_md.gui.video_player import VideoPlayerWidget
+        widget = VideoPlayerWidget()
+        widget.set_subtitle_text("")
+        assert not widget._subtitle_item.isVisible()
+        widget.deleteLater()
 
     def test_clear_video_resets_state(self) -> None:
         _ensure_app()

@@ -118,8 +118,6 @@ class MainWindow(QMainWindow):
         self._subtitle_overlay = SubtitleOverlayWidget()
         self._video_player.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-        self._video_player.set_overlay_widget(self._subtitle_overlay)
-
         video_layout.addWidget(self._video_player, stretch=1)
 
         self._timeline_placeholder = QLabel("No slides detected yet")
@@ -165,7 +163,8 @@ class MainWindow(QMainWindow):
 
     # START_BLOCK_VIDEO_SUBTITLE_SYNC
     def _on_video_position_changed(self, seconds: float) -> None:
-        self._subtitle_overlay.sync_to_position(seconds)
+        text = self._subtitle_overlay.sync_to_position(seconds)
+        self._video_player.set_subtitle_text(text)
 
     # END_BLOCK_VIDEO_SUBTITLE_SYNC
 
@@ -201,6 +200,7 @@ class MainWindow(QMainWindow):
         if self._project is None:
             return
         self._video_player.clear_video()
+        self._video_player.set_subtitle_text(None)
         self._subtitle_overlay.clear_subtitles()
         self._project = None
         self._video_label.setText("Video: —")
@@ -319,15 +319,24 @@ class MainWindow(QMainWindow):
             last_path = Path(cfg.last_project_path)
             if not (last_path / "project.json").is_file():
                 return
+            from PySide6.QtCore import QTimer
+            QTimer.singleShot(0, lambda: self._do_restore_project(str(last_path)))
+        except Exception:
+            pass
+
+    def _do_restore_project(self, project_path: str) -> None:
+        try:
+            import os
+            if os.environ.get("QT_QPA_PLATFORM") == "offscreen":
+                return
             reply = QMessageBox.question(
                 self,
                 "Restore Project",
-                f"Open previous project?\n\n{last_path.name}",
+                f"Open previous project?\n\n{Path(project_path).name}",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
             if reply == QMessageBox.StandardButton.Yes:
-                from video_slide_md.project_manager import open_project
-                proj = open_project(str(last_path))
+                proj = open_project(project_path)
                 self._set_project(proj)
                 self.statusBar().showMessage(f"Restored project: {proj.name}")
         except Exception:

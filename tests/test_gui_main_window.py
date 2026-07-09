@@ -98,9 +98,11 @@ class TestMainWindow:
         _ensure_app()
         from video_slide_md.gui.main_window import MainWindow
         w = MainWindow()
-        with patch.object(w._subtitle_overlay, "sync_to_position") as mock:
+        w._subtitle_overlay.load_subtitles(None)
+
+        with patch.object(w._video_player, "set_subtitle_text") as mock:
             w._on_video_position_changed(10.5)
-            mock.assert_called_once_with(10.5)
+            mock.assert_called_once()
         w.deleteLater()
 
     def test_project_changed_signal_emitted(self, tmp_path: Path) -> None:

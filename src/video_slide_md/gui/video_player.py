@@ -1,8 +1,8 @@
 # FILE: src/video_slide_md/gui/video_player.py
-# VERSION: 0.1.0
+# VERSION: 0.2.0
 # START_MODULE_CONTRACT
-#   PURPOSE: QMediaPlayer + QVideoWidget with transport controls (play/pause/stop, seek, volume, timecode)
-#   SCOPE: QWidget with embedded QVideoWidget, transport bar, position/state/duration signals
+#   PURPOSE: QMediaPlayer + QGraphicsVideoItem with transport controls — render subtitles on video via QGraphicsScene
+#   SCOPE: QWidget with embedded graphics view, transport bar, position/state/duration signals, subtitle overlay
 #   DEPENDS: PySide6.QtMultimedia
 #   LINKS: M-GUI-VIDEOPLAYER
 #   ROLE: UI_COMPONENT
@@ -10,7 +10,7 @@
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   VideoPlayerWidget - QWidget with QVideoWidget, transport bar, playback controls
+#   VideoPlayerWidget - QWidget with QGraphicsView, QGraphicsVideoItem, subtitle text, playback controls
 # END_MODULE_MAP
 
 from __future__ import annotations
@@ -18,11 +18,14 @@ from __future__ import annotations
 from pathlib import Path
 
 from loguru import logger
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QResizeEvent
+from PySide6.QtCore import QSizeF, Qt, Signal
+from PySide6.QtGui import QFont, QResizeEvent
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
-from PySide6.QtMultimediaWidgets import QVideoWidget
+from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from PySide6.QtWidgets import (
+    QGraphicsScene,
+    QGraphicsSimpleTextItem,
+    QGraphicsView,
     QHBoxLayout,
     QLabel,
     QPushButton,
@@ -35,7 +38,7 @@ from PySide6.QtWidgets import (
 
 class VideoPlayerWidget(QWidget):
     # START_CONTRACT: VideoPlayerWidget
-    #   PURPOSE: QWidget with QVideoWidget and transport controls — play, pause, stop, seek, volume, timecode
+    #   PURPOSE: QGraphicsView + QGraphicsVideoItem + subtitle text overlay with transport controls
     #   INPUTS: { video_path: Path | None }
     #   OUTPUTS: signals: positionChanged(float seconds), stateChanged(str), durationChanged(float)
     #   SIDE_EFFECTS: loads video file, may use GPU decoding via QtMultimedia
@@ -52,7 +55,6 @@ class VideoPlayerWidget(QWidget):
         self._audio_output = QAudioOutput(self)
         self._player.setAudioOutput(self._audio_output)
 
-        self._overlay: QWidget | None = None
         self._is_playing = False
         self._setup_ui()
         self._connect_signals()
@@ -62,12 +64,31 @@ class VideoPlayerWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        # Video display
-        self._video_widget = QVideoWidget()
-        self._video_widget.setMinimumSize(320, 240)
-        self._video_widget.setStyleSheet("background-color: #1e1e1e;")
-        self._player.setVideoOutput(self._video_widget)
-        layout.addWidget(self._video_widget)
+        # Graphics scene for video + subtitle overlay
+        self._scene = QGraphicsScene(self)
+        self._video_item = QGraphicsVideoItem()
+        self._video_item.setSize(QSizeF(320, 240))
+        self._scene.addItem(self._video_item)
+        self._player.setVideoOutput(self._video_item)
+
+        # Subtitle text item — rendered above video
+        self._subtitle_item = QGraphicsSimpleTextItem()
+        self._subtitle_item.setZValue(1)
+        font = QFont()
+        font.setPointSize(16)
+        font.setBold(True)
+        self._subtitle_item.setFont(font)
+        self._subtitle_item.setBrush(Qt.GlobalColor.white)
+        self._scene.addItem(self._subtitle_item)
+
+        # Graphics view
+        self._view = QGraphicsView(self._scene)
+        self._view.setMinimumSize(320, 240)
+        self._view.setStyleSheet("background-color: #1e1e1e; border: none;")
+        self._view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._view.setFrameShape(QGraphicsView.Shape.NoFrame)
+        layout.addWidget(self._view, stretch=1)
 
         # Transport bar
         transport = QHBoxLayout()
@@ -207,22 +228,31 @@ class VideoPlayerWidget(QWidget):
         self._seek_slider.setRange(0, 0)
         self._is_playing = False
 
-    def set_overlay_widget(self, overlay: QWidget) -> None:
-        self._overlay = overlay
-        self._overlay.setParent(self)
-        self._overlay.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-        self._position_overlay()
+    def set_subtitle_text(self, text: str | None) -> None:
+        if text:
+            self._subtitle_item.setText(text)
+            # Center at bottom of video
+            vr = self._video_item.boundingRect()
+            br = self._subtitle_item.boundingRect()
+            x = (vr.width() - br.width()) / 2
+            y = vr.height() - br.height() - 10
+            self._subtitle_item.setPos(x, y)
+            self._subtitle_item.show()
+        else:
+            self._subtitle_item.setText("")
+            self._subtitle_item.hide()
 
     def resizeEvent(self, event: QResizeEvent) -> None:  # noqa: N802
         super().resizeEvent(event)
-        self._position_overlay()
+        self._fit_scene()
 
-    def showEvent(self, event) -> None:  # noqa: N802
-        super().showEvent(event)
-        self._position_overlay()
-
-    def _position_overlay(self) -> None:
-        if self._overlay is not None:
-            self._overlay.setGeometry(self._video_widget.geometry())
-            self._overlay.raise_()
+    def _fit_scene(self) -> None:
+        if self._scene is None or self._view is None:
+            return
+        self._scene.setSceneRect(self._view.rect())
+        # Fit video item to view width, keep aspect ratio
+        vw = self._view.width()
+        vh = self._view.height()
+        if vw > 0 and vh > 0:
+            self._video_item.setSize(QSizeF(vw, vh))
     # END_BLOCK_UTILITY
