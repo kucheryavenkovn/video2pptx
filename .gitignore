@@ -14,7 +14,8 @@ artifacts/
 logs/
 temp/
 out/
-
+out*/
+ 
 # Python
 __pycache__/
 *.py[cod]
