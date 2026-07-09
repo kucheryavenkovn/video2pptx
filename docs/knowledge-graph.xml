@@ -258,7 +258,7 @@
       </annotations>
     </M-GUI-APPCONFIG>
 
-    <M-GUI-SMART-SNAP NAME="SmartSnap" TYPE="CORE_LOGIC" STATUS="pending">
+    <M-GUI-SMART-SNAP NAME="SmartSnap" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Smart snap strategies for manual markers: diff_only, fallback_analyze, hybrid. Find nearest scene boundary within configurable window.</purpose>
       <path>src/video_slide_md/gui/smart_snap.py</path>
       <depends>M-FRAME-FEATURES, M-VIDEO-DECODE, M-MODELS</depends>

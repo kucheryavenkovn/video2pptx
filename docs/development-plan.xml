@@ -588,7 +588,7 @@
       <step-1 module="M-GUI-APPCONFIG" status="done" verification="V-M-GUI-APPCONFIG">
         Create src/video_slide_md/gui/app_config.py: AppConfigModel pydantic model, load/save app-config.yaml to platform config dir. Fields: LLM model/base_url/context_length, GPU backend default, snap_mode, snap_flat_threshold, default_project_dir. CLI fallback = built-in defaults.
       </step-1>
-      <step-2 module="M-GUI-SMART-SNAP" status="pending" verification="V-M-GUI-SMART-SNAP">
+      <step-2 module="M-GUI-SMART-SNAP" status="done" verification="V-M-GUI-SMART-SNAP">
         Create src/video_slide_md/gui/smart_snap.py: three snap strategies. diff_only: load diff_scores from slides.json, window ±5s, find nearest local max. fallback_analyze: try diff_scores first, if none decode ±3s window sample_fps=5, compute frame differences. hybrid: diff_scores, if flat (max-min < threshold) high-res ±2s sample_fps=10.
       </step-2>
       <step-3 module="M-GUI-MARKER-MANAGER" status="pending" verification="V-M-GUI-MARKER-MANAGER">

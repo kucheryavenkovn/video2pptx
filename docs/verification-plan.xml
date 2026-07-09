@@ -304,7 +304,7 @@
       </scenarios>
     </V-M-GUI-APPCONFIG>
 
-    <V-M-GUI-SMART-SNAP MODULE="M-GUI-SMART-SNAP" PRIORITY="high" STATUS="pending">
+    <V-M-GUI-SMART-SNAP MODULE="M-GUI-SMART-SNAP" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_gui_smart_snap.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_smart_snap.py -v</check-1>
