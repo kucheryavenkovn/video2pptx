@@ -64,6 +64,7 @@ class VideoPlayerWidget(QWidget):
         self._video_widget = QVideoWidget()
         self._video_widget.setMinimumSize(320, 240)
         self._video_widget.setStyleSheet("background-color: #1e1e1e;")
+        self._player.setVideoOutput(self._video_widget)
         layout.addWidget(self._video_widget)
 
         # Transport bar

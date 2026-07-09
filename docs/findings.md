@@ -120,3 +120,12 @@
 - Impact: GUI was unreachable without installing `httpx`.
 - Resolution: Moved the `from video_slide_md.llm_orchestrator import run_llm_pipeline` import inside `LlmWorker.run()` (lazy import). The GUI now starts without `httpx`; the error only appears if the user actually triggers LLM processing.
 - LINKS: M-GUI-WORKER, M-GUI-MAIN
+
+### F-0014 — Qt6/PySide6 requires explicit `setVideoOutput()` for QVideoWidget
+- Date: 2026-07-09
+- Area: gui
+- Finding: In Qt6/PySide6, `QMediaPlayer` does NOT automatically render to a `QVideoWidget` even if one exists in the widget tree. The call `player.setVideoOutput(video_widget)` is mandatory. Without it, audio plays but video shows a black screen.
+- Symptom/Reproduction: Load video in `VideoPlayerWidget`, press play → audio heard, video area stays black.
+- Impact: Video playback broken for all users.
+- Resolution: Added `self._player.setVideoOutput(self._video_widget)` in `_setup_ui()` after creating `_video_widget`.
+- LINKS: M-GUI-VIDEOPLAYER
