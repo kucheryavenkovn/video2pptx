@@ -370,15 +370,15 @@ class MainWindow(QMainWindow):
         if self._project is None:
             QMessageBox.information(self, "Project Settings", "Open a project first")
             return
-        from video_slide_md.gui.settings_project import SettingsProjectDialog
-        dlg = SettingsProjectDialog(self._project, self)
+        from video_slide_md.gui.settings_project import ProjectSettingsDialog
+        dlg = ProjectSettingsDialog(self._project, self)
         if dlg.exec():
             logger.info("[GUI-Main][_on_project_settings] Project settings updated")
             self.statusBar().showMessage("Project settings updated")
 
     def _on_app_settings(self) -> None:
-        from video_slide_md.gui.settings_app import SettingsAppDialog
-        dlg = SettingsAppDialog(self._app_config, self)
+        from video_slide_md.gui.settings_app import AppSettingsDialog
+        dlg = AppSettingsDialog(self._app_config, self)
         if dlg.exec():
             logger.info("[GUI-Main][_on_app_settings] App settings updated")
             self.statusBar().showMessage("App settings updated")

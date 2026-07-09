@@ -217,7 +217,12 @@ class VideoPlayerWidget(QWidget):
         super().resizeEvent(event)
         self._position_overlay()
 
+    def showEvent(self, event) -> None:  # noqa: N802
+        super().showEvent(event)
+        self._position_overlay()
+
     def _position_overlay(self) -> None:
         if self._overlay is not None:
             self._overlay.setGeometry(self._video_widget.geometry())
+            self._overlay.raise_()
     # END_BLOCK_UTILITY
