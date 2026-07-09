@@ -332,7 +332,7 @@
       <step-23 module="M-NOTES" status="done" verification="V-M-NOTES">
         Create notes_pipeline.py: load slides.json → parse subtitles → vision analyze slides → build context-aware notes → save enriched slides.json. No video re-decode needed.
       </step-23>
-      <step-24 module="M-CLI" status="pending" verification="V-M-CLI">
+      <step-24 module="M-CLI" status="done" verification="V-M-CLI">
         Add detect-slides command (calls M-DETECT-SLIDES). Add notes command (calls M-NOTES). Update detect all-in-one to call M-DETECT-SLIDES + M-NOTES sequentially (backwards compat).
       </step-24>
       <stop-condition>notes command must work without detect-slides needing to exist — user can run detect first, then notes separately. detect (all-in-one) must remain backwards compatible.</stop-condition>
