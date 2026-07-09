@@ -177,7 +177,7 @@
       </scenarios>
     </V-M-NOTES>
 
-    <V-M-ROI-TOOL MODULE="M-ROI-TOOL" PRIORITY="medium" STATUS="pending">
+    <V-M-ROI-TOOL MODULE="M-ROI-TOOL" PRIORITY="medium" STATUS="passed">
       <test-files><file>tests/test_roi_tool.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_roi_tool.py -v</check-1>

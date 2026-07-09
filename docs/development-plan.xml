@@ -211,7 +211,7 @@
       <depends>M-MODELS, M-SUBTITLES, M-NOTES-PROCESSOR, M-SLIDE-ANALYZER, M-LLM-CLIENT</depends>
     </M-NOTES>
 
-    <M-ROI-TOOL NAME="RoiTool" TYPE="UI_COMPONENT" LAYER="5" ORDER="22" STATUS="pending">
+    <M-ROI-TOOL NAME="RoiTool" TYPE="UI_COMPONENT" LAYER="5" ORDER="22" STATUS="implemented">
       <contract>
         <purpose>Graphical ROI selection tool: opens video frame in OpenCV window, user drags rectangle, prints coordinates to stdout. No external GUI dependencies beyond opencv-python.</purpose>
         <inputs><param name="video_path" type="Path" /></inputs>
@@ -324,7 +324,7 @@
       <step-21 module="M-NOTES-PROCESSOR" status="done" verification="V-M-NOTES-PROCESSOR" />
     </Phase-6>
 
-    <Phase-7 name="SplitPipeline" status="pending">
+    <Phase-7 name="SplitPipeline" status="done">
       <goal>Split monolithic detect into independent stages: detect-slides (standalone), notes (post-process), notes-pipeline with vision context.</goal>
       <step-22 module="M-DETECT-SLIDES" status="done" verification="V-M-DETECT-SLIDES">
         Extract standalone detect-slides logic from cli.py into detect_slides.py. No subtitles required. Produce slides.json + screenshots.
@@ -338,9 +338,9 @@
       <stop-condition>notes command must work without detect-slides needing to exist — user can run detect first, then notes separately. detect (all-in-one) must remain backwards compatible.</stop-condition>
     </Phase-7>
 
-    <Phase-8 name="RoiTool" status="pending">
+    <Phase-8 name="RoiTool" status="done">
       <goal>Graphical ROI selector for ignore region.</goal>
-      <step-25 module="M-ROI-TOOL" status="pending" verification="V-M-ROI-TOOL">
+      <step-25 module="M-ROI-TOOL" status="done" verification="V-M-ROI-TOOL">
         Create roi_tool.py: OpenCV window, mouse drag rect, output coordinates to stdout. Wire into CLI as roi-tool command.
       </step-25>
     </Phase-8>

@@ -170,7 +170,7 @@
       <verification-ref>V-M-NOTES</verification-ref>
     </M-NOTES>
 
-    <M-ROI-TOOL NAME="RoiTool" TYPE="UI_COMPONENT" STATUS="pending">
+    <M-ROI-TOOL NAME="RoiTool" TYPE="UI_COMPONENT" STATUS="implemented">
       <purpose>Graphical ROI selector: video frame → mouse drag → ignore-roi coordinates</purpose>
       <path>src/video_slide_md/roi_tool.py</path>
       <depends>M-VIDEO-DECODE, opencv-python</depends>
