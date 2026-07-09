@@ -237,7 +237,7 @@
       <depends>M-MODELS, M-CONFIG</depends>
     </M-PROJECT>
 
-    <M-GUI-MAIN NAME="MainWindow" TYPE="UI_COMPONENT" LAYER="6" ORDER="24" STATUS="pending">
+    <M-GUI-MAIN NAME="MainWindow" TYPE="UI_COMPONENT" LAYER="6" ORDER="24" STATUS="implemented">
       <contract>
         <purpose>Main GUI window: QMainWindow with project toolbar (new/open/save), video/subtitle selector, backend/GPU info panel, detect button, central area with timeline and subtitle panel.</purpose>
         <inputs><param name="project" type="Project|None" /></inputs>
@@ -249,7 +249,7 @@
       <depends>M-PROJECT, M-GUI-TIMELINE, M-GUI-SETTINGS, M-GUI-WORKER, M-DETECT-SLIDES, M-NOTES, M-BACKENDS</depends>
     </M-GUI-MAIN>
 
-    <M-GUI-TIMELINE NAME="TimelineWidget" TYPE="UI_COMPONENT" LAYER="6" ORDER="25" STATUS="pending">
+    <M-GUI-TIMELINE NAME="TimelineWidget" TYPE="UI_COMPONENT" LAYER="6" ORDER="25" STATUS="implemented">
       <contract>
         <purpose>Custom QWidget timeline: paint slide intervals on a time axis, click to select, right panel shows subtitle text + LLM process button.</purpose>
         <inputs><param name="slides" type="list[SlideSegment]" /><param name="video_duration" type="float" /></inputs>
@@ -261,7 +261,7 @@
       <depends>M-MODELS</depends>
     </M-GUI-TIMELINE>
 
-    <M-GUI-SETTINGS NAME="SettingsDialog" TYPE="UI_COMPONENT" LAYER="6" ORDER="26" STATUS="pending">
+    <M-GUI-SETTINGS NAME="SettingsDialog" TYPE="UI_COMPONENT" LAYER="6" ORDER="26" STATUS="implemented">
       <contract>
         <purpose>Settings dialog with tabs: LLM (edit system prompt, model, base_url), GPU/Backend (select decoder backend, show CUDA info), Detection (threshold, min duration, ROI).</purpose>
         <inputs><param name="project" type="Project" /></inputs>
@@ -273,7 +273,7 @@
       <depends>M-PROJECT, M-CONFIG, M-BACKENDS, M-NOTES-PROCESSOR</depends>
     </M-GUI-SETTINGS>
 
-    <M-GUI-WORKER NAME="Workers" TYPE="UTILITY" LAYER="6" ORDER="27" STATUS="pending">
+    <M-GUI-WORKER NAME="Workers" TYPE="UTILITY" LAYER="6" ORDER="27" STATUS="implemented">
       <contract>
         <purpose>QThread-based background workers: DetectWorker, NotesWorker, LlmWorker. Progress/result/error signals. UI remains responsive during long operations.</purpose>
         <inputs><param name="project" type="Project" /><param name="operation" type="str — 'detect' | 'notes' | 'llm'" /></inputs>
@@ -429,18 +429,18 @@
       <stop-condition>project.json must be human-readable and re-openable. CLI project commands must round-trip (create → open → verify paths resolve).</stop-condition>
     </Phase-9>
 
-    <Phase-10 name="DesktopGUI" status="pending">
+    <Phase-10 name="DesktopGUI" status="done">
       <goal>Desktop GUI with PySide6: main window, timeline, settings dialog, background workers. GUI must be optional (extras = ["gui"]).</goal>
-      <step-27 module="M-GUI-MAIN" status="pending" verification="V-M-GUI-MAIN">
+      <step-27 module="M-GUI-MAIN" status="done" verification="V-M-GUI-MAIN">
         Create src/video_slide_md/gui/ package. main_window.py: QMainWindow with project toolbar, video/subtitle file selectors, backend/GPU status panel, detect button, central splitter (timeline | subtitle panel). Entry point: video-slide-md-gui or python -m video_slide_md.gui.
       </step-27>
-      <step-28 module="M-GUI-TIMELINE" status="pending" verification="V-M-GUI-TIMELINE">
+      <step-28 module="M-GUI-TIMELINE" status="done" verification="V-M-GUI-TIMELINE">
         Create src/video_slide_md/gui/timeline_widget.py: custom QWidget with QPainter-drawn timeline. Colored blocks for slide intervals. Click selects → signal emitted. Right panel: QTextEdit with subtitle text + Process via LLM button.
       </step-28>
-      <step-29 module="M-GUI-SETTINGS" status="pending" verification="V-M-GUI-SETTINGS">
+      <step-29 module="M-GUI-SETTINGS" status="done" verification="V-M-GUI-SETTINGS">
         Create src/video_slide_md/gui/settings_dialog.py: QDialog with QTabWidget. LLM tab: QPlainTextEdit for system prompt, model name, base URL. GPU/Backend tab: radio buttons for backend selection, CUDA availability info. Detection tab: threshold, min duration, ROI fields. Settings saved to project.json.
       </step-29>
-      <step-30 module="M-GUI-WORKER" status="pending" verification="V-M-GUI-WORKER">
+      <step-30 module="M-GUI-WORKER" status="done" verification="V-M-GUI-WORKER">
         Create src/video_slide_md/gui/workers.py: QObject + QThread workers for detect, notes, llm operations. Signals: started, progress(int, str), finished(Path), error(str). Workers use existing M-DETECT-SLIDES, M-NOTES, M-LLM-ORCHESTRATOR.
       </step-30>
       <stop-condition>GUI must not block during detect or LLM calls. Detecting in GUI must produce same slides.json as CLI detect-slides. Workers must clean up on project switch or app close.</stop-condition>

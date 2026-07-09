@@ -227,7 +227,7 @@
       </log-markers>
     </V-M-PROJECT>
 
-    <V-M-GUI-MAIN MODULE="M-GUI-MAIN" PRIORITY="high" STATUS="pending">
+    <V-M-GUI-MAIN MODULE="M-GUI-MAIN" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_gui_main.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_main.py -v</check-1>
@@ -240,7 +240,7 @@
       </scenarios>
     </V-M-GUI-MAIN>
 
-    <V-M-GUI-TIMELINE MODULE="M-GUI-TIMELINE" PRIORITY="high" STATUS="pending">
+    <V-M-GUI-TIMELINE MODULE="M-GUI-TIMELINE" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_gui_timeline.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_timeline.py -v</check-1>
@@ -253,7 +253,7 @@
       </scenarios>
     </V-M-GUI-TIMELINE>
 
-    <V-M-GUI-SETTINGS MODULE="M-GUI-SETTINGS" PRIORITY="medium" STATUS="pending">
+    <V-M-GUI-SETTINGS MODULE="M-GUI-SETTINGS" PRIORITY="medium" STATUS="passed">
       <test-files><file>tests/test_gui_settings.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_settings.py -v</check-1>
@@ -266,7 +266,7 @@
       </scenarios>
     </V-M-GUI-SETTINGS>
 
-    <V-M-GUI-WORKER MODULE="M-GUI-WORKER" PRIORITY="high" STATUS="pending">
+    <V-M-GUI-WORKER MODULE="M-GUI-WORKER" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_gui_workers.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_workers.py -v</check-1>

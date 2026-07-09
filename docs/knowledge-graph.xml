@@ -194,7 +194,7 @@
       </annotations>
     </M-PROJECT>
 
-    <M-GUI-MAIN NAME="MainWindow" TYPE="UI_COMPONENT" STATUS="pending">
+    <M-GUI-MAIN NAME="MainWindow" TYPE="UI_COMPONENT" STATUS="implemented">
       <purpose>Main GUI window with project management, video/backend selection, detect button, central timeline+subtitle area</purpose>
       <path>src/video_slide_md/gui/main_window.py</path>
       <depends>M-PROJECT, M-GUI-TIMELINE, M-GUI-SETTINGS, M-GUI-WORKER, M-DETECT-SLIDES, M-NOTES, M-BACKENDS</depends>
@@ -205,7 +205,7 @@
       </annotations>
     </M-GUI-MAIN>
 
-    <M-GUI-TIMELINE NAME="TimelineWidget" TYPE="UI_COMPONENT" STATUS="pending">
+    <M-GUI-TIMELINE NAME="TimelineWidget" TYPE="UI_COMPONENT" STATUS="implemented">
       <purpose>Custom timeline widget: QPainter-drawn time axis with colored slide blocks, click-to-select, subtitle panel</purpose>
       <path>src/video_slide_md/gui/timeline_widget.py</path>
       <depends>M-MODELS</depends>
@@ -217,7 +217,7 @@
       </annotations>
     </M-GUI-TIMELINE>
 
-    <M-GUI-SETTINGS NAME="SettingsDialog" TYPE="UI_COMPONENT" STATUS="pending">
+    <M-GUI-SETTINGS NAME="SettingsDialog" TYPE="UI_COMPONENT" STATUS="implemented">
       <purpose>Settings dialog with tabs for LLM prompt, GPU/Backend, and Detection configuration</purpose>
       <path>src/video_slide_md/gui/settings_dialog.py</path>
       <depends>M-PROJECT, M-CONFIG, M-BACKENDS, M-NOTES-PROCESSOR</depends>
@@ -230,7 +230,7 @@
       </annotations>
     </M-GUI-SETTINGS>
 
-    <M-GUI-WORKER NAME="Workers" TYPE="UTILITY" STATUS="pending">
+    <M-GUI-WORKER NAME="Workers" TYPE="UTILITY" STATUS="implemented">
       <purpose>QThread-based background workers for detect, notes, and LLM operations with progress signaling</purpose>
       <path>src/video_slide_md/gui/workers.py</path>
       <depends>M-DETECT-SLIDES, M-NOTES, M-LLM-ORCHESTRATOR, M-PROJECT</depends>
