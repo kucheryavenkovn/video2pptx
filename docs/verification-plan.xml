@@ -291,7 +291,7 @@
       </scenarios>
     </V-M-GUI-SETTINGS>
 
-    <V-M-GUI-APPCONFIG MODULE="M-GUI-APPCONFIG" PRIORITY="high" STATUS="pending">
+    <V-M-GUI-APPCONFIG MODULE="M-GUI-APPCONFIG" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_gui_app_config.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_app_config.py -v</check-1>

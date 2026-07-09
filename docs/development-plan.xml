@@ -585,7 +585,7 @@
 
     <Phase-11 name="DesktopGUIEnhancements" status="pending">
       <goal>Full desktop GUI with menu bar, video player, subtitle overlay, enhanced timeline (green/blue markers), project/app settings dialogs, app-wide config, and smart manual marker snapping with three strategies.</goal>
-      <step-1 module="M-GUI-APPCONFIG" status="pending" verification="V-M-GUI-APPCONFIG">
+      <step-1 module="M-GUI-APPCONFIG" status="done" verification="V-M-GUI-APPCONFIG">
         Create src/video_slide_md/gui/app_config.py: AppConfigModel pydantic model, load/save app-config.yaml to platform config dir. Fields: LLM model/base_url/context_length, GPU backend default, snap_mode, snap_flat_threshold, default_project_dir. CLI fallback = built-in defaults.
       </step-1>
       <step-2 module="M-GUI-SMART-SNAP" status="pending" verification="V-M-GUI-SMART-SNAP">

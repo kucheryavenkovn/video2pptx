@@ -245,7 +245,7 @@
       </annotations>
     </M-GUI-WORKER>
 
-    <M-GUI-APPCONFIG NAME="AppConfigManager" TYPE="DATA_LAYER" STATUS="pending">
+    <M-GUI-APPCONFIG NAME="AppConfigManager" TYPE="DATA_LAYER" STATUS="implemented">
       <purpose>App-wide configuration persistence: load/save app-config.yaml in platform config dir. Fields: LLM model/base_url/context_length, GPU backend, snap_mode, snap_flat_threshold, default_project_dir.</purpose>
       <path>src/video_slide_md/gui/app_config.py</path>
       <depends>PyYAML</depends>
