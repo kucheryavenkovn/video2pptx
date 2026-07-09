@@ -118,7 +118,8 @@ class ProjectModel(QObject):
         self._subs = self._load_subs_if_needed()
         self._timeline.clear()
         if self._project:
-            self._timeline.duration = self._project.video_duration or 0.0
+            dur = getattr(self._project, "video_duration", 0) or 0
+            self._timeline.duration = dur
             load_slides_into_project(self._project)
             self._sync_slides_to_timeline()
             self._sync_subtitles_to_timeline()

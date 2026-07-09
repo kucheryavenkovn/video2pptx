@@ -301,7 +301,7 @@ class MainWindow(QMainWindow):
             self._mcp_timer.timeout.connect(lambda: [setattr(self, "_mcp_active", True), mcp_process_queue(self._model), setattr(self, "_mcp_active", False)])
             self._mcp_timer.start(50)
         except Exception as e:
-            logger.debug(f"[GUI-Main][_setup_mcp_server] MCP server not available: {e}")
+            logger.warning(f"[GUI-Main][_setup_mcp_server] MCP server not available: {e}")
 
     def _confirm(self, title: str, text: str) -> bool:
         if self._mcp_active:

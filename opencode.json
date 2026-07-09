@@ -6,6 +6,11 @@
     ]
   },
   "mcp": {
+    "video2pptx": {
+      "type": "remote",
+      "url": "http://127.0.0.1:9812/sse",
+      "enabled": true
+    },
     "zread": {
       "type": "remote",
       "url": "https://api.z.ai/api/mcp/zread/sse",
@@ -32,6 +37,7 @@
     }
   },
   "permission": {
+    "video2pptx_*": "allow",
     "web-search-prime_*": "allow",
     "web-reader_*": "allow",
     "zread_*": "allow"
