@@ -420,6 +420,9 @@ class MainWindow(QMainWindow):
             self._timeline.set_video_duration(dur)
             self._timeline.set_subtitles(self._subs)
             self._timeline.set_project(proj)
+        # Set score waveform from loaded project
+        if proj.score_timestamps and proj.score_values:
+            self._timeline.set_scores(proj.score_timestamps, proj.score_values)
 
         self.project_changed.emit(proj)
         logger.info("[GUI-Main][_set_project] Project loaded | name={}", proj.name)
