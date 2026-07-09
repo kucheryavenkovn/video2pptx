@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DevelopmentPlan VERSION="0.2.0">
+<DevelopmentPlan VERSION="0.3.0">
   <ArchitectureNotes>
-    <objective>Build a staged pipeline: video → slide intervals (standalone) → notes + visual context → export. Each stage is an independent CLI command.</objective>
-    <non-goal>No ASR, no cloud processing, no web UI.</non-goal>
+    <objective>Stage-based pipeline: video → slide intervals (standalone) → notes + visual context → export. Projects tie all stages together. Desktop GUI provides visual timeline, subtitle editor, and settings management. Core pipeline remains CLI-first with GUI as optional overlay.</objective>
+    <non-goal>No ASR, no cloud processing, no web UI, no real-time video playback, no drag-to-reorder slides in MVP.</non-goal>
     <risk-1>False slide splits due to cursor movement, webcam, or compression artifacts.</risk-1>
     <risk-2>GPU backend may not be available — CPU fallback must always work.</risk-2>
     <risk-3>detect-slides is the longest step (2-3 video passes). Notes and export are fast.</risk-3>
+    <risk-4>PySide6 adds ~50MB dependency — must be optional via extras.</risk-4>
+    <risk-5>QThread lifecycle bugs may cause crashes when switching projects mid-operation.</risk-5>
   </ArchitectureNotes>
 
   <Modules>
@@ -34,13 +36,13 @@
 
     <M-CLI NAME="CLI" TYPE="ENTRY_POINT" LAYER="0" ORDER="3" STATUS="implemented">
       <contract>
-        <purpose>Typer CLI with detect (all-in-one), detect-slides, notes, roi-tool, export-md, export-pptx, llm-process, debug commands.</purpose>
+        <purpose>Typer CLI with detect (all-in-one), detect-slides, notes, roi-tool, project, export-md, export-pptx, debug, llm-process commands.</purpose>
         <inputs><param name="cli args" type="argv" /></inputs>
         <outputs><param name="exit code" type="int" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/cli.py</source><tests>tests/test_cli.py</tests></target>
+      <target><source>src/video_slide_md/cli.py</source><tests>tests/test_cli.py, tests/test_cli_e2e.py</tests></target>
       <verification-ref>V-M-CLI</verification-ref>
-      <depends>M-CONFIG, M-DETECT-SLIDES, M-NOTES, M-ROI-TOOL</depends>
+      <depends>M-CONFIG, M-DETECT-SLIDES, M-NOTES, M-ROI-TOOL, M-PROJECT</depends>
     </M-CLI>
 
     <M-BACKENDS NAME="Backends" TYPE="INTEGRATION" LAYER="0" ORDER="4" STATUS="implemented">
@@ -189,7 +191,7 @@
 
     <M-DETECT-SLIDES NAME="DetectSlides" TYPE="CORE_LOGIC" LAYER="5" ORDER="20" STATUS="implemented">
       <contract>
-        <purpose>Standalone slide detection pipeline: video → slides.json + screenshots. No subtitles required. Can be run independently from notes/export.</purpose>
+        <purpose>Standalone slide detection pipeline: video → slides.json + screenshots. No subtitles required.</purpose>
         <inputs><param name="video_path" type="Path" /><param name="out_dir" type="Path" /><param name="config" type="AppConfig" /></inputs>
         <outputs><param name="slides.json" type="Path — slides.json with intervals + images" /></outputs>
       </contract>
@@ -201,19 +203,19 @@
 
     <M-NOTES NAME="Notes" TYPE="CORE_LOGIC" LAYER="5" ORDER="21" STATUS="implemented">
       <contract>
-        <purpose>Post-process notes pipeline: slides.json + subtitles/transcript + slide screenshots → enriched slides.json with context-aware speaker notes.</purpose>
-        <inputs><param name="slides_json" type="Path" /><param name="subtitles" type="Path|None" /><param name="slides_dir" type="Path" /><param name="notes_mode" type="str" /><param name="llm_config" type="LlmConfig|None" /></inputs>
+        <purpose>Post-process notes pipeline: slides.json + subtitles → cleaned notes. No video re-decode.</purpose>
+        <inputs><param name="slides_json" type="Path" /><param name="subtitles" type="Path|None" /><param name="slides_dir" type="Path" /><param name="notes_mode" type="str" /></inputs>
         <outputs><param name="slides.json" type="Path — updated slides.json with cleaned notes" /></outputs>
       </contract>
       <target><source>src/video_slide_md/notes_pipeline.py</source><tests>tests/test_notes_pipeline.py</tests></target>
       <observability><log-prefix>[Notes]</log-prefix></observability>
       <verification-ref>V-M-NOTES</verification-ref>
-      <depends>M-MODELS, M-SUBTITLES, M-NOTES-PROCESSOR, M-SLIDE-ANALYZER, M-LLM-CLIENT</depends>
+      <depends>M-MODELS, M-SUBTITLES, M-NOTES-PROCESSOR</depends>
     </M-NOTES>
 
     <M-ROI-TOOL NAME="RoiTool" TYPE="UI_COMPONENT" LAYER="5" ORDER="22" STATUS="implemented">
       <contract>
-        <purpose>Graphical ROI selection tool: opens video frame in OpenCV window, user drags rectangle, prints coordinates to stdout. No external GUI dependencies beyond opencv-python.</purpose>
+        <purpose>Graphical ROI selection tool: OpenCV window, mouse drag rect, prints coordinates to stdout.</purpose>
         <inputs><param name="video_path" type="Path" /></inputs>
         <outputs><param name="ignore_roi" type="str — format x1,y1,x2,y2 to stdout" /></outputs>
       </contract>
@@ -222,12 +224,72 @@
       <verification-ref>V-M-ROI-TOOL</verification-ref>
       <depends>M-VIDEO-DECODE, opencv-python</depends>
     </M-ROI-TOOL>
+
+    <M-PROJECT NAME="ProjectManager" TYPE="DATA_LAYER" LAYER="5" ORDER="23" STATUS="pending">
+      <contract>
+        <purpose>Project management: create, open, save projects. Project JSON schema with video/subtitle paths, detection/LLM configs, pipeline state.</purpose>
+        <inputs><param name="project_dir" type="Path" /><param name="video_path" type="Path|None" /><param name="subtitles_path" type="Path|None" /></inputs>
+        <outputs><param name="project.json" type="project.json file with all settings and state" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/project_manager.py</source><tests>tests/test_project_manager.py</tests></target>
+      <observability><log-prefix>[ProjectManager]</log-prefix></observability>
+      <verification-ref>V-M-PROJECT</verification-ref>
+      <depends>M-MODELS, M-CONFIG</depends>
+    </M-PROJECT>
+
+    <M-GUI-MAIN NAME="MainWindow" TYPE="UI_COMPONENT" LAYER="6" ORDER="24" STATUS="pending">
+      <contract>
+        <purpose>Main GUI window: QMainWindow with project toolbar (new/open/save), video/subtitle selector, backend/GPU info panel, detect button, central area with timeline and subtitle panel.</purpose>
+        <inputs><param name="project" type="Project|None" /></inputs>
+        <outputs><param name="none" type="— GUI event loop" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/gui/main_window.py</source><tests>tests/test_gui_main.py</tests></target>
+      <observability><log-prefix>[GUI-Main]</log-prefix></observability>
+      <verification-ref>V-M-GUI-MAIN</verification-ref>
+      <depends>M-PROJECT, M-GUI-TIMELINE, M-GUI-SETTINGS, M-GUI-WORKER, M-DETECT-SLIDES, M-NOTES, M-BACKENDS</depends>
+    </M-GUI-MAIN>
+
+    <M-GUI-TIMELINE NAME="TimelineWidget" TYPE="UI_COMPONENT" LAYER="6" ORDER="25" STATUS="pending">
+      <contract>
+        <purpose>Custom QWidget timeline: paint slide intervals on a time axis, click to select, right panel shows subtitle text + LLM process button.</purpose>
+        <inputs><param name="slides" type="list[SlideSegment]" /><param name="video_duration" type="float" /></inputs>
+        <outputs><param name="signal" type="selected_slide_changed(int)" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/gui/timeline_widget.py</source><tests>tests/test_gui_timeline.py</tests></target>
+      <observability><log-prefix>[GUI-Timeline]</log-prefix></observability>
+      <verification-ref>V-M-GUI-TIMELINE</verification-ref>
+      <depends>M-MODELS</depends>
+    </M-GUI-TIMELINE>
+
+    <M-GUI-SETTINGS NAME="SettingsDialog" TYPE="UI_COMPONENT" LAYER="6" ORDER="26" STATUS="pending">
+      <contract>
+        <purpose>Settings dialog with tabs: LLM (edit system prompt, model, base_url), GPU/Backend (select decoder backend, show CUDA info), Detection (threshold, min duration, ROI).</purpose>
+        <inputs><param name="project" type="Project" /></inputs>
+        <outputs><param name="Signal" type="settings_changed()" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/gui/settings_dialog.py</source><tests>tests/test_gui_settings.py</tests></target>
+      <observability><log-prefix>[GUI-Settings]</log-prefix></observability>
+      <verification-ref>V-M-GUI-SETTINGS</verification-ref>
+      <depends>M-PROJECT, M-CONFIG, M-BACKENDS, M-NOTES-PROCESSOR</depends>
+    </M-GUI-SETTINGS>
+
+    <M-GUI-WORKER NAME="Workers" TYPE="UTILITY" LAYER="6" ORDER="27" STATUS="pending">
+      <contract>
+        <purpose>QThread-based background workers: DetectWorker, NotesWorker, LlmWorker. Progress/result/error signals. UI remains responsive during long operations.</purpose>
+        <inputs><param name="project" type="Project" /><param name="operation" type="str — 'detect' | 'notes' | 'llm'" /></inputs>
+        <outputs><param name="signals" type="progress(int, str) | finished(path) | error(str)" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/gui/workers.py</source><tests>tests/test_gui_workers.py</tests></target>
+      <observability><log-prefix>[GUI-Worker]</log-prefix></observability>
+      <verification-ref>V-M-GUI-WORKER</verification-ref>
+      <depends>M-DETECT-SLIDES, M-NOTES, M-LLM-ORCHESTRATOR, M-PROJECT</depends>
+    </M-GUI-WORKER>
   </Modules>
 
   <DataFlow>
     <DF-001 NAME="DetectPipeline" TRIGGER="CLI detect command (all-in-one)">
       <step-1>Load config (M-CONFIG)</step-1>
-      <step-2>Open video, iterate sampled frames, detect changes (M-SLIDE-DETECTOR via M-VIDEO-DECODE, M-ROI, M-FRAME-FEATURES)</step-2>
+      <step-2>Open video, iterate sampled frames, detect changes (M-SLIDE-DETECTOR)</step-2>
       <step-3>Build segments + dedupe (M-SEGMENTER, M-DEDUPE)</step-3>
       <step-4>Parse subtitles and align cues (M-SUBTITLES) — optional</step-4>
       <step-5>Save screenshots + slides.json</step-5>
@@ -238,35 +300,31 @@
 
     <DF-005 NAME="DetectSlidesPipeline" TRIGGER="CLI detect-slides command">
       <step-1>Load config (M-CONFIG)</step-1>
-      <step-2>Open video, iterate sampled frames, detect changes (M-SLIDE-DETECTOR)</step-2>
-      <step-3>Build segments + dedupe (M-SEGMENTER, M-DEDUPE)</step-3>
-      <step-4>Save screenshots + slides.json without transcript fields</step-4>
-      <evidence>slides.json with intervals and images, no transcript. Run in ~same time as detect pass.</evidence>
+      <step-2>Open video, detect changes, build segments, dedupe (M-DETECT-SLIDES)</step-2>
+      <step-3>Save screenshots + slides.json</step-3>
+      <evidence>slides.json with intervals and images, no transcript.</evidence>
     </DF-005>
 
     <DF-004 NAME="NotesPipeline" TRIGGER="CLI notes command">
       <step-1>Load existing slides.json (M-MODELS)</step-1>
-      <step-2>Parse subtitles, align cues to existing segments (M-SUBTITLES) — optional, skip if no subtitles</step-2>
-      <step-3>For each slide: read screenshot → vision analyze via LLM → slide context (M-SLIDE-ANALYZER) — optional, skip in basic mode</step-3>
-      <step-4>Build speaker notes from cues + slide context (M-NOTES-PROCESSOR basic/llm)</step-4>
-      <step-5>Write enriched slides.json with cleaned notes</step-5>
-      <evidence>slides.json transcript fields updated. No video re-decoding needed. Fast execution.</evidence>
+      <step-2>Parse subtitles, align cues to existing segments (M-SUBTITLES) — optional</step-2>
+      <step-3>Build speaker notes (M-NOTES-PROCESSOR)</step-3>
+      <step-4>Write enriched slides.json</step-4>
+      <evidence>slides.json transcript fields updated. No video re-decode.</evidence>
     </DF-004>
 
     <DF-006 NAME="RoiToolFlow" TRIGGER="CLI roi-tool command">
       <step-1>Open video, extract one representative frame</step-1>
       <step-2>Display frame in OpenCV window with mouse drag rectangle</step-2>
-      <step-3>On Enter/Space: output "x1,y1,x2,y2" to stdout</step-3>
-      <step-4>On Esc: exit with no output</step-4>
-      <evidence>Coordinates printed to stdout, pipeable into --ignore-roi</evidence>
+      <step-3>On Enter/Space: output coordinates to stdout</step-3>
+      <evidence>Coordinates printed to stdout</evidence>
     </DF-006>
 
     <DF-003 NAME="LlmProcessPipeline" TRIGGER="CLI llm-process command">
       <step-1>Load slides.json (M-CLI)</step-1>
       <step-2>Read LlmConfig (M-CONFIG)</step-2>
       <step-3>Initialize LlmClient (M-LLM-CLIENT)</step-3>
-      <step-4>For each slide: vision analyze → structured description (M-SLIDE-ANALYZER)</step-4>
-      <step-5>Save descriptions + transcript correction (M-LLM-ORCHESTRATOR)</step-5>
+      <step-4>Vision analyze + transcript correction (M-SLIDE-ANALYZER, M-LLM-ORCHESTRATOR)</step-4>
       <evidence>enriched slides.json with llm_description fields</evidence>
     </DF-003>
 
@@ -276,6 +334,33 @@
       <step-3>Write deck.md</step-3>
       <evidence>deck.md renders in Marp viewer</evidence>
     </DF-002>
+
+    <DF-007 NAME="CreateProject" TRIGGER="CLI project create or GUI New Project">
+      <step-1>Create output directory + project.json with video/subtitle paths and default config</step-1>
+      <step-2>Store absolute or project-relative paths</step-2>
+      <evidence>project.json created, validatable, re-openable</evidence>
+    </DF-007>
+
+    <DF-008 NAME="DetectInProject" TRIGGER="GUI Detect button or CLI detect --project">
+      <step-1>Load project.json → resolve paths (M-PROJECT)</step-1>
+      <step-2>Run detect-slides (M-DETECT-SLIDES) via worker (GUI) or directly (CLI)</step-2>
+      <step-3>Update project.json state: detect_done=true, set slides_json path</step-3>
+      <evidence>slides.json with intervals + images. project.json state updated. Worker emits progress signals in GUI mode.</evidence>
+    </DF-008>
+
+    <DF-009 NAME="ViewTimeline" TRIGGER="GUI — after detection or opening existing project">
+      <step-1>Load slides.json → extract segments + video duration</step-1>
+      <step-2>Timeline widget: paint colored blocks for each segment on time axis</step-2>
+      <step-3>Click segment → right panel shows subtitle text + timecodes</step-3>
+      <evidence>Timeline rendered with correct segment count. Clicking changes subtitle panel text.</evidence>
+    </DF-009>
+
+    <DF-010 NAME="LLMProcessInGUI" TRIGGER="GUI — user clicks Process button in timeline view">
+      <step-1>Send current segment transcript to LLM via worker with system prompt from settings</step-1>
+      <step-2>Update slides.json with processed notes</step-2>
+      <step-3>Display updated text in subtitle panel</step-3>
+      <evidence>Text updated, slides.json saved, no UI freeze during LLM call</evidence>
+    </DF-010>
   </DataFlow>
 
   <ImplementationOrder>
@@ -312,7 +397,7 @@
       <goal>Full pipeline integration, GPU backend, Colab.</goal>
       <step-14 module="M-PIPELINE" status="done" verification="V-M-CLI-E2E" />
       <step-15 module="M-BACKEND-PYAV" status="done">PyAV CUDA NVDEC</step-15>
-      <step-16 module="M-COLAB" status="done" verification="V-M-COLAB">Colab T4 notebook</step-16>
+      <step-16 module="M-COLAB" status="done">Colab T4 notebook</step-16>
       <step-17 module="M-LLM-CLIENT" status="done" verification="V-M-LLM-CLIENT" />
       <step-18 module="M-SLIDE-ANALYZER" status="done" verification="V-M-SLIDE-ANALYZER" />
       <step-19 module="M-LLM-ORCHESTRATOR" status="done" verification="V-M-LLM-ORCHESTRATOR" />
@@ -325,25 +410,41 @@
     </Phase-6>
 
     <Phase-7 name="SplitPipeline" status="done">
-      <goal>Split monolithic detect into independent stages: detect-slides (standalone), notes (post-process), notes-pipeline with vision context.</goal>
-      <step-22 module="M-DETECT-SLIDES" status="done" verification="V-M-DETECT-SLIDES">
-        Extract standalone detect-slides logic from cli.py into detect_slides.py. No subtitles required. Produce slides.json + screenshots.
-      </step-22>
-      <step-23 module="M-NOTES" status="done" verification="V-M-NOTES">
-        Create notes_pipeline.py: load slides.json → parse subtitles → vision analyze slides → build context-aware notes → save enriched slides.json. No video re-decode needed.
-      </step-23>
-      <step-24 module="M-CLI" status="done" verification="V-M-CLI">
-        Add detect-slides command (calls M-DETECT-SLIDES). Add notes command (calls M-NOTES). Update detect all-in-one to call M-DETECT-SLIDES + M-NOTES sequentially (backwards compat).
-      </step-24>
-      <stop-condition>notes command must work without detect-slides needing to exist — user can run detect first, then notes separately. detect (all-in-one) must remain backwards compatible.</stop-condition>
+      <goal>Split monolithic detect into independent stages.</goal>
+      <step-22 module="M-DETECT-SLIDES" status="done" verification="V-M-DETECT-SLIDES" />
+      <step-23 module="M-NOTES" status="done" verification="V-M-NOTES" />
+      <step-24 module="M-CLI" status="done" verification="V-M-CLI" />
     </Phase-7>
 
     <Phase-8 name="RoiTool" status="done">
       <goal>Graphical ROI selector for ignore region.</goal>
-      <step-25 module="M-ROI-TOOL" status="done" verification="V-M-ROI-TOOL">
-        Create roi_tool.py: OpenCV window, mouse drag rect, output coordinates to stdout. Wire into CLI as roi-tool command.
-      </step-25>
+      <step-25 module="M-ROI-TOOL" status="done" verification="V-M-ROI-TOOL" />
     </Phase-8>
+
+    <Phase-9 name="ProjectManagement" status="pending">
+      <goal>Create project system: project.json schema, CRUD operations, CLI subcommands. Projects tie video, subtitles, configs, and pipeline state into a single output folder.</goal>
+      <step-26 module="M-PROJECT" status="pending" verification="V-M-PROJECT">
+        Create src/video_slide_md/project_manager.py with Project model (pydantic), project.json I/O, state management. Add project create/open/info CLI subcommands in cli.py.
+      </step-26>
+      <stop-condition>project.json must be human-readable and re-openable. CLI project commands must round-trip (create → open → verify paths resolve).</stop-condition>
+    </Phase-9>
+
+    <Phase-10 name="DesktopGUI" status="pending">
+      <goal>Desktop GUI with PySide6: main window, timeline, settings dialog, background workers. GUI must be optional (extras = ["gui"]).</goal>
+      <step-27 module="M-GUI-MAIN" status="pending" verification="V-M-GUI-MAIN">
+        Create src/video_slide_md/gui/ package. main_window.py: QMainWindow with project toolbar, video/subtitle file selectors, backend/GPU status panel, detect button, central splitter (timeline | subtitle panel). Entry point: video-slide-md-gui or python -m video_slide_md.gui.
+      </step-27>
+      <step-28 module="M-GUI-TIMELINE" status="pending" verification="V-M-GUI-TIMELINE">
+        Create src/video_slide_md/gui/timeline_widget.py: custom QWidget with QPainter-drawn timeline. Colored blocks for slide intervals. Click selects → signal emitted. Right panel: QTextEdit with subtitle text + Process via LLM button.
+      </step-28>
+      <step-29 module="M-GUI-SETTINGS" status="pending" verification="V-M-GUI-SETTINGS">
+        Create src/video_slide_md/gui/settings_dialog.py: QDialog with QTabWidget. LLM tab: QPlainTextEdit for system prompt, model name, base URL. GPU/Backend tab: radio buttons for backend selection, CUDA availability info. Detection tab: threshold, min duration, ROI fields. Settings saved to project.json.
+      </step-29>
+      <step-30 module="M-GUI-WORKER" status="pending" verification="V-M-GUI-WORKER">
+        Create src/video_slide_md/gui/workers.py: QObject + QThread workers for detect, notes, llm operations. Signals: started, progress(int, str), finished(Path), error(str). Workers use existing M-DETECT-SLIDES, M-NOTES, M-LLM-ORCHESTRATOR.
+      </step-30>
+      <stop-condition>GUI must not block during detect or LLM calls. Detecting in GUI must produce same slides.json as CLI detect-slides. Workers must clean up on project switch or app close.</stop-condition>
+    </Phase-10>
   </ImplementationOrder>
 
   <DeploymentScenarios>
@@ -351,5 +452,13 @@
       <purpose>Run pipeline on Google Colab with free T4 GPU.</purpose>
       <target>colab/video_slide_md_colab.ipynb</target>
     </DS-COLAB>
+    <DS-GUI NAME="DesktopApp" STATUS="pending" PRIORITY="medium">
+      <purpose>Desktop GUI application for Windows/Linux/macOS.</purpose>
+      <target>pip install video-slide-md[gui]; video-slide-md-gui</target>
+    </DS-GUI>
+    <DS-BINARY NAME="BinaryDistribution" STATUS="pending" PRIORITY="low">
+      <purpose>Standalone executable with PyInstaller for users without Python.</purpose>
+      <target>pyinstaller --onefile --add-data ... video-slide-md-gui</target>
+    </DS-BINARY>
   </DeploymentScenarios>
 </DevelopmentPlan>

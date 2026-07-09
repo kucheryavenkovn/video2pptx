@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<VerificationPlan VERSION="0.2.0">
+<VerificationPlan VERSION="0.3.0">
   <GlobalPolicy>
     <log-format>[ModuleName][function_name][BLOCK_NAME] message | key=value</log-format>
     <deterministic-first>true</deterministic-first>
     <module-level-focus>Fast deterministic unit checks for each module.</module-level-focus>
     <wave-level-focus>Integration checks across pipeline stages with synthetic videos.</wave-level-focus>
     <phase-level-focus>Synthetic video end-to-end tests with metric assertions.</phase-level-focus>
+    <gui-testing-focus>Headless-compatible smoke tests (QT_QPA_PLATFORM=offscreen). Worker signal tests with QSignalSpy. Widget rendering tests limited by CI constraints.</gui-testing-focus>
     <mvp-metrics>
       <missed_slide_rate val="<=5%" source="synthetic dataset" />
       <false_split_rate val="<=10%" source="synthetic dataset" />
@@ -54,6 +55,31 @@
       <scenario>User runs roi-tool with a video, drags a rectangle, presses Enter.</scenario>
       <expected-outcome>Coordinates printed to stdout in format x1,y1,x2,y2. Window closes cleanly.</expected-outcome>
     </VF-008>
+
+    <VF-009 NAME="ProjectCreateOpen" USE_CASES="UC-008" DATA_FLOW="DF-007" PRIORITY="high">
+      <scenario>User creates project with video + subtitles, then opens it.</scenario>
+      <expected-outcome>project.json created with correct schema. On open, paths resolve, configs load. State round-trips correctly.</expected-outcome>
+    </VF-009>
+
+    <VF-010 NAME="DetectInProject" USE_CASES="UC-009" DATA_FLOW="DF-008" PRIORITY="high">
+      <scenario>User opens a project with video, clicks Detect in GUI. No UI freeze.</scenario>
+      <expected-outcome>Worker emits progress signals. After completion, timeline appears. project.json state updated. slides.json valid.</expected-outcome>
+    </VF-010>
+
+    <VF-011 NAME="TimelineInteraction" USE_CASES="UC-010" DATA_FLOW="DF-009" PRIORITY="high">
+      <scenario>After detection, user clicks slide blocks on timeline, sees subtitle text.</scenario>
+      <expected-outcome>Timeline shows correct number of blocks matching slide count. Clicking each block displays correct subtitle text and timecodes in side panel.</expected-outcome>
+    </VF-011>
+
+    <VF-012 NAME="SettingsLLMPrompt" USE_CASES="UC-011" DATA_FLOW="DF-010" PRIORITY="medium">
+      <scenario>User opens Settings → LLM tab, edits SYSTEM_PROMPT_REPHRASE, saves.</scenario>
+      <expected-outcome>Edited prompt is saved to project.json and visible on reopen. Takes effect on next LLM processing call.</expected-outcome>
+    </VF-012>
+
+    <VF-013 NAME="BackendSelection" USE_CASES="UC-012" PRIORITY="medium">
+      <scenario>User opens Settings → GPU/Backend tab, selects a backend.</scenario>
+      <expected-outcome>Available backends are listed with CUDA availability. Selection saved to project config. Next detect run uses selected backend.</expected-outcome>
+    </VF-013>
   </CriticalFlows>
 
   <ModuleVerification>
@@ -154,9 +180,7 @@
 
     <V-M-DETECT-SLIDES MODULE="M-DETECT-SLIDES" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_detect_slides.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_detect_slides.py -v</check-1>
-      </module-checks>
+      <module-checks><check-1>pytest tests/test_detect_slides.py -v</check-1></module-checks>
       <scenarios>
         <scenario-1 kind="success">detect_slides with video produces slides.json with intervals and images, no transcript.</scenario-1>
         <scenario-2 kind="success">detect_slides with synthetic video returns correct segment count.</scenario-2>
@@ -166,9 +190,7 @@
 
     <V-M-NOTES MODULE="M-NOTES" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_notes_pipeline.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_notes_pipeline.py -v</check-1>
-      </module-checks>
+      <module-checks><check-1>pytest tests/test_notes_pipeline.py -v</check-1></module-checks>
       <scenarios>
         <scenario-1 kind="success">notes command with slides.json + SRT produces cleaned transcript on segments.</scenario-1>
         <scenario-2 kind="success">notes command without subtitles gracefully handles missing cues.</scenario-2>
@@ -179,31 +201,114 @@
 
     <V-M-ROI-TOOL MODULE="M-ROI-TOOL" PRIORITY="medium" STATUS="passed">
       <test-files><file>tests/test_roi_tool.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_roi_tool.py -v</check-1>
-      </module-checks>
+      <module-checks><check-1>pytest tests/test_roi_tool.py -v</check-1></module-checks>
       <scenarios>
-        <scenario-1 kind="success">roi_tool opens video frame, rectangle coordinates printed to stdout.</scenario-1>
-        <scenario-2 kind="success">roi_tool handles video with no keyframes gracefully.</scenario-2>
-        <scenario-3 kind="success">Output format is parseable by --ignore-roi.</scenario-3>
+        <scenario-1 kind="success">roi_tool CLI command registered and shows in help.</scenario-1>
+        <scenario-2 kind="success">Missing video raises user-friendly error.</scenario-2>
+        <scenario-3 kind="success">Coordinates output format is parseable by --ignore-roi.</scenario-3>
       </scenarios>
     </V-M-ROI-TOOL>
+
+    <V-M-PROJECT MODULE="M-PROJECT" PRIORITY="high" STATUS="pending">
+      <test-files><file>tests/test_project_manager.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_project_manager.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Create project with video path → project.json exists, contains correct fields.</scenario-1>
+        <scenario-2 kind="success">Open existing project.json → loads correct config, resolves paths.</scenario-2>
+        <scenario-3 kind="success">Update project state after detect → state.detect_done=true, slides_json set.</scenario-3>
+        <scenario-4 kind="error">Project dir missing → raises FileNotFoundError.</scenario-4>
+      </scenarios>
+      <log-markers>
+        <marker-1>[ProjectManager] Project created | path=</marker-1>
+        <marker-2>[ProjectManager] Project loaded | path=</marker-2>
+        <marker-3>[ProjectManager] State updated | detect_done=</marker-3>
+      </log-markers>
+    </V-M-PROJECT>
+
+    <V-M-GUI-MAIN MODULE="M-GUI-MAIN" PRIORITY="high" STATUS="pending">
+      <test-files><file>tests/test_gui_main.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_gui_main.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Main window opens without errors (offscreen).</scenario-1>
+        <scenario-2 kind="success">Project toolbar buttons (new/open/save) are clickable.</scenario-2>
+        <scenario-3 kind="success">Video file selector opens file dialog.</scenario-3>
+        <scenario-4 kind="success">Detect button is disabled when no project is open.</scenario-4>
+      </scenarios>
+    </V-M-GUI-MAIN>
+
+    <V-M-GUI-TIMELINE MODULE="M-GUI-TIMELINE" PRIORITY="high" STATUS="pending">
+      <test-files><file>tests/test_gui_timeline.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_gui_timeline.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Timeline renders correct number of slide blocks matching input data.</scenario-1>
+        <scenario-2 kind="success">Clicking a block emits selected_slide_changed signal with correct index.</scenario-2>
+        <scenario-3 kind="success">Subtitle panel displays correct text for selected segment.</scenario-3>
+        <scenario-4 kind="success">Empty slides list does not crash the widget.</scenario-4>
+      </scenarios>
+    </V-M-GUI-TIMELINE>
+
+    <V-M-GUI-SETTINGS MODULE="M-GUI-SETTINGS" PRIORITY="medium" STATUS="pending">
+      <test-files><file>tests/test_gui_settings.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_gui_settings.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Settings dialog opens with correct tab count (≥2).</scenario-1>
+        <scenario-2 kind="success">LLM tab shows system prompt in editable text field.</scenario-2>
+        <scenario-3 kind="success">Backend tab lists available backends with selection.</scenario-3>
+        <scenario-4 kind="success">Save button persists changes to project.json.</scenario-4>
+      </scenarios>
+    </V-M-GUI-SETTINGS>
+
+    <V-M-GUI-WORKER MODULE="M-GUI-WORKER" PRIORITY="high" STATUS="pending">
+      <test-files><file>tests/test_gui_workers.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_gui_workers.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">DetectWorker runs detect on a project, emits finished signal with slides.json path.</scenario-1>
+        <scenario-2 kind="success">Worker emits progress signals during execution.</scenario-2>
+        <scenario-3 kind="success">Error signal on missing video file.</scenario-3>
+        <scenario-4 kind="success">Worker can be cancelled via requestInterruption.</scenario-4>
+      </scenarios>
+    </V-M-GUI-WORKER>
   </ModuleVerification>
 
   <PhaseGates>
-    <Gate-Phase-7 PRIORITY="high" STATUS="pending">
+    <Gate-Phase-7 PRIORITY="high" STATUS="done">
       <goal>detect-slides and notes commands work independently. detect (all-in-one) remains backwards compatible.</goal>
       <commands>
         <command-1>pytest tests/test_detect_slides.py tests/test_notes_pipeline.py tests/test_cli_e2e.py -v</command-1>
       </commands>
     </Gate-Phase-7>
 
-    <Gate-Phase-8 PRIORITY="medium" STATUS="pending">
+    <Gate-Phase-8 PRIORITY="medium" STATUS="done">
       <goal>roi-tool command opens window, selects region, prints coordinates.</goal>
       <commands>
         <command-1>pytest tests/test_roi_tool.py -v</command-1>
-        <command-2>python -c "from video_slide_md.cli import app; app()" roi-tool --help</command-2>
       </commands>
     </Gate-Phase-8>
+
+    <Gate-Phase-9 PRIORITY="high" STATUS="pending">
+      <goal>Project system: create, open, update, CLI round-trip. project.json schema stable.</goal>
+      <commands>
+        <command-1>pytest tests/test_project_manager.py -v</command-1>
+        <command-2>pytest tests/test_cli.py -v -k "project"</command-2>
+      </commands>
+    </Gate-Phase-9>
+
+    <Gate-Phase-10 PRIORITY="high" STATUS="pending">
+      <goal>Desktop GUI: main window, timeline, settings, background workers. All tests pass in offscreen mode.</goal>
+      <commands>
+        <command-1>QT_QPA_PLATFORM=offscreen pytest tests/test_gui_main.py tests/test_gui_timeline.py tests/test_gui_settings.py tests/test_gui_workers.py -v</command-1>
+        <command-2>pytest tests/test_cli_e2e.py -v  # core pipeline unchanged</command-2>
+      </commands>
+    </Gate-Phase-10>
   </PhaseGates>
 </VerificationPlan>

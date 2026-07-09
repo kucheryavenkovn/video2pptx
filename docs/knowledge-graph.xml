@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<KnowledgeGraph>
-  <Project NAME="video-slide-md" VERSION="0.2.0">
-    <keywords>video, slides, markdown, presentation, open-cv, computer-vision, slide-detection, subtitle-alignment</keywords>
-    <annotation>Automatically extract slide intervals from educational videos, link to SRT/VTT subtitles, enhance with LLM vision analysis, and export presentations.</annotation>
+<KnowledgeGraph VERSION="0.3.0">
+  <Project NAME="video-slide-md" VERSION="0.5.0">
+    <keywords>video, slides, markdown, presentation, open-cv, computer-vision, slide-detection, subtitle-alignment, srt, vtt, marp, llm, lm-studio, vision, gui, pyside6, project, timeline</keywords>
+    <annotation>Automatically extract slide intervals from educational videos, link to SRT/VTT subtitles, enhance with LLM vision analysis, export presentations, and manage projects via GUI and CLI.</annotation>
 
     <M-MODELS NAME="Models" TYPE="UTILITY" STATUS="implemented">
       <purpose>Pydantic data models for slides document</purpose>
@@ -18,17 +18,20 @@
     </M-MODELS>
 
     <M-CLI NAME="CLI" TYPE="ENTRY_POINT" STATUS="implemented">
-      <purpose>Typer CLI entry point for detect, detect-slides, notes, roi-tool, export-md, export-pptx, llm-process, debug commands</purpose>
+      <purpose>Typer CLI entry point for detect, detect-slides, notes, roi-tool, project, export-md, export-pptx, debug, llm-process commands</purpose>
       <path>src/video_slide_md/cli.py</path>
-      <depends>M-CONFIG, M-DETECT-SLIDES, M-NOTES, M-ROI-TOOL</depends>
+      <depends>M-CONFIG, M-DETECT-SLIDES, M-NOTES, M-ROI-TOOL, M-PROJECT</depends>
       <verification-ref>V-M-CLI</verification-ref>
       <annotations>
         <fn-detect PURPOSE="All-in-one: video + optional subtitles → slides.json + images + optional exports" />
         <fn-detect_slides PURPOSE="Standalone: video only → slides.json + screenshots, no subtitles" />
-        <fn-notes PURPOSE="Post-process: slides.json + subtitles + slide images → enriched notes" />
-        <fn-roi_tool PURPOSE="GUI: video frame → mouse drag rect → ignore-roi coordinates" />
-        <fn-export-md PURPOSE="Export slides.json to Marp Markdown presentation" />
-        <fn-export-pptx PURPOSE="Export slides.json to PPTX presentation" />
+        <fn-notes_cmd PURPOSE="Post-process: slides.json + subtitles → enriched notes" />
+        <fn-roi_tool_cmd PURPOSE="GUI: video frame → mouse drag rect → ignore-roi coordinates" />
+        <fn-project_create PURPOSE="CLI: create new project with video/subtitle paths" />
+        <fn-project_open PURPOSE="CLI: open existing project and print info" />
+        <fn-project_info PURPOSE="CLI: show project state and settings" />
+        <fn-export_md PURPOSE="Export slides.json to Marp Markdown presentation" />
+        <fn-export_pptx PURPOSE="Export slides.json to PPTX presentation" />
         <fn-llm_process PURPOSE="Enrich slides.json with LLM vision analysis and corrected transcript" />
       </annotations>
     </M-CLI>
@@ -164,9 +167,9 @@
     </M-DETECT-SLIDES>
 
     <M-NOTES NAME="Notes" TYPE="CORE_LOGIC" STATUS="implemented">
-      <purpose>Post-process notes: slides.json + subtitles + slide images → enriched notes with optional visual context</purpose>
+      <purpose>Post-process notes: slides.json + subtitles → cleaned notes, no video re-decode</purpose>
       <path>src/video_slide_md/notes_pipeline.py</path>
-      <depends>M-MODELS, M-SUBTITLES, M-NOTES-PROCESSOR, M-SLIDE-ANALYZER, M-LLM-CLIENT</depends>
+      <depends>M-MODELS, M-SUBTITLES, M-NOTES-PROCESSOR</depends>
       <verification-ref>V-M-NOTES</verification-ref>
     </M-NOTES>
 
@@ -176,6 +179,71 @@
       <depends>M-VIDEO-DECODE, opencv-python</depends>
       <verification-ref>V-M-ROI-TOOL</verification-ref>
     </M-ROI-TOOL>
+
+    <M-PROJECT NAME="ProjectManager" TYPE="DATA_LAYER" STATUS="pending">
+      <purpose>Project management: create, open, save project.json with configs and pipeline state</purpose>
+      <path>src/video_slide_md/project_manager.py</path>
+      <depends>M-MODELS, M-CONFIG</depends>
+      <verification-ref>V-M-PROJECT</verification-ref>
+      <annotations>
+        <fn-create_project PURPOSE="Create project directory and project.json with given parameters" />
+        <fn-open_project PURPOSE="Load project.json, validate, return Project object" />
+        <fn-save_project PURPOSE="Write Project object to project.json" />
+        <fn-get_project_state PURPOSE="Return pipeline state flags" />
+        <fn-update_project_state PURPOSE="Update state flags after pipeline steps" />
+      </annotations>
+    </M-PROJECT>
+
+    <M-GUI-MAIN NAME="MainWindow" TYPE="UI_COMPONENT" STATUS="pending">
+      <purpose>Main GUI window with project management, video/backend selection, detect button, central timeline+subtitle area</purpose>
+      <path>src/video_slide_md/gui/main_window.py</path>
+      <depends>M-PROJECT, M-GUI-TIMELINE, M-GUI-SETTINGS, M-GUI-WORKER, M-DETECT-SLIDES, M-NOTES, M-BACKENDS</depends>
+      <verification-ref>V-M-GUI-MAIN</verification-ref>
+      <annotations>
+        <fn-show_main_window PURPOSE="Create and show QMainWindow" />
+        <type-MainWindow PURPOSE="QMainWindow subclass with toolbars, panels, and menu" />
+      </annotations>
+    </M-GUI-MAIN>
+
+    <M-GUI-TIMELINE NAME="TimelineWidget" TYPE="UI_COMPONENT" STATUS="pending">
+      <purpose>Custom timeline widget: QPainter-drawn time axis with colored slide blocks, click-to-select, subtitle panel</purpose>
+      <path>src/video_slide_md/gui/timeline_widget.py</path>
+      <depends>M-MODELS</depends>
+      <verification-ref>V-M-GUI-TIMELINE</verification-ref>
+      <annotations>
+        <fn-TimelineWidget PURPOSE="Custom QWidget rendering slide intervals as colored blocks on a time axis" />
+        <signal-selected_slide_changed PURPOSE="Emitted when user clicks a slide block, passes segment index" />
+        <fn-SubtitlePanel PURPOSE="QWidget showing subtitle text for selected slide with Process LLM button" />
+      </annotations>
+    </M-GUI-TIMELINE>
+
+    <M-GUI-SETTINGS NAME="SettingsDialog" TYPE="UI_COMPONENT" STATUS="pending">
+      <purpose>Settings dialog with tabs for LLM prompt, GPU/Backend, and Detection configuration</purpose>
+      <path>src/video_slide_md/gui/settings_dialog.py</path>
+      <depends>M-PROJECT, M-CONFIG, M-BACKENDS, M-NOTES-PROCESSOR</depends>
+      <verification-ref>V-M-GUI-SETTINGS</verification-ref>
+      <annotations>
+        <fn-SettingsDialog PURPOSE="QDialog with QTabWidget for LLM, GPU/Backend, Detection tabs" />
+        <tab-LLM PURPOSE="Editable system prompt field, model name, base URL" />
+        <tab-GPUBackend PURPOSE="Radio buttons for backend selection, CUDA availability info" />
+        <tab-Detection PURPOSE="Threshold, min slide duration, min stable duration, ROI fields" />
+      </annotations>
+    </M-GUI-SETTINGS>
+
+    <M-GUI-WORKER NAME="Workers" TYPE="UTILITY" STATUS="pending">
+      <purpose>QThread-based background workers for detect, notes, and LLM operations with progress signaling</purpose>
+      <path>src/video_slide_md/gui/workers.py</path>
+      <depends>M-DETECT-SLIDES, M-NOTES, M-LLM-ORCHESTRATOR, M-PROJECT</depends>
+      <verification-ref>V-M-GUI-WORKER</verification-ref>
+      <annotations>
+        <type-DetectWorker PURPOSE="QObject worker: runs detect-slides on project, emits progress/finished/error" />
+        <type-NotesWorker PURPOSE="QObject worker: runs notes pipeline on project" />
+        <type-LlmWorker PURPOSE="QObject worker: runs LLM processing on selected segment text" />
+        <signal-progress PURPOSE="emitted (int percent, str status_message) during operation" />
+        <signal-finished PURPOSE="emitted (str result_path) on success" />
+        <signal-error PURPOSE="emitted (str error_message) on failure" />
+      </annotations>
+    </M-GUI-WORKER>
 
     <M-COLAB NAME="ColabDeployment" TYPE="DEPLOYMENT" STATUS="implemented">
       <purpose>Google Colab notebook for running pipeline with free T4 GPU</purpose>
@@ -202,6 +270,9 @@
     <CrossLink from="M-CLI" to="M-DETECT-SLIDES" relation="delegates detect-slides command" />
     <CrossLink from="M-CLI" to="M-NOTES" relation="delegates notes command" />
     <CrossLink from="M-CLI" to="M-ROI-TOOL" relation="delegates roi-tool command" />
+    <CrossLink from="M-CLI" to="M-PROJECT" relation="delegates project subcommands" />
+    <CrossLink from="M-PROJECT" to="M-MODELS" relation="uses Project model" />
+    <CrossLink from="M-PROJECT" to="M-CONFIG" relation="uses LlmConfig, DetectionConfig" />
     <CrossLink from="M-PIPELINE" to="M-CLI" relation="implements" />
     <CrossLink from="M-VIDEO-DECODE" to="M-BACKENDS" relation="selects and uses" />
     <CrossLink from="M-SLIDE-DETECTOR" to="M-FRAME-FEATURES" relation="extracts and compares" />
@@ -223,7 +294,22 @@
     <CrossLink from="M-DETECT-SLIDES" to="M-ROI" relation="crops and masks" />
     <CrossLink from="M-NOTES" to="M-SUBTITLES" relation="parses and aligns cues" />
     <CrossLink from="M-NOTES" to="M-NOTES-PROCESSOR" relation="cleans and formats notes" />
-    <CrossLink from="M-NOTES" to="M-SLIDE-ANALYZER" relation="gets slide visual context" />
     <CrossLink from="M-ROI-TOOL" to="M-VIDEO-DECODE" relation="extracts frame" />
+    <CrossLink from="M-GUI-MAIN" to="M-PROJECT" relation="controls project lifecycle" />
+    <CrossLink from="M-GUI-MAIN" to="M-GUI-TIMELINE" relation="embeds and populates" />
+    <CrossLink from="M-GUI-MAIN" to="M-GUI-SETTINGS" relation="opens settings dialog" />
+    <CrossLink from="M-GUI-MAIN" to="M-GUI-WORKER" relation="creates and starts workers" />
+    <CrossLink from="M-GUI-MAIN" to="M-DETECT-SLIDES" relation="calls via worker" />
+    <CrossLink from="M-GUI-MAIN" to="M-NOTES" relation="calls via worker" />
+    <CrossLink from="M-GUI-MAIN" to="M-BACKENDS" relation="queries available backends" />
+    <CrossLink from="M-GUI-TIMELINE" to="M-MODELS" relation="reads SlideSegment list" />
+    <CrossLink from="M-GUI-SETTINGS" to="M-PROJECT" relation="reads/writes project config" />
+    <CrossLink from="M-GUI-SETTINGS" to="M-CONFIG" relation="reads LlmConfig, DetectionConfig defaults" />
+    <CrossLink from="M-GUI-SETTINGS" to="M-BACKENDS" relation="queries available backends" />
+    <CrossLink from="M-GUI-SETTINGS" to="M-NOTES-PROCESSOR" relation="shows SYSTEM_PROMPT_REPHRASE" />
+    <CrossLink from="M-GUI-WORKER" to="M-DETECT-SLIDES" relation="runs detection in background thread" />
+    <CrossLink from="M-GUI-WORKER" to="M-NOTES" relation="runs notes in background thread" />
+    <CrossLink from="M-GUI-WORKER" to="M-LLM-ORCHESTRATOR" relation="runs LLM processing in background thread" />
+    <CrossLink from="M-GUI-WORKER" to="M-PROJECT" relation="updates project state on completion" />
   </Project>
 </KnowledgeGraph>

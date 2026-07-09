@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<TechnologyStack VERSION="0.1.0">
-  <Runtime>Python</Runtime>
-  <Language>Python 3.10+</Language>
-  <Framework>Typer (CLI), Pydantic (models)</Framework>
+<TechnologyStack VERSION="0.2.0">
+  <Runtime>Python 3.10+</Runtime>
+  <Language>Python</Language>
+  <Framework>Typer (CLI), Pydantic (models), PySide6 (GUI)</Framework>
 
   <Dependencies>
     <dep name="typer" version=">=0.12" purpose="CLI framework" />
@@ -12,13 +12,19 @@
     <dep name="loguru" version=">=0.7" purpose="Structured logging" />
     <dep name="Pillow" version=">=10.0" purpose="Image processing" />
     <dep name="numpy" version=">=1.24" purpose="Array operations" />
-    <dep name="opencv-python" version=">=4.8" purpose="Video decoding (CPU), image processing" />
+    <dep name="opencv-python" version=">=4.8" purpose="Video decoding (CPU), image processing, ROI tool" />
     <dep name="pysubs2" version=">=1.7" purpose="SRT/VTT subtitle parsing" />
     <dep name="imagehash" version=">=4.3" purpose="Perceptual hashing (pHash, dHash)" />
     <dep name="scikit-image" version=">=0.21" purpose="SSIM comparison, image metrics" />
     <dep name="matplotlib" version=">=3.7" purpose="Debug chart generation" />
     <dep name="httpx" version=">=0.27" purpose="HTTP client for LLM API calls" />
   </Dependencies>
+
+  <OptionalDependencies>
+    <extras name="gui">
+      <dep name="PySide6" version=">=6.6" purpose="Desktop GUI framework: QMainWindow, custom widgets, QThread workers" />
+    </extras>
+  </OptionalDependencies>
 
   <VersionConstraints>
     <constraint lib="python" min="3.10" max="3.13" reason="Type hints and match/case syntax" />
@@ -31,30 +37,40 @@
 
   <PreferredAgentStack>
     <preferred-cli-framework>typer (with rich for output)</preferred-cli-framework>
+    <preferred-gui-framework>PySide6 (Qt6) with QMainWindow, QDialog, QThread workers</preferred-gui-framework>
     <preferred-config-library>pydantic + pyyaml</preferred-config-library>
     <preferred-logger>loguru</preferred-logger>
     <preferred-serialization>pydantic .model_dump_json()</preferred-serialization>
+    <preferred-project-storage>JSON file (project.json) in output directory</preferred-project-storage>
+    <preferred-worker-pattern>QObject worker moved to QThread with signal-based progress/result/error</preferred-worker-pattern>
   </PreferredAgentStack>
 
   <Testing>
     <module-level>
-      <command>pytest tests/test_*.py</command>
+      <command>pytest tests/test_*.py -v</command>
       <focus>Fast deterministic unit checks for each module</focus>
     </module-level>
     <wave-level>
-      <command>pytest tests/</command>
+      <command>pytest tests/ -v</command>
       <focus>Integration tests across pipeline stages</focus>
     </wave-level>
     <phase-level>
       <command>pytest tests/ -m integration</command>
       <focus>Synthetic video tests with real pipeline execution</focus>
     </phase-level>
+    <gui-testing>
+      <command>pytest tests/test_gui_*.py -v</command>
+      <platform>QT_QPA_PLATFORM=offscreen (CI), native display (dev)</platform>
+      <focus>Smoke tests for window creation, widget rendering, worker signals. Limited by headless CI constraints.</focus>
+      <mocking-policy>Use QTest for widget interaction simulation. Use QSignalSpy for worker signal verification. Prefer modular tests with minimal Qt dependency where possible.</mocking-policy>
+    </gui-testing>
     <mocking-policy>Prefer fakes (e.g., in-memory frame generators) over monkey-patching.</mocking-policy>
   </Testing>
 
   <Observability>
     <logger>loguru</logger>
     <log-format>[ModuleName][function_name][BLOCK_NAME] message | key=value</log-format>
+    <gui-tracing>QLoggingCategory for Qt debug output; route through loguru if needed</gui-tracing>
     <redaction>Never log file paths that may contain secrets, raw subtitle text with sensitive data, or credentials.</redaction>
   </Observability>
 
@@ -65,6 +81,8 @@
   </AutonomyPolicy>
 
   <DeliveryShape>
-    <shape>Local CLI tool, single Python package installed via pip, console_script entry point.</shape>
+    <base>Local CLI tool, single Python package installed via pip, console_script entry point.</base>
+    <gui-option>GUI available via `pip install video-slide-md[gui]`. GUI entry point: video-slide-md-gui or python -m video_slide_md.gui.</gui-option>
+    <binary-distribution>Future option: PyInstaller bundle with --gui extras for standalone .exe/.app.</binary-distribution>
   </DeliveryShape>
 </TechnologyStack>
