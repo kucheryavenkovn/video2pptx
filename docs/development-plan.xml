@@ -612,7 +612,7 @@
       <step-9 module="M-GUI-MENUBAR" status="done" verification="V-M-GUI-MENUBAR">
         Create src/video_slide_md/gui/menu_bar.py: QMenuBar with File + Edit menus. Emits signals for all actions. Integrates into MainWindow replacing toolbar-only approach.
       </step-9>
-      <step-10 module="M-GUI-MAIN" status="pending" verification="V-M-GUI-MAIN">
+      <step-10 module="M-GUI-MAIN" status="done" verification="V-M-GUI-MAIN">
         Update src/video_slide_md/gui/main_window.py: Add M-GUI-MENUBAR, M-GUI-VIDEOPLAYER, M-GUI-TIMELINE-V2. Integrate project/app settings dialogs. Connect menu signals to project lifecycle. Replace old toolbar with menu bar. Split central area into video player + timeline + subtitle panel.
       </step-10>
       <stop-condition>GUI must not block during video playback or smart snap. Green/blue markers render correctly. Double-click opens system viewer. Smart snap adjusts markers according to selected mode. Settings persist across restarts. New projects inherit app defaults. All tests pass (offscreen-compatible).</stop-condition>
