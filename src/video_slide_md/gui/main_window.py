@@ -19,6 +19,7 @@ from pathlib import Path
 
 from loguru import logger
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -34,6 +35,7 @@ from PySide6.QtWidgets import (
 )
 
 from video_slide_md.backends import BACKENDS
+from video_slide_md.gui.app_config import load_app_config, save_app_config
 from video_slide_md.project_manager import Project, create_project, import_video_to_project, import_subtitles_to_project, load_slides_into_project, open_project, save_project, update_project_state
 
 
@@ -55,6 +57,7 @@ class MainWindow(QMainWindow):
         self._app_config = None
         self._setup_ui()
         self._connect_menu_signals()
+        self._try_restore_last_project()
 
     # START_BLOCK_SETUP_UI
     def _setup_ui(self) -> None:
@@ -115,8 +118,7 @@ class MainWindow(QMainWindow):
         self._subtitle_overlay = SubtitleOverlayWidget()
         self._video_player.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-        self._subtitle_overlay.setParent(self._video_player)
-        self._subtitle_overlay.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self._video_player.set_overlay_widget(self._subtitle_overlay)
 
         video_layout.addWidget(self._video_player, stretch=1)
 
@@ -165,9 +167,6 @@ class MainWindow(QMainWindow):
     def _on_video_position_changed(self, seconds: float) -> None:
         self._subtitle_overlay.sync_to_position(seconds)
 
-    def _resize_subtitle_overlay(self) -> None:
-        if self._video_player.videoWidget():
-            self._subtitle_overlay.setGeometry(self._video_player.videoWidget().geometry())
     # END_BLOCK_VIDEO_SUBTITLE_SYNC
 
     # START_BLOCK_PROJECT_LIFECYCLE
@@ -285,8 +284,6 @@ class MainWindow(QMainWindow):
         from video_slide_md.gui import marker_manager as mm
         self._marker_manager = mm
 
-        # Init app config (lazy)
-        from video_slide_md.gui.app_config import load_app_config
         self._app_config = load_app_config()
 
         # Load slides into timeline
@@ -302,6 +299,40 @@ class MainWindow(QMainWindow):
         self.project_changed.emit(proj)
         logger.info("[GUI-Main][_set_project] Project loaded | name={}", proj.name)
     # END_BLOCK_PROJECT_LIFECYCLE
+
+    # START_BLOCK_PROJECT_RESTORE
+    def closeEvent(self, event: QCloseEvent) -> None:  # noqa: N802
+        if self._project is not None:
+            try:
+                cfg = load_app_config()
+                cfg.last_project_path = self._project.output_dir
+                save_app_config(cfg)
+            except Exception:
+                pass
+        super().closeEvent(event)
+
+    def _try_restore_last_project(self) -> None:
+        try:
+            cfg = load_app_config()
+            if not cfg.last_project_path:
+                return
+            last_path = Path(cfg.last_project_path)
+            if not (last_path / "project.json").is_file():
+                return
+            reply = QMessageBox.question(
+                self,
+                "Restore Project",
+                f"Open previous project?\n\n{last_path.name}",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                from video_slide_md.project_manager import open_project
+                proj = open_project(str(last_path))
+                self._set_project(proj)
+                self.statusBar().showMessage(f"Restored project: {proj.name}")
+        except Exception:
+            pass
+    # END_BLOCK_PROJECT_RESTORE
 
     # START_BLOCK_DETECT
     def _on_detect(self) -> None:

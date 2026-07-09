@@ -129,3 +129,12 @@
 - Impact: Video playback broken for all users.
 - Resolution: Added `self._player.setVideoOutput(self._video_widget)` in `_setup_ui()` after creating `_video_widget`.
 - LINKS: M-GUI-VIDEOPLAYER
+
+### F-0015 — Subtitle overlay widget must be explicitly positioned over QVideoWidget
+- Date: 2026-07-09
+- Area: gui
+- Finding: `SubtitleOverlayWidget` was parented to `VideoPlayerWidget` but never had its geometry set to match the `QVideoWidget` area. The overlay showed no text because it was zero-sized or positioned off-screen. `_resize_subtitle_overlay()` existed in MainWindow but was never called.
+- Symptom/Reproduction: Load video with subtitles, play — subtitle text prints in log but nothing visible on screen.
+- Impact: Subtitles invisible.
+- Resolution: Moved overlay management into `VideoPlayerWidget` via `set_overlay_widget(w)` + `resizeEvent` override that calls `_position_overlay()`, which sets overlay geometry to match `_video_widget.geometry()` on every resize.
+- LINKS: M-GUI-VIDEOPLAYER, M-GUI-SUBTITLE-OVERLAY

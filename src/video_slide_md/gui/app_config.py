@@ -44,6 +44,7 @@ class AppConfigModel(BaseModel):
     snap_mode: str = Field(default="hybrid", description="Smart snap strategy: diff_only, fallback_analyze, hybrid")
     snap_flat_threshold: float = Field(default=0.05, ge=0.001, le=1.0, description="Flat graph threshold for hybrid snap")
     default_project_dir: str = Field(default="", description="Default directory for new projects")
+    last_project_path: str = Field(default="", description="Path to the last opened project for auto-restore")
 
 
 def get_config_dir() -> Path:

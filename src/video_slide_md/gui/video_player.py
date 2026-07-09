@@ -19,6 +19,7 @@ from pathlib import Path
 
 from loguru import logger
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QResizeEvent
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtWidgets import (
@@ -51,6 +52,7 @@ class VideoPlayerWidget(QWidget):
         self._audio_output = QAudioOutput(self)
         self._player.setAudioOutput(self._audio_output)
 
+        self._overlay: QWidget | None = None
         self._is_playing = False
         self._setup_ui()
         self._connect_signals()
@@ -204,4 +206,18 @@ class VideoPlayerWidget(QWidget):
         self._time_label.setText("00:00 / 00:00")
         self._seek_slider.setRange(0, 0)
         self._is_playing = False
+
+    def set_overlay_widget(self, overlay: QWidget) -> None:
+        self._overlay = overlay
+        self._overlay.setParent(self)
+        self._overlay.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self._position_overlay()
+
+    def resizeEvent(self, event: QResizeEvent) -> None:  # noqa: N802
+        super().resizeEvent(event)
+        self._position_overlay()
+
+    def _position_overlay(self) -> None:
+        if self._overlay is not None:
+            self._overlay.setGeometry(self._video_widget.geometry())
     # END_BLOCK_UTILITY
