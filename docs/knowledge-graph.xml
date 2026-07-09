@@ -379,6 +379,19 @@
     </M-GUI-SUBTITLE-OVERLAY>
 
     <M-GUI-TIMELINE-V2 NAME="TimelineV2" TYPE="UI_COMPONENT" STATUS="implemented">
+      <purpose>Enhanced timeline: green (detected) and blue (manual) markers, score waveform graph. Double-click green → open image. Right-click → add/edit/delete marker.</purpose>
+      <path>src/video2pptx/gui/timeline_v2.py</path>
+      <depends>M-MODELS, M-GUI-MARKER-MANAGER</depends>
+      <verification-ref>V-M-GUI-TIMELINE-V2</verification-ref>
+      <annotations>
+        <fn-TimelineV2Widget PURPOSE="Custom QWidget with QPainter timeline + green/blue markers + score waveform" />
+        <signal-marker_added PURPOSE="emitted (float timestamp) when user adds blue marker" />
+        <signal-marker_deleted PURPOSE="emitted (float timestamp) when user deletes blue marker" />
+        <signal-open_image PURPOSE="emitted (str image_path) when green marker double-clicked" />
+        <fn-set_scores PURPOSE="Set score waveform data (timestamps, values) for rendering" />
+        <fn-clear_scores PURPOSE="Clear score waveform data" />
+      </annotations>
+    </M-GUI-TIMELINE-V2>
 
     <M-GUI-TIMELINE3 NAME="Timeline3" TYPE="UI_COMPONENT" STATUS="implemented">
       <purpose>QGraphicsView-based multi-track timeline: SubtitleBlockItem (click to seek), SlideBlockItem (drag/resize/move), PlayheadItem, TimeRulerItem, waveform track. Dynamic track heights. Manual slides as orange blocks.</purpose>
@@ -399,19 +412,6 @@
         <signal-slide_resized PURPOSE="emitted (int index, float start, float end) after edge drag" />
       </annotations>
     </M-GUI-TIMELINE3>
-      <purpose>Enhanced timeline: green (detected) and blue (manual) markers, score waveform graph. Double-click green → open image. Right-click → add/edit/delete marker.</purpose>
-      <path>src/video2pptx/gui/timeline_v2.py</path>
-      <depends>M-MODELS, M-GUI-MARKER-MANAGER</depends>
-      <verification-ref>V-M-GUI-TIMELINE-V2</verification-ref>
-      <annotations>
-        <fn-TimelineV2Widget PURPOSE="Custom QWidget with QPainter timeline + green/blue markers + score waveform" />
-        <signal-marker_added PURPOSE="emitted (float timestamp) when user adds blue marker" />
-        <signal-marker_deleted PURPOSE="emitted (float timestamp) when user deletes blue marker" />
-        <signal-open_image PURPOSE="emitted (str image_path) when green marker double-clicked" />
-        <fn-set_scores PURPOSE="Set score waveform data (timestamps, values) for rendering" />
-        <fn-clear_scores PURPOSE="Clear score waveform data" />
-      </annotations>
-    </M-GUI-TIMELINE-V2>
 
     <M-GUI-MENUBAR NAME="MenuBar" TYPE="UI_COMPONENT" STATUS="implemented">
       <purpose>QMenuBar with File menu (New/Open/Close/Save Project, Import Video/Subtitles, Exit) and Edit menu (Project Settings, App Settings). Keyboard shortcuts. Emits signals for all actions.</purpose>
@@ -448,6 +448,106 @@
         <signal-rois_selected PURPOSE="emitted (list of (x1,y1,x2,y2) tuples) on accept" />
       </annotations>
     </M-GUI-ROI-SELECTOR>
+
+    <M-TIMELINE-MODEL NAME="TimelineModel" TYPE="DATA_LAYER" STATUS="implemented">
+      <purpose>QObject-based timeline data model: Clip(ABC), SlideClip, SubtitleClip, MarkerClip, ScoreClip, Track(QObject), ScoreTrack(Track), Timeline(QObject) with signals</purpose>
+      <path>src/video2pptx/timeline_model.py</path>
+      <depends>abc, uuid, PySide6.QtCore, M-MODELS</depends>
+      <verification-ref>V-M-TIMELINE-MODEL</verification-ref>
+      <annotations>
+        <type-Clip PURPOSE="ABC: uid, start_sec, end_sec, duration property, contains(), overlaps()" />
+        <type-SlideClip PURPOSE="Clip subclass: index, image_path, transcript, notes, llm_description, manual, to_segment/from_segment, extract_subtitles, process_notes" />
+        <type-SubtitleClip PURPOSE="Clip subclass: plaintext field" />
+        <type-MarkerClip PURPOSE="Clip subclass: snapped_ts, snap_mode" />
+        <type-ScoreClip PURPOSE="Clip subclass: value, method" />
+        <type-Track PURPOSE="QObject with clipAdded/Removed/Changed signals, add_clip/remove_clip/sort/reindex, name/height properties" />
+        <type-ScoreTrack PURPOSE="Track subclass: min_value, max_value, method, build_waveform_path" />
+        <type-Timeline PURPOSE="QObject with trackAdded/Removed, durationChanged signals, create_track/remove_track/track/clips_in_range" />
+      </annotations>
+    </M-TIMELINE-MODEL>
+
+    <M-PROJECT-MODEL NAME="ProjectModel" TYPE="DATA_LAYER" STATUS="implemented">
+      <purpose>QObject wrapping project state with Qt signals: slidesChanged, subtitlesChanged, videoChanged, projectClosed, stateChanged. Bridges CLI project_manager with GUI timeline model.</purpose>
+      <path>src/video2pptx/project_model.py</path>
+      <depends>PySide6.QtCore, M-PROJECT, M-TIMELINE-MODEL, pysubs2</depends>
+      <verification-ref>V-M-PROJECT-MODEL</verification-ref>
+      <annotations>
+        <fn-create PURPOSE="Create new project at path with name" />
+        <fn-open PURPOSE="Load project, sync slides/subtitles to timeline, emit videoChanged" />
+        <fn-save PURPOSE="Save project to disk" />
+        <fn-close PURPOSE="Clear internal state, emit projectClosed" />
+        <fn-add_slide PURPOSE="Create manual SlideClip, add to track, emit slidesChanged" />
+        <fn-delete_slide PURPOSE="Remove slide by index, reindex, emit slidesChanged" />
+        <fn-move_slide PURPOSE="Update start/end for slide, emit slidesChanged" />
+        <fn-load_subtitles PURPOSE="Import subtitles, sync to timeline track, emit subtitlesChanged" />
+        <fn-set_scores PURPOSE="Store score timestamps+values, sync ScoreTrack, emit scoresChanged" />
+        <signal-slidesChanged PURPOSE="emitted on any slide mutation" />
+        <signal-videoChanged PURPOSE="emitted (str path) on video load/import" />
+        <signal-projectClosed PURPOSE="emitted when project closed" />
+      </annotations>
+    </M-PROJECT-MODEL>
+
+    <M-GUI-LOG-BRIDGE NAME="LogBridge" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Bridge loguru → Qt signal + ring buffer for DebugDock and MCP server. Singleton pattern via LogBridge.instance().</purpose>
+      <path>src/video2pptx/gui/log_bridge.py</path>
+      <depends>loguru, PySide6.QtCore</depends>
+      <verification-ref>V-M-GUI-LOG-BRIDGE</verification-ref>
+      <annotations>
+        <type-LogBridge PURPOSE="QObject singleton: newLog Signal(str,str,str), recent(n), _sink(message) captures loguru entries" />
+        <signal-newLog PURPOSE="emitted (level, time, message) for each log entry" />
+        <fn-recent PURPOSE="Return last N log entries from ring buffer" />
+        <fn-instance PURPOSE="classmethod: return singleton, creating it if needed" />
+      </annotations>
+    </M-GUI-LOG-BRIDGE>
+
+    <M-GUI-DEBUG-DOCK NAME="DebugDock" TYPE="UI_COMPONENT" STATUS="implemented">
+      <purpose>QDockWidget with LogPanel (live log viewer with color-coded levels + filter) and StatePanel (Timeline→Track→Clip tree view). Toggle via Ctrl+D or View→Debug menu.</purpose>
+      <path>src/video2pptx/gui/debug_dock.py</path>
+      <depends>M-GUI-LOG-BRIDGE, M-TIMELINE-MODEL, M-PROJECT-MODEL, PySide6</depends>
+      <verification-ref>V-M-GUI-DEBUG-DOCK</verification-ref>
+      <annotations>
+        <type-DebugDock PURPOSE="QDockWidget with QTabWidget(LogPanel, StatePanel)" />
+        <type-LogPanel PURPOSE="QWidget: color-coded QPlainTextEdit, QComboBox level filter, auto-scroll" />
+        <type-StatePanel PURPOSE="QWidget: QTreeWidget showing Timeline→Track→Clip hierarchy, Refresh button" />
+      </annotations>
+    </M-GUI-DEBUG-DOCK>
+
+    <M-GUI-SIGNAL-SPY NAME="SignalSpy" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Watch Qt signals on any QObject, log via LogBridge for real-time inspection in DebugDock. Supports individual signal watching and watch_all for complete tracing.</purpose>
+      <path>src/video2pptx/gui/signal_spy.py</path>
+      <depends>PySide6.QtCore, M-GUI-LOG-BRIDGE</depends>
+      <verification-ref>V-M-GUI-SIGNAL-SPY</verification-ref>
+      <annotations>
+        <fn-watch PURPOSE="Subscribe to a named Qt signal, log emission args via loguru→LogBridge" />
+        <fn-watch_all PURPOSE="Auto-discover and subscribe to ALL signals on a QObject" />
+      </annotations>
+    </M-GUI-SIGNAL-SPY>
+
+    <M-DEBUG-MCP NAME="McpServer" TYPE="INTEGRATION" STATUS="implemented">
+      <purpose>MCP HTTP/SSE server on :9812 for AI agent debugging. Read tools: get_state, get_project, get_logs, get_clip. Write tools via command queue: project_open/close/create/save, slide_add/delete/move. Action tools via ActionRegistry.</purpose>
+      <path>src/video2pptx/debug/mcp_server.py</path>
+      <depends>M-PROJECT-MODEL, M-TIMELINE-MODEL, M-GUI-LOG-BRIDGE, M-DEBUG-ACTION</depends>
+      <verification-ref>V-M-DEBUG-MCP</verification-ref>
+      <annotations>
+        <fn-_handle_rpc PURPOSE="Dispatch JSON-RPC methods: tools/list, tools/call, initialize" />
+        <fn-mcp_process_queue PURPOSE="Drain command queue + action queue in Qt main thread via QTimer" />
+        <type-McpServer PURPOSE="Manages _ThreadedServer lifecycle, writes .mcp_port file" />
+      </annotations>
+    </M-DEBUG-MCP>
+
+    <M-DEBUG-ACTION NAME="ActionRegistry" TYPE="UTILITY" STATUS="implemented">
+      <purpose>@mcp_action decorator + ActionRegistry. Auto-discovers MCP tools from decorated methods on any object. Converts Python type hints to JSON inputSchema.</purpose>
+      <path>src/video2pptx/debug/action_registry.py</path>
+      <depends>inspect</depends>
+      <verification-ref>V-M-DEBUG-ACTION</verification-ref>
+      <annotations>
+        <fn-mcp_action PURPOSE="Decorator: marks a method with _mcp_meta = {name, desc, kind}" />
+        <type-ActionRegistry PURPOSE="Registry: scan(instance) finds @mcp_action methods, tools() returns MCP descriptors, call(name, args) invokes with signature binding" />
+        <fn-scan PURPOSE="Iterate dir(instance), find methods with _mcp_meta (including bound method __func__)" />
+        <fn-call PURPOSE="Lookup method, bind args via inspect.signature, invoke" />
+        <fn-tools PURPOSE="Return list of {name, description, inputSchema} for tools/list" />
+      </annotations>
+    </M-DEBUG-ACTION>
 
     <M-COLAB NAME="ColabDeployment" TYPE="DEPLOYMENT" STATUS="implemented">
       <purpose>Google Colab notebook for running pipeline with free T4 GPU</purpose>
@@ -551,5 +651,24 @@
     <CrossLink from="M-GUI-SETTINGS-APP" to="M-GUI-APPCONFIG" relation="reads/writes app-config.yaml" />
     <CrossLink from="M-GUI-SETTINGS-APP" to="M-BACKENDS" relation="queries available backends" />
     <CrossLink from="M-GUI-APPCONFIG" to="M-PROJECT" relation="applies defaults to new projects" />
+    <!-- Domain Models -->
+    <CrossLink from="M-PROJECT-MODEL" to="M-PROJECT" relation="wraps Project lifecycle, delegates to project_manager" />
+    <CrossLink from="M-PROJECT-MODEL" to="M-TIMELINE-MODEL" relation="owns Timeline, syncs slides/subtitles/scores to tracks" />
+    <CrossLink from="M-PROJECT-MODEL" to="M-MODELS" relation="creates SlideClip.from_segment" />
+    <CrossLink from="M-TIMELINE-MODEL" to="M-MODELS" relation="SlideClip.to_segment/from_segment uses SlideSegment" />
+    <!-- Debug Infrastructure -->
+    <CrossLink from="M-GUI-LOG-BRIDGE" to="M-GUI-DEBUG-DOCK" relation="LogPanel subscribes to newLog signal" />
+    <CrossLink from="M-GUI-LOG-BRIDGE" to="M-DEBUG-MCP" relation="provides recent(n) for get_logs tool" />
+    <CrossLink from="M-GUI-DEBUG-DOCK" to="M-GUI-LOG-BRIDGE" relation="LogPanel connects LogBridge.newLog" />
+    <CrossLink from="M-GUI-DEBUG-DOCK" to="M-PROJECT-MODEL" relation="StatePanel reads ProjectModel + Timeline" />
+    <CrossLink from="M-GUI-DEBUG-DOCK" to="M-TIMELINE-MODEL" relation="StatePanel reads Timeline tree" />
+    <CrossLink from="M-GUI-DEBUG-DOCK" to="M-GUI-MAIN" relation="added as QDockWidget, toggled via Ctrl+D" />
+    <CrossLink from="M-GUI-SIGNAL-SPY" to="M-GUI-LOG-BRIDGE" relation="logs signal emissions via loguru→LogBridge" />
+    <CrossLink from="M-GUI-SIGNAL-SPY" to="M-TIMELINE-MODEL" relation="watches Track/Timeline signals" />
+    <!-- MCP Server -->
+    <CrossLink from="M-DEBUG-MCP" to="M-PROJECT-MODEL" relation="reads ProjectModel for get_project, write tools via command queue" />
+    <CrossLink from="M-DEBUG-MCP" to="M-TIMELINE-MODEL" relation="serializes Timeline for get_state" />
+    <CrossLink from="M-DEBUG-MCP" to="M-DEBUG-ACTION" relation="delegates action tools to ActionRegistry" />
+    <CrossLink from="M-DEBUG-ACTION" to="M-GUI-MAIN" relation="scanned for @mcp_action decorated methods" />
   </Project>
 </KnowledgeGraph>

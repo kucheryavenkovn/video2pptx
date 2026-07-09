@@ -253,7 +253,7 @@
     </V-M-PROJECT>
 
     <V-M-GUI-MAIN MODULE="M-GUI-MAIN" PRIORITY="high" STATUS="passed">
-      <test-files><file>tests/test_gui_main.py</file></test-files>
+      <test-files><file>tests/test_gui_main.py</file><file>tests/test_gui_main_window.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_main.py -v</check-1>
       </module-checks>
@@ -450,7 +450,7 @@
       </commands>
     </Gate-Phase-8>
 
-    <Gate-Phase-9 PRIORITY="high" STATUS="pending">
+    <Gate-Phase-9 PRIORITY="high" STATUS="done">
       <goal>Project system: create, open, update, CLI round-trip. project.json schema stable.</goal>
       <commands>
         <command-1>pytest tests/test_project_manager.py -v</command-1>
@@ -458,7 +458,15 @@
       </commands>
     </Gate-Phase-9>
 
-    <Gate-Phase-11 PRIORITY="high" STATUS="pending">
+    <Gate-Phase-10 PRIORITY="high" STATUS="done">
+      <goal>Desktop GUI: main window, timeline, settings, background workers. All tests pass in offscreen mode.</goal>
+      <commands>
+        <command-1>QT_QPA_PLATFORM=offscreen pytest tests/test_gui_main.py tests/test_gui_timeline.py tests/test_gui_settings.py tests/test_gui_workers.py -v</command-1>
+        <command-2>pytest tests/test_cli_e2e.py -v  # core pipeline unchanged</command-2>
+      </commands>
+    </Gate-Phase-10>
+
+    <Gate-Phase-11 PRIORITY="high" STATUS="done">
       <goal>Desktop GUI enhancements: menu bar, video player, subtitle overlay, enhanced timeline, project/app settings, app-wide config, smart snap. All new modules tested. Core pipeline unchanged.</goal>
       <commands>
         <command-1>QT_QPA_PLATFORM=offscreen pytest tests/test_gui_menu_bar.py tests/test_gui_video_player.py tests/test_gui_subtitle_overlay.py tests/test_gui_timeline_v2.py tests/test_gui_marker_manager.py tests/test_gui_smart_snap.py tests/test_gui_settings_project.py tests/test_gui_settings_app.py tests/test_gui_app_config.py -v</command-1>
@@ -466,12 +474,132 @@
       </commands>
     </Gate-Phase-11>
 
-    <Gate-Phase-10 PRIORITY="high" STATUS="pending">
-      <goal>Desktop GUI: main window, timeline, settings, background workers. All tests pass in offscreen mode.</goal>
+    <Gate-Phase-12 PRIORITY="high" STATUS="done">
+      <goal>Domain model refactoring: ProjectModel + TimelineModel extracted from MainWindow. 15 model tests pass.</goal>
       <commands>
-        <command-1>QT_QPA_PLATFORM=offscreen pytest tests/test_gui_main.py tests/test_gui_timeline.py tests/test_gui_settings.py tests/test_gui_workers.py -v</command-1>
-        <command-2>pytest tests/test_cli_e2e.py -v  # core pipeline unchanged</command-2>
+        <command-1>pytest tests/test_project_model.py tests/test_timeline_model.py -v</command-1>
       </commands>
-    </Gate-Phase-10>
+    </Gate-Phase-12>
+
+    <Gate-Phase-14 PRIORITY="high" STATUS="done">
+      <goal>Debug infrastructure: LogBridge, DebugDock (Ctrl+D), SignalSpy, MCP Server, ActionRegistry. 26 debug tests pass. All 454+ tests pass.</goal>
+      <commands>
+        <command-1>pytest tests/test_gui_log_bridge.py tests/test_gui_debug_dock.py tests/test_gui_signal_spy.py tests/test_debug_action.py -v</command-1>
+        <command-2>pytest tests/ -q  # full regression</command-2>
+      </commands>
+    </Gate-Phase-14>
   </PhaseGates>
+
+  <!-- Domain Model Verification -->
+  <V-M-TIMELINE-MODEL MODULE="M-TIMELINE-MODEL" PRIORITY="high" STATUS="passed">
+    <test-files><file>tests/test_timeline_model.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Clip generates uid, duration property, contains/overlaps work.</scenario-1>
+      <scenario-2 kind="success">SlideClip.to_segment/from_segment round-trip preserves all fields.</scenario-2>
+      <scenario-3 kind="success">Track emits clipAdded signal on add_clip, clipRemoved on remove_clip.</scenario-3>
+      <scenario-4 kind="success">Track.sort() orders clips by start_sec.</scenario-4>
+      <scenario-5 kind="success">Timeline emits durationChanged signal on duration setter.</scenario-5>
+    </scenarios>
+  </V-M-TIMELINE-MODEL>
+
+  <V-M-PROJECT-MODEL MODULE="M-PROJECT-MODEL" PRIORITY="high" STATUS="passed">
+    <test-files><file>tests/test_project_model.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Initial state: not open, timeline is Timeline instance.</scenario-1>
+      <scenario-2 kind="success">add_slide creates manual SlideClip, adds to track, emits slidesChanged.</scenario-2>
+      <scenario-3 kind="success">delete_slide removes by index, reindexes remaining, emits slidesChanged.</scenario-3>
+      <scenario-4 kind="success">close clears all state, projectClosed emitted, slides list empty.</scenario-4>
+      <scenario-5 kind="success">set_scores populates ScoreTrack with correct number of clips.</scenario-5>
+    </scenarios>
+  </V-M-PROJECT-MODEL>
+
+  <!-- Debug Infrastructure Verification -->
+  <V-M-GUI-LOG-BRIDGE MODULE="M-GUI-LOG-BRIDGE" PRIORITY="medium" STATUS="passed">
+    <test-files><file>tests/test_gui_log_bridge.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Singleton pattern: LogBridge.instance() returns same object.</scenario-1>
+      <scenario-2 kind="success">Loguru message captured and emitted via newLog signal with correct level/time/message.</scenario-2>
+      <scenario-3 kind="success">recent(n) returns entries with correct fields.</scenario-3>
+    </scenarios>
+  </V-M-GUI-LOG-BRIDGE>
+
+  <V-M-GUI-DEBUG-DOCK MODULE="M-GUI-DEBUG-DOCK" PRIORITY="medium" STATUS="passed">
+    <test-files><file>tests/test_gui_debug_dock.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Dock created with title "Debug" and 2 tabs (Logs + State).</scenario-1>
+      <scenario-2 kind="success">LogPanel.append renders log entry with level prefix.</scenario-2>
+      <scenario-3 kind="success">LogPanel filter combo contains ALL, ERROR levels.</scenario-3>
+      <scenario-4 kind="success">StatePanel shows tree from Timeline with correct clip count.</scenario-4>
+    </scenarios>
+  </V-M-GUI-DEBUG-DOCK>
+
+  <V-M-GUI-SIGNAL-SPY MODULE="M-GUI-SIGNAL-SPY" PRIORITY="low" STATUS="passed">
+    <test-files><file>tests/test_gui_signal_spy.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">watch subscribes to named Qt signal on QObject.</scenario-1>
+      <scenario-2 kind="success">watch_all discovers and subscribes to signals on Timeline/Track.</scenario-2>
+    </scenarios>
+  </V-M-GUI-SIGNAL-SPY>
+
+  <V-M-DEBUG-ACTION MODULE="M-DEBUG-ACTION" PRIORITY="medium" STATUS="passed">
+    <test-files><file>tests/test_debug_action.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">@mcp_action decorator attaches _mcp_meta with name/desc.</scenario-1>
+      <scenario-2 kind="success">ActionRegistry.scan finds decorated methods, skips undecorated.</scenario-2>
+      <scenario-3 kind="success">tools() returns MCP descriptors with inputSchema from type hints.</scenario-3>
+      <scenario-4 kind="success">call dispatches to bound method with signature-bound args.</scenario-4>
+    </scenarios>
+  </V-M-DEBUG-ACTION>
+
+  <!-- Missing entries from audit — now covered -->
+  <V-M-GUI-STATUS MODULE="M-GUI-STATUS" PRIORITY="low" STATUS="passed">
+    <test-files><file>tests/test_gui_main.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">StatusBarManager.start/update/finish update status bar text.</scenario-1>
+    </scenarios>
+  </V-M-GUI-STATUS>
+
+  <V-M-GUI-SUBTITLE-EDITOR MODULE="M-GUI-SUBTITLE-EDITOR" PRIORITY="low" STATUS="passed">
+    <test-files><file>tests/test_gui_main.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">SubtitleEditorDialog opens with slide info, accepts changes on OK.</scenario-1>
+    </scenarios>
+  </V-M-GUI-SUBTITLE-EDITOR>
+
+  <V-M-GUI-TIMELINE3 MODULE="M-GUI-TIMELINE3" PRIORITY="medium" STATUS="passed">
+    <test-files><file>tests/test_gui_main.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">TimelineWidget V3 renders slide blocks and emits signals on interaction.</scenario-1>
+    </scenarios>
+  </V-M-GUI-TIMELINE3>
+
+  <V-M-GUI-MARKER-PANEL MODULE="M-GUI-MARKER-PANEL" PRIORITY="low" STATUS="passed">
+    <test-files><file>tests/test_gui_main.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">MarkerPanel dialog shows slide list with count.</scenario-1>
+    </scenarios>
+  </V-M-GUI-MARKER-PANEL>
+
+  <V-M-GUI-ROI-SELECTOR MODULE="M-GUI-ROI-SELECTOR" PRIORITY="low" STATUS="passed">
+    <test-files><file>tests/test_gui_main.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">RoiSelectorDialog uses QRubberBand for rectangle selection.</scenario-1>
+    </scenarios>
+  </V-M-GUI-ROI-SELECTOR>
+
+  <V-M-DEBUG-MCP MODULE="M-DEBUG-MCP" PRIORITY="low" STATUS="passed">
+    <test-files><file>tests/test_debug_action.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">McpServer starts on port 9812, tools/list returns expected tools.</scenario-1>
+      <scenario-2 kind="success">ActionRegistry integration: @mcp_action methods appear in tools/list.</scenario-2>
+    </scenarios>
+  </V-M-DEBUG-MCP>
+
+  <V-M-COLAB MODULE="M-COLAB" PRIORITY="low" STATUS="passed">
+    <test-files><file>colab/video2pptx_colab.ipynb</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Colab notebook loads and imports all required modules.</scenario-1>
+    </scenarios>
+  </V-M-COLAB>
+
 </VerificationPlan>

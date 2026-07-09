@@ -86,4 +86,4 @@ Thumbs.db
 *.webm
 out/
 slides/
-debug/
+# debug/ — now tracked (MCP server + ActionRegistry)

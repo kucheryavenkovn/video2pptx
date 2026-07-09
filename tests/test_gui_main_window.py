@@ -1,13 +1,17 @@
 # FILE: tests/test_gui_main_window.py
-# VERSION: 0.1.0
+# VERSION: 0.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for M-GUI-MAIN (updated) — MainWindow with full integration
 #   SCOPE: Smoke tests for component creation and basic signal routing
-#   DEPENDS: pytest, PySide6 (offscreen), M-PROJECT, all GUI modules
+#   DEPENDS: pytest, PySide6 (offscreen), M-PROJECT-MODEL, M-PROJECT, all GUI modules
 #   LINKS: M-GUI-MAIN
 #   ROLE: TEST
 #   MAP_MODE: NONE
 # END_MODULE_CONTRACT
+#
+# START_CHANGE_SUMMARY
+#   v0.2.0 - Update tests for ProjectModel refactor: _project→_model, _set_project→_on_project_opened, _load_subtitles→_load_subs_from_model
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -43,7 +47,7 @@ class TestMainWindow:
         _ensure_app()
         from video2pptx.gui.main_window import MainWindow
         w = MainWindow()
-        assert w._project is None
+        assert w._model.is_open is False
         assert w._menu_bar is not None
         assert w._video_player is not None
         assert w._subs is None
@@ -83,12 +87,17 @@ class TestMainWindow:
         video_path.write_text("fake video")
 
         from video2pptx.project_manager import Project
-        proj = Project(name="test", video=str(video_path), output_dir=str(proj_dir))
 
         w = MainWindow()
-        w._set_project(proj)
-        assert w._project is not None
-        assert w._project.name == "test"
+        proj = Project(name="test", video=str(video_path), output_dir=str(proj_dir))
+
+        # Simulate the model having a project loaded
+        w._model._project = proj
+        w._model._load_subs_if_needed = lambda: None
+        w._on_project_opened()
+
+        assert w._model.is_open
+        assert w._model.project_data.name == "test"
         assert w._detect_btn.isEnabled()
         assert "test" in w.windowTitle()
         assert "test.mp4" in w._video_label.text()
@@ -98,18 +107,19 @@ class TestMainWindow:
         _ensure_app()
         from video2pptx.gui.main_window import MainWindow
         w = MainWindow()
-        w._load_subtitles(None)
+        w._subs = None
 
         with patch.object(w._video_player, "set_subtitle_text") as mock:
             w._on_video_position_changed(10.5)
             mock.assert_called_once_with(None)
         w.deleteLater()
 
-    def test_load_subtitles_returns_none_without_file(self) -> None:
+    def test_load_subs_from_model_clears_without_path(self) -> None:
         _ensure_app()
         from video2pptx.gui.main_window import MainWindow
         w = MainWindow()
-        w._load_subtitles(None)
+        # Model has no project, so _load_subs_from_model should set _subs to None
+        w._load_subs_from_model()
         assert w._subs is None
         w.deleteLater()
 
@@ -136,7 +146,9 @@ class TestMainWindow:
         w = MainWindow()
         handler = MagicMock()
         w.project_changed.connect(handler)
-        w._set_project(proj)
+        w._model._project = proj
+        w._model._load_subs_if_needed = lambda: None
+        w._on_project_opened()
         handler.assert_called_once()
         w.deleteLater()
 

@@ -1,0 +1,3290 @@
+=== Module <module> ===
+--- <module> vars=() free=() cell=() ---
+consts(24):
+  [0] 0
+  [1] ('annotations',)
+  [2] None
+  [3] ('ABC', 'abstractmethod')
+  [4] ('Any',)
+  [5] ('logger',)
+  [6] ('QObject', 'Signal')
+  [7] ('SlideSegment',)
+  [8] <code Clip>
+  [9] 'Clip'
+  [10] <code SlideClip>
+  [11] 'SlideClip'
+  [12] <code SubtitleClip>
+  [13] 'SubtitleClip'
+  [14] <code MarkerClip>
+  [15] 'MarkerClip'
+  [16] <code ScoreClip>
+  [17] 'ScoreClip'
+  [18] <code Track>
+  [19] 'Track'
+  [20] <code ScoreTrack>
+  [21] 'ScoreTrack'
+  [22] <code Timeline>
+  [23] 'Timeline'
+names: ('__future__', 'annotations', 'uuid', 'abc', 'ABC', 'abstractmethod', 'typing', 'Any', 'loguru', 'logger', 'PySide6.QtCore', 'QObject', 'Signal', 'video2pptx.models', 'SlideSegment', 'Clip', 'SlideClip', 'SubtitleClip', 'MarkerClip', 'ScoreClip', 'Track', 'ScoreTrack', 'Timeline')
+varnames: ()
+cellvars: ()
+freevars: ()
+flags: optimizer=0 newlocals=0 args=0 varargs=0 varkw=0 generator=0
+argcount=0 kwonlyargcount=0 stacksize=5
+bytecode:
+     0 RESUME               (0)
+     2 LOAD_SMALL_INT       (0)
+     4 LOAD_CONST           (1)
+     6 IMPORT_NAME          (0)
+     8 IMPORT_FROM          (1)
+    10 STORE_NAME           (1)
+    12 POP_TOP             
+    14 LOAD_SMALL_INT       (0)
+    16 LOAD_CONST           (2)
+    18 IMPORT_NAME          (2)
+    20 STORE_NAME           (2)
+    22 LOAD_SMALL_INT       (0)
+    24 LOAD_CONST           (3)
+    26 IMPORT_NAME          (3)
+    28 IMPORT_FROM          (4)
+    30 STORE_NAME           (4)
+    32 IMPORT_FROM          (5)
+    34 STORE_NAME           (5)
+    36 POP_TOP             
+    38 LOAD_SMALL_INT       (0)
+    40 LOAD_CONST           (4)
+    42 IMPORT_NAME          (6)
+    44 IMPORT_FROM          (7)
+    46 STORE_NAME           (7)
+    48 POP_TOP             
+    50 LOAD_SMALL_INT       (0)
+    52 LOAD_CONST           (5)
+    54 IMPORT_NAME          (8)
+    56 IMPORT_FROM          (9)
+    58 STORE_NAME           (9)
+    60 POP_TOP             
+    62 LOAD_SMALL_INT       (0)
+    64 LOAD_CONST           (6)
+    66 IMPORT_NAME          (10)
+    68 IMPORT_FROM          (11)
+    70 STORE_NAME           (11)
+    72 IMPORT_FROM          (12)
+    74 STORE_NAME           (12)
+    76 POP_TOP             
+    78 LOAD_SMALL_INT       (0)
+    80 LOAD_CONST           (7)
+    82 IMPORT_NAME          (13)
+    84 IMPORT_FROM          (14)
+    86 STORE_NAME           (14)
+    88 POP_TOP             
+    90 LOAD_BUILD_CLASS    
+    92 PUSH_NULL           
+    94 LOAD_CONST           (8)
+    96 MAKE_FUNCTION       
+    98 LOAD_CONST           (9)
+   100 LOAD_NAME            (4)
+   102 CALL                 (3)
+   110 STORE_NAME           (15)
+   112 LOAD_BUILD_CLASS    
+   114 PUSH_NULL           
+   116 LOAD_CONST           (10)
+   118 MAKE_FUNCTION       
+   120 LOAD_CONST           (11)
+   122 LOAD_NAME            (15)
+   124 CALL                 (3)
+   132 STORE_NAME           (16)
+   134 LOAD_BUILD_CLASS    
+   136 PUSH_NULL           
+   138 LOAD_CONST           (12)
+   140 MAKE_FUNCTION       
+   142 LOAD_CONST           (13)
+   144 LOAD_NAME            (15)
+   146 CALL                 (3)
+   154 STORE_NAME           (17)
+   156 LOAD_BUILD_CLASS    
+   158 PUSH_NULL           
+   160 LOAD_CONST           (14)
+   162 MAKE_FUNCTION       
+   164 LOAD_CONST           (15)
+   166 LOAD_NAME            (15)
+   168 CALL                 (3)
+   176 STORE_NAME           (18)
+   178 LOAD_BUILD_CLASS    
+   180 PUSH_NULL           
+   182 LOAD_CONST           (16)
+   184 MAKE_FUNCTION       
+   186 LOAD_CONST           (17)
+   188 LOAD_NAME            (15)
+   190 CALL                 (3)
+   198 STORE_NAME           (19)
+   200 LOAD_BUILD_CLASS    
+   202 PUSH_NULL           
+   204 LOAD_CONST           (18)
+   206 MAKE_FUNCTION       
+   208 LOAD_CONST           (19)
+   210 LOAD_NAME            (11)
+   212 CALL                 (3)
+   220 STORE_NAME           (20)
+   222 LOAD_BUILD_CLASS    
+   224 PUSH_NULL           
+   226 LOAD_CONST           (20)
+   228 MAKE_FUNCTION       
+   230 LOAD_CONST           (21)
+   232 LOAD_NAME            (20)
+   234 CALL                 (3)
+   242 STORE_NAME           (21)
+   244 LOAD_BUILD_CLASS    
+   246 PUSH_NULL           
+   248 LOAD_CONST           (22)
+   250 MAKE_FUNCTION       
+   252 LOAD_CONST           (23)
+   254 LOAD_NAME            (11)
+   256 CALL                 (3)
+   264 STORE_NAME           (22)
+   266 LOAD_CONST           (2)
+   268 RETURN_VALUE        
+  --- Clip vars=() free=() cell=() ---
+  consts(13):
+    [0] 'Clip'
+    [1] 'Base class for any timeline element with time bounds.'
+    [2] None
+    [3] <code __annotate__>
+    [4] <code __init__>
+    [5] <code __annotate__>
+    [6] <code duration>
+    [7] <code __annotate__>
+    [8] <code contains>
+    [9] <code __annotate__>
+    [10] <code overlaps>
+    [11] ('end_sec', 'start_sec', 'uid')
+    [12] (None, 0.0, 0.0)
+  names: ('__name__', '__module__', '__qualname__', '__firstlineno__', '__doc__', '__init__', 'property', 'duration', 'contains', 'overlaps', '__static_attributes__')
+  varnames: ()
+  cellvars: ()
+  freevars: ()
+  flags: optimizer=0 newlocals=0 args=0 varargs=0 varkw=0 generator=0
+  argcount=0 kwonlyargcount=0 stacksize=3
+  bytecode:
+       0 RESUME               (0)
+       2 LOAD_NAME            (0)
+       4 STORE_NAME           (1)
+       6 LOAD_CONST           (0)
+       8 STORE_NAME           (2)
+      10 LOAD_SMALL_INT       (46)
+      12 STORE_NAME           (3)
+      14 LOAD_CONST           (1)
+      16 STORE_NAME           (4)
+      18 LOAD_CONST           (12)
+      20 LOAD_CONST           (3)
+      22 MAKE_FUNCTION       
+      24 LOAD_CONST           (4)
+      26 MAKE_FUNCTION       
+      28 SET_FUNCTION_ATTRIBUTE (16)
+      30 SET_FUNCTION_ATTRIBUTE (1)
+      32 STORE_NAME           (5)
+      34 LOAD_NAME            (6)
+      36 LOAD_CONST           (5)
+      38 MAKE_FUNCTION       
+      40 LOAD_CONST           (6)
+      42 MAKE_FUNCTION       
+      44 SET_FUNCTION_ATTRIBUTE (16)
+      46 CALL                 (0)
+      54 STORE_NAME           (7)
+      56 LOAD_CONST           (7)
+      58 MAKE_FUNCTION       
+      60 LOAD_CONST           (8)
+      62 MAKE_FUNCTION       
+      64 SET_FUNCTION_ATTRIBUTE (16)
+      66 STORE_NAME           (8)
+      68 LOAD_CONST           (9)
+      70 MAKE_FUNCTION       
+      72 LOAD_CONST           (10)
+      74 MAKE_FUNCTION       
+      76 SET_FUNCTION_ATTRIBUTE (16)
+      78 STORE_NAME           (9)
+      80 LOAD_CONST           (11)
+      82 STORE_NAME           (10)
+      84 LOAD_CONST           (2)
+      86 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(8):
+      [0] 2
+      [1] 'uid'
+      [2] 'str | None'
+      [3] 'start_sec'
+      [4] 'float'
+      [5] 'end_sec'
+      [6] 'return'
+      [7] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=8
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 LOAD_CONST           (5)
+        30 LOAD_CONST           (4)
+        32 LOAD_CONST           (6)
+        34 LOAD_CONST           (7)
+        36 BUILD_MAP            (4)
+        38 RETURN_VALUE        
+    --- __init__ vars=('self', 'uid', 'start_sec', 'end_sec') free=() cell=() ---
+    consts(2):
+      [0] slice(None, 12, None)
+      [1] None
+    names: ('uuid', 'uuid4', 'hex', 'uid', 'start_sec', 'end_sec')
+    varnames: ('self', 'uid', 'start_sec', 'end_sec')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=4 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST            (1)
+         4 COPY                 (1)
+         6 TO_BOOL             
+        14 POP_JUMP_IF_TRUE     (39)
+        18 NOT_TAKEN           
+        20 POP_TOP             
+        22 LOAD_GLOBAL          (0)
+        32 LOAD_ATTR            (2)
+        52 PUSH_NULL           
+        54 CALL                 (0)
+        62 LOAD_ATTR            (4)
+        82 LOAD_CONST           (0)
+        84 BINARY_OP            (26)
+        96 LOAD_FAST_BORROW     (0)
+        98 STORE_ATTR           (3)
+       108 LOAD_FAST_BORROW_LOAD_FAST_BORROW (32)
+       110 STORE_ATTR           (4)
+       120 LOAD_FAST_BORROW_LOAD_FAST_BORROW (48)
+       122 STORE_ATTR           (5)
+       132 LOAD_CONST           (1)
+       134 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(3):
+      [0] 2
+      [1] 'return'
+      [2] 'float'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 BUILD_MAP            (1)
+        26 RETURN_VALUE        
+    --- duration vars=('self',) free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('end_sec', 'start_sec')
+    varnames: ('self',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_ATTR            (0)
+        24 LOAD_FAST_BORROW     (0)
+        26 LOAD_ATTR            (2)
+        46 BINARY_OP            (10)
+        58 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'ts'
+      [2] 'float'
+      [3] 'return'
+      [4] 'bool'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- contains vars=('self', 'ts') free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('start_sec', 'end_sec')
+    varnames: ('self', 'ts')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=3
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_ATTR            (0)
+        24 LOAD_FAST            (1)
+        26 SWAP                 (2)
+        28 COPY                 (2)
+        30 COMPARE_OP           (42)
+        34 COPY                 (1)
+        36 TO_BOOL             
+        44 POP_JUMP_IF_FALSE    (16)
+        48 NOT_TAKEN           
+        50 POP_TOP             
+        52 LOAD_FAST_BORROW     (0)
+        54 LOAD_ATTR            (2)
+        74 COMPARE_OP           (42)
+        78 RETURN_VALUE        
+        80 SWAP                 (2)
+        82 POP_TOP             
+        84 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'other'
+      [2] 'Clip'
+      [3] 'return'
+      [4] 'bool'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- overlaps vars=('self', 'other') free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('start_sec', 'end_sec')
+    varnames: ('self', 'other')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_ATTR            (0)
+        24 LOAD_FAST_BORROW     (1)
+        26 LOAD_ATTR            (2)
+        46 COMPARE_OP           (2)
+        50 COPY                 (1)
+        52 TO_BOOL             
+        60 POP_JUMP_IF_FALSE    (26)
+        64 NOT_TAKEN           
+        66 POP_TOP             
+        68 LOAD_FAST_BORROW     (1)
+        70 LOAD_ATTR            (0)
+        90 LOAD_FAST_BORROW     (0)
+        92 LOAD_ATTR            (2)
+       112 COMPARE_OP           (2)
+       116 RETURN_VALUE        
+  --- SlideClip vars=() free=() cell=('__class__',) ---
+  consts(17):
+    [0] 'SlideClip'
+    [1] 'Green/orange block — detected or manual slide.'
+    [2] <code __annotate__>
+    [3] <code __init__>
+    [4] <code __annotate__>
+    [5] <code to_segment>
+    [6] <code __annotate__>
+    [7] <code from_segment>
+    [8] <code __annotate__>
+    [9] <code extract_subtitles>
+    [10] <code __annotate__>
+    [11] <code process_notes>
+    [12] <code __annotate__>
+    [13] <code _basic_cleanup>
+    [14] ('_extra', 'confidence', 'image_path', 'index', 'llm_description', 'manual', 'notes', 'representative_timestamp', 'transcript', 'warnings')
+    [15] (1, 0.0, 5.0, '', 0.0, '', '', '', 1.0, False, None, None, None)
+    [16] ('basic', None)
+  names: ('__name__', '__module__', '__qualname__', '__firstlineno__', '__doc__', '__init__', 'to_segment', 'classmethod', 'from_segment', 'extract_subtitles', 'process_notes', 'staticmethod', '_basic_cleanup', '__static_attributes__', '__classcell__')
+  varnames: ()
+  cellvars: ('__class__',)
+  freevars: ()
+  flags: optimizer=0 newlocals=0 args=0 varargs=0 varkw=0 generator=0
+  argcount=0 kwonlyargcount=0 stacksize=4
+  bytecode:
+       0 MAKE_CELL            (0)
+       2 RESUME               (0)
+       4 LOAD_NAME            (0)
+       6 STORE_NAME           (1)
+       8 LOAD_CONST           (0)
+      10 STORE_NAME           (2)
+      12 LOAD_SMALL_INT       (70)
+      14 STORE_NAME           (3)
+      16 LOAD_CONST           (1)
+      18 STORE_NAME           (4)
+      20 LOAD_CONST           (15)
+      22 LOAD_CONST           (2)
+      24 MAKE_FUNCTION       
+      26 LOAD_FAST_BORROW     (0)
+      28 BUILD_TUPLE          (1)
+      30 LOAD_CONST           (3)
+      32 MAKE_FUNCTION       
+      34 SET_FUNCTION_ATTRIBUTE (8)
+      36 SET_FUNCTION_ATTRIBUTE (16)
+      38 SET_FUNCTION_ATTRIBUTE (1)
+      40 STORE_NAME           (5)
+      42 LOAD_CONST           (4)
+      44 MAKE_FUNCTION       
+      46 LOAD_CONST           (5)
+      48 MAKE_FUNCTION       
+      50 SET_FUNCTION_ATTRIBUTE (16)
+      52 STORE_NAME           (6)
+      54 LOAD_NAME            (7)
+      56 LOAD_CONST           (6)
+      58 MAKE_FUNCTION       
+      60 LOAD_CONST           (7)
+      62 MAKE_FUNCTION       
+      64 SET_FUNCTION_ATTRIBUTE (16)
+      66 CALL                 (0)
+      74 STORE_NAME           (8)
+      76 LOAD_CONST           (8)
+      78 MAKE_FUNCTION       
+      80 LOAD_CONST           (9)
+      82 MAKE_FUNCTION       
+      84 SET_FUNCTION_ATTRIBUTE (16)
+      86 STORE_NAME           (9)
+      88 LOAD_CONST           (16)
+      90 LOAD_CONST           (10)
+      92 MAKE_FUNCTION       
+      94 LOAD_CONST           (11)
+      96 MAKE_FUNCTION       
+      98 SET_FUNCTION_ATTRIBUTE (16)
+     100 SET_FUNCTION_ATTRIBUTE (1)
+     102 STORE_NAME           (10)
+     104 LOAD_NAME            (11)
+     106 LOAD_CONST           (12)
+     108 MAKE_FUNCTION       
+     110 LOAD_CONST           (13)
+     112 MAKE_FUNCTION       
+     114 SET_FUNCTION_ATTRIBUTE (16)
+     116 CALL                 (0)
+     124 STORE_NAME           (12)
+     126 LOAD_CONST           (14)
+     128 STORE_NAME           (13)
+     130 LOAD_FAST_BORROW     (0)
+     132 COPY                 (1)
+     134 STORE_NAME           (14)
+     136 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(23):
+      [0] 2
+      [1] 'index'
+      [2] 'int'
+      [3] 'start_sec'
+      [4] 'float'
+      [5] 'end_sec'
+      [6] 'image_path'
+      [7] 'str'
+      [8] 'representative_timestamp'
+      [9] 'transcript'
+      [10] 'notes'
+      [11] 'llm_description'
+      [12] 'confidence'
+      [13] 'manual'
+      [14] 'bool'
+      [15] 'warnings'
+      [16] 'list[str] | None'
+      [17] 'uid'
+      [18] 'str | None'
+      [19] '_extra'
+      [20] 'dict | None'
+      [21] 'return'
+      [22] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=28
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 LOAD_CONST           (5)
+        30 LOAD_CONST           (4)
+        32 LOAD_CONST           (6)
+        34 LOAD_CONST           (7)
+        36 LOAD_CONST           (8)
+        38 LOAD_CONST           (4)
+        40 LOAD_CONST           (9)
+        42 LOAD_CONST           (7)
+        44 LOAD_CONST           (10)
+        46 LOAD_CONST           (7)
+        48 LOAD_CONST           (11)
+        50 LOAD_CONST           (7)
+        52 LOAD_CONST           (12)
+        54 LOAD_CONST           (4)
+        56 LOAD_CONST           (13)
+        58 LOAD_CONST           (14)
+        60 LOAD_CONST           (15)
+        62 LOAD_CONST           (16)
+        64 LOAD_CONST           (17)
+        66 LOAD_CONST           (18)
+        68 LOAD_CONST           (19)
+        70 LOAD_CONST           (20)
+        72 LOAD_CONST           (21)
+        74 LOAD_CONST           (22)
+        76 BUILD_MAP            (14)
+        78 RETURN_VALUE        
+    --- __init__ vars=('self', 'index', 'start_sec', 'end_sec', 'image_path', 'representative_timestamp', 'transcript', 'notes', 'llm_description', 'confidence', 'manual', 'warnings', 'uid', '_extra') free=('__class__',) cell=() ---
+    consts(2):
+      [0] ('uid', 'start_sec', 'end_sec')
+      [1] None
+    names: ('super', '__init__', 'index', 'image_path', 'representative_timestamp', 'transcript', 'notes', 'llm_description', 'confidence', 'manual', 'warnings', '_extra')
+    varnames: ('self', 'index', 'start_sec', 'end_sec', 'image_path', 'representative_timestamp', 'transcript', 'notes', 'llm_description', 'confidence', 'manual', 'warnings', 'uid', '_extra')
+    cellvars: ()
+    freevars: ('__class__',)
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=14 kwonlyargcount=0 stacksize=6
+    bytecode:
+         0 COPY_FREE_VARS       (1)
+         2 RESUME               (0)
+         4 LOAD_GLOBAL          (0)
+        14 LOAD_DEREF           (14)
+        16 LOAD_FAST_BORROW     (0)
+        18 LOAD_SUPER_ATTR      (5)
+        22 LOAD_FAST_BORROW_LOAD_FAST_BORROW (194)
+        24 LOAD_FAST_BORROW     (3)
+        26 LOAD_CONST           (0)
+        28 CALL_KW              (3)
+        36 POP_TOP             
+        38 LOAD_FAST_BORROW_LOAD_FAST_BORROW (16)
+        40 STORE_ATTR           (2)
+        50 LOAD_FAST_BORROW_LOAD_FAST_BORROW (64)
+        52 STORE_ATTR           (3)
+        62 LOAD_FAST_BORROW_LOAD_FAST_BORROW (80)
+        64 STORE_ATTR           (4)
+        74 LOAD_FAST_BORROW_LOAD_FAST_BORROW (96)
+        76 STORE_ATTR           (5)
+        86 LOAD_FAST_BORROW_LOAD_FAST_BORROW (112)
+        88 STORE_ATTR           (6)
+        98 LOAD_FAST_BORROW_LOAD_FAST_BORROW (128)
+       100 STORE_ATTR           (7)
+       110 LOAD_FAST_BORROW_LOAD_FAST_BORROW (144)
+       112 STORE_ATTR           (8)
+       122 LOAD_FAST_BORROW_LOAD_FAST_BORROW (160)
+       124 STORE_ATTR           (9)
+       134 LOAD_FAST            (11)
+       136 COPY                 (1)
+       138 TO_BOOL             
+       146 POP_JUMP_IF_TRUE     (3)
+       150 NOT_TAKEN           
+       152 POP_TOP             
+       154 BUILD_LIST           (0)
+       156 LOAD_FAST_BORROW     (0)
+       158 STORE_ATTR           (10)
+       168 LOAD_FAST            (13)
+       170 COPY                 (1)
+       172 TO_BOOL             
+       180 POP_JUMP_IF_TRUE     (3)
+       184 NOT_TAKEN           
+       186 POP_TOP             
+       188 BUILD_MAP            (0)
+       190 LOAD_FAST_BORROW     (0)
+       192 STORE_ATTR           (11)
+       202 LOAD_CONST           (1)
+       204 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(3):
+      [0] 2
+      [1] 'return'
+      [2] 'SlideSegment'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 BUILD_MAP            (1)
+        26 RETURN_VALUE        
+    --- to_segment vars=('self', 'seg', 'key', 'value') free=() cell=() ---
+    consts(2):
+      [0] ('index', 'start', 'end', 'duration', 'image', 'representative_timestamp', 'transcript', 'confidence', 'manual', 'warnings')
+      [1] None
+    names: ('SlideSegment', 'index', 'start_sec', 'end_sec', 'duration', 'image_path', 'representative_timestamp', 'notes', 'transcript', 'confidence', 'manual', 'warnings', 'llm_description', '_extra', 'items', 'hasattr', 'setattr')
+    varnames: ('self', 'seg', 'key', 'value')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=13
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_GLOBAL          (1)
+        12 LOAD_FAST_BORROW     (0)
+        14 LOAD_ATTR            (2)
+        34 LOAD_FAST_BORROW     (0)
+        36 LOAD_ATTR            (4)
+        56 LOAD_FAST_BORROW     (0)
+        58 LOAD_ATTR            (6)
+        78 LOAD_FAST_BORROW     (0)
+        80 LOAD_ATTR            (8)
+       100 LOAD_FAST_BORROW     (0)
+       102 LOAD_ATTR            (10)
+       122 LOAD_FAST_BORROW     (0)
+       124 LOAD_ATTR            (12)
+       144 LOAD_FAST_BORROW     (0)
+       146 LOAD_ATTR            (14)
+       166 COPY                 (1)
+       168 TO_BOOL             
+       176 POP_JUMP_IF_TRUE     (13)
+       180 NOT_TAKEN           
+       182 POP_TOP             
+       184 LOAD_FAST_BORROW     (0)
+       186 LOAD_ATTR            (16)
+       206 LOAD_FAST_BORROW     (0)
+       208 LOAD_ATTR            (18)
+       228 LOAD_FAST_BORROW     (0)
+       230 LOAD_ATTR            (20)
+       250 LOAD_FAST_BORROW     (0)
+       252 LOAD_ATTR            (22)
+       272 LOAD_CONST           (0)
+       274 CALL_KW              (10)
+       282 STORE_FAST           (1)
+       284 LOAD_FAST_BORROW     (0)
+       286 LOAD_ATTR            (24)
+       306 COPY                 (1)
+       308 TO_BOOL             
+       316 POP_JUMP_IF_TRUE     (3)
+       320 NOT_TAKEN           
+       322 POP_TOP             
+       324 LOAD_CONST           (1)
+       326 LOAD_FAST_BORROW     (1)
+       328 STORE_ATTR           (12)
+       338 LOAD_FAST_BORROW     (0)
+       340 LOAD_ATTR            (26)
+       360 LOAD_ATTR            (29)
+       380 CALL                 (0)
+       388 GET_ITER            
+       390 FOR_ITER             (36)
+       394 UNPACK_SEQUENCE      (2)
+       398 STORE_FAST_STORE_FAST (35)
+       400 LOAD_GLOBAL          (31)
+       410 LOAD_FAST_BORROW_LOAD_FAST_BORROW (18)
+       412 CALL                 (2)
+       420 TO_BOOL             
+       428 POP_JUMP_IF_TRUE     (3)
+       432 NOT_TAKEN           
+       434 JUMP_BACKWARD        (24)
+       438 LOAD_GLOBAL          (33)
+       448 LOAD_FAST_BORROW_LOAD_FAST_BORROW (18)
+       450 LOAD_FAST_BORROW     (3)
+       452 CALL                 (3)
+       460 POP_TOP             
+       462 JUMP_BACKWARD        (38)
+       466 END_FOR             
+       468 POP_ITER            
+       470 LOAD_FAST_BORROW     (1)
+       472 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'seg'
+      [2] 'SlideSegment'
+      [3] 'return'
+      [4] 'SlideClip'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- from_segment vars=('cls', 'seg', 'extra', 'known', 'field', 'val') free=() cell=() ---
+    consts(5):
+      [0] 'index'
+      [1] None
+      [2] ''
+      [3] ('index', 'start_sec', 'end_sec', 'image_path', 'representative_timestamp', 'transcript', 'llm_description', 'confidence', 'manual', 'warnings', '_extra')
+      [4] frozenset({'manual', 'start', 'llm_description', 'end', 'representative_timestamp', 'warnings', 'image', 'transcript', 'duration', 'confidence', 'index'})
+    names: ('SlideSegment', 'model_fields', 'getattr', 'index', 'start', 'end', 'image', 'representative_timestamp', 'transcript', 'llm_description', 'confidence', 'manual', 'list', 'warnings')
+    varnames: ('cls', 'seg', 'extra', 'known', 'field', 'val')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=14
+    bytecode:
+         0 RESUME               (0)
+         2 BUILD_MAP            (0)
+         4 STORE_FAST           (2)
+         6 BUILD_SET            (0)
+         8 LOAD_CONST           (4)
+        10 SET_UPDATE           (1)
+        12 STORE_FAST           (3)
+        14 LOAD_GLOBAL          (0)
+        24 LOAD_ATTR            (2)
+        44 GET_ITER            
+        46 FOR_ITER             (33)
+        50 STORE_FAST           (4)
+        52 LOAD_FAST_BORROW_LOAD_FAST_BORROW (67)
+        54 CONTAINS_OP          (1)
+        58 POP_JUMP_IF_TRUE     (3)
+        62 NOT_TAKEN           
+        64 JUMP_BACKWARD        (11)
+        68 LOAD_GLOBAL          (5)
+        78 LOAD_FAST_BORROW_LOAD_FAST_BORROW (20)
+        80 LOAD_CONST           (1)
+        82 CALL                 (3)
+        90 STORE_FAST           (5)
+        92 LOAD_FAST_BORROW     (5)
+        94 POP_JUMP_IF_NOT_NONE (3)
+        98 NOT_TAKEN           
+       100 JUMP_BACKWARD        (29)
+       104 LOAD_FAST_BORROW_LOAD_FAST_BORROW (82)
+       106 LOAD_FAST_BORROW     (4)
+       108 STORE_SUBSCR        
+       112 JUMP_BACKWARD        (35)
+       116 END_FOR             
+       118 POP_ITER            
+       120 LOAD_FAST            (0)
+       122 PUSH_NULL           
+       124 LOAD_FAST_BORROW     (1)
+       126 LOAD_ATTR            (6)
+       146 LOAD_FAST_BORROW     (1)
+       148 LOAD_ATTR            (8)
+       168 LOAD_FAST_BORROW     (1)
+       170 LOAD_ATTR            (10)
+       190 LOAD_FAST_BORROW     (1)
+       192 LOAD_ATTR            (12)
+       212 COPY                 (1)
+       214 TO_BOOL             
+       222 POP_JUMP_IF_TRUE     (3)
+       226 NOT_TAKEN           
+       228 POP_TOP             
+       230 LOAD_CONST           (2)
+       232 LOAD_FAST_BORROW     (1)
+       234 LOAD_ATTR            (14)
+       254 LOAD_FAST_BORROW     (1)
+       256 LOAD_ATTR            (16)
+       276 COPY                 (1)
+       278 TO_BOOL             
+       286 POP_JUMP_IF_TRUE     (3)
+       290 NOT_TAKEN           
+       292 POP_TOP             
+       294 LOAD_CONST           (2)
+       296 LOAD_FAST_BORROW     (1)
+       298 LOAD_ATTR            (18)
+       318 COPY                 (1)
+       320 TO_BOOL             
+       328 POP_JUMP_IF_TRUE     (3)
+       332 NOT_TAKEN           
+       334 POP_TOP             
+       336 LOAD_CONST           (2)
+       338 LOAD_FAST_BORROW     (1)
+       340 LOAD_ATTR            (20)
+       360 LOAD_FAST_BORROW     (1)
+       362 LOAD_ATTR            (22)
+       382 LOAD_GLOBAL          (25)
+       392 LOAD_FAST_BORROW     (1)
+       394 LOAD_ATTR            (26)
+       414 CALL                 (1)
+       422 LOAD_FAST_BORROW     (2)
+       424 LOAD_CONST           (3)
+       426 CALL_KW              (11)
+       434 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'subtitle_track'
+      [2] 'Track | None'
+      [3] 'return'
+      [4] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- extract_subtitles vars=('self', 'subtitle_track', 'parts', 'clip', 'text') free=() cell=() ---
+    consts(5):
+      [0] None
+      [1] ''
+      [2] ' '
+      [3] '[TimelineModel][extract_subtitles] slide='
+      [4] ' overlapping='
+    names: ('transcript', '_clips', 'isinstance', 'SubtitleClip', 'overlaps', 'plaintext', 'strip', 'append', 'join', 'logger', 'info', 'index', 'len')
+    varnames: ('self', 'subtitle_track', 'parts', 'clip', 'text')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=8
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (1)
+         4 POP_JUMP_IF_NOT_NONE (10)
+         8 NOT_TAKEN           
+        10 LOAD_CONST           (1)
+        12 LOAD_FAST_BORROW     (0)
+        14 STORE_ATTR           (0)
+        24 LOAD_CONST           (0)
+        26 RETURN_VALUE        
+        28 BUILD_LIST           (0)
+        30 STORE_FAST           (2)
+        32 LOAD_FAST_BORROW     (1)
+        34 LOAD_ATTR            (2)
+        54 GET_ITER            
+        56 FOR_ITER             (105)
+        60 STORE_FAST           (3)
+        62 LOAD_GLOBAL          (5)
+        72 LOAD_FAST_BORROW     (3)
+        74 LOAD_GLOBAL          (6)
+        84 CALL                 (2)
+        92 TO_BOOL             
+       100 POP_JUMP_IF_TRUE     (3)
+       104 NOT_TAKEN           
+       106 JUMP_BACKWARD        (27)
+       110 LOAD_FAST_BORROW     (0)
+       112 LOAD_ATTR            (9)
+       132 LOAD_FAST_BORROW     (3)
+       134 CALL                 (1)
+       142 TO_BOOL             
+       150 POP_JUMP_IF_TRUE     (3)
+       154 NOT_TAKEN           
+       156 JUMP_BACKWARD        (52)
+       160 LOAD_FAST_BORROW     (3)
+       162 LOAD_ATTR            (10)
+       182 LOAD_ATTR            (13)
+       202 CALL                 (0)
+       210 STORE_FAST           (4)
+       212 LOAD_FAST_BORROW     (4)
+       214 TO_BOOL             
+       222 POP_JUMP_IF_TRUE     (3)
+       226 NOT_TAKEN           
+       228 JUMP_BACKWARD        (88)
+       232 LOAD_FAST_BORROW     (2)
+       234 LOAD_ATTR            (15)
+       254 LOAD_FAST_BORROW     (4)
+       256 CALL                 (1)
+       264 POP_TOP             
+       266 JUMP_BACKWARD        (107)
+       270 END_FOR             
+       272 POP_ITER            
+       274 LOAD_CONST           (2)
+       276 LOAD_ATTR            (17)
+       296 LOAD_FAST_BORROW     (2)
+       298 CALL                 (1)
+       306 LOAD_FAST_BORROW     (0)
+       308 STORE_ATTR           (0)
+       318 LOAD_GLOBAL          (18)
+       328 LOAD_ATTR            (20)
+       348 PUSH_NULL           
+       350 LOAD_CONST           (3)
+       352 LOAD_FAST_BORROW     (0)
+       354 LOAD_ATTR            (22)
+       374 FORMAT_SIMPLE       
+       376 LOAD_CONST           (4)
+       378 LOAD_GLOBAL          (25)
+       388 LOAD_FAST_BORROW     (2)
+       390 CALL                 (1)
+       398 FORMAT_SIMPLE       
+       400 BUILD_STRING         (4)
+       402 CALL                 (1)
+       410 POP_TOP             
+       412 LOAD_CONST           (0)
+       414 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'mode'
+      [2] 'str'
+      [3] 'return'
+      [4] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- process_notes vars=('self', 'mode', 'llm_client') free=() cell=() ---
+    consts(5):
+      [0] 'basic'
+      [1] 'llm'
+      [2] None
+      [3] '[TimelineModel][process_notes] slide='
+      [4] ' mode='
+    names: ('_basic_cleanup', 'transcript', 'notes', '_llm_cleanup', 'llm_description', 'logger', 'info', 'index')
+    varnames: ('self', 'mode', 'llm_client')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=3 kwonlyargcount=0 stacksize=6
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (1)
+         4 LOAD_CONST           (0)
+         6 COMPARE_OP           (88)
+        10 POP_JUMP_IF_FALSE    (34)
+        14 NOT_TAKEN           
+        16 LOAD_FAST_BORROW     (0)
+        18 LOAD_ATTR            (1)
+        38 LOAD_FAST_BORROW     (0)
+        40 LOAD_ATTR            (2)
+        60 CALL                 (1)
+        68 LOAD_FAST_BORROW     (0)
+        70 STORE_ATTR           (2)
+        80 JUMP_FORWARD         (73)
+        82 LOAD_FAST_BORROW     (1)
+        84 LOAD_CONST           (1)
+        86 COMPARE_OP           (88)
+        90 POP_JUMP_IF_FALSE    (50)
+        94 NOT_TAKEN           
+        96 LOAD_FAST_BORROW     (2)
+        98 POP_JUMP_IF_NONE     (46)
+       102 NOT_TAKEN           
+       104 LOAD_FAST_BORROW     (0)
+       106 LOAD_ATTR            (7)
+       126 LOAD_FAST_BORROW     (0)
+       128 LOAD_ATTR            (2)
+       148 LOAD_FAST_BORROW     (0)
+       150 LOAD_ATTR            (8)
+       170 LOAD_FAST_BORROW     (2)
+       172 CALL                 (3)
+       180 LOAD_FAST_BORROW     (0)
+       182 STORE_ATTR           (2)
+       192 JUMP_FORWARD         (17)
+       194 LOAD_FAST_BORROW     (0)
+       196 LOAD_ATTR            (2)
+       216 LOAD_FAST_BORROW     (0)
+       218 STORE_ATTR           (2)
+       228 LOAD_GLOBAL          (10)
+       238 LOAD_ATTR            (12)
+       258 PUSH_NULL           
+       260 LOAD_CONST           (3)
+       262 LOAD_FAST_BORROW     (0)
+       264 LOAD_ATTR            (14)
+       284 FORMAT_SIMPLE       
+       286 LOAD_CONST           (4)
+       288 LOAD_FAST_BORROW     (1)
+       290 FORMAT_SIMPLE       
+       292 BUILD_STRING         (4)
+       294 CALL                 (1)
+       302 POP_TOP             
+       304 LOAD_CONST           (2)
+       306 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(4):
+      [0] 2
+      [1] 'text'
+      [2] 'str'
+      [3] 'return'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (2)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- _basic_cleanup vars=('text', 're') free=() cell=() ---
+    consts(7):
+      [0] 0
+      [1] None
+      [2] '\\s+'
+      [3] ' '
+      [4] '\\b(\\w+)( \\1\\b)+'
+      [5] '\\1'
+      [6] slice(1, None, None)
+    names: ('re', 'sub', 'strip', 'upper')
+    varnames: ('text', 're')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=5
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_SMALL_INT       (0)
+         4 LOAD_CONST           (1)
+         6 IMPORT_NAME          (0)
+         8 STORE_FAST           (1)
+        10 LOAD_FAST_BORROW     (1)
+        12 LOAD_ATTR            (3)
+        32 LOAD_CONST           (2)
+        34 LOAD_CONST           (3)
+        36 LOAD_FAST_BORROW     (0)
+        38 CALL                 (3)
+        46 STORE_FAST           (0)
+        48 LOAD_FAST_BORROW     (1)
+        50 LOAD_ATTR            (3)
+        70 LOAD_CONST           (4)
+        72 LOAD_CONST           (5)
+        74 LOAD_FAST_BORROW     (0)
+        76 CALL                 (3)
+        84 STORE_FAST           (0)
+        86 LOAD_FAST_BORROW     (0)
+        88 LOAD_ATTR            (5)
+       108 CALL                 (0)
+       116 STORE_FAST           (0)
+       118 LOAD_FAST_BORROW     (0)
+       120 TO_BOOL             
+       128 POP_JUMP_IF_FALSE    (38)
+       132 NOT_TAKEN           
+       134 LOAD_FAST_BORROW     (0)
+       136 LOAD_SMALL_INT       (0)
+       138 BINARY_OP            (26)
+       150 LOAD_ATTR            (7)
+       170 CALL                 (0)
+       178 LOAD_FAST_BORROW     (0)
+       180 LOAD_CONST           (6)
+       182 BINARY_OP            (26)
+       194 BINARY_OP            (0)
+       206 STORE_FAST           (0)
+       208 LOAD_FAST_BORROW     (0)
+       210 RETURN_VALUE        
+  --- SubtitleClip vars=() free=() cell=('__class__',) ---
+  consts(6):
+    [0] 'SubtitleClip'
+    [1] 'Orange block — one SRT/VTT cue.'
+    [2] <code __annotate__>
+    [3] <code __init__>
+    [4] ('plaintext', 'text')
+    [5] (0.0, 0.0, '', '', None)
+  names: ('__name__', '__module__', '__qualname__', '__firstlineno__', '__doc__', '__init__', '__static_attributes__', '__classcell__')
+  varnames: ()
+  cellvars: ('__class__',)
+  freevars: ()
+  flags: optimizer=0 newlocals=0 args=0 varargs=0 varkw=0 generator=0
+  argcount=0 kwonlyargcount=0 stacksize=4
+  bytecode:
+       0 MAKE_CELL            (0)
+       2 RESUME               (0)
+       4 LOAD_NAME            (0)
+       6 STORE_NAME           (1)
+       8 LOAD_CONST           (0)
+      10 STORE_NAME           (2)
+      12 LOAD_SMALL_INT       (181)
+      14 STORE_NAME           (3)
+      16 LOAD_CONST           (1)
+      18 STORE_NAME           (4)
+      20 LOAD_CONST           (5)
+      22 LOAD_CONST           (2)
+      24 MAKE_FUNCTION       
+      26 LOAD_FAST_BORROW     (0)
+      28 BUILD_TUPLE          (1)
+      30 LOAD_CONST           (3)
+      32 MAKE_FUNCTION       
+      34 SET_FUNCTION_ATTRIBUTE (8)
+      36 SET_FUNCTION_ATTRIBUTE (16)
+      38 SET_FUNCTION_ATTRIBUTE (1)
+      40 STORE_NAME           (5)
+      42 LOAD_CONST           (4)
+      44 STORE_NAME           (6)
+      46 LOAD_FAST_BORROW     (0)
+      48 COPY                 (1)
+      50 STORE_NAME           (7)
+      52 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(11):
+      [0] 2
+      [1] 'start_sec'
+      [2] 'float'
+      [3] 'end_sec'
+      [4] 'text'
+      [5] 'str'
+      [6] 'plaintext'
+      [7] 'uid'
+      [8] 'str | None'
+      [9] 'return'
+      [10] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=12
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (2)
+        28 LOAD_CONST           (4)
+        30 LOAD_CONST           (5)
+        32 LOAD_CONST           (6)
+        34 LOAD_CONST           (5)
+        36 LOAD_CONST           (7)
+        38 LOAD_CONST           (8)
+        40 LOAD_CONST           (9)
+        42 LOAD_CONST           (10)
+        44 BUILD_MAP            (6)
+        46 RETURN_VALUE        
+    --- __init__ vars=('self', 'start_sec', 'end_sec', 'text', 'plaintext', 'uid') free=('__class__',) cell=() ---
+    consts(2):
+      [0] ('uid', 'start_sec', 'end_sec')
+      [1] None
+    names: ('super', '__init__', 'text', 'plaintext')
+    varnames: ('self', 'start_sec', 'end_sec', 'text', 'plaintext', 'uid')
+    cellvars: ()
+    freevars: ('__class__',)
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=6 kwonlyargcount=0 stacksize=6
+    bytecode:
+         0 COPY_FREE_VARS       (1)
+         2 RESUME               (0)
+         4 LOAD_GLOBAL          (0)
+        14 LOAD_DEREF           (6)
+        16 LOAD_FAST_BORROW     (0)
+        18 LOAD_SUPER_ATTR      (5)
+        22 LOAD_FAST_BORROW_LOAD_FAST_BORROW (81)
+        24 LOAD_FAST_BORROW     (2)
+        26 LOAD_CONST           (0)
+        28 CALL_KW              (3)
+        36 POP_TOP             
+        38 LOAD_FAST_BORROW_LOAD_FAST_BORROW (48)
+        40 STORE_ATTR           (2)
+        50 LOAD_FAST            (4)
+        52 COPY                 (1)
+        54 TO_BOOL             
+        62 POP_JUMP_IF_TRUE     (3)
+        66 NOT_TAKEN           
+        68 POP_TOP             
+        70 LOAD_FAST            (3)
+        72 LOAD_FAST_BORROW     (0)
+        74 STORE_ATTR           (3)
+        84 LOAD_CONST           (1)
+        86 RETURN_VALUE        
+  --- MarkerClip vars=() free=() cell=('__class__',) ---
+  consts(6):
+    [0] 'MarkerClip'
+    [1] 'Blue point marker — user-defined or snapped.'
+    [2] <code __annotate__>
+    [3] <code __init__>
+    [4] ('original_ts', 'snap_mode', 'snapped_ts')
+    [5] (0.0, 0.0, None, 'hybrid', None)
+  names: ('__name__', '__module__', '__qualname__', '__firstlineno__', '__doc__', '__init__', '__static_attributes__', '__classcell__')
+  varnames: ()
+  cellvars: ('__class__',)
+  freevars: ()
+  flags: optimizer=0 newlocals=0 args=0 varargs=0 varkw=0 generator=0
+  argcount=0 kwonlyargcount=0 stacksize=4
+  bytecode:
+       0 MAKE_CELL            (0)
+       2 RESUME               (0)
+       4 LOAD_NAME            (0)
+       6 STORE_NAME           (1)
+       8 LOAD_CONST           (0)
+      10 STORE_NAME           (2)
+      12 LOAD_SMALL_INT       (197)
+      14 STORE_NAME           (3)
+      16 LOAD_CONST           (1)
+      18 STORE_NAME           (4)
+      20 LOAD_CONST           (5)
+      22 LOAD_CONST           (2)
+      24 MAKE_FUNCTION       
+      26 LOAD_FAST_BORROW     (0)
+      28 BUILD_TUPLE          (1)
+      30 LOAD_CONST           (3)
+      32 MAKE_FUNCTION       
+      34 SET_FUNCTION_ATTRIBUTE (8)
+      36 SET_FUNCTION_ATTRIBUTE (16)
+      38 SET_FUNCTION_ATTRIBUTE (1)
+      40 STORE_NAME           (5)
+      42 LOAD_CONST           (4)
+      44 STORE_NAME           (6)
+      46 LOAD_FAST_BORROW     (0)
+      48 COPY                 (1)
+      50 STORE_NAME           (7)
+      52 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(12):
+      [0] 2
+      [1] 'ts'
+      [2] 'float'
+      [3] 'original_ts'
+      [4] 'snapped_ts'
+      [5] 'float | None'
+      [6] 'snap_mode'
+      [7] 'str'
+      [8] 'uid'
+      [9] 'str | None'
+      [10] 'return'
+      [11] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=12
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (2)
+        28 LOAD_CONST           (4)
+        30 LOAD_CONST           (5)
+        32 LOAD_CONST           (6)
+        34 LOAD_CONST           (7)
+        36 LOAD_CONST           (8)
+        38 LOAD_CONST           (9)
+        40 LOAD_CONST           (10)
+        42 LOAD_CONST           (11)
+        44 BUILD_MAP            (6)
+        46 RETURN_VALUE        
+    --- __init__ vars=('self', 'ts', 'original_ts', 'snapped_ts', 'snap_mode', 'uid') free=('__class__',) cell=() ---
+    consts(2):
+      [0] ('uid', 'start_sec', 'end_sec')
+      [1] None
+    names: ('super', '__init__', 'original_ts', 'snapped_ts', 'snap_mode')
+    varnames: ('self', 'ts', 'original_ts', 'snapped_ts', 'snap_mode', 'uid')
+    cellvars: ()
+    freevars: ('__class__',)
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=6 kwonlyargcount=0 stacksize=6
+    bytecode:
+         0 COPY_FREE_VARS       (1)
+         2 RESUME               (0)
+         4 LOAD_GLOBAL          (0)
+        14 LOAD_DEREF           (6)
+        16 LOAD_FAST_BORROW     (0)
+        18 LOAD_SUPER_ATTR      (5)
+        22 LOAD_FAST_BORROW_LOAD_FAST_BORROW (81)
+        24 LOAD_FAST_BORROW     (1)
+        26 LOAD_CONST           (0)
+        28 CALL_KW              (3)
+        36 POP_TOP             
+        38 LOAD_FAST_BORROW_LOAD_FAST_BORROW (32)
+        40 STORE_ATTR           (2)
+        50 LOAD_FAST            (3)
+        52 COPY                 (1)
+        54 TO_BOOL             
+        62 POP_JUMP_IF_TRUE     (3)
+        66 NOT_TAKEN           
+        68 POP_TOP             
+        70 LOAD_FAST            (1)
+        72 LOAD_FAST_BORROW     (0)
+        74 STORE_ATTR           (3)
+        84 LOAD_FAST_BORROW_LOAD_FAST_BORROW (64)
+        86 STORE_ATTR           (4)
+        96 LOAD_CONST           (1)
+        98 RETURN_VALUE        
+  --- ScoreClip vars=() free=() cell=('__class__',) ---
+  consts(6):
+    [0] 'ScoreClip'
+    [1] 'One point of waveform data.'
+    [2] <code __annotate__>
+    [3] <code __init__>
+    [4] ('method', 'timestamp', 'value')
+    [5] (0.0, 0.0, 'visual_distance', None)
+  names: ('__name__', '__module__', '__qualname__', '__firstlineno__', '__doc__', '__init__', '__static_attributes__', '__classcell__')
+  varnames: ()
+  cellvars: ('__class__',)
+  freevars: ()
+  flags: optimizer=0 newlocals=0 args=0 varargs=0 varkw=0 generator=0
+  argcount=0 kwonlyargcount=0 stacksize=4
+  bytecode:
+       0 MAKE_CELL            (0)
+       2 RESUME               (0)
+       4 LOAD_NAME            (0)
+       6 STORE_NAME           (1)
+       8 LOAD_CONST           (0)
+      10 STORE_NAME           (2)
+      12 LOAD_SMALL_INT       (214)
+      14 STORE_NAME           (3)
+      16 LOAD_CONST           (1)
+      18 STORE_NAME           (4)
+      20 LOAD_CONST           (5)
+      22 LOAD_CONST           (2)
+      24 MAKE_FUNCTION       
+      26 LOAD_FAST_BORROW     (0)
+      28 BUILD_TUPLE          (1)
+      30 LOAD_CONST           (3)
+      32 MAKE_FUNCTION       
+      34 SET_FUNCTION_ATTRIBUTE (8)
+      36 SET_FUNCTION_ATTRIBUTE (16)
+      38 SET_FUNCTION_ATTRIBUTE (1)
+      40 STORE_NAME           (5)
+      42 LOAD_CONST           (4)
+      44 STORE_NAME           (6)
+      46 LOAD_FAST_BORROW     (0)
+      48 COPY                 (1)
+      50 STORE_NAME           (7)
+      52 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(10):
+      [0] 2
+      [1] 'timestamp'
+      [2] 'float'
+      [3] 'value'
+      [4] 'method'
+      [5] 'str'
+      [6] 'uid'
+      [7] 'str | None'
+      [8] 'return'
+      [9] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=10
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (2)
+        28 LOAD_CONST           (4)
+        30 LOAD_CONST           (5)
+        32 LOAD_CONST           (6)
+        34 LOAD_CONST           (7)
+        36 LOAD_CONST           (8)
+        38 LOAD_CONST           (9)
+        40 BUILD_MAP            (5)
+        42 RETURN_VALUE        
+    --- __init__ vars=('self', 'timestamp', 'value', 'method', 'uid') free=('__class__',) cell=() ---
+    consts(2):
+      [0] ('uid', 'start_sec', 'end_sec')
+      [1] None
+    names: ('super', '__init__', 'timestamp', 'value', 'method')
+    varnames: ('self', 'timestamp', 'value', 'method', 'uid')
+    cellvars: ()
+    freevars: ('__class__',)
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=5 kwonlyargcount=0 stacksize=6
+    bytecode:
+         0 COPY_FREE_VARS       (1)
+         2 RESUME               (0)
+         4 LOAD_GLOBAL          (0)
+        14 LOAD_DEREF           (5)
+        16 LOAD_FAST_BORROW     (0)
+        18 LOAD_SUPER_ATTR      (5)
+        22 LOAD_FAST_BORROW_LOAD_FAST_BORROW (65)
+        24 LOAD_FAST_BORROW     (1)
+        26 LOAD_CONST           (0)
+        28 CALL_KW              (3)
+        36 POP_TOP             
+        38 LOAD_FAST_BORROW_LOAD_FAST_BORROW (16)
+        40 STORE_ATTR           (2)
+        50 LOAD_FAST_BORROW_LOAD_FAST_BORROW (32)
+        52 STORE_ATTR           (3)
+        62 LOAD_FAST_BORROW_LOAD_FAST_BORROW (48)
+        64 STORE_ATTR           (4)
+        74 LOAD_CONST           (1)
+        76 RETURN_VALUE        
+  --- Track vars=() free=() cell=('__class__',) ---
+  consts(22):
+    [0] 'Track'
+    [1] 'Named container of Clips. Emits signals on mutation.'
+    [2] <code __annotate__>
+    [3] <code __init__>
+    [4] <code __annotate__>
+    [5] <code name>
+    [6] <code __annotate__>
+    [7] <code height>
+    [8] <code __annotate__>
+    [9] <code height>
+    [10] <code __annotate__>
+    [11] <code clips>
+    [12] <code __annotate__>
+    [13] <code add_clip>
+    [14] <code __annotate__>
+    [15] <code remove_clip>
+    [16] <code __annotate__>
+    [17] <code sort>
+    [18] <code __annotate__>
+    [19] <code reindex>
+    [20] ('_clips', '_height', '_metadata', '_name')
+    [21] (24, None)
+  names: ('__name__', '__module__', '__qualname__', '__firstlineno__', '__doc__', 'Signal', 'str', 'clipAdded', 'clipRemoved', 'clipChanged', '__init__', 'property', 'name', 'height', 'setter', 'clips', 'add_clip', 'remove_clip', 'sort', 'reindex', '__static_attributes__', '__classcell__')
+  varnames: ()
+  cellvars: ('__class__',)
+  freevars: ()
+  flags: optimizer=0 newlocals=0 args=0 varargs=0 varkw=0 generator=0
+  argcount=0 kwonlyargcount=0 stacksize=4
+  bytecode:
+       0 MAKE_CELL            (0)
+       2 RESUME               (0)
+       4 LOAD_NAME            (0)
+       6 STORE_NAME           (1)
+       8 LOAD_CONST           (0)
+      10 STORE_NAME           (2)
+      12 LOAD_SMALL_INT       (235)
+      14 STORE_NAME           (3)
+      16 LOAD_CONST           (1)
+      18 STORE_NAME           (4)
+      20 LOAD_NAME            (5)
+      22 PUSH_NULL           
+      24 LOAD_NAME            (6)
+      26 CALL                 (1)
+      34 STORE_NAME           (7)
+      36 LOAD_NAME            (5)
+      38 PUSH_NULL           
+      40 LOAD_NAME            (6)
+      42 CALL                 (1)
+      50 STORE_NAME           (8)
+      52 LOAD_NAME            (5)
+      54 PUSH_NULL           
+      56 LOAD_NAME            (6)
+      58 CALL                 (1)
+      66 STORE_NAME           (9)
+      68 LOAD_CONST           (21)
+      70 LOAD_CONST           (2)
+      72 MAKE_FUNCTION       
+      74 LOAD_FAST_BORROW     (0)
+      76 BUILD_TUPLE          (1)
+      78 LOAD_CONST           (3)
+      80 MAKE_FUNCTION       
+      82 SET_FUNCTION_ATTRIBUTE (8)
+      84 SET_FUNCTION_ATTRIBUTE (16)
+      86 SET_FUNCTION_ATTRIBUTE (1)
+      88 STORE_NAME           (10)
+      90 LOAD_NAME            (11)
+      92 LOAD_CONST           (4)
+      94 MAKE_FUNCTION       
+      96 LOAD_CONST           (5)
+      98 MAKE_FUNCTION       
+     100 SET_FUNCTION_ATTRIBUTE (16)
+     102 CALL                 (0)
+     110 STORE_NAME           (12)
+     112 LOAD_NAME            (11)
+     114 LOAD_CONST           (6)
+     116 MAKE_FUNCTION       
+     118 LOAD_CONST           (7)
+     120 MAKE_FUNCTION       
+     122 SET_FUNCTION_ATTRIBUTE (16)
+     124 CALL                 (0)
+     132 STORE_NAME           (13)
+     134 LOAD_NAME            (13)
+     136 LOAD_ATTR            (28)
+     156 LOAD_CONST           (8)
+     158 MAKE_FUNCTION       
+     160 LOAD_CONST           (9)
+     162 MAKE_FUNCTION       
+     164 SET_FUNCTION_ATTRIBUTE (16)
+     166 CALL                 (0)
+     174 STORE_NAME           (13)
+     176 LOAD_CONST           (10)
+     178 MAKE_FUNCTION       
+     180 LOAD_CONST           (11)
+     182 MAKE_FUNCTION       
+     184 SET_FUNCTION_ATTRIBUTE (16)
+     186 STORE_NAME           (15)
+     188 LOAD_CONST           (12)
+     190 MAKE_FUNCTION       
+     192 LOAD_CONST           (13)
+     194 MAKE_FUNCTION       
+     196 SET_FUNCTION_ATTRIBUTE (16)
+     198 STORE_NAME           (16)
+     200 LOAD_CONST           (14)
+     202 MAKE_FUNCTION       
+     204 LOAD_CONST           (15)
+     206 MAKE_FUNCTION       
+     208 SET_FUNCTION_ATTRIBUTE (16)
+     210 STORE_NAME           (17)
+     212 LOAD_CONST           (16)
+     214 MAKE_FUNCTION       
+     216 LOAD_CONST           (17)
+     218 MAKE_FUNCTION       
+     220 SET_FUNCTION_ATTRIBUTE (16)
+     222 STORE_NAME           (18)
+     224 LOAD_CONST           (18)
+     226 MAKE_FUNCTION       
+     228 LOAD_CONST           (19)
+     230 MAKE_FUNCTION       
+     232 SET_FUNCTION_ATTRIBUTE (16)
+     234 STORE_NAME           (19)
+     236 LOAD_CONST           (20)
+     238 STORE_NAME           (20)
+     240 LOAD_FAST_BORROW     (0)
+     242 COPY                 (1)
+     244 STORE_NAME           (21)
+     246 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(9):
+      [0] 2
+      [1] 'name'
+      [2] 'str'
+      [3] 'height'
+      [4] 'int'
+      [5] 'parent'
+      [6] 'QObject | None'
+      [7] 'return'
+      [8] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=8
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 LOAD_CONST           (5)
+        30 LOAD_CONST           (6)
+        32 LOAD_CONST           (7)
+        34 LOAD_CONST           (8)
+        36 BUILD_MAP            (4)
+        38 RETURN_VALUE        
+    --- __init__ vars=('self', 'name', 'height', 'parent') free=('__class__',) cell=() ---
+    consts(1):
+      [0] None
+    names: ('super', '__init__', '_name', '_height', '_clips', '_metadata')
+    varnames: ('self', 'name', 'height', 'parent')
+    cellvars: ()
+    freevars: ('__class__',)
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=4 kwonlyargcount=0 stacksize=3
+    bytecode:
+         0 COPY_FREE_VARS       (1)
+         2 RESUME               (0)
+         4 LOAD_GLOBAL          (0)
+        14 LOAD_DEREF           (4)
+        16 LOAD_FAST_BORROW     (0)
+        18 LOAD_SUPER_ATTR      (5)
+        22 LOAD_FAST_BORROW     (3)
+        24 CALL                 (1)
+        32 POP_TOP             
+        34 LOAD_FAST_BORROW_LOAD_FAST_BORROW (16)
+        36 STORE_ATTR           (2)
+        46 LOAD_FAST_BORROW_LOAD_FAST_BORROW (32)
+        48 STORE_ATTR           (3)
+        58 BUILD_LIST           (0)
+        60 LOAD_FAST_BORROW     (0)
+        62 STORE_ATTR           (4)
+        72 BUILD_MAP            (0)
+        74 LOAD_FAST_BORROW     (0)
+        76 STORE_ATTR           (5)
+        86 LOAD_CONST           (0)
+        88 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(3):
+      [0] 2
+      [1] 'return'
+      [2] 'str'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 BUILD_MAP            (1)
+        26 RETURN_VALUE        
+    --- name vars=('self',) free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('_name',)
+    varnames: ('self',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=1
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_ATTR            (0)
+        24 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(3):
+      [0] 2
+      [1] 'return'
+      [2] 'int'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 BUILD_MAP            (1)
+        26 RETURN_VALUE        
+    --- height vars=('self',) free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('_height',)
+    varnames: ('self',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=1
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_ATTR            (0)
+        24 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'value'
+      [2] 'int'
+      [3] 'return'
+      [4] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- height vars=('self', 'value') free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('_height',)
+    varnames: ('self', 'value')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW_LOAD_FAST_BORROW (16)
+         4 STORE_ATTR           (0)
+        14 LOAD_CONST           (0)
+        16 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(3):
+      [0] 2
+      [1] 'return'
+      [2] 'list[Clip]'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 BUILD_MAP            (1)
+        26 RETURN_VALUE        
+    --- clips vars=('self',) free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('list', '_clips')
+    varnames: ('self',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=3
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_GLOBAL          (1)
+        12 LOAD_FAST_BORROW     (0)
+        14 LOAD_ATTR            (2)
+        34 CALL                 (1)
+        42 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'clip'
+      [2] 'Clip'
+      [3] 'return'
+      [4] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- add_clip vars=('self', 'clip') free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('_clips', 'append', 'sort', 'clipAdded', 'emit', 'uid')
+    varnames: ('self', 'clip')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=3
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_ATTR            (0)
+        24 LOAD_ATTR            (3)
+        44 LOAD_FAST_BORROW     (1)
+        46 CALL                 (1)
+        54 POP_TOP             
+        56 LOAD_FAST_BORROW     (0)
+        58 LOAD_ATTR            (5)
+        78 CALL                 (0)
+        86 POP_TOP             
+        88 LOAD_FAST_BORROW     (0)
+        90 LOAD_ATTR            (6)
+       110 LOAD_ATTR            (9)
+       130 LOAD_FAST_BORROW     (1)
+       132 LOAD_ATTR            (10)
+       152 CALL                 (1)
+       160 POP_TOP             
+       162 LOAD_CONST           (0)
+       164 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'uid'
+      [2] 'str'
+      [3] 'return'
+      [4] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- remove_clip vars=('self', 'uid', 'c') free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('_clips', 'uid', 'clipRemoved', 'emit')
+    varnames: ('self', 'uid', 'c')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=5
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_ATTR            (0)
+        24 GET_ITER            
+        26 LOAD_FAST_AND_CLEAR  (2)
+        28 SWAP                 (2)
+        30 BUILD_LIST           (0)
+        32 SWAP                 (2)
+        34 FOR_ITER             (23)
+        38 STORE_FAST_LOAD_FAST (34)
+        40 LOAD_ATTR            (2)
+        60 LOAD_FAST_BORROW     (1)
+        62 COMPARE_OP           (119)
+        66 POP_JUMP_IF_TRUE     (3)
+        70 NOT_TAKEN           
+        72 JUMP_BACKWARD        (21)
+        76 LOAD_FAST_BORROW     (2)
+        78 LIST_APPEND          (2)
+        80 JUMP_BACKWARD        (25)
+        84 END_FOR             
+        86 POP_ITER            
+        88 SWAP                 (2)
+        90 STORE_FAST           (2)
+        92 LOAD_FAST_BORROW     (0)
+        94 STORE_ATTR           (0)
+       104 LOAD_FAST_BORROW     (0)
+       106 LOAD_ATTR            (4)
+       126 LOAD_ATTR            (7)
+       146 LOAD_FAST_BORROW     (1)
+       148 CALL                 (1)
+       156 POP_TOP             
+       158 LOAD_CONST           (0)
+       160 RETURN_VALUE        
+       162 SWAP                 (2)
+       164 POP_TOP             
+       166 SWAP                 (2)
+       168 STORE_FAST           (2)
+       170 RERAISE              (0)
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(3):
+      [0] 2
+      [1] 'return'
+      [2] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 BUILD_MAP            (1)
+        26 RETURN_VALUE        
+    --- sort vars=('self',) free=() cell=() ---
+    consts(3):
+      [0] <code <lambda>>
+      [1] ('key',)
+      [2] None
+    names: ('_clips', 'sort')
+    varnames: ('self',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_ATTR            (0)
+        24 LOAD_ATTR            (3)
+        44 LOAD_CONST           (0)
+        46 MAKE_FUNCTION       
+        48 LOAD_CONST           (1)
+        50 CALL_KW              (1)
+        58 POP_TOP             
+        60 LOAD_CONST           (2)
+        62 RETURN_VALUE        
+      --- <lambda> vars=('c',) free=() cell=() ---
+      consts(1):
+        [0] None
+      names: ('start_sec',)
+      varnames: ('c',)
+      cellvars: ()
+      freevars: ()
+      flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=16 generator=0
+      argcount=1 kwonlyargcount=0 stacksize=1
+      bytecode:
+           0 RESUME               (0)
+           2 LOAD_FAST_BORROW     (0)
+           4 LOAD_ATTR            (0)
+          24 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(3):
+      [0] 2
+      [1] 'return'
+      [2] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 BUILD_MAP            (1)
+        26 RETURN_VALUE        
+    --- reindex vars=('self', 'i', 'c') free=() cell=() ---
+    consts(2):
+      [0] 1
+      [1] None
+    names: ('enumerate', '_clips', 'isinstance', 'SlideClip', 'index')
+    varnames: ('self', 'i', 'c')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=5
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_GLOBAL          (1)
+        12 LOAD_FAST_BORROW     (0)
+        14 LOAD_ATTR            (2)
+        34 CALL                 (1)
+        42 GET_ITER            
+        44 FOR_ITER             (43)
+        48 UNPACK_SEQUENCE      (2)
+        52 STORE_FAST_STORE_FAST (18)
+        54 LOAD_GLOBAL          (5)
+        64 LOAD_FAST_BORROW     (2)
+        66 LOAD_GLOBAL          (6)
+        76 CALL                 (2)
+        84 TO_BOOL             
+        92 POP_JUMP_IF_TRUE     (3)
+        96 NOT_TAKEN           
+        98 JUMP_BACKWARD        (29)
+       102 LOAD_FAST_BORROW     (1)
+       104 LOAD_SMALL_INT       (1)
+       106 BINARY_OP            (0)
+       118 LOAD_FAST_BORROW     (2)
+       120 STORE_ATTR           (4)
+       130 JUMP_BACKWARD        (45)
+       134 END_FOR             
+       136 POP_ITER            
+       138 LOAD_CONST           (1)
+       140 RETURN_VALUE        
+  --- ScoreTrack vars=() free=() cell=('__class__',) ---
+  consts(9):
+    [0] 'ScoreTrack'
+    [1] 287
+    [2] 'Track subclass for score waveform with build_waveform_path().'
+    [3] <code __annotate__>
+    [4] <code __init__>
+    [5] <code __annotate__>
+    [6] <code build_waveform_path>
+    [7] ('max_value', 'method', 'min_value')
+    [8] ('waveform', 44, None)
+  names: ('__name__', '__module__', '__qualname__', '__firstlineno__', '__doc__', '__init__', 'build_waveform_path', '__static_attributes__', '__classcell__')
+  varnames: ()
+  cellvars: ('__class__',)
+  freevars: ()
+  flags: optimizer=0 newlocals=0 args=0 varargs=0 varkw=0 generator=0
+  argcount=0 kwonlyargcount=0 stacksize=4
+  bytecode:
+       0 MAKE_CELL            (0)
+       2 RESUME               (0)
+       4 LOAD_NAME            (0)
+       6 STORE_NAME           (1)
+       8 LOAD_CONST           (0)
+      10 STORE_NAME           (2)
+      12 LOAD_CONST           (1)
+      14 STORE_NAME           (3)
+      16 LOAD_CONST           (2)
+      18 STORE_NAME           (4)
+      20 LOAD_CONST           (8)
+      22 LOAD_CONST           (3)
+      24 MAKE_FUNCTION       
+      26 LOAD_FAST_BORROW     (0)
+      28 BUILD_TUPLE          (1)
+      30 LOAD_CONST           (4)
+      32 MAKE_FUNCTION       
+      34 SET_FUNCTION_ATTRIBUTE (8)
+      36 SET_FUNCTION_ATTRIBUTE (16)
+      38 SET_FUNCTION_ATTRIBUTE (1)
+      40 STORE_NAME           (5)
+      42 LOAD_CONST           (5)
+      44 MAKE_FUNCTION       
+      46 LOAD_CONST           (6)
+      48 MAKE_FUNCTION       
+      50 SET_FUNCTION_ATTRIBUTE (16)
+      52 STORE_NAME           (6)
+      54 LOAD_CONST           (7)
+      56 STORE_NAME           (7)
+      58 LOAD_FAST_BORROW     (0)
+      60 COPY                 (1)
+      62 STORE_NAME           (8)
+      64 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(9):
+      [0] 2
+      [1] 'name'
+      [2] 'str'
+      [3] 'height'
+      [4] 'int'
+      [5] 'parent'
+      [6] 'QObject | None'
+      [7] 'return'
+      [8] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=8
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 LOAD_CONST           (5)
+        30 LOAD_CONST           (6)
+        32 LOAD_CONST           (7)
+        34 LOAD_CONST           (8)
+        36 BUILD_MAP            (4)
+        38 RETURN_VALUE        
+    --- __init__ vars=('self', 'name', 'height', 'parent') free=('__class__',) cell=() ---
+    consts(5):
+      [0] ('name', 'height', 'parent')
+      [1] 0.0
+      [2] 1.0
+      [3] 'visual_distance'
+      [4] None
+    names: ('super', '__init__', 'min_value', 'max_value', 'method')
+    varnames: ('self', 'name', 'height', 'parent')
+    cellvars: ()
+    freevars: ('__class__',)
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=4 kwonlyargcount=0 stacksize=6
+    bytecode:
+         0 COPY_FREE_VARS       (1)
+         2 RESUME               (0)
+         4 LOAD_GLOBAL          (0)
+        14 LOAD_DEREF           (4)
+        16 LOAD_FAST_BORROW     (0)
+        18 LOAD_SUPER_ATTR      (5)
+        22 LOAD_FAST_BORROW_LOAD_FAST_BORROW (18)
+        24 LOAD_FAST_BORROW     (3)
+        26 LOAD_CONST           (0)
+        28 CALL_KW              (3)
+        36 POP_TOP             
+        38 LOAD_CONST           (1)
+        40 LOAD_FAST_BORROW     (0)
+        42 STORE_ATTR           (2)
+        52 LOAD_CONST           (2)
+        54 LOAD_FAST_BORROW     (0)
+        56 STORE_ATTR           (3)
+        66 LOAD_CONST           (3)
+        68 LOAD_FAST_BORROW     (0)
+        70 STORE_ATTR           (4)
+        80 LOAD_CONST           (4)
+        82 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(3):
+      [0] 2
+      [1] 'px_per_sec'
+      [2] 'float'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 BUILD_MAP            (1)
+        26 RETURN_VALUE        
+    --- build_waveform_path vars=('self', 'px_per_sec', 'isnan', 'QPainterPath', 'clips', 'h', 'mx', 'path', 'first', 'sc', 'sx', 'sy', 'last_ts') free=() cell=() ---
+    consts(8):
+      [0] 0
+      [1] ('isnan',)
+      [2] ('QPainterPath',)
+      [3] None
+      [4] 1.0
+      [5] True
+      [6] False
+      [7] -1
+    names: ('math', 'isnan', 'PySide6.QtGui', 'QPainterPath', '_clips', '_height', 'max_value', 'isinstance', 'ScoreClip', 'value', 'timestamp', 'moveTo', 'lineTo', 'isEmpty', 'closeSubpath')
+    varnames: ('self', 'px_per_sec', 'isnan', 'QPainterPath', 'clips', 'h', 'mx', 'path', 'first', 'sc', 'sx', 'sy', 'last_ts')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=5
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_SMALL_INT       (0)
+         4 LOAD_CONST           (1)
+         6 IMPORT_NAME          (0)
+         8 IMPORT_FROM          (1)
+        10 STORE_FAST           (2)
+        12 POP_TOP             
+        14 LOAD_SMALL_INT       (0)
+        16 LOAD_CONST           (2)
+        18 IMPORT_NAME          (2)
+        20 IMPORT_FROM          (3)
+        22 STORE_FAST           (3)
+        24 POP_TOP             
+        26 LOAD_FAST_BORROW     (0)
+        28 LOAD_ATTR            (8)
+        48 STORE_FAST           (4)
+        50 LOAD_FAST_BORROW     (4)
+        52 TO_BOOL             
+        60 POP_JUMP_IF_TRUE     (3)
+        64 NOT_TAKEN           
+        66 LOAD_CONST           (3)
+        68 RETURN_VALUE        
+        70 LOAD_FAST_BORROW     (0)
+        72 LOAD_ATTR            (10)
+        92 STORE_FAST           (5)
+        94 LOAD_FAST_BORROW     (0)
+        96 LOAD_ATTR            (12)
+       116 STORE_FAST           (6)
+       118 LOAD_FAST_BORROW     (6)
+       120 LOAD_SMALL_INT       (0)
+       122 COMPARE_OP           (58)
+       126 POP_JUMP_IF_FALSE    (3)
+       130 NOT_TAKEN           
+       132 LOAD_CONST           (4)
+       134 STORE_FAST           (6)
+       136 LOAD_FAST_BORROW     (3)
+       138 PUSH_NULL           
+       140 CALL                 (0)
+       148 STORE_FAST           (7)
+       150 LOAD_CONST           (5)
+       152 STORE_FAST           (8)
+       154 LOAD_FAST_BORROW     (4)
+       156 GET_ITER            
+       158 FOR_ITER             (148)
+       162 STORE_FAST           (9)
+       164 LOAD_GLOBAL          (15)
+       174 LOAD_FAST_BORROW     (9)
+       176 LOAD_GLOBAL          (16)
+       186 CALL                 (2)
+       194 TO_BOOL             
+       202 POP_JUMP_IF_FALSE    (25)
+       206 NOT_TAKEN           
+       208 LOAD_FAST_BORROW     (2)
+       210 PUSH_NULL           
+       212 LOAD_FAST_BORROW     (9)
+       214 LOAD_ATTR            (18)
+       234 CALL                 (1)
+       242 TO_BOOL             
+       250 POP_JUMP_IF_FALSE    (3)
+       254 NOT_TAKEN           
+       256 JUMP_BACKWARD        (51)
+       260 LOAD_FAST_BORROW     (9)
+       262 LOAD_ATTR            (20)
+       282 LOAD_FAST_BORROW     (1)
+       284 BINARY_OP            (5)
+       296 STORE_FAST           (10)
+       298 LOAD_FAST_BORROW_LOAD_FAST_BORROW (89)
+       300 LOAD_ATTR            (18)
+       320 LOAD_FAST_BORROW     (6)
+       322 BINARY_OP            (11)
+       334 LOAD_FAST_BORROW     (5)
+       336 BINARY_OP            (5)
+       348 BINARY_OP            (10)
+       360 STORE_FAST           (11)
+       362 LOAD_FAST_BORROW     (8)
+       364 TO_BOOL             
+       372 POP_JUMP_IF_FALSE    (22)
+       376 NOT_TAKEN           
+       378 LOAD_FAST_BORROW     (7)
+       380 LOAD_ATTR            (23)
+       400 LOAD_FAST_BORROW_LOAD_FAST_BORROW (171)
+       402 CALL                 (2)
+       410 POP_TOP             
+       412 LOAD_CONST           (6)
+       414 STORE_FAST           (8)
+       416 JUMP_BACKWARD        (131)
+       420 LOAD_FAST_BORROW     (7)
+       422 LOAD_ATTR            (25)
+       442 LOAD_FAST_BORROW_LOAD_FAST_BORROW (171)
+       444 CALL                 (2)
+       452 POP_TOP             
+       454 JUMP_BACKWARD        (150)
+       458 END_FOR             
+       460 POP_ITER            
+       462 LOAD_FAST_BORROW     (7)
+       464 LOAD_ATTR            (27)
+       484 CALL                 (0)
+       492 TO_BOOL             
+       500 POP_JUMP_IF_TRUE     (104)
+       504 NOT_TAKEN           
+       506 LOAD_FAST_BORROW     (4)
+       508 LOAD_CONST           (7)
+       510 BINARY_OP            (26)
+       522 LOAD_ATTR            (20)
+       542 STORE_FAST           (12)
+       544 LOAD_FAST_BORROW     (7)
+       546 LOAD_ATTR            (25)
+       566 LOAD_FAST_BORROW_LOAD_FAST_BORROW (193)
+       568 BINARY_OP            (5)
+       580 LOAD_FAST_BORROW     (5)
+       582 CALL                 (2)
+       590 POP_TOP             
+       592 LOAD_FAST_BORROW     (7)
+       594 LOAD_ATTR            (25)
+       614 LOAD_FAST_BORROW     (4)
+       616 LOAD_SMALL_INT       (0)
+       618 BINARY_OP            (26)
+       630 LOAD_ATTR            (20)
+       650 LOAD_FAST_BORROW     (1)
+       652 BINARY_OP            (5)
+       664 LOAD_FAST_BORROW     (5)
+       666 CALL                 (2)
+       674 POP_TOP             
+       676 LOAD_FAST_BORROW     (7)
+       678 LOAD_ATTR            (29)
+       698 CALL                 (0)
+       706 POP_TOP             
+       708 LOAD_FAST_BORROW     (7)
+       710 RETURN_VALUE        
+       712 LOAD_CONST           (3)
+       714 RETURN_VALUE        
+  --- Timeline vars=() free=() cell=('__class__',) ---
+  consts(34):
+    [0] 'Timeline'
+    [1] 336
+    [2] 'Root of the timeline model. Owns named Track objects.'
+    [3] 'subtitles'
+    [4] 'height'
+    [5] 'slides'
+    [6] 'markers'
+    [7] 'waveform'
+    [8] <code __annotate__>
+    [9] <code __init__>
+    [10] <code __annotate__>
+    [11] <code duration>
+    [12] <code __annotate__>
+    [13] <code duration>
+    [14] <code __annotate__>
+    [15] <code px_per_sec>
+    [16] <code __annotate__>
+    [17] <code px_per_sec>
+    [18] <code __annotate__>
+    [19] <code create_track>
+    [20] <code __annotate__>
+    [21] <code remove_track>
+    [22] <code __annotate__>
+    [23] <code track>
+    [24] <code __annotate__>
+    [25] <code track_names>
+    [26] <code __annotate__>
+    [27] <code clear>
+    [28] <code __annotate__>
+    [29] <code all_clips>
+    [30] <code __annotate__>
+    [31] <code clips_in_range>
+    [32] ('_duration', '_px_per_sec', '_tracks')
+    [33] (None,)
+  names: ('__name__', '__module__', '__qualname__', '__firstlineno__', '__doc__', 'Signal', 'str', 'trackAdded', 'trackRemoved', 'float', 'durationChanged', 'TRACK_CONFIG', '__init__', 'property', 'duration', 'setter', 'px_per_sec', 'create_track', 'remove_track', 'track', 'track_names', 'clear', 'all_clips', 'clips_in_range', '__static_attributes__', '__classcell__')
+  varnames: ()
+  cellvars: ('__class__',)
+  freevars: ()
+  flags: optimizer=0 newlocals=0 args=0 varargs=0 varkw=0 generator=0
+  argcount=0 kwonlyargcount=0 stacksize=9
+  bytecode:
+       0 MAKE_CELL            (0)
+       2 RESUME               (0)
+       4 LOAD_NAME            (0)
+       6 STORE_NAME           (1)
+       8 LOAD_CONST           (0)
+      10 STORE_NAME           (2)
+      12 LOAD_CONST           (1)
+      14 STORE_NAME           (3)
+      16 LOAD_CONST           (2)
+      18 STORE_NAME           (4)
+      20 LOAD_NAME            (5)
+      22 PUSH_NULL           
+      24 LOAD_NAME            (6)
+      26 CALL                 (1)
+      34 STORE_NAME           (7)
+      36 LOAD_NAME            (5)
+      38 PUSH_NULL           
+      40 LOAD_NAME            (6)
+      42 CALL                 (1)
+      50 STORE_NAME           (8)
+      52 LOAD_NAME            (5)
+      54 PUSH_NULL           
+      56 LOAD_NAME            (9)
+      58 CALL                 (1)
+      66 STORE_NAME           (10)
+      68 LOAD_CONST           (3)
+      70 LOAD_CONST           (4)
+      72 LOAD_SMALL_INT       (18)
+      74 BUILD_MAP            (1)
+      76 LOAD_CONST           (5)
+      78 LOAD_CONST           (4)
+      80 LOAD_SMALL_INT       (24)
+      82 BUILD_MAP            (1)
+      84 LOAD_CONST           (6)
+      86 LOAD_CONST           (4)
+      88 LOAD_SMALL_INT       (20)
+      90 BUILD_MAP            (1)
+      92 LOAD_CONST           (7)
+      94 LOAD_CONST           (4)
+      96 LOAD_SMALL_INT       (44)
+      98 BUILD_MAP            (1)
+     100 BUILD_MAP            (4)
+     102 STORE_NAME           (11)
+     104 LOAD_CONST           (33)
+     106 LOAD_CONST           (8)
+     108 MAKE_FUNCTION       
+     110 LOAD_FAST_BORROW     (0)
+     112 BUILD_TUPLE          (1)
+     114 LOAD_CONST           (9)
+     116 MAKE_FUNCTION       
+     118 SET_FUNCTION_ATTRIBUTE (8)
+     120 SET_FUNCTION_ATTRIBUTE (16)
+     122 SET_FUNCTION_ATTRIBUTE (1)
+     124 STORE_NAME           (12)
+     126 LOAD_NAME            (13)
+     128 LOAD_CONST           (10)
+     130 MAKE_FUNCTION       
+     132 LOAD_CONST           (11)
+     134 MAKE_FUNCTION       
+     136 SET_FUNCTION_ATTRIBUTE (16)
+     138 CALL                 (0)
+     146 STORE_NAME           (14)
+     148 LOAD_NAME            (14)
+     150 LOAD_ATTR            (30)
+     170 LOAD_CONST           (12)
+     172 MAKE_FUNCTION       
+     174 LOAD_CONST           (13)
+     176 MAKE_FUNCTION       
+     178 SET_FUNCTION_ATTRIBUTE (16)
+     180 CALL                 (0)
+     188 STORE_NAME           (14)
+     190 LOAD_NAME            (13)
+     192 LOAD_CONST           (14)
+     194 MAKE_FUNCTION       
+     196 LOAD_CONST           (15)
+     198 MAKE_FUNCTION       
+     200 SET_FUNCTION_ATTRIBUTE (16)
+     202 CALL                 (0)
+     210 STORE_NAME           (16)
+     212 LOAD_NAME            (16)
+     214 LOAD_ATTR            (30)
+     234 LOAD_CONST           (16)
+     236 MAKE_FUNCTION       
+     238 LOAD_CONST           (17)
+     240 MAKE_FUNCTION       
+     242 SET_FUNCTION_ATTRIBUTE (16)
+     244 CALL                 (0)
+     252 STORE_NAME           (16)
+     254 LOAD_CONST           (18)
+     256 MAKE_FUNCTION       
+     258 LOAD_CONST           (19)
+     260 MAKE_FUNCTION       
+     262 SET_FUNCTION_ATTRIBUTE (16)
+     264 STORE_NAME           (17)
+     266 LOAD_CONST           (20)
+     268 MAKE_FUNCTION       
+     270 LOAD_CONST           (21)
+     272 MAKE_FUNCTION       
+     274 SET_FUNCTION_ATTRIBUTE (16)
+     276 STORE_NAME           (18)
+     278 LOAD_CONST           (22)
+     280 MAKE_FUNCTION       
+     282 LOAD_CONST           (23)
+     284 MAKE_FUNCTION       
+     286 SET_FUNCTION_ATTRIBUTE (16)
+     288 STORE_NAME           (19)
+     290 LOAD_CONST           (24)
+     292 MAKE_FUNCTION       
+     294 LOAD_CONST           (25)
+     296 MAKE_FUNCTION       
+     298 SET_FUNCTION_ATTRIBUTE (16)
+     300 STORE_NAME           (20)
+     302 LOAD_CONST           (26)
+     304 MAKE_FUNCTION       
+     306 LOAD_CONST           (27)
+     308 MAKE_FUNCTION       
+     310 SET_FUNCTION_ATTRIBUTE (16)
+     312 STORE_NAME           (21)
+     314 LOAD_CONST           (28)
+     316 MAKE_FUNCTION       
+     318 LOAD_CONST           (29)
+     320 MAKE_FUNCTION       
+     322 SET_FUNCTION_ATTRIBUTE (16)
+     324 STORE_NAME           (22)
+     326 LOAD_CONST           (30)
+     328 MAKE_FUNCTION       
+     330 LOAD_CONST           (31)
+     332 MAKE_FUNCTION       
+     334 SET_FUNCTION_ATTRIBUTE (16)
+     336 STORE_NAME           (23)
+     338 LOAD_CONST           (32)
+     340 STORE_NAME           (24)
+     342 LOAD_FAST_BORROW     (0)
+     344 COPY                 (1)
+     346 STORE_NAME           (25)
+     348 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'parent'
+      [2] 'QObject | None'
+      [3] 'return'
+      [4] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- __init__ vars=('self', 'parent') free=('__class__',) cell=() ---
+    consts(3):
+      [0] 0.0
+      [1] 10.0
+      [2] None
+    names: ('super', '__init__', '_tracks', '_duration', '_px_per_sec')
+    varnames: ('self', 'parent')
+    cellvars: ()
+    freevars: ('__class__',)
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=3
+    bytecode:
+         0 COPY_FREE_VARS       (1)
+         2 RESUME               (0)
+         4 LOAD_GLOBAL          (0)
+        14 LOAD_DEREF           (2)
+        16 LOAD_FAST_BORROW     (0)
+        18 LOAD_SUPER_ATTR      (5)
+        22 LOAD_FAST_BORROW     (1)
+        24 CALL                 (1)
+        32 POP_TOP             
+        34 BUILD_MAP            (0)
+        36 LOAD_FAST_BORROW     (0)
+        38 STORE_ATTR           (2)
+        48 LOAD_CONST           (0)
+        50 LOAD_FAST_BORROW     (0)
+        52 STORE_ATTR           (3)
+        62 LOAD_CONST           (1)
+        64 LOAD_FAST_BORROW     (0)
+        66 STORE_ATTR           (4)
+        76 LOAD_CONST           (2)
+        78 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(3):
+      [0] 2
+      [1] 'return'
+      [2] 'float'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 BUILD_MAP            (1)
+        26 RETURN_VALUE        
+    --- duration vars=('self',) free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('_duration',)
+    varnames: ('self',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=1
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_ATTR            (0)
+        24 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'value'
+      [2] 'float'
+      [3] 'return'
+      [4] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- duration vars=('self', 'value') free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('_duration', 'durationChanged', 'emit')
+    varnames: ('self', 'value')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=3
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW_LOAD_FAST_BORROW (16)
+         4 STORE_ATTR           (0)
+        14 LOAD_FAST_BORROW     (0)
+        16 LOAD_ATTR            (2)
+        36 LOAD_ATTR            (5)
+        56 LOAD_FAST_BORROW     (1)
+        58 CALL                 (1)
+        66 POP_TOP             
+        68 LOAD_CONST           (0)
+        70 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(3):
+      [0] 2
+      [1] 'return'
+      [2] 'float'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 BUILD_MAP            (1)
+        26 RETURN_VALUE        
+    --- px_per_sec vars=('self',) free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('_px_per_sec',)
+    varnames: ('self',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=1
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_ATTR            (0)
+        24 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'value'
+      [2] 'float'
+      [3] 'return'
+      [4] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- px_per_sec vars=('self', 'value') free=() cell=() ---
+    consts(3):
+      [0] 5.0
+      [1] 500.0
+      [2] None
+    names: ('max', 'min', '_px_per_sec')
+    varnames: ('self', 'value')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=7
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_GLOBAL          (1)
+        12 LOAD_CONST           (0)
+        14 LOAD_GLOBAL          (3)
+        24 LOAD_CONST           (1)
+        26 LOAD_FAST_BORROW     (1)
+        28 CALL                 (2)
+        36 CALL                 (2)
+        44 LOAD_FAST_BORROW     (0)
+        46 STORE_ATTR           (2)
+        56 LOAD_CONST           (2)
+        58 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'name'
+      [2] 'str'
+      [3] 'return'
+      [4] 'Track'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- create_track vars=('self', 'name', 'cfg', 'track') free=() cell=() ---
+    consts(3):
+      [0] 'height'
+      [1] 'waveform'
+      [2] ('name', 'height', 'parent')
+    names: ('_tracks', 'TRACK_CONFIG', 'get', 'ScoreTrack', 'Track', 'trackAdded', 'emit')
+    varnames: ('self', 'name', 'cfg', 'track')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=6
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW_LOAD_FAST_BORROW (16)
+         4 LOAD_ATTR            (0)
+        24 CONTAINS_OP          (0)
+        28 POP_JUMP_IF_FALSE    (20)
+        32 NOT_TAKEN           
+        34 LOAD_FAST_BORROW     (0)
+        36 LOAD_ATTR            (0)
+        56 LOAD_FAST_BORROW     (1)
+        58 BINARY_OP            (26)
+        70 RETURN_VALUE        
+        72 LOAD_FAST_BORROW     (0)
+        74 LOAD_ATTR            (2)
+        94 LOAD_ATTR            (5)
+       114 LOAD_FAST_BORROW     (1)
+       116 LOAD_CONST           (0)
+       118 LOAD_SMALL_INT       (24)
+       120 BUILD_MAP            (1)
+       122 CALL                 (2)
+       130 STORE_FAST           (2)
+       132 LOAD_FAST_BORROW     (1)
+       134 LOAD_CONST           (1)
+       136 COMPARE_OP           (88)
+       140 POP_JUMP_IF_FALSE    (22)
+       144 NOT_TAKEN           
+       146 LOAD_GLOBAL          (7)
+       156 LOAD_FAST_BORROW_LOAD_FAST_BORROW (18)
+       158 LOAD_CONST           (0)
+       160 BINARY_OP            (26)
+       172 LOAD_FAST_BORROW     (0)
+       174 LOAD_CONST           (2)
+       176 CALL_KW              (3)
+       184 STORE_FAST           (3)
+       186 JUMP_FORWARD         (20)
+       188 LOAD_GLOBAL          (9)
+       198 LOAD_FAST_BORROW_LOAD_FAST_BORROW (18)
+       200 LOAD_CONST           (0)
+       202 BINARY_OP            (26)
+       214 LOAD_FAST_BORROW     (0)
+       216 LOAD_CONST           (2)
+       218 CALL_KW              (3)
+       226 STORE_FAST           (3)
+       228 LOAD_FAST_BORROW_LOAD_FAST_BORROW (48)
+       230 LOAD_ATTR            (0)
+       250 LOAD_FAST_BORROW     (1)
+       252 STORE_SUBSCR        
+       256 LOAD_FAST_BORROW     (0)
+       258 LOAD_ATTR            (10)
+       278 LOAD_ATTR            (13)
+       298 LOAD_FAST_BORROW     (1)
+       300 CALL                 (1)
+       308 POP_TOP             
+       310 LOAD_FAST_BORROW     (3)
+       312 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'name'
+      [2] 'str'
+      [3] 'return'
+      [4] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- remove_track vars=('self', 'name') free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('_tracks', 'trackRemoved', 'emit')
+    varnames: ('self', 'name')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=3
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW_LOAD_FAST_BORROW (16)
+         4 LOAD_ATTR            (0)
+        24 CONTAINS_OP          (0)
+        28 POP_JUMP_IF_FALSE    (43)
+        32 NOT_TAKEN           
+        34 LOAD_FAST_BORROW     (0)
+        36 LOAD_ATTR            (0)
+        56 LOAD_FAST_BORROW     (1)
+        58 DELETE_SUBSCR       
+        60 LOAD_FAST_BORROW     (0)
+        62 LOAD_ATTR            (2)
+        82 LOAD_ATTR            (5)
+       102 LOAD_FAST_BORROW     (1)
+       104 CALL                 (1)
+       112 POP_TOP             
+       114 LOAD_CONST           (0)
+       116 RETURN_VALUE        
+       118 LOAD_CONST           (0)
+       120 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(5):
+      [0] 2
+      [1] 'name'
+      [2] 'str'
+      [3] 'return'
+      [4] 'Track | None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (4)
+        28 BUILD_MAP            (2)
+        30 RETURN_VALUE        
+    --- track vars=('self', 'name') free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('_tracks', 'get')
+    varnames: ('self', 'name')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=2 kwonlyargcount=0 stacksize=3
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_ATTR            (0)
+        24 LOAD_ATTR            (3)
+        44 LOAD_FAST_BORROW     (1)
+        46 CALL                 (1)
+        54 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(3):
+      [0] 2
+      [1] 'return'
+      [2] 'list[str]'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 BUILD_MAP            (1)
+        26 RETURN_VALUE        
+    --- track_names vars=('self',) free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('list', '_tracks', 'keys')
+    varnames: ('self',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_GLOBAL          (1)
+        12 LOAD_FAST_BORROW     (0)
+        14 LOAD_ATTR            (2)
+        34 LOAD_ATTR            (5)
+        54 CALL                 (0)
+        62 CALL                 (1)
+        70 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(3):
+      [0] 2
+      [1] 'return'
+      [2] 'None'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 BUILD_MAP            (1)
+        26 RETURN_VALUE        
+    --- clear vars=('self', 'name') free=() cell=() ---
+    consts(2):
+      [0] 0.0
+      [1] None
+    names: ('list', '_tracks', 'keys', 'remove_track', '_duration', 'durationChanged', 'emit')
+    varnames: ('self', 'name')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_GLOBAL          (1)
+        12 LOAD_FAST_BORROW     (0)
+        14 LOAD_ATTR            (2)
+        34 LOAD_ATTR            (5)
+        54 CALL                 (0)
+        62 CALL                 (1)
+        70 GET_ITER            
+        72 FOR_ITER             (20)
+        76 STORE_FAST           (1)
+        78 LOAD_FAST_BORROW     (0)
+        80 LOAD_ATTR            (7)
+       100 LOAD_FAST_BORROW     (1)
+       102 CALL                 (1)
+       110 POP_TOP             
+       112 JUMP_BACKWARD        (22)
+       116 END_FOR             
+       118 POP_ITER            
+       120 LOAD_CONST           (0)
+       122 LOAD_FAST_BORROW     (0)
+       124 STORE_ATTR           (4)
+       134 LOAD_FAST_BORROW     (0)
+       136 LOAD_ATTR            (10)
+       156 LOAD_ATTR            (13)
+       176 LOAD_CONST           (0)
+       178 CALL                 (1)
+       186 POP_TOP             
+       188 LOAD_CONST           (1)
+       190 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(3):
+      [0] 2
+      [1] 'return'
+      [2] 'list[Clip]'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=2
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 BUILD_MAP            (1)
+        26 RETURN_VALUE        
+    --- all_clips vars=('self', 'result', 't') free=() cell=() ---
+    consts(2):
+      [0] <code <lambda>>
+      [1] ('key',)
+    names: ('_tracks', 'values', 'extend', '_clips', 'sort')
+    varnames: ('self', 'result', 't')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=4
+    bytecode:
+         0 RESUME               (0)
+         2 BUILD_LIST           (0)
+         4 STORE_FAST           (1)
+         6 LOAD_FAST_BORROW     (0)
+         8 LOAD_ATTR            (0)
+        28 LOAD_ATTR            (3)
+        48 CALL                 (0)
+        56 GET_ITER            
+        58 FOR_ITER             (30)
+        62 STORE_FAST           (2)
+        64 LOAD_FAST_BORROW     (1)
+        66 LOAD_ATTR            (5)
+        86 LOAD_FAST_BORROW     (2)
+        88 LOAD_ATTR            (6)
+       108 CALL                 (1)
+       116 POP_TOP             
+       118 JUMP_BACKWARD        (32)
+       122 END_FOR             
+       124 POP_ITER            
+       126 LOAD_FAST_BORROW     (1)
+       128 LOAD_ATTR            (9)
+       148 LOAD_CONST           (0)
+       150 MAKE_FUNCTION       
+       152 LOAD_CONST           (1)
+       154 CALL_KW              (1)
+       162 POP_TOP             
+       164 LOAD_FAST_BORROW     (1)
+       166 RETURN_VALUE        
+      --- <lambda> vars=('c',) free=() cell=() ---
+      consts(1):
+        [0] None
+      names: ('start_sec',)
+      varnames: ('c',)
+      cellvars: ()
+      freevars: ()
+      flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=16 generator=0
+      argcount=1 kwonlyargcount=0 stacksize=1
+      bytecode:
+           0 RESUME               (0)
+           2 LOAD_FAST_BORROW     (0)
+           4 LOAD_ATTR            (0)
+          24 RETURN_VALUE        
+    --- __annotate__ vars=('format',) free=() cell=() ---
+    consts(6):
+      [0] 2
+      [1] 'start'
+      [2] 'float'
+      [3] 'end'
+      [4] 'return'
+      [5] 'list[Clip]'
+    names: ()
+    varnames: ('format',)
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=1 kwonlyargcount=0 stacksize=6
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_SMALL_INT       (2)
+         6 COMPARE_OP           (132)
+        10 POP_JUMP_IF_FALSE    (3)
+        14 NOT_TAKEN           
+        16 LOAD_COMMON_CONSTANT (1)
+        18 RAISE_VARARGS        (1)
+        20 LOAD_CONST           (1)
+        22 LOAD_CONST           (2)
+        24 LOAD_CONST           (3)
+        26 LOAD_CONST           (2)
+        28 LOAD_CONST           (4)
+        30 LOAD_CONST           (5)
+        32 BUILD_MAP            (3)
+        34 RETURN_VALUE        
+    --- clips_in_range vars=('self', 'start', 'end', 'c') free=() cell=() ---
+    consts(1):
+      [0] None
+    names: ('all_clips', 'start_sec', 'end_sec')
+    varnames: ('self', 'start', 'end', 'c')
+    cellvars: ()
+    freevars: ()
+    flags: optimizer=1 newlocals=2 args=0 varargs=0 varkw=0 generator=0
+    argcount=3 kwonlyargcount=0 stacksize=5
+    bytecode:
+         0 RESUME               (0)
+         2 LOAD_FAST_BORROW     (0)
+         4 LOAD_ATTR            (1)
+        24 CALL                 (0)
+        32 GET_ITER            
+        34 LOAD_FAST_AND_CLEAR  (3)
+        36 SWAP                 (2)
+        38 BUILD_LIST           (0)
+        40 SWAP                 (2)
+        42 FOR_ITER             (41)
+        46 STORE_FAST_LOAD_FAST (51)
+        48 LOAD_ATTR            (2)
+        68 LOAD_FAST_BORROW     (2)
+        70 COMPARE_OP           (18)
+        74 POP_JUMP_IF_TRUE     (3)
+        78 NOT_TAKEN           
+        80 JUMP_BACKWARD        (21)
+        84 LOAD_FAST_BORROW_LOAD_FAST_BORROW (19)
+        86 LOAD_ATTR            (4)
+       106 COMPARE_OP           (18)
+       110 POP_JUMP_IF_TRUE     (3)
+       114 NOT_TAKEN           
+       116 JUMP_BACKWARD        (39)
+       120 LOAD_FAST_BORROW     (3)
+       122 LIST_APPEND          (2)
+       124 JUMP_BACKWARD        (43)
+       128 END_FOR             
+       130 POP_ITER            
+       132 SWAP                 (2)
+       134 STORE_FAST           (3)
+       136 RETURN_VALUE        
+       138 SWAP                 (2)
+       140 POP_TOP             
+       142 SWAP                 (2)
+       144 STORE_FAST           (3)
+       146 RERAISE              (0)

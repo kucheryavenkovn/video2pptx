@@ -49,6 +49,7 @@ from video2pptx.gui.app_config import add_recent_project, load_app_config, save_
 from video2pptx.gui.status_manager import StatusBarManager
 from video2pptx.project_manager import Project
 from video2pptx.project_model import ProjectModel
+from video2pptx.debug.action_registry import mcp_action
 
 
 class MainWindow(QMainWindow):
@@ -65,6 +66,7 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self._model = ProjectModel(self)
+        self._mcp_active: bool = False
         self._subs: pysubs2.SSAFile | None = None
         self._app_config = load_app_config()
         self._status = StatusBarManager(self)
@@ -296,10 +298,17 @@ class MainWindow(QMainWindow):
             self._mcp = McpServer(self._model, self._model.timeline, port=9812, action_registry=registry)
             self._mcp.start()
             self._mcp_timer = QTimer(self)
-            self._mcp_timer.timeout.connect(lambda: mcp_process_queue(self._model))
+            self._mcp_timer.timeout.connect(lambda: [setattr(self, "_mcp_active", True), mcp_process_queue(self._model), setattr(self, "_mcp_active", False)])
             self._mcp_timer.start(50)
         except Exception as e:
             logger.debug(f"[GUI-Main][_setup_mcp_server] MCP server not available: {e}")
+
+    def _confirm(self, title: str, text: str) -> bool:
+        if self._mcp_active:
+            return True
+        return QMessageBox.question(self, title, text,
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No) == QMessageBox.StandardButton.Yes
+
 
     def _connect_menu_signals(self) -> None:
         mb = self._menu_bar
@@ -561,6 +570,7 @@ class MainWindow(QMainWindow):
     # END_BLOCK_PROJECT_RESTORE
 
     # START_BLOCK_DETECT
+    @mcp_action(name='detect', desc='Run full slide detection')
     def _on_detect(self) -> None:
         if not self._model.is_open:
             return
@@ -609,6 +619,7 @@ class MainWindow(QMainWindow):
     # END_BLOCK_DETECT
 
     # START_BLOCK_QUICK_DETECT
+    @mcp_action(name='detect_quick', desc='Run quick detection')
     def _on_quick_detect(self) -> None:
         proj = self._model.project_data
         if not proj or not proj.video:
@@ -643,6 +654,7 @@ class MainWindow(QMainWindow):
     # END_BLOCK_QUICK_DETECT
 
     # START_BLOCK_EXPORT
+    @mcp_action(name='export_md', desc='Export to Markdown')
     def _on_export_md(self) -> None:
         proj = self._model.project_data
         if not proj or not proj.slides_json:
@@ -665,6 +677,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Export Error", str(e))
 
+    @mcp_action(name='export_pptx', desc='Export to PPTX')
     def _on_export_pptx(self) -> None:
         proj = self._model.project_data
         if not proj or not proj.slides_json:
@@ -696,6 +709,7 @@ class MainWindow(QMainWindow):
         if r == QMessageBox.StandardButton.Yes:
             QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
 
+    @mcp_action(name='notes', desc='Process speaker notes')
     def _on_process_notes(self) -> None:
         proj = self._model.project_data
         if not proj or not proj.slides:
@@ -764,6 +778,7 @@ class MainWindow(QMainWindow):
     # END_BLOCK_SETTINGS_MENU
 
     # START_BLOCK_TIMELINE_MARKERS
+    @mcp_action(name='slide_add_ui', desc='Add manual slide at timestamp')
     def _on_add_manual_slide(self, ts: float) -> None:
         proj = self._model.project_data
         if proj is None:
@@ -789,6 +804,7 @@ class MainWindow(QMainWindow):
         self._timeline.zoom_fit()
         self.statusBar().showMessage(f"Manual slide added at {ts:.1f}s")
 
+    @mcp_action(name='slide_set_frame', desc='Capture frame as slide image')
     def _on_set_slide_frame(self, slide_index: int) -> None:
         pos = slide_index - 1
         proj = self._model.project_data
@@ -815,6 +831,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to capture frame: {e}")
 
+    @mcp_action(name='slide_clear_image', desc='Clear slide image')
     def _on_clear_slide_image(self, slide_index: int) -> None:
         pos = slide_index - 1
         proj = self._model.project_data
@@ -825,6 +842,7 @@ class MainWindow(QMainWindow):
         self._timeline.set_slides(proj.slides)
         self.statusBar().showMessage(f"Slide {slide_index} image cleared")
 
+    @mcp_action(name='slide_delete_ui', desc='Delete slide by index')
     def _on_delete_slide(self, slide_index: int) -> None:
         pos = slide_index - 1
         proj = self._model.project_data
@@ -844,6 +862,7 @@ class MainWindow(QMainWindow):
         self._timeline.zoom_fit()
         self.statusBar().showMessage(f"Slide {slide_index} deleted")
 
+    @mcp_action(name='add_marker', desc='Add marker at current position')
     def _on_add_marker_at_position(self) -> None:
         if not self._model.is_open:
             QMessageBox.information(self, "Add Slide", "Open a project first")
@@ -851,6 +870,7 @@ class MainWindow(QMainWindow):
         ts = self._video_player._player.position() / 1000.0
         self._on_add_manual_slide(ts)
 
+    @mcp_action(name='slide_moved', desc='Move slide to new start/end')
     def _on_slide_moved(self, index: int, new_start: float, new_end: float) -> None:
         pos = index - 1
         proj = self._model.project_data
@@ -866,6 +886,7 @@ class MainWindow(QMainWindow):
             QTimer.singleShot(0, lambda: self._timeline.set_slides(proj.slides))
             self.statusBar().showMessage(f"Slide {index} moved: {new_start:.1f}s – {new_end:.1f}s")
 
+    @mcp_action(name='slide_resize', desc='Resize slide interval')
     def _on_slide_resized(self, index: int, new_start: float, new_end: float) -> None:
         pos = index - 1
         proj = self._model.project_data
@@ -878,6 +899,7 @@ class MainWindow(QMainWindow):
             QTimer.singleShot(0, lambda: self._timeline.set_slides(proj.slides))
             self.statusBar().showMessage(f"Slide {index} resized: {new_start:.1f}s – {new_end:.1f}s")
 
+    @mcp_action(name='edit_subtitles', desc='Open subtitle editor')
     def _on_open_subtitle_editor(self, slide_index: int) -> None:
         proj = self._model.project_data
         if not proj or slide_index >= len(proj.slides):
@@ -915,6 +937,7 @@ class MainWindow(QMainWindow):
     # END_BLOCK_TIMELINE_MARKERS
 
     # START_BLOCK_MARKER_ACTIONS
+    @mcp_action(name='marker_panel', desc='Open marker panel dialog')
     def _on_open_marker_panel(self) -> None:
         proj = self._model.project_data
         if proj is None:
@@ -922,6 +945,7 @@ class MainWindow(QMainWindow):
             return
         self.statusBar().showMessage(f"Slides: {len(proj.slides)}")
 
+    @mcp_action(name='seek', desc='Seek video to position')
     def _on_seek_to_marker(self, ts: float) -> None:
         player = self._video_player._player
         player.setPosition(int(ts * 1000))
@@ -930,6 +954,7 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(10, player.pause)
         self.statusBar().showMessage(f"Seeked to {ts:.1f}s")
 
+    @mcp_action(name='slide_show_image', desc='Show slide image overlay in video player')
     def _on_open_timeline_image(self, path: str, slide_index: int = 0) -> None:
         if not path:
             self.statusBar().showMessage(f"Slide #{slide_index}: no image set")

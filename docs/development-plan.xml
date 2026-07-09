@@ -575,48 +575,13 @@
       <step-25 module="M-ROI-TOOL" status="done" verification="V-M-ROI-TOOL" />
     </Phase-8>
 
-    <Phase-9 name="ProjectManagement" status="pending">
+    <Phase-9 name="ProjectManagement" status="done">
       <goal>Create project system: project.json schema, CRUD operations, CLI subcommands. Projects tie video, subtitles, configs, and pipeline state into a single output folder.</goal>
       <step-26 module="M-PROJECT" status="done" verification="V-M-PROJECT">
         Create src/video2pptx/project_manager.py with Project model (pydantic), project.json I/O, state management. Add project create/open/info CLI subcommands in cli.py.
       </step-26>
       <stop-condition>project.json must be human-readable and re-openable. CLI project commands must round-trip (create → open → verify paths resolve).</stop-condition>
     </Phase-9>
-
-    <Phase-11 name="DesktopGUIEnhancements" status="pending">
-      <goal>Full desktop GUI with menu bar, video player, subtitle overlay, enhanced timeline (green/blue markers), project/app settings dialogs, app-wide config, and smart manual marker snapping with three strategies.</goal>
-      <step-1 module="M-GUI-APPCONFIG" status="done" verification="V-M-GUI-APPCONFIG">
-        Create src/video2pptx/gui/app_config.py: AppConfigModel pydantic model, load/save app-config.yaml to platform config dir. Fields: LLM model/base_url/context_length, GPU backend default, snap_mode, snap_flat_threshold, default_project_dir. CLI fallback = built-in defaults.
-      </step-1>
-      <step-2 module="M-GUI-SMART-SNAP" status="done" verification="V-M-GUI-SMART-SNAP">
-        Create src/video2pptx/gui/smart_snap.py: three snap strategies. diff_only: load diff_scores from slides.json, window ±5s, find nearest local max. fallback_analyze: try diff_scores first, if none decode ±3s window sample_fps=5, compute frame differences. hybrid: diff_scores, if flat (max-min < threshold) high-res ±2s sample_fps=10.
-      </step-2>
-      <step-3 module="M-GUI-MARKER-MANAGER" status="done" verification="V-M-GUI-MARKER-MANAGER">
-        Create src/video2pptx/gui/marker_manager.py: CRUD for blue markers on Project model. Persist in project.json as list of {original_ts, snapped_ts, snap_mode}. Calls M-GUI-SMART-SNAP on creation.
-      </step-3>
-      <step-4 module="M-GUI-SETTINGS-PROJECT" status="done" verification="V-M-GUI-SETTINGS-PROJECT">
-        Create src/video2pptx/gui/settings_project.py: QDialog with fields for ROI, ignore_rois, threshold, sample_fps, min_slide_duration, dedupe, min_stable_duration. Read/write via project.json.
-      </step-4>
-      <step-5 module="M-GUI-SETTINGS-APP" status="done" verification="V-M-GUI-SETTINGS-APP">
-        Create src/video2pptx/gui/settings_app.py: QDialog with tabs for LLM, GPU/Backend, Snap, Default Paths. Read/write via M-GUI-APPCONFIG.
-      </step-5>
-      <step-6 module="M-GUI-VIDEOPLAYER" status="done" verification="V-M-GUI-VIDEOPLAYER">
-        Create src/video2pptx/gui/video_player.py: QWidget containing QVideoWidget + transport bar (play/pause/stop, seek slider, volume slider, time label). Emits positionChanged for subtitle sync.
-      </step-6>
-      <step-7 module="M-GUI-SUBTITLE-OVERLAY" status="done" verification="V-M-GUI-SUBTITLE-OVERLAY">
-        Create src/video2pptx/gui/subtitle_overlay.py: QLabel positioned over QVideoWidget, updated on positionChanged. Parses SRT/VTT via pysubs2.
-      </step-7>
-      <step-8 module="M-GUI-TIMELINE-V2" status="done" verification="V-M-GUI-TIMELINE-V2">
-        Create src/video2pptx/gui/timeline_v2.py: Enhanced timeline with green (detected) and blue (manual) markers. Double-click green → open image. Right-click → add/edit/delete blue marker. Context menu with snap options.
-      </step-8>
-      <step-9 module="M-GUI-MENUBAR" status="done" verification="V-M-GUI-MENUBAR">
-        Create src/video2pptx/gui/menu_bar.py: QMenuBar with File + Edit menus. Emits signals for all actions. Integrates into MainWindow replacing toolbar-only approach.
-      </step-9>
-      <step-10 module="M-GUI-MAIN" status="done" verification="V-M-GUI-MAIN">
-        Update src/video2pptx/gui/main_window.py: Add M-GUI-MENUBAR, M-GUI-VIDEOPLAYER, M-GUI-TIMELINE-V2. Integrate project/app settings dialogs. Connect menu signals to project lifecycle. Replace old toolbar with menu bar. Split central area into video player + timeline + subtitle panel.
-      </step-10>
-      <stop-condition>GUI must not block during video playback or smart snap. Green/blue markers render correctly. Double-click opens system viewer. Smart snap adjusts markers according to selected mode. Settings persist across restarts. New projects inherit app defaults. All tests pass (offscreen-compatible).</stop-condition>
-    </Phase-11>
 
     <Phase-10 name="DesktopGUI" status="done">
       <goal>Desktop GUI with PySide6: main window, timeline, settings dialog, background workers. GUI must be optional (extras = ["gui"]).</goal>
@@ -634,6 +599,57 @@
       </step-30>
       <stop-condition>GUI must not block during detect or LLM calls. Detecting in GUI must produce same slides.json as CLI detect-slides. Workers must clean up on project switch or app close.</stop-condition>
     </Phase-10>
+
+    <Phase-11 name="DesktopGUIEnhancements" status="done">
+      <goal>Enhanced GUI: app config persistence, smart marker snapping, video player with subtitle overlay, timeline v3 with drag/resize, project/app settings dialogs, menu bar, status bar manager, subtitle editor.</goal>
+      <step-31 module="M-GUI-APPCONFIG" status="done" verification="V-M-GUI-APPCONFIG">
+        App-wide YAML config in platform config dir. Fields: LLM model/base_url, GPU backend, snap settings, default project dir, notes mode.
+      </step-31>
+      <step-32 module="M-GUI-VIDEOPLAYER" status="done" verification="V-M-GUI-VIDEOPLAYER">
+        QGraphicsVideoItem in QGraphicsView with transport controls, subtitle overlay, keyboard navigation.
+      </step-32>
+      <step-33 module="M-GUI-TIMELINE3" status="done" verification="V-M-GUI-TIMELINE3">
+        QGraphicsView-based multi-track timeline: SlideBlockItem (drag/resize), SubtitleBlockItem, PlayheadItem, TimeRulerItem.
+      </step-33>
+      <step-34 module="M-GUI-MENUBAR" status="done" verification="V-M-GUI-MENUBAR">
+        File menu (New/Open/Close/Save, Import Video/Subtitles) + Edit menu (Project/App Settings). Emits signals.
+      </step-34>
+      <stop-condition>All GUI tests pass headless. Timeline v3 renders slides and waveforms. Export buttons functional.</stop-condition>
+    </Phase-11>
+
+    <Phase-12 name="DomainModelRefactoring" status="done">
+      <goal>Extract domain logic from MainWindow (god class) into active Qt models: ProjectModel (project lifecycle + signals) and TimelineModel (Clip/Track/Timeline). MainWindow becomes thin controller.</goal>
+      <step-35 module="M-TIMELINE-MODEL" status="done" verification="V-M-TIMELINE-MODEL">
+        Create src/video2pptx/timeline_model.py: Clip(ABC), SlideClip, SubtitleClip, MarkerClip, ScoreClip, Track(QObject), ScoreTrack(Track), Timeline(QObject) with signals.
+      </step-35>
+      <step-36 module="M-PROJECT-MODEL" status="done" verification="V-M-PROJECT-MODEL">
+        Create src/video2pptx/project_model.py: ProjectModel(QObject) — active model wrapping project state with Qt signals for GUI binding. Bridges CLI project_manager with GUI timeline model.
+      </step-36>
+      <stop-condition>ProjectModel and TimelineModel test suites pass (15 tests). Models emit correct signals on state changes.</stop-condition>
+    </Phase-12>
+
+    <Phase-14 name="DebugInfrastructure" status="done">
+      <goal>Add in-app debug tools: LogBridge (loguru→Qt), DebugDock (log viewer + state tree), SignalSpy (signal tracing), MCP Server + ActionRegistry.</goal>
+      <step-37 module="M-GUI-LOG-BRIDGE" status="done" verification="V-M-GUI-LOG-BRIDGE">
+        Create src/video2pptx/gui/log_bridge.py: LogBridge(QObject) — singleton, loguru sink, newLog Qt signal, ring buffer of last 500 entries, recent(n) method.
+      </step-37>
+      <step-38 module="M-GUI-DEBUG-DOCK" status="done" verification="V-M-GUI-DEBUG-DOCK">
+        Create src/video2pptx/gui/debug_dock.py: DebugDock(QDockWidget) with QTabWidget (LogPanel + StatePanel). Ctrl+D toggle. LogPanel: QTextEdit with level filter combo. StatePanel: QTreeWidget showing Timeline→Track→Clip hierarchy with Refresh button.
+      </step-38>
+      <step-39 module="M-GUI-SIGNAL-SPY" status="done" verification="V-M-GUI-SIGNAL-SPY">
+        Create src/video2pptx/gui/signal_spy.py: SignalSpy.watch/watch_all — subscribes to Qt signals, logs via loguru→LogBridge.
+      </step-39>
+      <step-40 module="M-DEBUG-MCP" status="done" verification="V-M-DEBUG-MCP">
+        Create src/video2pptx/debug/mcp_server.py: MCP HTTP/SSE server on :9812. Read tools: get_state, get_project, get_logs, get_clip. Write tools via command queue. Action tools via ActionRegistry.
+      </step-40>
+      <step-41 module="M-DEBUG-ACTION" status="done" verification="V-M-DEBUG-ACTION">
+        Create src/video2pptx/debug/action_registry.py: @mcp_action decorator + ActionRegistry class. Auto-discovers MCP tools from decorated methods, builds JSON inputSchema from type hints.
+      </step-41>
+      <step-42 module="M-GUI-MAIN" status="done" verification="V-M-GUI-MAIN">
+        Add _setup_debug_dock() to MainWindow.__init__: instantiate LogBridge.instance(), create DebugDock, attach as QDockWidget, add Ctrl+D QShortcut. Add _setup_mcp_server() with ActionRegistry — starts MCP on :9812, gracefully degrades if ProjectModel not yet integrated.
+      </step-42>
+      <stop-condition>Ctrl+D toggles dock. LogBridge captures loguru messages. StatePanel shows correct clip count. MCP tools/list returns expected tools. All 26 debug tests pass.</stop-condition>
+    </Phase-14>
   </ImplementationOrder>
 
   <DeploymentScenarios>
