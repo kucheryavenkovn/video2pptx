@@ -37,6 +37,7 @@ from video_slide_md.config import load_config, AppConfig, LlmConfig
 from video_slide_md.dedupe import deduplicate_segments
 from video_slide_md.detect_slides import run_detect_slides
 from video_slide_md.roi_tool import roi_tool_main
+from video_slide_md.project_manager import create_project, open_project, Project
 from video_slide_md.frame_features import extract_features
 from video_slide_md.markdown_export import export_to_markdown
 from video_slide_md.notes_pipeline import run_notes
@@ -49,6 +50,8 @@ from video_slide_md.subtitles import align_cues_to_segments, parse_subtitles
 from video_slide_md.video_decode import VideoDecoder
 
 app = typer.Typer(name="video-slide-md")
+project_app = typer.Typer(name="project", help="Manage projects — create, open, info")
+app.add_typer(project_app, name="project")
 console = Console()
 
 
@@ -531,6 +534,111 @@ def llm_process(
         output_path=out_path,
     )
     console.print(f"[green]✓[/green] Enriched: {result.resolve()}")
+
+
+@project_app.command(name="create")
+def project_create(
+    video: str = typer.Argument(..., help="Path to video file"),
+    project_dir: str = typer.Argument(..., help="Output project directory"),
+    subtitles: Optional[str] = typer.Option(None, "--subtitles", help="Path to SRT/VTT file"),
+    name: Optional[str] = typer.Option(None, "--name", "-n", help="Project name"),
+):
+    # START_CONTRACT: project_create
+    #   PURPOSE: Create a new project with video and optional subtitles
+    #   INPUTS: video path, project directory, optional subtitles path, optional name
+    #   OUTPUTS: project.json created with all settings
+    #   SIDE_EFFECTS: creates project directory, writes project.json
+    #   LINKS: M-CLI
+    # END_CONTRACT: project_create
+
+    video_path = Path(video)
+    if not video_path.is_file():
+        console.print(f"[red]Video file not found: {video}[/red]")
+        raise typer.Exit(code=1)
+
+    subs_path = Path(subtitles) if subtitles else None
+    if subtitles and subs_path and not subs_path.is_file():
+        console.print(f"[red]Subtitles file not found: {subtitles}[/red]")
+        raise typer.Exit(code=1)
+
+    try:
+        proj = create_project(
+            project_dir=project_dir,
+            video_path=video_path,
+            subtitles_path=subs_path,
+            name=name,
+        )
+    except (FileNotFoundError, FileExistsError) as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(code=1)
+
+    console.print(f"[green]✓[/green] Project created: {Path(project_dir).resolve()}")
+    console.print(f"[green]✓[/green] Video: {proj.video}")
+    if proj.subtitles:
+        console.print(f"[green]✓[/green] Subtitles: {proj.subtitles}")
+
+
+@project_app.command(name="open")
+def project_open_cmd(
+    project_dir: str = typer.Argument(..., help="Path to project directory"),
+):
+    # START_CONTRACT: project_open_cmd
+    #   PURPOSE: Open an existing project and display its info
+    #   INPUTS: project directory path
+    #   OUTPUTS: project info printed to console
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-CLI
+    # END_CONTRACT: project_open_cmd
+
+    try:
+        proj = open_project(project_dir)
+    except FileNotFoundError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(code=1)
+
+    table = Table(title=f"Project: {proj.name}")
+    table.add_column("Key", style="cyan")
+    table.add_column("Value")
+
+    table.add_row("Name", proj.name)
+    table.add_row("Video", proj.video)
+    table.add_row("Subtitles", proj.subtitles or "(none)")
+    table.add_row("Detect done", "✓" if proj.state.detect_done else "—")
+    table.add_row("Notes done", "✓" if proj.state.notes_done else "—")
+    table.add_row("LLM done", "✓" if proj.state.llm_done else "—")
+    table.add_row("Slides JSON", proj.slides_json or "(none)")
+
+    console.print(table)
+
+
+@project_app.command(name="info")
+def project_info_cmd(
+    project_dir: str = typer.Argument(..., help="Path to project directory"),
+):
+    # START_CONTRACT: project_info_cmd
+    #   PURPOSE: Quick info print for a project (alias for open with less output)
+    #   INPUTS: project directory path
+    #   OUTPUTS: one-line project status
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-CLI
+    # END_CONTRACT: project_info_cmd
+
+    try:
+        proj = open_project(project_dir)
+    except FileNotFoundError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(code=1)
+
+    state_parts = []
+    if proj.state.detect_done:
+        state_parts.append("detected")
+    if proj.state.notes_done:
+        state_parts.append("notes")
+    if proj.state.llm_done:
+        state_parts.append("llm")
+
+    state_str = ", ".join(state_parts) if state_parts else "fresh"
+    console.print(f"[green]{proj.name}[/green] — {state_str} — {proj.video}")
 
 
 def _build_cli_overrides(**kwargs) -> dict:
