@@ -163,7 +163,7 @@
       <verification-ref>V-M-DETECT-SLIDES</verification-ref>
     </M-DETECT-SLIDES>
 
-    <M-NOTES NAME="Notes" TYPE="CORE_LOGIC" STATUS="pending">
+    <M-NOTES NAME="Notes" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Post-process notes: slides.json + subtitles + slide images → enriched notes with optional visual context</purpose>
       <path>src/video_slide_md/notes_pipeline.py</path>
       <depends>M-MODELS, M-SUBTITLES, M-NOTES-PROCESSOR, M-SLIDE-ANALYZER, M-LLM-CLIENT</depends>

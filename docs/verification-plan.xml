@@ -164,7 +164,7 @@
       </scenarios>
     </V-M-DETECT-SLIDES>
 
-    <V-M-NOTES MODULE="M-NOTES" PRIORITY="high" STATUS="pending">
+    <V-M-NOTES MODULE="M-NOTES" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_notes_pipeline.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_notes_pipeline.py -v</check-1>

@@ -199,7 +199,7 @@
       <depends>M-VIDEO-DECODE, M-SLIDE-DETECTOR, M-SEGMENTER, M-DEDUPE, M-ROI, M-MODELS</depends>
     </M-DETECT-SLIDES>
 
-    <M-NOTES NAME="Notes" TYPE="CORE_LOGIC" LAYER="5" ORDER="21" STATUS="pending">
+    <M-NOTES NAME="Notes" TYPE="CORE_LOGIC" LAYER="5" ORDER="21" STATUS="implemented">
       <contract>
         <purpose>Post-process notes pipeline: slides.json + subtitles/transcript + slide screenshots → enriched slides.json with context-aware speaker notes.</purpose>
         <inputs><param name="slides_json" type="Path" /><param name="subtitles" type="Path|None" /><param name="slides_dir" type="Path" /><param name="notes_mode" type="str" /><param name="llm_config" type="LlmConfig|None" /></inputs>
@@ -329,7 +329,7 @@
       <step-22 module="M-DETECT-SLIDES" status="done" verification="V-M-DETECT-SLIDES">
         Extract standalone detect-slides logic from cli.py into detect_slides.py. No subtitles required. Produce slides.json + screenshots.
       </step-22>
-      <step-23 module="M-NOTES" status="pending" verification="V-M-NOTES">
+      <step-23 module="M-NOTES" status="done" verification="V-M-NOTES">
         Create notes_pipeline.py: load slides.json → parse subtitles → vision analyze slides → build context-aware notes → save enriched slides.json. No video re-decode needed.
       </step-23>
       <step-24 module="M-CLI" status="pending" verification="V-M-CLI">
