@@ -286,7 +286,7 @@
       </annotations>
     </M-GUI-MARKER-MANAGER>
 
-    <M-GUI-SETTINGS-PROJECT NAME="ProjectSettingsDialog" TYPE="UI_COMPONENT" STATUS="pending">
+    <M-GUI-SETTINGS-PROJECT NAME="ProjectSettingsDialog" TYPE="UI_COMPONENT" STATUS="implemented">
       <purpose>Project Settings QDialog: ROI, ignore_rois, threshold, sample_fps, min_slide_duration, dedupe, min_stable_duration. Read/write via project.json.</purpose>
       <path>src/video_slide_md/gui/settings_project.py</path>
       <depends>M-CONFIG, M-PROJECT</depends>
