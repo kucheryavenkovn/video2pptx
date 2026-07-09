@@ -111,3 +111,12 @@
 - Impact: Basic mode is safe (no quality risk, no LLM dependency) but produces note-like text rather than polished speaker notes. Users who want rephrasing must set up LM Studio.
 - Resolution: Designed as designed — two-tier approach. Basic mode for instant use, LLM mode for quality.
 - LINKS: M-NOTES-PROCESSOR, M-PPTX-EXPORT
+
+### F-0013 — `httpx` is an eager import dependency for the GUI even when LLM is not used
+- Date: 2026-07-09
+- Area: gui
+- Finding: `gui/workers.py` had a top-level `from video_slide_md.llm_orchestrator import run_llm_pipeline`, which caused `llm_client.py` to import `httpx` eagerly. Users without `httpx` installed could not launch the GUI at all, even if they never intended to use LLM features.
+- Symptom/Reproduction: `video-slide-md gui` → `ModuleNotFoundError: No module named 'httpx'`.
+- Impact: GUI was unreachable without installing `httpx`.
+- Resolution: Moved the `from video_slide_md.llm_orchestrator import run_llm_pipeline` import inside `LlmWorker.run()` (lazy import). The GUI now starts without `httpx`; the error only appears if the user actually triggers LLM processing.
+- LINKS: M-GUI-WORKER, M-GUI-MAIN

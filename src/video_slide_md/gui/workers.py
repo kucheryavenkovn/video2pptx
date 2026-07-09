@@ -24,7 +24,6 @@ from PySide6.QtCore import QObject, Signal
 
 from video_slide_md.config import AppConfig
 from video_slide_md.detect_slides import run_detect_slides
-from video_slide_md.llm_orchestrator import run_llm_pipeline
 from video_slide_md.notes_pipeline import run_notes
 from video_slide_md.project_manager import Project, update_project_state
 
@@ -142,6 +141,7 @@ class LlmWorker(QObject):
                 return
 
             self.progress.emit(10, "Initializing LLM...")
+            from video_slide_md.llm_orchestrator import run_llm_pipeline
             run_llm_pipeline(
                 slides_path=slides_json,
                 llm_config=self._project.llm,
