@@ -19,14 +19,18 @@
 - **Коррекция транскрипта** LLM: исправление терминов и неточностей в расшифровке с учётом контекста слайда
 - **GPU-ускорение:** PyAV + CUDA NVDEC на RTX 4090, CPU-фолбэк
 - **LLM только для пост-обработки** — детекция слайдов остаётся детерминированной CV
+- **Десктопный GUI** — полноценное окно PySide6 с видеоплеером, таймлайном, субтитрами и настройками
 
 ## Быстрый старт
 
 ```bash
-# Установка
+# Установка (CLI)
 pip install video-slide-md
 
-# Базовый запуск
+# Установка с GUI
+pip install video-slide-md[gui]
+
+# Базовый запуск (CLI)
 video-slide-md detect lesson.mp4 \
   --subtitles lesson.srt \
   --out out/lesson_01 \
@@ -34,6 +38,9 @@ video-slide-md detect lesson.mp4 \
   --export-md \
   --export-pptx \
   --notes-mode basic
+
+# Запуск GUI
+video-slide-md gui
 
 # С LLM-обогащением (требуется LM Studio)
 video-slide-md detect lesson.mp4 \
@@ -64,6 +71,27 @@ hatch shell
 | `export-pptx <json>` | slides.json → deck.pptx (PPTX) |
 | `llm-process <json>` | slides.json → enriched slides.json (LLM vision анализ + коррекция транскрипта) |
 | `debug <json>` | slides.json → отладочные артефакты |
+| `gui` | Запуск десктопного GUI (PySide6) |
+
+## Десктопный GUI
+
+```bash
+# Установка с GUI-зависимостями
+pip install video-slide-md[gui]
+
+# Запуск
+video-slide-md gui
+```
+
+Интерфейс включает:
+- **Видеоплеер** — QMediaPlayer + QVideoWidget с транспортом (play/pause/stop, seek, громкость)
+- **Таймлайн** — зелёные маркеры детектированных слайдов, синие маркеры ручных границ
+- **Субтитры** — overlay текста поверх видео (SRT/VTT через pysubs2)
+- **Меню** — File (New/Open/Close/Save/Import SRT) и Edit (Project Settings, App Settings)
+- **Dialog проектов** — настройка ROI, порогов, FPS сэмплирования, дедупликации
+- **Dialog приложения** — LLM, GPU/бэкенд, стратегии snap, пути по умолчанию
+- **Ручные маркеры** — правый клик на таймлайне → добавить/удалить/переснапнуть, три стратегии snap (diff_only, fallback_analyze, hybrid)
+- **App Config** — персистентный YAML в `%APPDATA%/video-slide-md/` (Windows) или `~/.config/video-slide-md/`
 
 ### Параметры `detect`
 
@@ -167,6 +195,8 @@ llm:
 - Python 3.10+
 - OpenCV (CPU)
 - httpx (для LLM-клиента)
+- pysubs2 (для парсинга субтитров)
+- Опционально: PySide6 6.11+ (для GUI)
 - Опционально: PyAV 18+ с CUDA NVDEC (для RTX 4090)
 - Windows / Linux / macOS
 
