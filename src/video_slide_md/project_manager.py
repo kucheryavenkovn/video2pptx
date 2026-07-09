@@ -26,7 +26,7 @@ from typing import Any
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from video_slide_md.config import DetectionConfig, LlmConfig
+from video_slide_md.config import DetectionConfig, LlmConfig, VideoConfig
 
 
 class ProjectState(BaseModel):
@@ -54,6 +54,7 @@ class Project(BaseModel):
     name: str = Field(default="Untitled", description="Project name")
     video: str = Field(default="", description="Path to video file")
     subtitles: str | None = Field(default=None, description="Path to SRT/VTT subtitles file")
+    video_config: VideoConfig = Field(default_factory=VideoConfig, description="Video source and decoding settings")
     detection: DetectionConfig = Field(default_factory=DetectionConfig, description="Detection settings")
     llm: LlmConfig = Field(default_factory=LlmConfig, description="LLM settings")
     state: ProjectState = Field(default_factory=ProjectState, description="Pipeline progress flags")
