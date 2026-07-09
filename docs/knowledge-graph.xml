@@ -310,7 +310,7 @@
       </annotations>
     </M-GUI-SETTINGS-APP>
 
-    <M-GUI-VIDEOPLAYER NAME="VideoPlayer" TYPE="UI_COMPONENT" STATUS="pending">
+    <M-GUI-VIDEOPLAYER NAME="VideoPlayer" TYPE="UI_COMPONENT" STATUS="implemented">
       <purpose>QMediaPlayer + QVideoWidget with transport controls: play/pause/stop, seek slider, volume slider, time counter. Emits positionChanged for subtitle sync.</purpose>
       <path>src/video_slide_md/gui/video_player.py</path>
       <depends>PySide6.QtMultimedia</depends>

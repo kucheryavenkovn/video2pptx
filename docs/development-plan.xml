@@ -600,7 +600,7 @@
       <step-5 module="M-GUI-SETTINGS-APP" status="done" verification="V-M-GUI-SETTINGS-APP">
         Create src/video_slide_md/gui/settings_app.py: QDialog with tabs for LLM, GPU/Backend, Snap, Default Paths. Read/write via M-GUI-APPCONFIG.
       </step-5>
-      <step-6 module="M-GUI-VIDEOPLAYER" status="pending" verification="V-M-GUI-VIDEOPLAYER">
+      <step-6 module="M-GUI-VIDEOPLAYER" status="done" verification="V-M-GUI-VIDEOPLAYER">
         Create src/video_slide_md/gui/video_player.py: QWidget containing QVideoWidget + transport bar (play/pause/stop, seek slider, volume slider, time label). Emits positionChanged for subtitle sync.
       </step-6>
       <step-7 module="M-GUI-SUBTITLE-OVERLAY" status="pending" verification="V-M-GUI-SUBTITLE-OVERLAY">

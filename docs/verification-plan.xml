@@ -362,7 +362,7 @@
       </scenarios>
     </V-M-GUI-SETTINGS-APP>
 
-    <V-M-GUI-VIDEOPLAYER MODULE="M-GUI-VIDEOPLAYER" PRIORITY="high" STATUS="pending">
+    <V-M-GUI-VIDEOPLAYER MODULE="M-GUI-VIDEOPLAYER" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_gui_video_player.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_video_player.py -v</check-1>
