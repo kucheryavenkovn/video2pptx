@@ -609,7 +609,7 @@
       <step-8 module="M-GUI-TIMELINE-V2" status="done" verification="V-M-GUI-TIMELINE-V2">
         Create src/video_slide_md/gui/timeline_v2.py: Enhanced timeline with green (detected) and blue (manual) markers. Double-click green → open image. Right-click → add/edit/delete blue marker. Context menu with snap options.
       </step-8>
-      <step-9 module="M-GUI-MENUBAR" status="pending" verification="V-M-GUI-MENUBAR">
+      <step-9 module="M-GUI-MENUBAR" status="done" verification="V-M-GUI-MENUBAR">
         Create src/video_slide_md/gui/menu_bar.py: QMenuBar with File + Edit menus. Emits signals for all actions. Integrates into MainWindow replacing toolbar-only approach.
       </step-9>
       <step-10 module="M-GUI-MAIN" status="pending" verification="V-M-GUI-MAIN">

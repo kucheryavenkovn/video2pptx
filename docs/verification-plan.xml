@@ -406,7 +406,7 @@
       </scenarios>
     </V-M-GUI-TIMELINE-V2>
 
-    <V-M-GUI-MENUBAR MODULE="M-GUI-MENUBAR" PRIORITY="high" STATUS="pending">
+    <V-M-GUI-MENUBAR MODULE="M-GUI-MENUBAR" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_gui_menu_bar.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_menu_bar.py -v</check-1>

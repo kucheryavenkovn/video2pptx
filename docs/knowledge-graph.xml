@@ -347,7 +347,7 @@
       </annotations>
     </M-GUI-TIMELINE-V2>
 
-    <M-GUI-MENUBAR NAME="MenuBar" TYPE="UI_COMPONENT" STATUS="pending">
+    <M-GUI-MENUBAR NAME="MenuBar" TYPE="UI_COMPONENT" STATUS="implemented">
       <purpose>QMenuBar with File menu (New/Open/Close/Save Project, Import Video/Subtitles, Exit) and Edit menu (Project Settings, App Settings). Keyboard shortcuts. Emits signals for all actions.</purpose>
       <path>src/video_slide_md/gui/menu_bar.py</path>
       <depends>M-PROJECT</depends>
