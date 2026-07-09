@@ -18,8 +18,12 @@
 #   import_video_to_project - set video path, auto-detect sibling subtitles
 #   import_subtitles_to_project - set subtitle path
 #   update_project_state - modify state flags and persist
-#   load_slides_into_project - load slides from slides_json into project.slides
+#   load_slides_into_project - load slides from slides_json into project.slides (force flag added)
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   v0.1.1 - load_slides_into_project: added force parameter to preserve manually-adjusted slides
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -269,10 +273,10 @@ def update_project_state(project: Project, **state_kwargs: Any) -> Project:
     return project
 
 
-def load_slides_into_project(project: Project) -> Project:
+def load_slides_into_project(project: Project, force: bool = False) -> Project:
     # START_CONTRACT: load_slides_into_project
     #   PURPOSE: Load slides from slides_json into project.slides
-    #   INPUTS: { project: Project }
+    #   INPUTS: { project: Project, force: bool — overwrite existing slides (default False) }
     #   OUTPUTS: Project — updated in-place
     #   SIDE_EFFECTS: reads slides.json if it exists
     #   LINKS: M-PROJECT
@@ -291,12 +295,13 @@ def load_slides_into_project(project: Project) -> Project:
     import json
     try:
         raw = json.loads(slides_path.read_text(encoding="utf-8"))
-        project.slides = [SlideSegment(**s) for s in raw.get("slides", [])]
-        logger.info(f"[ProjectManager][load_slides_into_project] Loaded | count={len(project.slides)}")
-
-        # Store score waveform from document
+        # Preserve manually-adjusted positions on reopen; force overwrite after new detection
+        if force or not project.slides:
+            project.slides = [SlideSegment(**s) for s in raw.get("slides", [])]
+        # Always load score waveform from detection artifact
         project.score_timestamps = raw.get("score_timestamps", [])
         project.score_values = raw.get("score_values", [])
+        logger.info(f"[ProjectManager][load_slides_into_project] Loaded | count={len(project.slides)}")
     except Exception as exc:
         logger.error(f"[ProjectManager][load_slides_into_project] Failed | error={exc}")
         project.slides = []

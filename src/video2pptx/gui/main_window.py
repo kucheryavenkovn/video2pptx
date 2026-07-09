@@ -12,6 +12,12 @@
 # START_MODULE_MAP
 #   MainWindow - QMainWindow subclass with full integration, always-visible timeline, marker panel
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   v0.3.1 - Fix _on_slide_resized duplicate save + missing timeline refresh
+#   v0.3.1 - Fix closeEvent not clearing timeline (now calls _on_close_project)
+#   v0.3.1 - Fix _on_detect_finished / _on_notes_finished pass force=True to load_slides_into_project
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -19,7 +25,7 @@ from pathlib import Path
 
 import pysubs2
 from loguru import logger
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QCloseEvent, QKeySequence, QPixmap, QShortcut
 from PySide6.QtWidgets import (
     QDialog,
@@ -316,6 +322,7 @@ class MainWindow(QMainWindow):
         self._video_player.clear_video()
         self._video_player.set_subtitle_text(None)
         self._subs = None
+        self._timeline.set_subtitles(None)
         self._project = None
         self._video_label.setText("Video: —")
         self._subs_label.setText("Subtitles: —")
@@ -443,6 +450,7 @@ class MainWindow(QMainWindow):
                 save_app_config(cfg)
             except Exception:
                 pass
+        self._on_close_project()
         super().closeEvent(event)
 
     def _try_restore_last_project(self) -> None:
@@ -744,7 +752,8 @@ class MainWindow(QMainWindow):
             self._project.slides.sort(key=lambda s: s.start)
             for i, s in enumerate(self._project.slides):
                 s.index = i + 1
-            self._timeline.set_slides(self._project.slides)
+            # Defer rebuild to avoid destroying the item during its own event handler
+            QTimer.singleShot(0, lambda: self._timeline.set_slides(self._project.slides))
             self.statusBar().showMessage(f"Slide {index} moved: {new_start:.1f}s – {new_end:.1f}s")
 
     def _on_slide_resized(self, index: int, new_start: float, new_end: float) -> None:
@@ -755,8 +764,7 @@ class MainWindow(QMainWindow):
             s.end = new_end
             s.duration = new_end - new_start
             save_project(self._project)
-            self.statusBar().showMessage(f"Slide {index} resized: {new_start:.1f}s – {new_end:.1f}s")
-            save_project(self._project)
+            QTimer.singleShot(0, lambda: self._timeline.set_slides(self._project.slides))
             self.statusBar().showMessage(f"Slide {index} resized: {new_start:.1f}s – {new_end:.1f}s")
 
     def _on_open_subtitle_editor(self, slide_index: int) -> None:
@@ -847,7 +855,7 @@ class MainWindow(QMainWindow):
     def _on_detect_finished(self, path: str) -> None:
         self._status.finish(f"Detection complete: {path}")
         update_project_state(self._project, detect_done=True, slides_json=path)
-        load_slides_into_project(self._project)
+        load_slides_into_project(self._project, force=True)
         # Set score waveform from slides.json
         if self._project.score_timestamps and self._project.score_values:
             self._timeline.set_scores(self._project.score_timestamps, self._project.score_values)
@@ -869,7 +877,7 @@ class MainWindow(QMainWindow):
         self._detect_thread.quit()
 
     def _on_notes_finished(self, path: str) -> None:
-        load_slides_into_project(self._project)
+        load_slides_into_project(self._project, force=True)
         self._status.finish(f"Notes processed: {len(self._project.slides)} slides")
         self._notes_btn.setEnabled(True)
         self._notes_thread.quit()

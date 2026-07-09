@@ -18,7 +18,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from loguru import logger
-from PySide6.QtCore import QSizeF, Qt, Signal
+from PySide6.QtCore import QSizeF, Qt, QUrl, Signal
 from PySide6.QtGui import QColor, QFont, QKeyEvent, QPixmap, QResizeEvent, QTextOption
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
@@ -234,7 +234,7 @@ class VideoPlayerWidget(QWidget):
         return self._player
 
     def clear_video(self) -> None:
-        self._player.setSource(None)
+        self._player.setSource(QUrl())
         self._time_label.setText("00:00 / 00:00")
         self._seek_slider.setRange(0, 0)
         self._is_playing = False

@@ -8,6 +8,10 @@
 #   ROLE: UI_COMPONENT
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
+#
+# START_CHANGE_SUMMARY
+#   v0.1.1 - SlideBlockItem.mouseReleaseEvent: update _start_sec/_end_sec after move/resize
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -145,6 +149,8 @@ class SlideBlockItem(QGraphicsRectItem):
                     px = getattr(views[0], '_px_per_sec', 50.0)
                     new_start = max(0.0, new_x / px if px > 0 else 0.0)
                     new_end = max(new_start + 1.0, (new_x + self.rect().width()) / px if px > 0 else 0.0)
+                    self._start_sec = new_start
+                    self._end_sec = new_end
                     if self._on_moved:
                         self._on_moved(self._slide_index, new_start, new_end)
 
@@ -156,6 +162,8 @@ class SlideBlockItem(QGraphicsRectItem):
                 rw = self.rect().width()
                 new_start = max(0.0, rx / px if px > 0 else 0.0)
                 new_end = max(new_start + 1.0, (rx + rw) / px if px > 0 else 0.0)
+                self._start_sec = new_start
+                self._end_sec = new_end
                 if self._on_resized:
                     self._on_resized(self._slide_index, new_start, new_end)
 

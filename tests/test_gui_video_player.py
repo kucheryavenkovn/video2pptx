@@ -150,9 +150,10 @@ class TestVideoPlayerWidget:
         from video2pptx.gui.video_player import VideoPlayerWidget
         widget = VideoPlayerWidget()
 
+        from PySide6.QtCore import QUrl
         with patch.object(widget._player, "setSource") as mock_set:
             widget.clear_video()
-            mock_set.assert_called_once_with(None)
+            mock_set.assert_called_once_with(QUrl())
 
         assert widget._time_label.text() == "00:00 / 00:00"
         widget.deleteLater()

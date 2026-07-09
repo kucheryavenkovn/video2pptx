@@ -148,6 +148,42 @@
 - Resolution: Wrapped `import httpx` in try/except at module level with `_HAS_HTTPX` flag. `LlmClient.__init__` now raises clear `ImportError` with install instructions only when instantiation is attempted. Both callers in `settings_app.py` already catch `Exception` → no more crash.
 - LINKS: M-LLM-CLIENT, M-GUI-SETTINGS-APP, src/video2pptx/llm_client.py, src/video2pptx/gui/settings_app.py
 
+### F-0018 — `_on_slide_resized` has duplicate saves + missing timeline refresh
+- Date: 2026-07-09
+- Area: gui
+- Finding: `MainWindow._on_slide_resized` called `save_project()` twice and `statusBar().showMessage()` twice without calling `self._timeline.set_slides()`. After resizing a slide block, the visual did not update until a full redraw (zoom change, add slide, etc.).
+- Symptom/Reproduction: Drag edge of slide block on timeline → block snaps back to old size visually. Log shows two `Project saved` messages and two status bar messages.
+- Impact: Timeline visual out of sync after resize; double save is harmless but wasteful.
+- Resolution: Removed duplicate `save_project()` + `showMessage()`. Added `self._timeline.set_slides(self._project.slides)` to refresh visual after resize.
+- LINKS: M-GUI-MAIN, src/video2pptx/gui/main_window.py:750
+
+### F-0019 — Manual slide position adjustments lost on project reopen
+- Date: 2026-07-09
+- Area: gui
+- Finding: `open_project()` calls `load_slides_into_project()` which always overwrites `project.slides` from `slides.json` (the canonical detection artifact). Manual position adjustments persisted in `project.json` via `save_project()` are lost because `load_slides_into_project` unconditionally reloads from `slides.json`.
+- Symptom/Reproduction: Move/resize a slide block → close project → reopen → positions reset to original detection values.
+- Impact: All manual timeline adjustments lost on reopen.
+- Resolution: Added `force: bool = False` parameter to `load_slides_into_project()`. Only overwrites `project.slides` from `slides.json` if `force=True` or `project.slides` is empty. New detection (`_on_detect_finished`) and notes (`_on_notes_finished`) pass `force=True`.
+- LINKS: M-PROJECT, M-GUI-MAIN, src/video2pptx/project_manager.py:272
+
+### F-0020 — `SlideBlockItem._start_sec`/`_end_sec` not updated after move/resize
+- Date: 2026-07-09
+- Area: gui
+- Finding: `SlideBlockItem` stores `_start_sec` and `_end_sec` at construction but never updates them after a drag move or edge resize. The `on_moved`/`on_resized` callbacks emit correct new values to MainWindow, but `item.start_sec()` still returns the original value.
+- Symptom/Reproduction: After moving a slide block, `item.start_sec()` returns old (pre-move) value. The context menu subtitle viewer (`_show_slide_subtitles`) reads these stale values.
+- Impact: Context menu subtitle region uses wrong time bounds after any drag or resize.
+- Resolution: Set `self._start_sec = new_start` and `self._end_sec = new_end` after computing the new values in `mouseReleaseEvent`.
+- LINKS: M-GUI-TIMELINE3-ITEMS, src/video2pptx/gui/timeline3/items.py:138
+
+### F-0021 — `MainWindow.closeEvent` does not clear timeline on window close
+- Date: 2026-07-09
+- Area: gui
+- Finding: `closeEvent` only saves `last_project_path` to app config but does not call `_on_close_project()`. The timeline, project state, and video player are not cleared when the user closes the window directly (vs. using File → Close Project).
+- Symptom/Reproduction: Open project → close window via `X` button → reopen app → previous project data still visible in timeline.
+- Impact: Leftover state from previous session visible in GUI until a new project is opened or closed via menu.
+- Resolution: Added `self._on_close_project()` call at end of `closeEvent()`.
+- LINKS: M-GUI-MAIN, src/video2pptx/gui/main_window.py:438
+
 ### F-0016 — QVideoWidget hardware overlay renders above all QWidget siblings; use QGraphicsVideoItem instead
 - Date: 2026-07-09
 - Area: gui
