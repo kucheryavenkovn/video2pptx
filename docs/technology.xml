@@ -17,6 +17,7 @@
     <dep name="imagehash" version=">=4.3" purpose="Perceptual hashing (pHash, dHash)" />
     <dep name="scikit-image" version=">=0.21" purpose="SSIM comparison, image metrics" />
     <dep name="matplotlib" version=">=3.7" purpose="Debug chart generation" />
+    <dep name="httpx" version=">=0.27" purpose="HTTP client for LLM API calls" />
   </Dependencies>
 
   <VersionConstraints>

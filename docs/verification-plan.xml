@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<VerificationPlan VERSION="0.1.0">
+<VerificationPlan VERSION="0.2.0">
   <GlobalPolicy>
     <log-format>[ModuleName][function_name][BLOCK_NAME] message | key=value</log-format>
     <deterministic-first>true</deterministic-first>
@@ -18,359 +18,192 @@
     <VF-001 NAME="DetectHappyPath" USE_CASES="UC-001" DATA_FLOW="DF-001" PRIORITY="high">
       <scenario>User provides valid MP4 + SRT — pipeline produces slides.json + images with correct intervals.</scenario>
       <expected-outcome>slides.json validates, slide images saved, transcript aligned.</expected-outcome>
-      <required-signals>
-        <log-marker>[SlideDetector][detect_changes][BLOCK_COMPARE_FRAMES]</log-marker>
-        <log-marker>[Segmenter][build_segments][BLOCK_BUILD_INTERVALS]</log-marker>
-        <log-marker>[Subtitles][align_cues][BLOCK_OVERLAP_CALC]</log-marker>
-      </required-signals>
     </VF-001>
 
     <VF-002 NAME="ExportMDPath" USE_CASES="UC-002" DATA_FLOW="DF-002" PRIORITY="high">
       <scenario>Valid slides.json → deck.md with correct Marp formatting.</scenario>
-      <expected-outcome>deck.md renders in Marp viewer with images and transcript.</expected-outcome>
-      <required-signals>
-        <log-marker>[MarkdownExport][export_deck][BLOCK_GENERATE_MD]</log-marker>
-      </required-signals>
+      <expected-outcome>deck.md renders in Marp viewer.</expected-outcome>
     </VF-002>
+
+    <VF-003 NAME="GPUAutoFallback" USE_CASES="UC-001" DATA_FLOW="DF-001" PRIORITY="medium">
+      <scenario>System without CUDA — auto backend falls back to OpenCV with warning.</scenario>
+      <expected-outcome>Pipeline completes on CPU with WARNING log line.</expected-outcome>
+    </VF-003>
 
     <VF-004 NAME="ExportPptxPath" USE_CASES="UC-002" DATA_FLOW="DF-002" PRIORITY="high">
       <scenario>Valid slides.json + images → deck.pptx with full-slide pictures and speaker notes.</scenario>
       <expected-outcome>deck.pptx has correct slide count, notes contain cleaned transcript, images embedded.</expected-outcome>
-      <required-signals>
-        <log-marker>[PptxExport][export_to_pptx][BLOCK_PPTX_BUILD]</log-marker>
-      </required-signals>
     </VF-004>
 
     <VF-005 NAME="NotesProcessingPath" USE_CASES="UC-001" DATA_FLOW="DF-002" PRIORITY="medium">
       <scenario>Segment with SRT cues → process_notes(basic) → clean speaker notes text.</scenario>
       <expected-outcome>Raw subtitle fragments joined, punctuated, deduplicated into flowing text.</expected-outcome>
-      <required-signals>
-        <log-marker>[NotesProcessor][_basic_cleanup]</log-marker>
-      </required-signals>
     </VF-005>
 
-    <VF-006 NAME="LlmProcessPath" USE_CASES="UC-004" DATA_FLOW="DF-003" PRIORITY="high">
-      <scenario>Valid slides.json + slides images + LM Studio running → enriched slides.json with llm_description and corrected transcript.</scenario>
-      <expected-outcome>Each slide gets llm_description with slide content summary, transcript corrected with slide context terms, model unloaded after processing.</expected-outcome>
-      <required-signals>
-        <log-marker>[LlmClient][load_model]</log-marker>
-        <log-marker>[SlideAnalyzer][analyze][BLOCK_VISION_REQUEST]</log-marker>
-        <log-marker>[LlmOrchestrator][process_slide][BLOCK_SAVE_DESCRIPTION]</log-marker>
-        <log-marker>[LlmClient][unload_model]</log-marker>
-      </required-signals>
+    <VF-006 NAME="DetectSlidesNoSubtitles" USE_CASES="UC-005" DATA_FLOW="DF-005" PRIORITY="high">
+      <scenario>User runs detect-slides with only a video — no subtitles.</scenario>
+      <expected-outcome>slides.json produced with intervals and representative timestamps. Transcript fields may be empty. No error.</expected-outcome>
     </VF-006>
 
-    <VF-003 NAME="GPUAutoFallback" USE_CASES="UC-001" DATA_FLOW="DF-001" PRIORITY="medium">
-      <scenario>System without CUDA — auto backend falls back to OpenCV with warning.</scenario>
-      <expected-outcome>Pipeline completes on CPU with WARNING log line.</expected-outcome>
-      <required-signals>
-        <log-marker>[VideoDecode][select_backend][BLOCK_FALLBACK_CPU] (level=WARNING)</log-marker>
-      </required-signals>
-    </VF-003>
+    <VF-007 NAME="NotesPostProcess" USE_CASES="UC-006" DATA_FLOW="DF-004" PRIORITY="high">
+      <scenario>User runs detect first, then later runs notes with different subtitles/notes-mode. No video re-decode.</scenario>
+      <expected-outcome>Notes command loads existing slides.json, aligns new subtitles, generates notes, saves. Runs in seconds, not minutes.</expected-outcome>
+    </VF-007>
+
+    <VF-008 NAME="RoiToolVisualSelect" USE_CASES="UC-007" DATA_FLOW="DF-006" PRIORITY="medium">
+      <scenario>User runs roi-tool with a video, drags a rectangle, presses Enter.</scenario>
+      <expected-outcome>Coordinates printed to stdout in format x1,y1,x2,y2. Window closes cleanly.</expected-outcome>
+    </VF-008>
   </CriticalFlows>
 
   <ModuleVerification>
     <V-M-MODELS MODULE="M-MODELS" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_models.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_models.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">SlidesDocument serialization round-trip works.</scenario-1>
-        <scenario-2 kind="success">SlideSegment defaults are correct.</scenario-2>
-        <scenario-3 kind="failure">Invalid duration is rejected by ge=0 constraint.</scenario-3>
-      </scenarios>
+      <module-checks><check-1>pytest tests/test_models.py -v</check-1></module-checks>
     </V-M-MODELS>
 
     <V-M-CONFIG MODULE="M-CONFIG" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_config.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_config.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">YAML + CLI arg merge gives correct precedence.</scenario-1>
-        <scenario-2 kind="success">Missing config file falls back to defaults.</scenario-2>
-      </scenarios>
+      <module-checks><check-1>pytest tests/test_config.py -v</check-1></module-checks>
     </V-M-CONFIG>
 
     <V-M-CLI MODULE="M-CLI" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_cli.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_cli.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">CLI help displays correctly.</scenario-1>
-        <scenario-2 kind="failure">Missing video file exits with code 1.</scenario-2>
-        <scenario-3 kind="success">CLI overrides are built from flat kwargs.</scenario-3>
-      </scenarios>
+      <module-checks><check-1>pytest tests/test_cli.py -v</check-1></module-checks>
     </V-M-CLI>
 
     <V-M-BACKENDS MODULE="M-BACKENDS" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_backends.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_backends.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">OpenCV backend returns correct frame count.</scenario-1>
-        <scenario-2 kind="success">Backend auto-selection falls back to OpenCV.</scenario-2>
-        <scenario-3 kind="success">Video metadata is extracted correctly.</scenario-3>
-        <scenario-4 kind="failure">Missing video raises FileNotFoundError.</scenario-4>
-      </scenarios>
+      <module-checks><check-1>pytest tests/test_backends.py -v</check-1></module-checks>
     </V-M-BACKENDS>
-
-    <V-M-BACKEND-PYAV MODULE="M-BACKEND-PYAV" PRIORITY="medium" STATUS="implemented">
-      <test-files><file>tests/test_backends.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_backends.py -k "pyav" -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">PyAV backend returns correct metadata.</scenario-1>
-        <scenario-2 kind="success">PyAV frame iteration returns correct count at sample_fps.</scenario-2>
-        <scenario-3 kind="success">PyAV iter_frames yields RGB ndarrays with increasing timestamps.</scenario-3>
-        <scenario-4 kind="success">PyAV backend is picked by auto when available.</scenario-4>
-        <scenario-5 kind="failure">PyAV missing video raises FileNotFoundError.</scenario-5>
-        <scenario-6 kind="success">PyAV with CUDA hwaccel decodes correctly.</scenario-6>
-      </scenarios>
-    </V-M-BACKEND-PYAV>
 
     <V-M-VIDEO-DECODE MODULE="M-VIDEO-DECODE" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_video_decode.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_video_decode.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">VideoDecoder returns correct metadata.</scenario-1>
-        <scenario-2 kind="success">Frame iteration returns correct count.</scenario-2>
-        <scenario-3 kind="success">Auto backend selection works.</scenario-3>
-        <scenario-4 kind="success">Timestamps are increasing.</scenario-4>
-      </scenarios>
+      <module-checks><check-1>pytest tests/test_video_decode.py -v</check-1></module-checks>
     </V-M-VIDEO-DECODE>
 
     <V-M-ROI MODULE="M-ROI" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_roi.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_roi.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">ROI parsing from various formats.</scenario-1>
-        <scenario-2 kind="success">Crop clips to frame boundaries.</scenario-2>
-        <scenario-3 kind="success">Ignore regions are blacked out.</scenario-3>
-      </scenarios>
+      <module-checks><check-1>pytest tests/test_roi.py -v</check-1></module-checks>
     </V-M-ROI>
 
     <V-M-FRAME-FEATURES MODULE="M-FRAME-FEATURES" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_frame_features.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_frame_features.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">Feature extraction returns valid hashes.</scenario-1>
-        <scenario-2 kind="success">Visual distance is symmetric.</scenario-2>
-        <scenario-3 kind="success">Auto threshold computation returns reasonable value.</scenario-3>
-      </scenarios>
+      <module-checks><check-1>pytest tests/test_frame_features.py -v</check-1></module-checks>
     </V-M-FRAME-FEATURES>
 
-    <V-M-SUBTITLES MODULE="M-SUBTITLES" PRIORITY="high" STATUS="passed">
-      <test-files><file>tests/test_subtitles.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_subtitles.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">SRT parsing returns correct cues.</scenario-1>
-        <scenario-2 kind="success">VTT parsing returns correct cues.</scenario-2>
-        <scenario-3 kind="success">Overlap calculation assigns cues correctly.</scenario-3>
-        <scenario-4 kind="success">Cue crossing slide boundary assigned to max overlap slide.</scenario-4>
-        <scenario-5 kind="success">Cyrillic text is preserved correctly.</scenario-5>
-      </scenarios>
-    </V-M-SUBTITLES>
+    <V-M-SLIDE-DETECTOR MODULE="M-SLIDE-DETECTOR" PRIORITY="high" STATUS="passed">
+      <test-files><file>tests/test_slide_detector.py</file></test-files>
+      <module-checks><check-1>pytest tests/test_slide_detector.py -v</check-1></module-checks>
+    </V-M-SLIDE-DETECTOR>
 
     <V-M-SEGMENTER MODULE="M-SEGMENTER" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_segmenter.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_segmenter.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">Change timestamps produce correct intervals.</scenario-1>
-        <scenario-2 kind="success">Short segments handled correctly (merge/warn).</scenario-2>
-        <scenario-3 kind="success">Representative timestamp chosen correctly (80% for long, 50% for short).</scenario-3>
-      </scenarios>
+      <module-checks><check-1>pytest tests/test_segmenter.py -v</check-1></module-checks>
     </V-M-SEGMENTER>
 
     <V-M-DEDUPE MODULE="M-DEDUPE" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_dedupe.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_dedupe.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">Adjacent identical slides are merged.</scenario-1>
-        <scenario-2 kind="success">Similar slides with warning are flagged.</scenario-2>
-        <scenario-3 kind="success">Different slides are left separate.</scenario-3>
-      </scenarios>
+      <module-checks><check-1>pytest tests/test_dedupe.py -v</check-1></module-checks>
     </V-M-DEDUPE>
+
+    <V-M-SUBTITLES MODULE="M-SUBTITLES" PRIORITY="high" STATUS="passed">
+      <test-files><file>tests/test_subtitles.py</file></test-files>
+      <module-checks><check-1>pytest tests/test_subtitles.py -v</check-1></module-checks>
+    </V-M-SUBTITLES>
 
     <V-M-MD-EXPORT MODULE="M-MD-EXPORT" PRIORITY="medium" STATUS="passed">
       <test-files><file>tests/test_markdown_export.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_markdown_export.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">Marp header and slide content is generated correctly.</scenario-1>
-        <scenario-2 kind="success">Timecodes are included in HTML comments.</scenario-2>
-      </scenarios>
+      <module-checks><check-1>pytest tests/test_markdown_export.py -v</check-1></module-checks>
     </V-M-MD-EXPORT>
 
-    <V-M-PPTX-EXPORT MODULE="M-PPTX-EXPORT" PRIORITY="medium" STATUS="implemented">
+    <V-M-PPTX-EXPORT MODULE="M-PPTX-EXPORT" PRIORITY="medium" STATUS="passed">
       <test-files><file>tests/test_pptx_export.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_pptx_export.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">Export creates valid .pptx with correct slide count.</scenario-1>
-        <scenario-2 kind="success">Each slide has notes with formatted timestamps and cues.</scenario-2>
-        <scenario-3 kind="success">Slide images are embedded when image files exist.</scenario-3>
-        <scenario-4 kind="success">Minimal slides.json with no images or cues still exports.</scenario-4>
-        <scenario-5 kind="success">Notes mode parameter passed through to process_notes.</scenario-5>
-      </scenarios>
+      <module-checks><check-1>pytest tests/test_pptx_export.py -v</check-1></module-checks>
     </V-M-PPTX-EXPORT>
 
-    <V-M-NOTES-PROCESSOR MODULE="M-NOTES-PROCESSOR" PRIORITY="medium" STATUS="implemented">
+    <V-M-NOTES-PROCESSOR MODULE="M-NOTES-PROCESSOR" PRIORITY="medium" STATUS="passed">
       <test-files><file>tests/test_notes_processor.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_notes_processor.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">Basic mode joins SRT cues into continuous text.</scenario-1>
-        <scenario-2 kind="success">Basic mode fixes punctuation and capitalizes.</scenario-2>
-        <scenario-3 kind="success">Basic mode deduplicates repeated words from SRT overlap.</scenario-3>
-        <scenario-4 kind="success">Empty text returns empty string.</scenario-4>
-        <scenario-5 kind="success">process_notes with basic mode returns cleaned text.</scenario-5>
-      </scenarios>
+      <module-checks><check-1>pytest tests/test_notes_processor.py -v</check-1></module-checks>
     </V-M-NOTES-PROCESSOR>
 
     <V-M-DEBUG-EXPORT MODULE="M-DEBUG-EXPORT" PRIORITY="low" STATUS="passed">
       <test-files><file>tests/test_debug_export.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_debug_export.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">CSV export writes correct format.</scenario-1>
-        <scenario-2 kind="success">Report contains segment details.</scenario-2>
-      </scenarios>
+      <module-checks><check-1>pytest tests/test_debug_export.py -v</check-1></module-checks>
     </V-M-DEBUG-EXPORT>
-
-    <V-M-SLIDE-DETECTOR MODULE="M-SLIDE-DETECTOR" PRIORITY="high" STATUS="passed">
-      <test-files><file>tests/test_slide_detector.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_slide_detector.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">Static frames produce no changes.</scenario-1>
-        <scenario-2 kind="success">Clear slide transition is detected.</scenario-2>
-        <scenario-3 kind="success">Short noise (cursor flicker) does not trigger false change.</scenario-3>
-        <scenario-4 kind="success">min_stable_duration debounce works correctly.</scenario-4>
-      </scenarios>
-    </V-M-SLIDE-DETECTOR>
-
-    <V-M-LLM-CLIENT MODULE="M-LLM-CLIENT" PRIORITY="high" STATUS="passed">
-      <test-files><file>tests/test_llm_client.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_llm_client.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">chat() sends correct request format and returns parsed response.</scenario-1>
-        <scenario-2 kind="success">vision() sends image as base64 and returns description.</scenario-2>
-        <scenario-3 kind="success">load_model() calls LM Studio load endpoint.</scenario-3>
-        <scenario-4 kind="success">unload_model() calls LM Studio unload endpoint.</scenario-4>
-        <scenario-5 kind="failure">Connection refused raises clear error with instructions.</scenario-5>
-        <scenario-6 kind="failure">Model not found raises clear error.</scenario-6>
-        <scenario-7 kind="success">Context window truncation works correctly.</scenario-7>
-      </scenarios>
-    </V-M-LLM-CLIENT>
-
-    <V-M-SLIDE-ANALYZER MODULE="M-SLIDE-ANALYZER" PRIORITY="high" STATUS="passed">
-      <test-files><file>tests/test_slide_analyzer.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_slide_analyzer.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">Slide image with text → LLM returns accurate description with visible terms.</scenario-1>
-        <scenario-2 kind="success">Slide image without text → LLM returns visual description only.</scenario-2>
-        <scenario-3 kind="failure">Missing image file raises clear error.</scenario-3>
-        <scenario-4 kind="failure">LLM vision returns empty → fallback description with warning.</scenario-4>
-      </scenarios>
-    </V-M-SLIDE-ANALYZER>
-
-    <V-M-LLM-ORCHESTRATOR MODULE="M-LLM-ORCHESTRATOR" PRIORITY="high" STATUS="passed">
-      <test-files><file>tests/test_llm_orchestrator.py</file></test-files>
-      <module-checks>
-        <check-1>pytest tests/test_llm_orchestrator.py -v</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">Full pipeline: load → analyze slides → rephrase → unload → enriched slides.json with llm_description.</scenario-1>
-        <scenario-2 kind="success">Slide descriptions sidecar files written to disk.</scenario-2>
-        <scenario-3 kind="failure">LM Studio unavailable → graceful abort with clear message, no model leak.</scenario-3>
-        <scenario-4 kind="failure">Single slide vision fails → warning logged, slide skipped, pipeline continues.</scenario-4>
-        <scenario-5 kind="success">Model unloads after processing even on partial failure.</scenario-5>
-      </scenarios>
-    </V-M-LLM-ORCHESTRATOR>
 
     <V-M-CLI-E2E MODULE="M-PIPELINE" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_cli_e2e.py</file></test-files>
+      <module-checks><check-1>pytest tests/test_cli_e2e.py -v</check-1></module-checks>
+    </V-M-CLI-E2E>
+
+    <V-M-LLM-CLIENT MODULE="M-LLM-CLIENT" PRIORITY="medium" STATUS="passed">
+      <test-files><file>tests/test_llm_client.py</file></test-files>
+      <module-checks><check-1>pytest tests/test_llm_client.py -v</check-1></module-checks>
+    </V-M-LLM-CLIENT>
+
+    <V-M-SLIDE-ANALYZER MODULE="M-SLIDE-ANALYZER" PRIORITY="medium" STATUS="passed">
+      <test-files><file>tests/test_slide_analyzer.py</file></test-files>
+      <module-checks><check-1>pytest tests/test_slide_analyzer.py -v</check-1></module-checks>
+    </V-M-SLIDE-ANALYZER>
+
+    <V-M-LLM-ORCHESTRATOR MODULE="M-LLM-ORCHESTRATOR" PRIORITY="medium" STATUS="passed">
+      <test-files><file>tests/test_llm_orchestrator.py</file></test-files>
+      <module-checks><check-1>pytest tests/test_llm_orchestrator.py -v</check-1></module-checks>
+    </V-M-LLM-ORCHESTRATOR>
+
+    <V-M-DETECT-SLIDES MODULE="M-DETECT-SLIDES" PRIORITY="high" STATUS="pending">
+      <test-files><file>tests/test_detect_slides.py</file></test-files>
       <module-checks>
-        <check-1>pytest tests/test_cli_e2e.py -v</check-1>
+        <check-1>pytest tests/test_detect_slides.py -v</check-1>
       </module-checks>
       <scenarios>
-        <scenario-1 kind="success">Detect command produces slides.json with correct structure.</scenario-1>
-        <scenario-2 kind="success">Detect with SRT aligns transcript to slides.</scenario-2>
-        <scenario-3 kind="success">Detect with --export-md generates valid deck.md.</scenario-3>
-        <scenario-4 kind="success">Detect with --debug creates debug artifacts.</scenario-4>
-        <scenario-5 kind="success">Export-md command processes existing slides.json.</scenario-5>
-        <scenario-6 kind="success">Debug command processes existing slides.json.</scenario-6>
+        <scenario-1 kind="success">detect_slides with video produces slides.json with intervals and images, no transcript.</scenario-1>
+        <scenario-2 kind="success">detect_slides with synthetic video returns correct segment count.</scenario-2>
+        <scenario-3 kind="success">detect_slides output can be loaded by notes command later.</scenario-3>
       </scenarios>
-    </V-M-CLI-E2E>
+    </V-M-DETECT-SLIDES>
+
+    <V-M-NOTES MODULE="M-NOTES" PRIORITY="high" STATUS="pending">
+      <test-files><file>tests/test_notes_pipeline.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_notes_pipeline.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">notes command with slides.json + SRT produces cleaned transcript on segments.</scenario-1>
+        <scenario-2 kind="success">notes command without subtitles gracefully handles missing cues.</scenario-2>
+        <scenario-3 kind="success">notes command with --notes-mode basic uses _basic_cleanup.</scenario-3>
+        <scenario-4 kind="success">Notes mode can be changed and re-run without re-detecting slides.</scenario-4>
+      </scenarios>
+    </V-M-NOTES>
+
+    <V-M-ROI-TOOL MODULE="M-ROI-TOOL" PRIORITY="medium" STATUS="pending">
+      <test-files><file>tests/test_roi_tool.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_roi_tool.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">roi_tool opens video frame, rectangle coordinates printed to stdout.</scenario-1>
+        <scenario-2 kind="success">roi_tool handles video with no keyframes gracefully.</scenario-2>
+        <scenario-3 kind="success">Output format is parseable by --ignore-roi.</scenario-3>
+      </scenarios>
+    </V-M-ROI-TOOL>
   </ModuleVerification>
 
   <PhaseGates>
-    <Gate-Phase-1 PHASE="Phase-1">
-      <goal>CLI runs, models validate, config loads.</goal>
-      <commands><command-1>pytest tests/test_models.py tests/test_config.py -v</command-1></commands>
-    </Gate-Phase-1>
-
-    <Gate-Phase-2 PHASE="Phase-2">
-      <goal>OpenCV backend decodes video and iterates frames.</goal>
-      <commands><command-1>pytest tests/test_backends.py -v</command-1></commands>
-    </Gate-Phase-2>
-
-    <Gate-Phase-3 PHASE="Phase-3">
-      <goal>Synthetic video pipeline produces correct slide intervals.</goal>
-      <commands><command-1>pytest tests/test_slide_detector.py tests/test_segmenter.py tests/test_dedupe.py -v</command-1></commands>
-    </Gate-Phase-3>
-
-    <Gate-Phase-4 PHASE="Phase-4">
-      <goal>Full pipeline: video + subtitles → slides.json + deck.md.</goal>
-      <commands><command-1>pytest tests/test_subtitles.py tests/test_markdown_export.py -v</command-1></commands>
-    </Gate-Phase-4>
-
-    <V-M-COLAB MODULE="M-COLAB" PRIORITY="low" STATUS="planned">
-      <test-files><file>colab/video_slide_md_colab.ipynb</file></test-files>
-      <module-checks>
-        <check-1>Open in Colab, Runtime → T4 GPU, Run All — pipeline completes without error</check-1>
-      </module-checks>
-      <scenarios>
-        <scenario-1 kind="success">Notebook runs end-to-end: install → detect → export → download works with sample video.</scenario-1>
-        <scenario-2 kind="success">PyAV with CUDA hwaccel auto-detects T4 GPU.</scenario-2>
-        <scenario-3 kind="failure">Missing video file shows clear error message.</scenario-3>
-      </scenarios>
-    </V-M-COLAB>
-
-    <Gate-Phase-5 PHASE="Phase-5">
-      <goal>End-to-end: CLI detect/export-md/debug all work with synthetic video.</goal>
-      <commands><command-1>pytest tests/test_cli_e2e.py -v</command-1></commands>
-    </Gate-Phase-5>
-
-    <Gate-Phase-7 PHASE="Phase-7">
-      <goal>LLM processing pipeline: llm-process command enriches slides.json with vision descriptions and corrected transcript.</goal>
-      <commands><command-1>pytest tests/test_llm_client.py tests/test_slide_analyzer.py tests/test_llm_orchestrator.py -v</command-1></commands>
+    <Gate-Phase-7 PRIORITY="high" STATUS="pending">
+      <goal>detect-slides and notes commands work independently. detect (all-in-one) remains backwards compatible.</goal>
+      <commands>
+        <command-1>pytest tests/test_detect_slides.py tests/test_notes_pipeline.py tests/test_cli_e2e.py -v</command-1>
+      </commands>
     </Gate-Phase-7>
+
+    <Gate-Phase-8 PRIORITY="medium" STATUS="pending">
+      <goal>roi-tool command opens window, selects region, prints coordinates.</goal>
+      <commands>
+        <command-1>pytest tests/test_roi_tool.py -v</command-1>
+        <command-2>python -c "from video_slide_md.cli import app; app()" roi-tool --help</command-2>
+      </commands>
+    </Gate-Phase-8>
   </PhaseGates>
 </VerificationPlan>

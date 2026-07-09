@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DevelopmentPlan VERSION="0.1.0">
+<DevelopmentPlan VERSION="0.2.0">
   <ArchitectureNotes>
-    <objective>Build a reliable pipeline: video → slide detection → intervals → subtitle alignment → slide images + JSON + Markdown.</objective>
-    <non-goal>Do not build PPTX export, OCR, LLM descriptions, or web UI in MVP.</non-goal>
+    <objective>Build a staged pipeline: video → slide intervals (standalone) → notes + visual context → export. Each stage is an independent CLI command.</objective>
+    <non-goal>No ASR, no cloud processing, no web UI.</non-goal>
     <risk-1>False slide splits due to cursor movement, webcam, or compression artifacts.</risk-1>
     <risk-2>GPU backend may not be available — CPU fallback must always work.</risk-2>
+    <risk-3>detect-slides is the longest step (2-3 video passes). Notes and export are fast.</risk-3>
   </ArchitectureNotes>
 
   <Modules>
@@ -33,20 +34,18 @@
 
     <M-CLI NAME="CLI" TYPE="ENTRY_POINT" LAYER="0" ORDER="3" STATUS="implemented">
       <contract>
-        <purpose>Typer CLI with detect, export-md, debug, review commands.</purpose>
+        <purpose>Typer CLI with detect (all-in-one), detect-slides, notes, roi-tool, export-md, export-pptx, llm-process, debug commands.</purpose>
         <inputs><param name="cli args" type="argv" /></inputs>
         <outputs><param name="exit code" type="int" /></outputs>
       </contract>
       <target><source>src/video_slide_md/cli.py</source><tests>tests/test_cli.py</tests></target>
       <verification-ref>V-M-CLI</verification-ref>
-      <depends>M-CONFIG</depends>
+      <depends>M-CONFIG, M-DETECT-SLIDES, M-NOTES, M-ROI-TOOL</depends>
     </M-CLI>
 
     <M-BACKENDS NAME="Backends" TYPE="INTEGRATION" LAYER="0" ORDER="4" STATUS="implemented">
       <contract>
-        <purpose>Video decoder backends: OpenCV (CPU), PyAV, Decord, NVDEC. Auto-select best available.</purpose>
-        <inputs><param name="video_path" type="Path" /></inputs>
-        <outputs><param name="VideoFrame iterator" type="Iterator[VideoFrame]" /></outputs>
+        <purpose>Video decoder backends: OpenCV (CPU), PyAV (CUDA). Auto-select best available.</purpose>
       </contract>
       <target><source>src/video_slide_md/backends/</source><tests>tests/test_backends.py</tests></target>
       <verification-ref>V-M-BACKENDS</verification-ref>
@@ -73,7 +72,7 @@
 
     <M-FRAME-FEATURES NAME="FrameFeatures" TYPE="CORE_LOGIC" LAYER="1" ORDER="7" STATUS="implemented">
       <contract>
-        <purpose>Extract pHash, dHash, grayscale, histogram. Compute weighted visual distance.</purpose>
+        <purpose>Extract pHash, dHash, grayscale, histogram, pixel MAE. Compute weighted visual distance.</purpose>
       </contract>
       <target><source>src/video_slide_md/frame_features.py</source><tests>tests/test_frame_features.py</tests></target>
       <verification-ref>V-M-FRAME-FEATURES</verification-ref>
@@ -125,7 +124,25 @@
       <depends>M-MODELS</depends>
     </M-MD-EXPORT>
 
-    <M-DEBUG-EXPORT NAME="DebugExport" TYPE="UTILITY" LAYER="4" ORDER="13" STATUS="implemented">
+    <M-PPTX-EXPORT NAME="PptxExport" TYPE="CORE_LOGIC" LAYER="4" ORDER="13" STATUS="implemented">
+      <contract>
+        <purpose>Export slides.json to PPTX presentation with slide images and speaker notes.</purpose>
+      </contract>
+      <target><source>src/video_slide_md/pptx_export.py</source><tests>tests/test_pptx_export.py</tests></target>
+      <verification-ref>V-M-PPTX-EXPORT</verification-ref>
+      <depends>M-MODELS, M-NOTES-PROCESSOR, python-pptx</depends>
+    </M-PPTX-EXPORT>
+
+    <M-NOTES-PROCESSOR NAME="NotesProcessor" TYPE="CORE_LOGIC" LAYER="4" ORDER="14" STATUS="implemented">
+      <contract>
+        <purpose>Process raw transcript into clean speaker notes: basic cleanup or LLM rephrase.</purpose>
+      </contract>
+      <target><source>src/video_slide_md/notes_processor.py</source><tests>tests/test_notes_processor.py</tests></target>
+      <verification-ref>V-M-NOTES-PROCESSOR</verification-ref>
+      <depends>M-MODELS</depends>
+    </M-NOTES-PROCESSOR>
+
+    <M-DEBUG-EXPORT NAME="DebugExport" TYPE="UTILITY" LAYER="4" ORDER="15" STATUS="implemented">
       <contract>
         <purpose>Generate debug artifacts: diff_scores.csv, timeline.png, contact_sheet.jpg</purpose>
       </contract>
@@ -134,163 +151,205 @@
       <depends>M-MODELS</depends>
     </M-DEBUG-EXPORT>
 
-    <M-LLM-CLIENT NAME="LlmClient" TYPE="INTEGRATION" LAYER="4" ORDER="15" STATUS="planned">
+    <M-LLM-CLIENT NAME="LlmClient" TYPE="INTEGRATION" LAYER="4" ORDER="16" STATUS="implemented">
       <contract>
-        <purpose>Generic LLM client abstraction over OpenAI-compatible API (LM Studio) with vision support and model lifecycle management.</purpose>
-        <inputs><param name="config" type="LlmConfig — provider, base_url, model, context_window, temperature, max_tokens" /></inputs>
-        <outputs><param name="LlmClient" type="object with chat(), vision(), load_model(), unload_model() methods" /></outputs>
+        <purpose>Generic LLM client abstraction over OpenAI-compatible API (LM Studio) with vision support.</purpose>
       </contract>
       <target><source>src/video_slide_md/llm_client.py</source><tests>tests/test_llm_client.py</tests></target>
-      <observability><log-prefix>[LlmClient]</log-prefix></observability>
       <verification-ref>V-M-LLM-CLIENT</verification-ref>
       <depends>M-CONFIG, httpx</depends>
     </M-LLM-CLIENT>
 
-    <M-SLIDE-ANALYZER NAME="SlideAnalyzer" TYPE="CORE_LOGIC" LAYER="4" ORDER="16" STATUS="planned">
+    <M-SLIDE-ANALYZER NAME="SlideAnalyzer" TYPE="CORE_LOGIC" LAYER="4" ORDER="17" STATUS="implemented">
       <contract>
         <purpose>Analyze slide screenshot via LLM vision: extract visual description and on-screen text terms.</purpose>
-        <inputs><param name="slide" type="SlideSegment" /><param name="image_path" type="Path" /><param name="llm_client" type="LlmClient" /></inputs>
-        <outputs><param name="description" type="str — structured description of slide content and visible text" /></outputs>
       </contract>
       <target><source>src/video_slide_md/slide_analyzer.py</source><tests>tests/test_slide_analyzer.py</tests></target>
-      <observability><log-prefix>[SlideAnalyzer]</log-prefix></observability>
       <verification-ref>V-M-SLIDE-ANALYZER</verification-ref>
       <depends>M-LLM-CLIENT, M-MODELS</depends>
     </M-SLIDE-ANALYZER>
 
-    <M-LLM-ORCHESTRATOR NAME="LlmOrchestrator" TYPE="CORE_LOGIC" LAYER="5" ORDER="17" STATUS="planned">
+    <M-LLM-ORCHESTRATOR NAME="LlmOrchestrator" TYPE="CORE_LOGIC" LAYER="5" ORDER="18" STATUS="implemented">
       <contract>
-        <purpose>Coordinate full LLM processing pipeline: load model, analyze all slides (vision → description), rephrase transcript with context, unload model, save enriched slides.json.</purpose>
-        <inputs><param name="slides_json" type="Path — path to slides.json" /><param name="slides_dir" type="Path" /><param name="config" type="LlmConfig" /></inputs>
-        <outputs><param name="enriched_slides.json" type="Path — updated slides.json with llm_description and corrected transcript" /></outputs>
+        <purpose>Coordinate full LLM pipeline: load model → analyze slides → rephrase transcript → unload → save.</purpose>
       </contract>
       <target><source>src/video_slide_md/llm_orchestrator.py</source><tests>tests/test_llm_orchestrator.py</tests></target>
-      <observability><log-prefix>[LlmOrchestrator]</log-prefix></observability>
       <verification-ref>V-M-LLM-ORCHESTRATOR</verification-ref>
       <depends>M-LLM-CLIENT, M-SLIDE-ANALYZER, M-NOTES-PROCESSOR, M-MODELS</depends>
     </M-LLM-ORCHESTRATOR>
 
-    <M-PIPELINE NAME="PipelineOrchestrator" TYPE="CORE_LOGIC" LAYER="5" ORDER="14" STATUS="implemented">
+    <M-PIPELINE NAME="PipelineOrchestrator" TYPE="CORE_LOGIC" LAYER="5" ORDER="19" STATUS="implemented">
       <contract>
-        <purpose>Wire all modules together in cli.py detect/export-md/debug commands</purpose>
+        <purpose>Wire all modules together in cli.py detect command (all-in-one mode).</purpose>
       </contract>
       <target><source>src/video_slide_md/cli.py</source><tests>tests/test_cli_e2e.py</tests></target>
       <verification-ref>V-M-CLI-E2E</verification-ref>
       <depends>all modules</depends>
     </M-PIPELINE>
+
+    <M-DETECT-SLIDES NAME="DetectSlides" TYPE="CORE_LOGIC" LAYER="5" ORDER="20" STATUS="pending">
+      <contract>
+        <purpose>Standalone slide detection pipeline: video → slides.json + screenshots. No subtitles required. Can be run independently from notes/export.</purpose>
+        <inputs><param name="video_path" type="Path" /><param name="out_dir" type="Path" /><param name="config" type="AppConfig" /></inputs>
+        <outputs><param name="slides.json" type="Path — slides.json with intervals + images" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/detect_slides.py</source><tests>tests/test_detect_slides.py</tests></target>
+      <observability><log-prefix>[DetectSlides]</log-prefix></observability>
+      <verification-ref>V-M-DETECT-SLIDES</verification-ref>
+      <depends>M-VIDEO-DECODE, M-SLIDE-DETECTOR, M-SEGMENTER, M-DEDUPE, M-ROI, M-MODELS</depends>
+    </M-DETECT-SLIDES>
+
+    <M-NOTES NAME="Notes" TYPE="CORE_LOGIC" LAYER="5" ORDER="21" STATUS="pending">
+      <contract>
+        <purpose>Post-process notes pipeline: slides.json + subtitles/transcript + slide screenshots → enriched slides.json with context-aware speaker notes.</purpose>
+        <inputs><param name="slides_json" type="Path" /><param name="subtitles" type="Path|None" /><param name="slides_dir" type="Path" /><param name="notes_mode" type="str" /><param name="llm_config" type="LlmConfig|None" /></inputs>
+        <outputs><param name="slides.json" type="Path — updated slides.json with cleaned notes" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/notes_pipeline.py</source><tests>tests/test_notes_pipeline.py</tests></target>
+      <observability><log-prefix>[Notes]</log-prefix></observability>
+      <verification-ref>V-M-NOTES</verification-ref>
+      <depends>M-MODELS, M-SUBTITLES, M-NOTES-PROCESSOR, M-SLIDE-ANALYZER, M-LLM-CLIENT</depends>
+    </M-NOTES>
+
+    <M-ROI-TOOL NAME="RoiTool" TYPE="UI_COMPONENT" LAYER="5" ORDER="22" STATUS="pending">
+      <contract>
+        <purpose>Graphical ROI selection tool: opens video frame in OpenCV window, user drags rectangle, prints coordinates to stdout. No external GUI dependencies beyond opencv-python.</purpose>
+        <inputs><param name="video_path" type="Path" /></inputs>
+        <outputs><param name="ignore_roi" type="str — format x1,y1,x2,y2 to stdout" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/roi_tool.py</source><tests>tests/test_roi_tool.py</tests></target>
+      <observability><log-prefix>[RoiTool]</log-prefix></observability>
+      <verification-ref>V-M-ROI-TOOL</verification-ref>
+      <depends>M-VIDEO-DECODE, opencv-python</depends>
+    </M-ROI-TOOL>
   </Modules>
 
   <DataFlow>
-    <DF-001 NAME="DetectPipeline" TRIGGER="CLI detect command">
-      <step-1>Load config from YAML + CLI args (M-CONFIG)</step-1>
-      <step-2>Open video, get metadata, iterate sampled frames (M-VIDEO-DECODE via M-BACKENDS)</step-2>
-      <step-3>For each frame: crop ROI, mask ignore regions (M-ROI)</step-3>
-      <step-4>Extract features: pHash, dHash, grayscale, histogram (M-FRAME-FEATURES)</step-4>
-      <step-5>Compare consecutive frames, detect changes with threshold and debounce (M-SLIDE-DETECTOR)</step-5>
-      <step-6>Build slide segments with representative timestamps (M-SEGMENTER)</step-6>
-      <step-7>Deduplicate adjacent similar segments (M-DEDUPE)</step-7>
-      <step-8>Parse subtitles and align cues to slide intervals (M-SUBTITLES)</step-8>
-      <step-9>Save representative screenshots and slides.json (M-CLI orchestration)</step-9>
-      <step-10>Generate debug artifacts if --debug (M-DEBUG-EXPORT)</step-10>
-      <evidence>slides.json exists and validates, slides/*.png files created, debug artifacts present</evidence>
+    <DF-001 NAME="DetectPipeline" TRIGGER="CLI detect command (all-in-one)">
+      <step-1>Load config (M-CONFIG)</step-1>
+      <step-2>Open video, iterate sampled frames, detect changes (M-SLIDE-DETECTOR via M-VIDEO-DECODE, M-ROI, M-FRAME-FEATURES)</step-2>
+      <step-3>Build segments + dedupe (M-SEGMENTER, M-DEDUPE)</step-3>
+      <step-4>Parse subtitles and align cues (M-SUBTITLES) — optional</step-4>
+      <step-5>Save screenshots + slides.json</step-5>
+      <step-6>Run notes if subtitles provided (M-NOTES) — optional</step-6>
+      <step-7>Export MD/PPTX — optional, M-MD-EXPORT, M-PPTX-EXPORT</step-7>
+      <evidence>slides.json, slides/*.png, optional deck.md, deck.pptx</evidence>
     </DF-001>
 
-    <DF-003 NAME="LlmProcessPipeline" TRIGGER="CLI llm-process command or detect --llm flag">
-      <step-1>Load slides.json from detect output (M-CLI)</step-1>
-      <step-2>Read LlmConfig from config YAML + CLI overrides (M-CONFIG)</step-2>
-      <step-3>Initialize LlmClient with provider settings (M-LLM-CLIENT)</step-3>
-      <step-4>Load model via LM Studio API (M-LLM-CLIENT.load_model)</step-4>
-      <step-5>For each slide: read screenshot → vision analyze → structured description (M-SLIDE-ANALYZER)</step-5>
-      <step-6>Save slide descriptions to enriched slides.json, write sidecar JSON per slide (M-LLM-ORCHESTRATOR)</step-6>
-      <step-7>For each slide: description + raw transcript → LLM rephrase with context → corrected transcript (M-NOTES-PROCESSOR with llm mode)</step-7>
-      <step-8>Unload model to free VRAM (M-LLM-CLIENT.unload_model)</step-8>
-      <step-9>Save enriched slides.json with llm_description and corrected transcript fields (M-LLM-ORCHESTRATOR)</step-9>
-      <evidence>enriched slides.json has llm_description on each slide, transcript corrected with slide context terms, model unloaded</evidence>
+    <DF-005 NAME="DetectSlidesPipeline" TRIGGER="CLI detect-slides command">
+      <step-1>Load config (M-CONFIG)</step-1>
+      <step-2>Open video, iterate sampled frames, detect changes (M-SLIDE-DETECTOR)</step-2>
+      <step-3>Build segments + dedupe (M-SEGMENTER, M-DEDUPE)</step-3>
+      <step-4>Save screenshots + slides.json without transcript fields</step-4>
+      <evidence>slides.json with intervals and images, no transcript. Run in ~same time as detect pass.</evidence>
+    </DF-005>
+
+    <DF-004 NAME="NotesPipeline" TRIGGER="CLI notes command">
+      <step-1>Load existing slides.json (M-MODELS)</step-1>
+      <step-2>Parse subtitles, align cues to existing segments (M-SUBTITLES) — optional, skip if no subtitles</step-2>
+      <step-3>For each slide: read screenshot → vision analyze via LLM → slide context (M-SLIDE-ANALYZER) — optional, skip in basic mode</step-3>
+      <step-4>Build speaker notes from cues + slide context (M-NOTES-PROCESSOR basic/llm)</step-4>
+      <step-5>Write enriched slides.json with cleaned notes</step-5>
+      <evidence>slides.json transcript fields updated. No video re-decoding needed. Fast execution.</evidence>
+    </DF-004>
+
+    <DF-006 NAME="RoiToolFlow" TRIGGER="CLI roi-tool command">
+      <step-1>Open video, extract one representative frame</step-1>
+      <step-2>Display frame in OpenCV window with mouse drag rectangle</step-2>
+      <step-3>On Enter/Space: output "x1,y1,x2,y2" to stdout</step-3>
+      <step-4>On Esc: exit with no output</step-4>
+      <evidence>Coordinates printed to stdout, pipeable into --ignore-roi</evidence>
+    </DF-006>
+
+    <DF-003 NAME="LlmProcessPipeline" TRIGGER="CLI llm-process command">
+      <step-1>Load slides.json (M-CLI)</step-1>
+      <step-2>Read LlmConfig (M-CONFIG)</step-2>
+      <step-3>Initialize LlmClient (M-LLM-CLIENT)</step-3>
+      <step-4>For each slide: vision analyze → structured description (M-SLIDE-ANALYZER)</step-4>
+      <step-5>Save descriptions + transcript correction (M-LLM-ORCHESTRATOR)</step-5>
+      <evidence>enriched slides.json with llm_description fields</evidence>
     </DF-003>
 
     <DF-002 NAME="ExportMDPipeline" TRIGGER="CLI export-md command">
       <step-1>Load slides.json (M-CLI)</step-1>
-      <step-2>Generate Marp-formatted Markdown with images and transcript (M-MD-EXPORT)</step-2>
-      <step-3>Write deck.md to output directory</step-3>
-      <evidence>deck.md opens correctly in Marp-compatible viewer</evidence>
+      <step-2>Generate Marp Markdown (M-MD-EXPORT)</step-2>
+      <step-3>Write deck.md</step-3>
+      <evidence>deck.md renders in Marp viewer</evidence>
     </DF-002>
   </DataFlow>
 
   <ImplementationOrder>
     <Phase-1 name="Foundation" status="done">
-      <goal>Project skeleton, CLI, models, config — verifiable that tool runs and accepts arguments.</goal>
-      <step-1 module="M-MODELS" status="done" verification="V-M-MODELS">Define Pydantic data models</step-1>
-      <step-2 module="M-CONFIG" status="done" verification="V-M-CONFIG">Implement config loading (YAML + CLI merge)</step-2>
-      <step-3 module="M-CLI" status="done" verification="V-M-CLI">CLI entry point with detect/export-md commands</step-3>
+      <goal>Project skeleton, CLI, models, config.</goal>
+      <step-1 module="M-MODELS" status="done" verification="V-M-MODELS" />
+      <step-2 module="M-CONFIG" status="done" verification="V-M-CONFIG" />
+      <step-3 module="M-CLI" status="done" verification="V-M-CLI" />
     </Phase-1>
 
     <Phase-2 name="VideoDecoding" status="done">
-      <goal>Decode video, iterate sampled frames. Verifiable via debug frame export.</goal>
-      <step-4 module="M-BACKENDS" status="done" verification="V-M-BACKENDS">OpenCV backend with frame iteration</step-4>
-      <step-5 module="M-VIDEO-DECODE" status="done" verification="V-M-VIDEO-DECODE">Backend selection + frame sampling</step-5>
+      <goal>Decode video, iterate frames.</goal>
+      <step-4 module="M-BACKENDS" status="done" verification="V-M-BACKENDS" />
+      <step-5 module="M-VIDEO-DECODE" status="done" verification="V-M-VIDEO-DECODE" />
     </Phase-2>
 
     <Phase-3 name="SlideDetection" status="done">
-      <goal>Detect slide changes and produce intervals. Verifiable via slides.json and debug artifacts.</goal>
-      <step-6 module="M-ROI" status="done" verification="V-M-ROI">ROI crop and ignore mask</step-6>
-      <step-7 module="M-FRAME-FEATURES" status="done" verification="V-M-FRAME-FEATURES">Feature extraction + visual distance</step-7>
-      <step-8 module="M-SLIDE-DETECTOR" status="done" verification="V-M-SLIDE-DETECTOR">Change detection + debounce</step-8>
-      <step-9 module="M-SEGMENTER" status="done" verification="V-M-SEGMENTER">Segment builder + representative timestamps</step-9>
-      <step-10 module="M-DEDUPE" status="done" verification="V-M-DEDUPE">Neighbor segment deduplication</step-10>
+      <goal>Detect slide changes, produce intervals.</goal>
+      <step-6 module="M-ROI" status="done" verification="V-M-ROI" />
+      <step-7 module="M-FRAME-FEATURES" status="done" verification="V-M-FRAME-FEATURES" />
+      <step-8 module="M-SLIDE-DETECTOR" status="done" verification="V-M-SLIDE-DETECTOR" />
+      <step-9 module="M-SEGMENTER" status="done" verification="V-M-SEGMENTER" />
+      <step-10 module="M-DEDUPE" status="done" verification="V-M-DEDUPE" />
     </Phase-3>
 
     <Phase-4 name="SubtitlesAndExport" status="done">
-      <goal>Align subtitles and produce output files. Verifiable via full pipeline with synthetic video.</goal>
-      <step-11 module="M-SUBTITLES" status="done" verification="V-M-SUBTITLES">SRT/VTT parsing + cue alignment</step-11>
-      <step-12 module="M-MD-EXPORT" status="done" verification="V-M-MD-EXPORT">Marp Markdown export</step-12>
-      <step-13 module="M-DEBUG-EXPORT" status="done" verification="V-M-DEBUG-EXPORT">Debug artifacts generation</step-13>
+      <goal>Align subtitles, export Markdown.</goal>
+      <step-11 module="M-SUBTITLES" status="done" verification="V-M-SUBTITLES" />
+      <step-12 module="M-MD-EXPORT" status="done" verification="V-M-MD-EXPORT" />
+      <step-13 module="M-DEBUG-EXPORT" status="done" verification="V-M-DEBUG-EXPORT" />
     </Phase-4>
 
-    <Phase-5 name="PipelineIntegration" status="done">
-      <goal>Wire all modules into CLI detect/export-md/debug commands, E2E tests with synthetic video.</goal>
-      <step-14 module="M-PIPELINE" status="done" verification="V-M-CLI-E2E">Orchestrate full pipeline in CLI</step-14>
+    <Phase-5 name="PipelineGPTBackendColab" status="done">
+      <goal>Full pipeline integration, GPU backend, Colab.</goal>
+      <step-14 module="M-PIPELINE" status="done" verification="V-M-CLI-E2E" />
+      <step-15 module="M-BACKEND-PYAV" status="done">PyAV CUDA NVDEC</step-15>
+      <step-16 module="M-COLAB" status="done" verification="V-M-COLAB">Colab T4 notebook</step-16>
+      <step-17 module="M-LLM-CLIENT" status="done" verification="V-M-LLM-CLIENT" />
+      <step-18 module="M-SLIDE-ANALYZER" status="done" verification="V-M-SLIDE-ANALYZER" />
+      <step-19 module="M-LLM-ORCHESTRATOR" status="done" verification="V-M-LLM-ORCHESTRATOR" />
     </Phase-5>
 
-    <Phase-5 name="GPUBackend" status="done">
-      <goal>PyAV backend with CUDA NVDEC for RTX 4090. Auto-detect + fallback to CPU.</goal>
-      <step-15 module="M-BACKEND-PYAV" status="done">PyAV backend with CUDA hwaccel support</step-15>
-    </Phase-5>
-
-    <Phase-6 name="ColabDeployment" status="pending">
-      <goal>Google Colab notebook with T4 GPU — install, mount Drive, run detect + export-pptx, download results.</goal>
-      <step-16 module="M-COLAB" status="pending" verification="V-M-COLAB">Colab notebook: install deps, detect, export pptx/md, Drive upload/download</step-16>
+    <Phase-6 name="PostMVPNotesPptx" status="done">
+      <goal>PPTX export, notes processor.</goal>
+      <step-20 module="M-PPTX-EXPORT" status="done" verification="V-M-PPTX-EXPORT" />
+      <step-21 module="M-NOTES-PROCESSOR" status="done" verification="V-M-NOTES-PROCESSOR" />
     </Phase-6>
 
-    <Phase-7 name="LLMProcessing" status="done">
-      <goal>Local LLM (LM Studio) vision analysis of slide screenshots + transcript correction using slide context. Verifiable via enriched slides.json with llm_description fields.</goal>
-      <step-17 module="M-LLM-CLIENT" status="done" verification="V-M-LLM-CLIENT">OpenAI-compatible LLM client with vision support, model load/unload lifecycle</step-17>
-      <step-18 module="M-SLIDE-ANALYZER" status="done" verification="V-M-SLIDE-ANALYZER">Slide screenshot vision analysis → description + term extraction</step-18>
-      <step-19 module="M-LLM-ORCHESTRATOR" status="done" verification="V-M-LLM-ORCHESTRATOR">Orchestrate: load model → analyze all slides → rephrase transcript → unload model → save enriched slides.json</step-19>
+    <Phase-7 name="SplitPipeline" status="pending">
+      <goal>Split monolithic detect into independent stages: detect-slides (standalone), notes (post-process), notes-pipeline with vision context.</goal>
+      <step-22 module="M-DETECT-SLIDES" status="pending" verification="V-M-DETECT-SLIDES">
+        Extract standalone detect-slides logic from cli.py into detect_slides.py. No subtitles required. Produce slides.json + screenshots.
+      </step-22>
+      <step-23 module="M-NOTES" status="pending" verification="V-M-NOTES">
+        Create notes_pipeline.py: load slides.json → parse subtitles → vision analyze slides → build context-aware notes → save enriched slides.json. No video re-decode needed.
+      </step-23>
+      <step-24 module="M-CLI" status="pending" verification="V-M-CLI">
+        Add detect-slides command (calls M-DETECT-SLIDES). Add notes command (calls M-NOTES). Update detect all-in-one to call M-DETECT-SLIDES + M-NOTES sequentially (backwards compat).
+      </step-24>
+      <stop-condition>notes command must work without detect-slides needing to exist — user can run detect first, then notes separately. detect (all-in-one) must remain backwards compatible.</stop-condition>
     </Phase-7>
+
+    <Phase-8 name="RoiTool" status="pending">
+      <goal>Graphical ROI selector for ignore region.</goal>
+      <step-25 module="M-ROI-TOOL" status="pending" verification="V-M-ROI-TOOL">
+        Create roi_tool.py: OpenCV window, mouse drag rect, output coordinates to stdout. Wire into CLI as roi-tool command.
+      </step-25>
+    </Phase-8>
   </ImplementationOrder>
 
-    <DS-COLAB NAME="GoogleColab" STATUS="pending" PRIORITY="medium">
-      <purpose>Run the full video-slide-md pipeline on Google Colab with free T4 GPU acceleration.</purpose>
+  <DeploymentScenarios>
+    <DS-COLAB NAME="GoogleColab" STATUS="done" PRIORITY="medium">
+      <purpose>Run pipeline on Google Colab with free T4 GPU.</purpose>
       <target>colab/video_slide_md_colab.ipynb</target>
-      <prerequisites>
-        <item>Google account (for Colab + Drive)</item>
-        <item>Video file (.mp4) uploaded to Drive or local upload</item>
-        <item>Optional: SRT/VTT subtitle file</item>
-      </prerequisites>
-      <workflow>
-        <step-1>Open notebook in Colab (File → Open notebook → GitHub or Upload)</step-1>
-        <step-2>Runtime → Change runtime type → T4 GPU</step-2>
-        <step-3>Run all cells — mounts Drive, installs deps, uploads video</step-3>
-        <step-4>Configure detection parameters (sample-fps, threshold, etc.)</step-4>
-        <step-5>Run detection → slides.json, slides/, deck.md, deck.pptx</step-5>
-        <step-6>Download results from Drive or Colab files panel</step-6>
-      </workflow>
-      <limitations>
-        <item>Colab session timeout after ~2h inactivity (use Drive mount to persist)</item>
-        <item>Free T4 has 16GB VRAM — sufficient for 1080p video</item>
-        <item>Video upload via Colab UI is slow for large files — prefer Drive mount</item>
-      </limitations>
-      <verification-ref>V-M-COLAB</verification-ref>
     </DS-COLAB>
   </DeploymentScenarios>
 </DevelopmentPlan>
