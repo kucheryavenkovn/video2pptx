@@ -187,7 +187,7 @@
       <depends>all modules</depends>
     </M-PIPELINE>
 
-    <M-DETECT-SLIDES NAME="DetectSlides" TYPE="CORE_LOGIC" LAYER="5" ORDER="20" STATUS="pending">
+    <M-DETECT-SLIDES NAME="DetectSlides" TYPE="CORE_LOGIC" LAYER="5" ORDER="20" STATUS="implemented">
       <contract>
         <purpose>Standalone slide detection pipeline: video → slides.json + screenshots. No subtitles required. Can be run independently from notes/export.</purpose>
         <inputs><param name="video_path" type="Path" /><param name="out_dir" type="Path" /><param name="config" type="AppConfig" /></inputs>
@@ -326,7 +326,7 @@
 
     <Phase-7 name="SplitPipeline" status="pending">
       <goal>Split monolithic detect into independent stages: detect-slides (standalone), notes (post-process), notes-pipeline with vision context.</goal>
-      <step-22 module="M-DETECT-SLIDES" status="pending" verification="V-M-DETECT-SLIDES">
+      <step-22 module="M-DETECT-SLIDES" status="done" verification="V-M-DETECT-SLIDES">
         Extract standalone detect-slides logic from cli.py into detect_slides.py. No subtitles required. Produce slides.json + screenshots.
       </step-22>
       <step-23 module="M-NOTES" status="pending" verification="V-M-NOTES">

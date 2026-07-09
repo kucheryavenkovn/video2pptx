@@ -152,7 +152,7 @@
       <module-checks><check-1>pytest tests/test_llm_orchestrator.py -v</check-1></module-checks>
     </V-M-LLM-ORCHESTRATOR>
 
-    <V-M-DETECT-SLIDES MODULE="M-DETECT-SLIDES" PRIORITY="high" STATUS="pending">
+    <V-M-DETECT-SLIDES MODULE="M-DETECT-SLIDES" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_detect_slides.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_detect_slides.py -v</check-1>

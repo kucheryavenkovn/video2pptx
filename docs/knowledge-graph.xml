@@ -156,7 +156,7 @@
       <verification-ref>V-M-CLI-E2E</verification-ref>
     </M-PIPELINE>
 
-    <M-DETECT-SLIDES NAME="DetectSlides" TYPE="CORE_LOGIC" STATUS="pending">
+    <M-DETECT-SLIDES NAME="DetectSlides" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Standalone slide detection: video → slides.json + screenshots, no subtitles</purpose>
       <path>src/video_slide_md/detect_slides.py</path>
       <depends>M-VIDEO-DECODE, M-SLIDE-DETECTOR, M-SEGMENTER, M-DEDUPE, M-ROI, M-MODELS</depends>
