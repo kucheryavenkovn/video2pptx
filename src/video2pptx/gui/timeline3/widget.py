@@ -81,6 +81,9 @@ class TimelineWidget(QWidget):
     seek_requested = Signal(float)
     open_image = Signal(str, int)  # path, slide_index
     add_manual_slide = Signal(float)  # timestamp
+    set_slide_frame = Signal(int)  # slide_index
+    clear_slide_image = Signal(int)  # slide_index
+    delete_slide = Signal(int)  # slide_index
     slide_moved = Signal(int, float, float)  # index, new_start, new_end
     slide_resized = Signal(int, float, float)  # index, new_start, new_end
     open_subtitle_editor = Signal(int)  # slide_index
@@ -154,6 +157,9 @@ class TimelineWidget(QWidget):
         self._view.seek_requested.connect(self.seek_requested)
         self._view.open_image.connect(self.open_image)
         self._view.add_manual_slide.connect(self.add_manual_slide)
+        self._view.set_slide_frame.connect(self.set_slide_frame)
+        self._view.clear_slide_image.connect(self.clear_slide_image)
+        self._view.delete_slide.connect(self.delete_slide)
         self._view.slide_moved.connect(self.slide_moved)
         self._view.slide_resized.connect(self.slide_resized)
         self._view.open_subtitle_editor.connect(self.open_subtitle_editor)

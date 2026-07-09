@@ -41,6 +41,9 @@ class TimelineView(QGraphicsView):
     open_image = Signal(str, int)  # path, slide_index
     open_subtitle_editor = Signal(int)  # slide_index
     add_manual_slide = Signal(float)  # timestamp
+    set_slide_frame = Signal(int)  # slide_index — capture current video frame
+    clear_slide_image = Signal(int)  # slide_index
+    delete_slide = Signal(int)  # slide_index
     slide_moved = Signal(int, float, float)  # index, new_start, new_end
     slide_resized = Signal(int, float, float)  # index, new_start, new_end
 
@@ -345,11 +348,17 @@ class TimelineView(QGraphicsView):
                 p = p.parentItem()
 
             if slide_item is not None:
+                idx = slide_item.slide_index()
                 menu = QMenu(self)
                 menu.addAction("Open Image", lambda: self._open_slide_image(slide_item))
-                menu.addAction("Edit Subtitles", lambda: self.open_subtitle_editor.emit(slide_item.slide_index()))
+                menu.addAction("Set Frame as Slide", lambda: self.set_slide_frame.emit(idx))
+                menu.addAction("Clear Image", lambda: self.clear_slide_image.emit(idx))
+                menu.addSeparator()
+                menu.addAction("Edit Subtitles", lambda: self.open_subtitle_editor.emit(idx))
                 menu.addSeparator()
                 menu.addAction("Show Subtitles", lambda: self._show_slide_subtitles(slide_item))
+                menu.addSeparator()
+                menu.addAction("Delete Slide", lambda: self.delete_slide.emit(idx))
                 menu.exec(event.globalPos())
                 return
 

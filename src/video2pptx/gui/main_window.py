@@ -181,6 +181,9 @@ class MainWindow(QMainWindow):
 
         # Connect timeline signals
         self._timeline.add_manual_slide.connect(self._on_add_manual_slide)
+        self._timeline.set_slide_frame.connect(self._on_set_slide_frame)
+        self._timeline.clear_slide_image.connect(self._on_clear_slide_image)
+        self._timeline.delete_slide.connect(self._on_delete_slide)
         self._timeline.seek_requested.connect(self._on_seek_to_marker)
         self._timeline.open_image.connect(self._on_open_timeline_image)
         self._timeline.slide_moved.connect(self._on_slide_moved)
@@ -667,6 +670,55 @@ class MainWindow(QMainWindow):
         self._timeline.zoom_fit()
         self.statusBar().showMessage(f"Manual slide added at {ts:.1f}s")
 
+    def _on_set_slide_frame(self, slide_index: int) -> None:
+        if not self._project or slide_index >= len(self._project.slides):
+            return
+        slide = self._project.slides[slide_index]
+        pos = self._video_player._player.position() / 1000.0
+        try:
+            from video2pptx.video_decode import VideoDecoder
+            import cv2
+            decoder = VideoDecoder(self._project.video, sample_fps=1.0)
+            for vf in decoder.iter_frames():
+                if vf.timestamp >= pos:
+                    img = cv2.cvtColor(vf.image, cv2.COLOR_RGB2BGR)
+                    slides_dir = Path(self._project.output_dir) / "slides"
+                    slides_dir.mkdir(parents=True, exist_ok=True)
+                    fname = f"slide_{slide_index:03d}.png"
+                    cv2.imwrite(str(slides_dir / fname), img)
+                    slide.image = f"slides/{fname}"
+                    save_project(self._project)
+                    self._timeline.set_slides(self._project.slides)
+                    self.statusBar().showMessage(f"Slide {slide_index} image set from {pos:.1f}s")
+                    break
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to capture frame: {e}")
+
+    def _on_clear_slide_image(self, slide_index: int) -> None:
+        if not self._project or slide_index >= len(self._project.slides):
+            return
+        self._project.slides[slide_index].image = ""
+        save_project(self._project)
+        self._timeline.set_slides(self._project.slides)
+        self.statusBar().showMessage(f"Slide {slide_index} image cleared")
+
+    def _on_delete_slide(self, slide_index: int) -> None:
+        if not self._project or slide_index >= len(self._project.slides):
+            return
+        r = QMessageBox.question(self, "Delete Slide?",
+                                 f"Delete slide #{slide_index}?",
+                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if r != QMessageBox.StandardButton.Yes:
+            return
+        del self._project.slides[slide_index]
+        for i, s in enumerate(self._project.slides):
+            s.index = i + 1
+        save_project(self._project)
+        self._timeline.set_slides(self._project.slides)
+        self._timeline.set_project(self._project)
+        self._timeline.zoom_fit()
+        self.statusBar().showMessage(f"Slide {slide_index} deleted")
+
     def _on_add_marker_at_position(self) -> None:
         if self._project is None:
             QMessageBox.information(self, "Add Slide", "Open a project first")
@@ -744,6 +796,9 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(f"Seeked to {ts:.1f}s")
 
     def _on_open_timeline_image(self, path: str, slide_index: int = 0) -> None:
+        if not path:
+            self.statusBar().showMessage(f"Slide #{slide_index}: no image set")
+            return
         if self._project:
             full = str(Path(self._project.output_dir) / path)
         else:
