@@ -36,6 +36,7 @@ from rich.table import Table
 from video_slide_md.config import load_config, AppConfig, LlmConfig
 from video_slide_md.dedupe import deduplicate_segments
 from video_slide_md.detect_slides import run_detect_slides
+from video_slide_md.roi_tool import roi_tool_main
 from video_slide_md.frame_features import extract_features
 from video_slide_md.markdown_export import export_to_markdown
 from video_slide_md.notes_pipeline import run_notes
@@ -353,6 +354,32 @@ def notes_cmd(
     )
 
     console.print(f"[green]✓[/green] Notes updated: {json_path.resolve()}")
+    console.print(f"[green]Done.[/green]")
+
+
+@app.command(name="roi-tool")
+def roi_tool_cmd(
+    video: str = typer.Argument(..., help="Path to video file"),
+    frame_ts: Optional[float] = typer.Option(None, "--frame-ts", help="Frame timestamp to display"),
+):
+    # START_CONTRACT: roi_tool_cmd
+    #   PURPOSE: Open video frame in GUI, user drags rectangle, prints ignore-roi coordinates
+    #   INPUTS: video path, optional frame timestamp
+    #   OUTPUTS: prints "x1,y1,x2,y2" to stdout
+    #   SIDE_EFFECTS: opens OpenCV window, blocks for user input
+    #   LINKS: M-CLI
+    # END_CONTRACT: roi_tool_cmd
+
+    video_path = Path(video)
+    if not video_path.is_file():
+        console.print(f"[red]Video file not found: {video}[/red]")
+        raise typer.Exit(code=1)
+
+    console.print(f"[green]✓[/green] Video: {video_path.resolve()}")
+    console.print("[blue]i[/blue] Drag rectangle over area to ignore, press Enter to confirm, Esc to cancel")
+
+    roi_tool_main(video_path=video_path, frame_ts=frame_ts)
+
     console.print(f"[green]Done.[/green]")
 
 
