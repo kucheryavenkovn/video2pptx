@@ -79,6 +79,9 @@ hatch shell
 # Установка с GUI-зависимостями
 pip install video-slide-md[gui]
 
+# Если extras не подхватились — установить вручную:
+pip install PySide6 pysubs2
+
 # Запуск
 video-slide-md gui
 ```
