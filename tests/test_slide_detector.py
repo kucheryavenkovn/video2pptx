@@ -10,7 +10,6 @@
 # END_MODULE_CONTRACT
 
 import numpy as np
-import pytest
 
 from video_slide_md.roi import SlideRegion
 from video_slide_md.slide_detector import ChangeEvent, detect_changes

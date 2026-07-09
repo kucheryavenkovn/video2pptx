@@ -16,7 +16,7 @@ import cv2
 import numpy as np
 import pytest
 
-from video_slide_md.backends import BACKENDS, _resolve_backend, iter_frames, video_info
+from video_slide_md.backends import _resolve_backend, iter_frames, video_info
 from video_slide_md.models import VideoFrame, VideoInfo
 
 logger = logging.getLogger(__name__)

@@ -48,8 +48,7 @@ def export_to_pptx(
 
     # START_BLOCK_PPTX_BUILD
     from pptx import Presentation
-    from pptx.util import Inches, Emu
-    from pptx.enum.text import PP_ALIGN
+    from pptx.util import Emu
 
     prs = Presentation()
     prs.slide_width = Emu(12192000)    # 16:9 widescreen

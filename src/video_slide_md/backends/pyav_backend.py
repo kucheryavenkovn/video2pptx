@@ -19,7 +19,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterator
 
-import numpy as np
 from loguru import logger
 
 from video_slide_md.models import VideoFrame, VideoInfo

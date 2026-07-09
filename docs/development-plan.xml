@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DevelopmentPlan VERSION="0.3.0">
+<DevelopmentPlan VERSION="0.4.0">
   <ArchitectureNotes>
-    <objective>Stage-based pipeline: video → slide intervals (standalone) → notes + visual context → export. Projects tie all stages together. Desktop GUI provides visual timeline, subtitle editor, and settings management. Core pipeline remains CLI-first with GUI as optional overlay.</objective>
-    <non-goal>No ASR, no cloud processing, no web UI, no real-time video playback, no drag-to-reorder slides in MVP.</non-goal>
+    <objective>Stage-based pipeline: video → slide intervals (standalone) → notes + visual context → export. Projects tie all stages together. Desktop GUI provides menu bar, video player with subtitle overlay, enhanced timeline with green/blue markers, project/app settings, and smart manual marker snapping. Core pipeline remains CLI-first with GUI as optional overlay.</objective>
+    <non-goal>No ASR, no cloud processing, no web UI, no drag-to-reorder slides in MVP, no real-time streaming from network URLs.</non-goal>
     <risk-1>False slide splits due to cursor movement, webcam, or compression artifacts.</risk-1>
     <risk-2>GPU backend may not be available — CPU fallback must always work.</risk-2>
     <risk-3>detect-slides is the longest step (2-3 video passes). Notes and export are fast.</risk-3>
@@ -284,6 +284,114 @@
       <verification-ref>V-M-GUI-WORKER</verification-ref>
       <depends>M-DETECT-SLIDES, M-NOTES, M-LLM-ORCHESTRATOR, M-PROJECT</depends>
     </M-GUI-WORKER>
+
+    <M-GUI-MENUBAR NAME="MenuBar" TYPE="UI_COMPONENT" LAYER="6" ORDER="28" STATUS="pending">
+      <contract>
+        <purpose>QMenuBar with File menu (New/Open/Close/Save Project, Import Video, Import Subtitles, Exit) and Edit menu (Project Settings, App Settings). Standard shortcuts (Ctrl+N/O/S/Q). Close unloads project and resets UI. Import Video/Subtitles replaces sources in current project.</purpose>
+        <inputs><param name="project" type="Project | None" /></inputs>
+        <outputs><param name="signals" type="project_action(str) — 'new' | 'open' | 'close' | 'save' | 'import_video' | 'import_subs' | 'project_settings' | 'app_settings'" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/gui/menu_bar.py</source><tests>tests/test_gui_menu_bar.py</tests></target>
+      <observability><log-prefix>[GUI-MenuBar]</log-prefix></observability>
+      <verification-ref>V-M-GUI-MENUBAR</verification-ref>
+      <depends>M-PROJECT</depends>
+    </M-GUI-MENUBAR>
+
+    <M-GUI-VIDEOPLAYER NAME="VideoPlayer" TYPE="UI_COMPONENT" LAYER="6" ORDER="29" STATUS="pending">
+      <contract>
+        <purpose>QMediaPlayer + QVideoWidget with transport controls: play/pause/stop buttons, seek slider, volume slider, time counter (current/total). Emits positionChanged for subtitle sync. Supports local video files only.</purpose>
+        <inputs><param name="video_path" type="Path | None" /><param name="subtitles_path" type="Path | None" /></inputs>
+        <outputs><param name="signals" type="positionChanged(float) | stateChanged(str) | durationChanged(float)" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/gui/video_player.py</source><tests>tests/test_gui_video_player.py</tests></target>
+      <observability><log-prefix>[GUI-VideoPlayer]</log-prefix></observability>
+      <verification-ref>V-M-GUI-VIDEOPLAYER</verification-ref>
+      <depends>PySide6.QtMultimedia</depends>
+    </M-GUI-VIDEOPLAYER>
+
+    <M-GUI-SUBTITLE-OVERLAY NAME="SubtitleOverlay" TYPE="UI_COMPONENT" LAYER="6" ORDER="30" STATUS="pending">
+      <contract>
+        <purpose>Parse SRT/VTT via pysubs2, render subtitle text as overlay on QVideoWidget. Sync with video playback position. No overlay if no subtitles available.</purpose>
+        <inputs><param name="subtitle_path" type="Path | None" /><param name="video_position" type="float — seconds, from player positionChanged" /></inputs>
+        <outputs><param name="overlay" type="QLabel or QGraphicsItem positioned over video widget with current subtitle text" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/gui/subtitle_overlay.py</source><tests>tests/test_gui_subtitle_overlay.py</tests></target>
+      <observability><log-prefix>[GUI-SubtitleOverlay]</log-prefix></observability>
+      <verification-ref>V-M-GUI-SUBTITLE-OVERLAY</verification-ref>
+      <depends>M-GUI-VIDEOPLAYER, pysubs2</depends>
+    </M-GUI-SUBTITLE-OVERLAY>
+
+    <M-GUI-TIMELINE-V2 NAME="TimelineV2" TYPE="UI_COMPONENT" LAYER="6" ORDER="31" STATUS="pending">
+      <contract>
+        <purpose>Enhanced timeline: green markers from slides.json (detected). Blue markers from user (manual). Left-click selects a marker. Double-click on green marker opens slide image in system viewer (QDesktopServices.openUrl). Right-click on time axis adds blue marker. Context menu on blue marker to edit/delete/snap.</purpose>
+        <inputs><param name="slides" type="list[SlideSegment]" /><param name="manual_markers" type="list[float] — timestamps" /><param name="video_duration" type="float" /></inputs>
+        <outputs><param name="signals" type="marker_added(float) | marker_deleted(float) | marker_snapped(float, float) | open_image(str)" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/gui/timeline_v2.py</source><tests>tests/test_gui_timeline_v2.py</tests></target>
+      <observability><log-prefix>[GUI-TimelineV2]</log-prefix></observability>
+      <verification-ref>V-M-GUI-TIMELINE-V2</verification-ref>
+      <depends>M-MODELS, M-GUI-MARKER-MANAGER</depends>
+    </M-GUI-TIMELINE-V2>
+
+    <M-GUI-MARKER-MANAGER NAME="MarkerManager" TYPE="CORE_LOGIC" LAYER="6" ORDER="32" STATUS="pending">
+      <contract>
+        <purpose>Store and persist user-defined blue markers in project.json. CRUD operations on markers. On marker creation, calls M-GUI-SMART-SNAP to snap to nearest scene boundary. Snapped markers stored with both original and snapped timestamps.</purpose>
+        <inputs><param name="project" type="Project" /><param name="timestamp" type="float" /></inputs>
+        <outputs><param name="snapped_timestamp" type="float — original or adjusted" /><param name="project.json" type="updated with markers list" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/gui/marker_manager.py</source><tests>tests/test_gui_marker_manager.py</tests></target>
+      <observability><log-prefix>[GUI-MarkerManager]</log-prefix></observability>
+      <verification-ref>V-M-GUI-MARKER-MANAGER</verification-ref>
+      <depends>M-PROJECT, M-GUI-SMART-SNAP</depends>
+    </M-GUI-MARKER-MANAGER>
+
+    <M-GUI-SMART-SNAP NAME="SmartSnap" TYPE="CORE_LOGIC" LAYER="6" ORDER="33" STATUS="pending">
+      <contract>
+        <purpose>Three smart snap strategies for snapping a manual marker to the nearest scene boundary. diff_only: uses existing diff_scores from slides.json (window ±5s, find local max). fallback_analyze: tries diff_scores first, if none available decodes ±3s window at sample_fps=5 and computes fresh frame differences. hybrid: uses diff_scores, if window is flat (max-min < snap_flat_threshold) falls back to high-res analysis (±2s, sample_fps=10).</purpose>
+        <inputs><param name="timestamp" type="float" /><param name="project" type="Project" /><param name="snap_mode" type="str — 'diff_only' | 'fallback_analyze' | 'hybrid'" /><param name="snap_flat_threshold" type="float — default 0.05" /></inputs>
+        <outputs><param name="snapped_timestamp" type="float" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/gui/smart_snap.py</source><tests>tests/test_gui_smart_snap.py</tests></target>
+      <observability><log-prefix>[GUI-SmartSnap]</log-prefix></observability>
+      <verification-ref>V-M-GUI-SMART-SNAP</verification-ref>
+      <depends>M-FRAME-FEATURES, M-VIDEO-DECODE, M-MODELS</depends>
+    </M-GUI-SMART-SNAP>
+
+    <M-GUI-SETTINGS-PROJECT NAME="ProjectSettingsDialog" TYPE="UI_COMPONENT" LAYER="6" ORDER="34" STATUS="pending">
+      <contract>
+        <purpose>Project Settings dialog: editable fields for ROI (x1,y1,x2,y2), ignore_rois list, threshold, sample_fps, min_slide_duration, dedupe_enabled, min_stable_duration. Values read from project.json, saved on OK.</purpose>
+        <inputs><param name="project" type="Project" /></inputs>
+        <outputs><param name="signal" type="project_settings_changed()" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/gui/settings_project.py</source><tests>tests/test_gui_settings_project.py</tests></target>
+      <observability><log-prefix>[GUI-SettingsProject]</log-prefix></observability>
+      <verification-ref>V-M-GUI-SETTINGS-PROJECT</verification-ref>
+      <depends>M-CONFIG, M-PROJECT</depends>
+    </M-GUI-SETTINGS-PROJECT>
+
+    <M-GUI-SETTINGS-APP NAME="AppSettingsDialog" TYPE="UI_COMPONENT" LAYER="6" ORDER="35" STATUS="pending">
+      <contract>
+        <purpose>App Settings dialog: LLM tab (model name, base_url, context length), GPU/Backend tab (backend selector: auto/OpenCV/PyAV, CUDA info), Snap tab (snap_mode dropdown, snap_flat_threshold), Default Paths tab (default project dir). Values read from app-config.yaml, saved on OK. New projects inherit these defaults.</purpose>
+        <inputs><param name="app_config" type="AppConfigModel" /></inputs>
+        <outputs><param name="signal" type="app_settings_changed()" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/gui/settings_app.py</source><tests>tests/test_gui_settings_app.py</tests></target>
+      <observability><log-prefix>[GUI-SettingsApp]</log-prefix></observability>
+      <verification-ref>V-M-GUI-SETTINGS-APP</verification-ref>
+      <depends>M-CONFIG, M-GUI-APPCONFIG, M-BACKENDS</depends>
+    </M-GUI-SETTINGS-APP>
+
+    <M-GUI-APPCONFIG NAME="AppConfigManager" TYPE="DATA_LAYER" LAYER="0" ORDER="36" STATUS="pending">
+      <contract>
+        <purpose>App-wide configuration persistence: reads/writes app-config.yaml in platform-appropriate config directory (Windows: %APPDATA%/video-slide-md/config.yaml, Linux/macOS: ~/.config/video-slide-md/config.yaml). Fields: LLM model/base_url/context_length, GPU backend default, snap_mode, snap_flat_threshold, default_project_dir. New projects created with inherited defaults. CLI fallback: no app-config = built-in defaults.</purpose>
+        <inputs><param name="none" /></inputs>
+        <outputs><param name="app_config" type="AppConfigModel" /></outputs>
+      </contract>
+      <target><source>src/video_slide_md/gui/app_config.py</source><tests>tests/test_gui_app_config.py</tests></target>
+      <observability><log-prefix>[GUI-AppConfig]</log-prefix></observability>
+      <verification-ref>V-M-GUI-APPCONFIG</verification-ref>
+      <depends>PyYAML</depends>
+    </M-GUI-APPCONFIG>
   </Modules>
 
   <DataFlow>
@@ -361,6 +469,52 @@
       <step-3>Display updated text in subtitle panel</step-3>
       <evidence>Text updated, slides.json saved, no UI freeze during LLM call</evidence>
     </DF-010>
+
+    <DF-011 NAME="ProjectLifecycleMenu" TRIGGER="GUI — user interacts with File menu">
+      <step-1>User selects New/Open/Close/Save from File menu (M-GUI-MENUBAR)</step-1>
+      <step-2>MenuBar emits signal with action type → MainWindow handles</step-2>
+      <step-3>New/Open: launches file dialogs → creates/loads Project → updates UI</step-3>
+      <step-4>Close: stops video player, clears timeline, unloads project, resets info labels</step-4>
+      <step-5>Save: force-writes project.json with current state</step-5>
+      <step-6>Import Video/Subtitles: updates project video/subtitle paths, saves project.json</step-6>
+      <evidence>Menu items visible and clickable. Keyboard shortcuts work. Project state consistent before/after close/open.</evidence>
+    </DF-011>
+
+    <DF-012 NAME="SettingsConfiguration" TRIGGER="GUI — Edit > Project Settings or App Settings">
+      <step-1>User selects Project Settings → M-GUI-SETTINGS-PROJECT dialog opens with current project config</step-1>
+      <step-2>User edits ROI, thresholds, fps etc → clicks OK → values validated and saved to project.json</step-2>
+      <step-3>User selects App Settings → M-GUI-SETTINGS-APP dialog opens with current app config from M-GUI-APPCONFIG</step-3>
+      <step-4>User edits LLM, GPU, snap_mode etc → clicks OK → values saved to app-config.yaml</step-4>
+      <step-5>New projects created after this point inherit app defaults for LLM config, GPU backend, snap_mode</step-5>
+      <evidence>Settings persist across app restarts. New projects show inherited values. Invalid values rejected with error message.</evidence>
+    </DF-012>
+
+    <DF-013 NAME="VideoPlayback" TRIGGER="GUI — user interacts with video player controls">
+      <step-1>Video loaded from project path → QMediaPlayer setSource → QVideoWidget displays frames</step-1>
+      <step-2>Play button → player.play(). Pause → player.pause(). Stop → player.stop() + seek(0)</step-2>
+      <step-3>Seek slider → player.setPosition(slider.value). Volume slider → player.audioOutput().setVolume()</step-3>
+      <step-4>Time counter updates on positionChanged → formatted MM:SS / total duration</step-4>
+      <step-5>positionChanged → M-GUI-SUBTITLE-OVERLAY updates visible subtitle text at current timestamp</step-5>
+      <evidence>Video plays in GUI window. Controls respond correctly. Subtitles appear/disappear at correct times. Seeking updates subtitle immediately.</evidence>
+    </DF-013>
+
+    <DF-014 NAME="TimelineGreenMarkers" TRIGGER="GUI — after detection or loading existing slides.json">
+      <step-1>Load slides.json → extract SlideSegment list with timestamps and image paths</step-1>
+      <step-2>M-GUI-TIMELINE-V2 renders green blocks on time axis at each segment interval</step-2>
+      <step-3>User double-clicks green block → QDesktopServices.openUrl(slide_image_path) → system image viewer</step-3>
+      <step-4>User left-clicks green block → emits selected_slide_changed → subtitle panel updates</step-4>
+      <evidence>Green markers match slide count and intervals from slides.json. Double-click opens image in system viewer. Left-click selects and updates panel.</evidence>
+    </DF-014>
+
+    <DF-015 NAME="TimelineBlueMarkers" TRIGGER="GUI — user right-clicks on timeline">
+      <step-1>User right-clicks on timeline at timestamp T → context menu appears: "Add marker here"</step-1>
+      <step-2>User confirms → M-GUI-MARKER-MANAGER.add_marker(T) called</step-2>
+      <step-3>MarkerManager calls M-GUI-SMART-SNAP.snap(T, snap_mode) → returns snapped timestamp T'</step-3>
+      <step-4>Blue marker rendered at T' on timeline (original T shown as tooltip on hover)</step-4>
+      <step-5>Marker persisted in project.json → markers list with {original, snapped, snap_mode}</step-5>
+      <step-6>Context menu also: "Delete marker", "Snap again" (re-runs snap with current settings)</step-6>
+      <evidence>Blue marker appears on timeline. Snap adjusts position if scene boundary nearby. Marker persisted and restored on project reopen. Re-snap changes position if settings changed.</evidence>
+    </DF-015>
   </DataFlow>
 
   <ImplementationOrder>
@@ -428,6 +582,41 @@
       </step-26>
       <stop-condition>project.json must be human-readable and re-openable. CLI project commands must round-trip (create → open → verify paths resolve).</stop-condition>
     </Phase-9>
+
+    <Phase-11 name="DesktopGUIEnhancements" status="pending">
+      <goal>Full desktop GUI with menu bar, video player, subtitle overlay, enhanced timeline (green/blue markers), project/app settings dialogs, app-wide config, and smart manual marker snapping with three strategies.</goal>
+      <step-1 module="M-GUI-APPCONFIG" status="pending" verification="V-M-GUI-APPCONFIG">
+        Create src/video_slide_md/gui/app_config.py: AppConfigModel pydantic model, load/save app-config.yaml to platform config dir. Fields: LLM model/base_url/context_length, GPU backend default, snap_mode, snap_flat_threshold, default_project_dir. CLI fallback = built-in defaults.
+      </step-1>
+      <step-2 module="M-GUI-SMART-SNAP" status="pending" verification="V-M-GUI-SMART-SNAP">
+        Create src/video_slide_md/gui/smart_snap.py: three snap strategies. diff_only: load diff_scores from slides.json, window ±5s, find nearest local max. fallback_analyze: try diff_scores first, if none decode ±3s window sample_fps=5, compute frame differences. hybrid: diff_scores, if flat (max-min < threshold) high-res ±2s sample_fps=10.
+      </step-2>
+      <step-3 module="M-GUI-MARKER-MANAGER" status="pending" verification="V-M-GUI-MARKER-MANAGER">
+        Create src/video_slide_md/gui/marker_manager.py: CRUD for blue markers on Project model. Persist in project.json as list of {original_ts, snapped_ts, snap_mode}. Calls M-GUI-SMART-SNAP on creation.
+      </step-3>
+      <step-4 module="M-GUI-SETTINGS-PROJECT" status="pending" verification="V-M-GUI-SETTINGS-PROJECT">
+        Create src/video_slide_md/gui/settings_project.py: QDialog with fields for ROI, ignore_rois, threshold, sample_fps, min_slide_duration, dedupe, min_stable_duration. Read/write via project.json.
+      </step-4>
+      <step-5 module="M-GUI-SETTINGS-APP" status="pending" verification="V-M-GUI-SETTINGS-APP">
+        Create src/video_slide_md/gui/settings_app.py: QDialog with tabs for LLM, GPU/Backend, Snap, Default Paths. Read/write via M-GUI-APPCONFIG.
+      </step-5>
+      <step-6 module="M-GUI-VIDEOPLAYER" status="pending" verification="V-M-GUI-VIDEOPLAYER">
+        Create src/video_slide_md/gui/video_player.py: QWidget containing QVideoWidget + transport bar (play/pause/stop, seek slider, volume slider, time label). Emits positionChanged for subtitle sync.
+      </step-6>
+      <step-7 module="M-GUI-SUBTITLE-OVERLAY" status="pending" verification="V-M-GUI-SUBTITLE-OVERLAY">
+        Create src/video_slide_md/gui/subtitle_overlay.py: QLabel positioned over QVideoWidget, updated on positionChanged. Parses SRT/VTT via pysubs2.
+      </step-7>
+      <step-8 module="M-GUI-TIMELINE-V2" status="pending" verification="V-M-GUI-TIMELINE-V2">
+        Create src/video_slide_md/gui/timeline_v2.py: Enhanced timeline with green (detected) and blue (manual) markers. Double-click green → open image. Right-click → add/edit/delete blue marker. Context menu with snap options.
+      </step-8>
+      <step-9 module="M-GUI-MENUBAR" status="pending" verification="V-M-GUI-MENUBAR">
+        Create src/video_slide_md/gui/menu_bar.py: QMenuBar with File + Edit menus. Emits signals for all actions. Integrates into MainWindow replacing toolbar-only approach.
+      </step-9>
+      <step-10 module="M-GUI-MAIN" status="pending" verification="V-M-GUI-MAIN">
+        Update src/video_slide_md/gui/main_window.py: Add M-GUI-MENUBAR, M-GUI-VIDEOPLAYER, M-GUI-TIMELINE-V2. Integrate project/app settings dialogs. Connect menu signals to project lifecycle. Replace old toolbar with menu bar. Split central area into video player + timeline + subtitle panel.
+      </step-10>
+      <stop-condition>GUI must not block during video playback or smart snap. Green/blue markers render correctly. Double-click opens system viewer. Smart snap adjusts markers according to selected mode. Settings persist across restarts. New projects inherit app defaults. All tests pass (offscreen-compatible).</stop-condition>
+    </Phase-11>
 
     <Phase-10 name="DesktopGUI" status="done">
       <goal>Desktop GUI with PySide6: main window, timeline, settings dialog, background workers. GUI must be optional (extras = ["gui"]).</goal>

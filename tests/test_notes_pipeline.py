@@ -13,10 +13,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-from loguru import logger
 
-from video_slide_md.models import SlidesDocument, SlideSegment, SubtitleCue, VideoInfo
+from video_slide_md.models import SlidesDocument, SlideSegment, VideoInfo
 from video_slide_md.notes_pipeline import run_notes
 
 FIXTURES = Path(__file__).parent / "fixtures"

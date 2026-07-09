@@ -13,11 +13,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
-from video_slide_md.config import LlmConfig
 from video_slide_md.llm_client import LlmClient
 from video_slide_md.models import SlideSegment
 from video_slide_md.slide_analyzer import (

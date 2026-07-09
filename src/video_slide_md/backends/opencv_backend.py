@@ -20,7 +20,6 @@ from pathlib import Path
 from typing import Iterator
 
 import cv2
-import numpy as np
 
 from video_slide_md.models import VideoFrame, VideoInfo
 

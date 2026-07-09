@@ -42,7 +42,6 @@ def deduplicate_segments(
         return list(segments)
 
     # START_BLOCK_DEDUPE
-    import numpy as np
 
     result: list[SlideSegment] = [segments[0]]
     prev_features: FrameFeatures | None = None

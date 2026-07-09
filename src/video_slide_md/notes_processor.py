@@ -20,7 +20,7 @@ import re
 
 from loguru import logger
 
-from video_slide_md.models import SlideSegment, SubtitleCue
+from video_slide_md.models import SlideSegment
 
 # START_BLOCK_SYSTEM_PROMPT
 SYSTEM_PROMPT_REPHRASE: str = """Ты — редактор расшифровок лекций. Преобразуй сырой текст субтитров в качественный текст докладчика для заметок к слайду презентации.

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<RequirementsAnalysis VERSION="0.4.0">
+<RequirementsAnalysis VERSION="0.5.0">
   <Project>
     <name>video-slide-md</name>
-    <annotation>Automatically extract slide intervals from educational videos, link to SRT/VTT subtitles, enhance with LLM vision analysis, export presentations, and manage projects via GUI and CLI.</annotation>
-    <keywords>video, slides, markdown, presentation, open-cv, computer-vision, slide-detection, subtitle-alignment, srt, vtt, marp, llm, lm-studio, vision, gui, pyside6, project, timeline</keywords>
+    <annotation>Automatically extract slide intervals from educational videos, link to SRT/VTT subtitles, enhance with LLM vision analysis, export presentations, manage projects via GUI/CLI, with video player, subtitle overlay, interactive timeline, and smart manual marker snapping.</annotation>
+    <keywords>video, slides, markdown, presentation, open-cv, computer-vision, slide-detection, subtitle-alignment, srt, vtt, marp, llm, lm-studio, vision, gui, pyside6, project, timeline, video-player, subtitle-overlay, smart-snap</keywords>
   </Project>
 
   <Actors>
@@ -127,6 +127,46 @@
       <AcceptanceCriteria>Available backends are displayed (detected at startup). User selects one. Selection is saved to project config and used for next detect run. Info about CUDA availability is shown.</AcceptanceCriteria>
       <Priority>medium</Priority>
     </UC-012>
+
+    <UC-013>
+      <Actor>User</Actor>
+      <Action>Uses menu bar: File > New/Open/Close/Save Project, Import Video, Import Subtitles, Exit</Action>
+      <Goal>Manage project lifecycle and video/subtitle sources via standard desktop menu</Goal>
+      <Preconditions>GUI is running</Preconditions>
+      <AcceptanceCriteria>File menu contains all listed items. Keyboard shortcuts match platform conventions (Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+Q). Close unloads project and resets UI. Import Video/Subtitles replaces sources in current project. Save writes project.json immediately.</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-011</RelatedFlows>
+    </UC-013>
+
+    <UC-014>
+      <Actor>User</Actor>
+      <Action>Opens Project Settings and App Settings from Edit menu</Action>
+      <Goal>Configure per-project detection parameters (ROI, thresholds) and app-wide defaults (LLM, GPU, snap_mode)</Goal>
+      <Preconditions>GUI is running. Project loaded for Project Settings.</Preconditions>
+      <AcceptanceCriteria>Project Settings: ROI, ignore_rois, threshold, sample_fps, min_slide_duration, dedupe, min_stable_duration. Saved to project.json. App Settings: LLM model/base_url/context, GPU backend, snap_mode, snap_flat_threshold, default paths. Saved to app-config.yaml. New projects inherit app defaults.</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-012</RelatedFlows>
+    </UC-014>
+
+    <UC-015>
+      <Actor>User</Actor>
+      <Action>Plays video with subtitle overlay in GUI, controls playback and volume</Action>
+      <Goal>Watch video with synced subtitles, seek to specific timestamps, adjust volume</Goal>
+      <Preconditions>Video file exists and is accessible. Project loaded. Subtitles present (optional).</Preconditions>
+      <AcceptanceCriteria>Play/pause/stop buttons work. Time counter shows current/total. Seek slider seeks correctly. Volume slider adjusts audio level. Subtitles appear over video and sync with playback position. If no subtitles, video plays without overlay.</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-013</RelatedFlows>
+    </UC-015>
+
+    <UC-016>
+      <Actor>User</Actor>
+      <Action>Views green detected markers on timeline, clicks to open slide image. Adds blue manual markers, which auto-snap to nearest scene boundary</Action>
+      <Goal>Navigate detected slides, inspect images, place manual markers that snap to scene changes</Goal>
+      <Preconditions>Detection completed (green markers) or not (blue markers only). Slide images exist.</Preconditions>
+      <AcceptanceCriteria>Green markers appear after detection. Double-click opens slide image in system viewer. Right-click adds blue marker. Blue marker snaps to nearest scene change according to snap_mode (diff_only / fallback_analyze / hybrid). Snapped position reflected on timeline.</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-014, DF-015</RelatedFlows>
+    </UC-016>
   </UseCases>
 
   <NonGoals>
@@ -135,7 +175,7 @@
     <item-3>No cloud/remote processing — local only</item-3>
     <item-4>No web UI with user management or multi-user</item-4>
     <item-5>No automatic video download from YouTube/Zoom/Meet</item-5>
-    <item-6>No video player/streaming in GUI — only static frame display</item-6>
+    <item-6>No real-time video streaming from network/URL — local files only</item-6>
     <item-7>No real-time slide detection — only batch processing</item-7>
   </NonGoals>
 
@@ -168,6 +208,9 @@
     <risk-8>Context window may be exceeded for long slide transcripts</risk-8>
     <risk-9>PySide6 adds ~50MB dependency — may conflict with existing Qt installations</risk-9>
     <risk-10>QThread lifecycle bugs may cause crashes on project/worker switching</risk-10>
+    <risk-11>QMediaPlayer may not support all video codecs on all platforms — fallback to frame-by-frame display needed</risk-11>
+    <risk-12>Subtitle overlay may flicker or desync with rapid seeking</risk-12>
+    <risk-13>Smart snap may snap to wrong boundary if diff_scores are noisy or window is too small</risk-13>
   </Risks>
 
   <OpenQuestions>
@@ -175,5 +218,7 @@
     <question-2>Should multiple ignore_rois be specified as repeated --ignore-roi flags or comma-separated?</question-2>
     <question-3>Should GUI support side-by-side comparison of original vs LLM-processed notes?</question-3>
     <question-4>Should timeline support drag-to-reorder slides?</question-4>
+    <question-5>Should smart snap window be configurable (seconds before/after marker)?</question-5>
+    <question-6>Should subtitle overlay font size/color be configurable in App Settings?</question-6>
   </OpenQuestions>
 </RequirementsAnalysis>

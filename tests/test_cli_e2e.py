@@ -11,7 +11,6 @@
 
 from pathlib import Path
 
-import pytest
 from typer.testing import CliRunner
 
 from video_slide_md.cli import app

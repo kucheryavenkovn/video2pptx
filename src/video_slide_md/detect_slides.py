@@ -23,7 +23,6 @@ from loguru import logger
 
 from video_slide_md.config import AppConfig
 from video_slide_md.dedupe import deduplicate_segments
-from video_slide_md.frame_features import extract_features
 from video_slide_md.models import SlidesDocument, SlideSegment, VideoInfo
 from video_slide_md.roi import SlideRegion, parse_ignore_rois, parse_roi
 from video_slide_md.segmenter import build_segments

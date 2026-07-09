@@ -19,8 +19,6 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import (
     QHBoxLayout,
-    QLabel,
-    QPushButton,
     QSplitter,
     QTextEdit,
     QVBoxLayout,

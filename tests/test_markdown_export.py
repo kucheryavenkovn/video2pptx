@@ -9,9 +9,7 @@
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
 
-from pathlib import Path
 
-import pytest
 
 from video_slide_md.markdown_export import export_to_markdown, render_slide, _fmt_time
 from video_slide_md.models import SlideSegment, SlidesDocument, VideoInfo
@@ -45,29 +43,29 @@ class TestRenderSlide:
     def test_basic_slide(self):
         seg = make_seg(1, 0.0, 10.0)
         lines = render_slide(seg, "slides")
-        assert any("⏱ 0:00" in l for l in lines)
+        assert any("⏱ 0:00" in line for line in lines)
 
     def test_slide_with_image(self):
         seg = make_seg(1, 0.0, 10.0, image="slide_001.png")
         lines = render_slide(seg, "slides")
-        img_lines = [l for l in lines if "slide_001.png" in l]
+        img_lines = [line for line in lines if "slide_001.png" in line]
         assert len(img_lines) >= 1
 
     def test_slide_with_transcript(self):
         seg = make_seg(1, 0.0, 10.0, transcript="Hello world")
         lines = render_slide(seg, "slides")
-        assert any("Hello world" in l for l in lines)
+        assert any("Hello world" in line for line in lines)
 
     def test_slide_with_warnings(self):
         seg = make_seg(1, 0.0, 10.0)
         seg.warnings = ["Low confidence"]
         lines = render_slide(seg, "slides")
-        assert any("Low confidence" in l for l in lines)
+        assert any("Low confidence" in line for line in lines)
 
     def test_slide_no_image(self):
         seg = make_seg(1, 0.0, 10.0)
         lines = render_slide(seg, "slides")
-        img_lines = [l for l in lines if "![" in l]
+        img_lines = [line for line in lines if "![" in line]
         assert len(img_lines) == 0
 
 

@@ -9,7 +9,6 @@
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
 
-import pytest
 
 from video_slide_md.models import SlideSegment, SubtitleCue
 from video_slide_md.subtitles import (

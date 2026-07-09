@@ -12,10 +12,8 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
-import pytest
 
 from video_slide_md.models import SlidesDocument, SlideSegment, SubtitleCue, VideoInfo
 from video_slide_md.pptx_export import export_to_pptx, _format_slide_notes, _group_cues
@@ -153,5 +151,5 @@ class TestExportToPptx:
             ],
         )
         out = tmp_path / "test.pptx"
-        result = export_to_pptx(doc, out)
+        export_to_pptx(doc, out)
         assert out.is_file()

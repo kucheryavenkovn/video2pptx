@@ -10,7 +10,6 @@
 # END_MODULE_CONTRACT
 
 import numpy as np
-import pytest
 
 from video_slide_md.dedupe import deduplicate_segments
 from video_slide_md.models import SlideSegment

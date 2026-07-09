@@ -9,7 +9,6 @@
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
 
-import json
 
 import pytest
 import yaml
@@ -20,7 +19,6 @@ from video_slide_md.config import (
     DebugConfig,
     DetectionConfig,
     ExportConfig,
-    LoggingConfig,
     VideoConfig,
     load_config,
     merge_config,

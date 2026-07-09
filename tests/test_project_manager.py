@@ -14,13 +14,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from loguru import logger
 
 from video_slide_md.project_manager import (
     Project,
     create_project,
     open_project,
-    save_project,
     update_project_state,
 )
 
@@ -57,7 +55,7 @@ class TestProjectCreate:
         subs = tmp_path / "subs.srt"
         subs.write_text("fake srt")
 
-        proj = create_project(proj_dir := tmp_path / "proj", video_path=video, subtitles_path=subs)
+        proj = create_project(_proj_dir := tmp_path / "proj", video_path=video, subtitles_path=subs)
 
         assert Path(proj.subtitles).resolve() == subs.resolve() if proj.subtitles else False
 
@@ -88,7 +86,7 @@ class TestProjectOpen:
         subs.write_text("fake")
 
         orig = create_project(tmp_path / "proj", video_path=video, subtitles_path=subs, name="RoundTrip")
-        orig.state.detect_done = True
+        update_project_state(orig, detect_done=True)
 
         loaded = open_project(tmp_path / "proj")
         assert loaded.name == "RoundTrip"
@@ -143,6 +141,6 @@ class TestLogMarkers:
         video.write_text("fake")
         create_project(tmp_path / "proj", video_path=video)
 
-        combined = " ".join(loguru_sink)
+        " ".join(loguru_sink)
         # At minimum some log output was produced about project creation
         assert len(loguru_sink) > 0

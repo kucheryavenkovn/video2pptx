@@ -14,7 +14,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from loguru import logger
 
 from video_slide_md.config import AppConfig
 from video_slide_md.detect_slides import run_detect_slides

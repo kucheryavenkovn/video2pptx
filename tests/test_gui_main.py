@@ -11,7 +11,6 @@
 
 from __future__ import annotations
 
-import os
 import sys
 
 import pytest
@@ -19,7 +18,7 @@ import pytest
 # Skip all tests if imports are missing or no display
 pyside_available = False
 try:
-    from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QToolBar
+    from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QToolBar  # noqa: F401
     pyside_available = True
 except ImportError:
     pass
@@ -38,7 +37,7 @@ class TestMainWindowSmoke:
         """MainWindow can be instantiated and shown without errors."""
         from PySide6.QtWidgets import QMainWindow
 
-        app = _ensure_app()
+        _ensure_app()
 
         # M-GUI-MAIN: MainWindow is a QMainWindow subclass
         from video_slide_md.gui.main_window import MainWindow
@@ -48,7 +47,7 @@ class TestMainWindowSmoke:
 
     def test_toolbar_has_project_buttons(self):
         """Toolbar contains New, Open, Save buttons."""
-        app = _ensure_app()
+        _ensure_app()
         from video_slide_md.gui.main_window import MainWindow
 
         window = MainWindow()
@@ -65,7 +64,7 @@ class TestMainWindowSmoke:
 
     def test_detect_button_exists(self):
         """Detect button is present and disabled when no project loaded."""
-        app = _ensure_app()
+        _ensure_app()
         from video_slide_md.gui.main_window import MainWindow
 
         window = MainWindow()

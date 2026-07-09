@@ -33,12 +33,11 @@ from loguru import logger
 from rich.console import Console
 from rich.table import Table
 
-from video_slide_md.config import load_config, AppConfig, LlmConfig
+from video_slide_md.config import load_config
 from video_slide_md.dedupe import deduplicate_segments
 from video_slide_md.detect_slides import run_detect_slides
 from video_slide_md.roi_tool import roi_tool_main
-from video_slide_md.project_manager import create_project, open_project, Project
-from video_slide_md.frame_features import extract_features
+from video_slide_md.project_manager import create_project, open_project
 from video_slide_md.markdown_export import export_to_markdown
 from video_slide_md.notes_pipeline import run_notes
 from video_slide_md.pptx_export import export_to_pptx
@@ -50,7 +49,7 @@ from video_slide_md.subtitles import align_cues_to_segments, parse_subtitles
 from video_slide_md.video_decode import VideoDecoder
 
 app = typer.Typer(name="video-slide-md")
-project_app = typer.Typer(name="project", help="Manage projects — create, open, info")
+project_app = typer.Typer(name="project", help="Manage projects - create, open, info")
 app.add_typer(project_app, name="project")
 console = Console()
 
@@ -260,7 +259,7 @@ def detect(
         # END_BLOCK_OPTIONAL_EXPORT
 
     logger.info(f"[CLI][detect] Detection complete | output={out_dir}")
-    console.print(f"[green]Done.[/green]")
+    console.print("[green]Done.[/green]")
 
 
 @app.command(name="detect-slides")
@@ -317,7 +316,7 @@ def detect_slides(
     )
 
     console.print(f"[green]✓[/green] Slides: {len(doc.slides)} detected")
-    console.print(f"[green]Done.[/green]")
+    console.print("[green]Done.[/green]")
 
 
 @app.command(name="notes")
@@ -357,7 +356,7 @@ def notes_cmd(
     )
 
     console.print(f"[green]✓[/green] Notes updated: {json_path.resolve()}")
-    console.print(f"[green]Done.[/green]")
+    console.print("[green]Done.[/green]")
 
 
 @app.command(name="roi-tool")
@@ -383,7 +382,7 @@ def roi_tool_cmd(
 
     roi_tool_main(video_path=video_path, frame_ts=frame_ts)
 
-    console.print(f"[green]Done.[/green]")
+    console.print("[green]Done.[/green]")
 
 
 @app.command()
@@ -409,7 +408,6 @@ def export_md(
 
     logger.info(f"[CLI][export_md] Exporting slides from {slides_json}")
 
-    import json
     from video_slide_md.models import SlidesDocument
     from video_slide_md.markdown_export import export_to_markdown
 
@@ -440,7 +438,6 @@ def export_pptx(
 
     logger.info(f"[CLI][export_pptx] Exporting slides from {slides_json}")
 
-    import json
     from video_slide_md.models import SlidesDocument
     from video_slide_md.pptx_export import export_to_pptx
 
@@ -470,7 +467,6 @@ def debug_cmd(
 
     logger.info(f"[CLI][debug] Generating debug for {slides_json}")
 
-    import json
     from video_slide_md.models import SlidesDocument
     from video_slide_md.debug_export import export_debug_report
 
@@ -639,6 +635,20 @@ def project_info_cmd(
 
     state_str = ", ".join(state_parts) if state_parts else "fresh"
     console.print(f"[green]{proj.name}[/green] — {state_str} — {proj.video}")
+
+
+@app.command()
+def gui() -> None:
+    """Launch the desktop GUI application."""
+    import sys
+    from PySide6.QtWidgets import QApplication
+    from video_slide_md.gui import MainWindow
+
+    qt_app = QApplication(sys.argv)
+    qt_app.setApplicationName("video-slide-md")
+    window = MainWindow()
+    window.show()
+    sys.exit(qt_app.exec())
 
 
 def _build_cli_overrides(**kwargs) -> dict:

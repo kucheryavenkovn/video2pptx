@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<TechnologyStack VERSION="0.2.0">
+<TechnologyStack VERSION="0.3.0">
   <Runtime>Python 3.10+</Runtime>
   <Language>Python</Language>
   <Framework>Typer (CLI), Pydantic (models), PySide6 (GUI)</Framework>
@@ -22,7 +22,8 @@
 
   <OptionalDependencies>
     <extras name="gui">
-      <dep name="PySide6" version=">=6.6" purpose="Desktop GUI framework: QMainWindow, custom widgets, QThread workers" />
+      <dep name="PySide6" version=">=6.6" purpose="Desktop GUI framework: QMainWindow, custom widgets, QThread workers, QMediaPlayer + QVideoWidget for video playback" />
+      <dep name="PySide6.QtMultimedia" version=">=6.6" purpose="Video playback: QMediaPlayer, QAudioOutput, subtitle sync via positionChanged" />
     </extras>
   </OptionalDependencies>
 
@@ -41,7 +42,7 @@
     <preferred-config-library>pydantic + pyyaml</preferred-config-library>
     <preferred-logger>loguru</preferred-logger>
     <preferred-serialization>pydantic .model_dump_json()</preferred-serialization>
-    <preferred-project-storage>JSON file (project.json) in output directory</preferred-project-storage>
+    <preferred-project-storage>JSON file (project.json) in output directory; YAML file (app-config.yaml) in user config dir for app-wide settings</preferred-project-storage>
     <preferred-worker-pattern>QObject worker moved to QThread with signal-based progress/result/error</preferred-worker-pattern>
   </PreferredAgentStack>
 

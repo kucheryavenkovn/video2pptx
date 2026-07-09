@@ -11,7 +11,6 @@
 
 from __future__ import annotations
 
-import pytest
 
 from video_slide_md.models import SlideSegment, SubtitleCue
 from video_slide_md.notes_processor import (

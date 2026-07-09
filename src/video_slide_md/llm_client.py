@@ -223,7 +223,7 @@ class LlmClient:
         # END_CONTRACT: unload_model
 
         if not self._model_loaded:
-            logger.info(f"[LlmClient][unload_model] No model loaded, skipping unload")
+            logger.info("[LlmClient][unload_model] No model loaded, skipping unload")
             return True
 
         logger.info(
@@ -235,7 +235,7 @@ class LlmClient:
             resp = self._client.post("model/unload", timeout=60.0)
             if resp.status_code == 200:
                 self._model_loaded = False
-                logger.info(f"[LlmClient][unload_model] Model unloaded successfully")
+                logger.info("[LlmClient][unload_model] Model unloaded successfully")
                 return True
 
             logger.warning(
@@ -254,7 +254,7 @@ class LlmClient:
     # START_BLOCK_CLOSE
     def close(self) -> None:
         self._client.close()
-        logger.info(f"[LlmClient][close] HTTP client closed")
+        logger.info("[LlmClient][close] HTTP client closed")
     # END_BLOCK_CLOSE
 
     def __enter__(self) -> LlmClient:

@@ -9,10 +9,8 @@
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
 
-from pathlib import Path
 
 import numpy as np
-import pytest
 
 from video_slide_md.debug_export import (
     export_contact_sheet,
@@ -95,7 +93,7 @@ class TestExportContactSheet:
 
 def _pil_available() -> bool:
     try:
-        import PIL
+        import PIL  # noqa: F401
         return True
     except ImportError:
         return False

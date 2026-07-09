@@ -22,7 +22,7 @@ from pathlib import Path
 from loguru import logger
 from PySide6.QtCore import QObject, Signal
 
-from video_slide_md.config import AppConfig, load_config
+from video_slide_md.config import AppConfig
 from video_slide_md.detect_slides import run_detect_slides
 from video_slide_md.llm_orchestrator import run_llm_pipeline
 from video_slide_md.notes_pipeline import run_notes

@@ -10,7 +10,6 @@
 # END_MODULE_CONTRACT
 
 import numpy as np
-import pytest
 
 from video_slide_md.models import Roi
 from video_slide_md.roi import SlideRegion, parse_ignore_rois, parse_roi

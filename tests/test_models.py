@@ -9,7 +9,6 @@
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
 
-import json
 import logging
 
 import pytest

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<VerificationPlan VERSION="0.3.0">
+<VerificationPlan VERSION="0.4.0">
   <GlobalPolicy>
     <log-format>[ModuleName][function_name][BLOCK_NAME] message | key=value</log-format>
     <deterministic-first>true</deterministic-first>
@@ -80,6 +80,31 @@
       <scenario>User opens Settings → GPU/Backend tab, selects a backend.</scenario>
       <expected-outcome>Available backends are listed with CUDA availability. Selection saved to project config. Next detect run uses selected backend.</expected-outcome>
     </VF-013>
+
+    <VF-014 NAME="MenuBarActions" USE_CASES="UC-013" DATA_FLOW="DF-011" PRIORITY="high">
+      <scenario>User interacts with File menu.</scenario>
+      <expected-outcome>All menu items present with correct shortcuts (Ctrl+N/O/S/Q). New/Open → file dialogs → project loaded. Close → project unloaded, UI reset. Save → project.json written. Import Video/Subtitles → project paths updated.</expected-outcome>
+    </VF-014>
+
+    <VF-015 NAME="ProjectAppSettings" USE_CASES="UC-014" DATA_FLOW="DF-012" PRIORITY="high">
+      <scenario>User opens Project Settings and App Settings from Edit menu.</scenario>
+      <expected-outcome>Project Settings: all detection fields editable, saved to project.json. App Settings: LLM/GPU/snap_mode editable, saved to app-config.yaml. New projects created after app settings change inherit updated defaults.</expected-outcome>
+    </VF-015>
+
+    <VF-016 NAME="VideoPlaybackSubtitles" USE_CASES="UC-015" DATA_FLOW="DF-013" PRIORITY="high">
+      <scenario>User plays video with subtitle overlay in GUI.</scenario>
+      <expected-outcome>Play/pause/stop work. Time counter updates. Seek slider seeks. Volume slider works. Subtitles render over video and sync with playback. No subtitles → clean video without overlay.</expected-outcome>
+    </VF-016>
+
+    <VF-017 NAME="TimelineGreenBlueMarkers" USE_CASES="UC-016" DATA_FLOW="DF-014, DF-015" PRIORITY="high">
+      <scenario>User views detected slides as green markers, double-clicks to open image. User adds blue manual marker, snap adjusts it.</scenario>
+      <expected-outcome>Green markers match slide intervals. Double-click opens image in system viewer. Right-click adds blue marker. Smart snap adjusts position per snap_mode. Marker persisted in project.json and restored on reopen.</expected-outcome>
+    </VF-017>
+
+    <VF-018 NAME="SmartSnapModes" USE_CASES="UC-016" DATA_FLOW="DF-015" PRIORITY="medium">
+      <scenario>User places blue marker near a scene boundary with different snap modes.</scenario>
+      <expected-outcome>diff_only: snaps using existing diff_scores. If none available, marker stays at original position. fallback_analyze: snaps using diff_scores if available, otherwise decodes and analyzes. hybrid: snaps using diff_scores, if graph flat runs high-res analysis. Snapped marker reflects actual scene change.</expected-outcome>
+    </VF-018>
   </CriticalFlows>
 
   <ModuleVerification>
@@ -266,6 +291,136 @@
       </scenarios>
     </V-M-GUI-SETTINGS>
 
+    <V-M-GUI-APPCONFIG MODULE="M-GUI-APPCONFIG" PRIORITY="high" STATUS="pending">
+      <test-files><file>tests/test_gui_app_config.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_gui_app_config.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">AppConfigManager loads/saves app-config.yaml correctly.</scenario-1>
+        <scenario-2 kind="success">Missing config file returns defaults, does not crash.</scenario-2>
+        <scenario-3 kind="success">New project creation inherits app config defaults (LLM, GPU, snap_mode).</scenario-3>
+        <scenario-4 kind="success">Config directory created automatically if missing.</scenario-4>
+      </scenarios>
+    </V-M-GUI-APPCONFIG>
+
+    <V-M-GUI-SMART-SNAP MODULE="M-GUI-SMART-SNAP" PRIORITY="high" STATUS="pending">
+      <test-files><file>tests/test_gui_smart_snap.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_gui_smart_snap.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">diff_only with valid diff_scores: snaps to nearest peak within ±5s.</scenario-1>
+        <scenario-2 kind="success">diff_only with no diff_scores: returns original timestamp unchanged.</scenario-2>
+        <scenario-3 kind="success">fallback_analyze with no diff_scores: decodes window, computes differences, finds boundary.</scenario-3>
+        <scenario-4 kind="success">hybrid with flat diff_scores: falls back to high-res analysis.</scenario-4>
+        <scenario-5 kind="success">hybrid with clear diff_scores peak: uses diff_only path.</scenario-5>
+      </scenarios>
+      <log-markers>
+        <marker-1>[GUI-SmartSnap] diff_only | original= snapped= distance=</marker-1>
+        <marker-2>[GUI-SmartSnap] fallback_analyze | decoding window original=</marker-2>
+        <marker-3>[GUI-SmartSnap] hybrid | flat detected threshold= max-min=</marker-3>
+      </log-markers>
+    </V-M-GUI-SMART-SNAP>
+
+    <V-M-GUI-MARKER-MANAGER MODULE="M-GUI-MARKER-MANAGER" PRIORITY="high" STATUS="pending">
+      <test-files><file>tests/test_gui_marker_manager.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_gui_marker_manager.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Add marker → calls smart_snap → marker stored with original + snapped timestamps.</scenario-1>
+        <scenario-2 kind="success">Delete marker → removed from project.json markers list.</scenario-2>
+        <scenario-3 kind="success">Load project with existing markers → markers restored and rendered on timeline.</scenario-3>
+        <scenario-4 kind="success">Re-snap marker → re-runs snap with current settings, updates position.</scenario-4>
+      </scenarios>
+    </V-M-GUI-MARKER-MANAGER>
+
+    <V-M-GUI-SETTINGS-PROJECT MODULE="M-GUI-SETTINGS-PROJECT" PRIORITY="medium" STATUS="pending">
+      <test-files><file>tests/test_gui_settings_project.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_gui_settings_project.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Dialog opens with current project config values pre-filled.</scenario-1>
+        <scenario-2 kind="success">Edit ROI, threshold, fps → OK → values saved to project.json.</scenario-2>
+        <scenario-3 kind="success">Cancel → no changes to project.json.</scenario-3>
+        <scenario-4 kind="success">Invalid ROI format → error message, not saved.</scenario-4>
+      </scenarios>
+    </V-M-GUI-SETTINGS-PROJECT>
+
+    <V-M-GUI-SETTINGS-APP MODULE="M-GUI-SETTINGS-APP" PRIORITY="medium" STATUS="pending">
+      <test-files><file>tests/test_gui_settings_app.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_gui_settings_app.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Dialog shows LLM, GPU, Snap, Default Paths tabs.</scenario-1>
+        <scenario-2 kind="success">Edit snap_mode → saved to app-config.yaml.</scenario-2>
+        <scenario-3 kind="success">Edit GPU backend → saved to app-config.yaml.</scenario-3>
+        <scenario-4 kind="success">New project after app settings change inherits new defaults.</scenario-4>
+      </scenarios>
+    </V-M-GUI-SETTINGS-APP>
+
+    <V-M-GUI-VIDEOPLAYER MODULE="M-GUI-VIDEOPLAYER" PRIORITY="high" STATUS="pending">
+      <test-files><file>tests/test_gui_video_player.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_gui_video_player.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Video player widget creates without errors (offscreen).</scenario-1>
+        <scenario-2 kind="success">Play/pause/stop buttons emit correct signals.</scenario-2>
+        <scenario-3 kind="success">Seek slider updates player position.</scenario-3>
+        <scenario-4 kind="success">Volume slider adjusts audio output.</scenario-4>
+        <scenario-5 kind="success">Time counter shows formatted MM:SS / total.</scenario-5>
+        <scenario-6 kind="success">positionChanged signal emitted during playback.</scenario-6>
+      </scenarios>
+    </V-M-GUI-VIDEOPLAYER>
+
+    <V-M-GUI-SUBTITLE-OVERLAY MODULE="M-GUI-SUBTITLE-OVERLAY" PRIORITY="high" STATUS="pending">
+      <test-files><file>tests/test_gui_subtitle_overlay.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_gui_subtitle_overlay.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Subtitle file parsed → cues loaded correctly.</scenario-1>
+        <scenario-2 kind="success">positionChanged(10.5) → visible text matches cue at that timestamp.</scenario-2>
+        <scenario-3 kind="success">No subtitle file → overlay shows nothing (hidden/blank).</scenario-3>
+        <scenario-4 kind="success">Between cues → overlay shows nothing.</scenario-4>
+        <scenario-5 kind="success">Seeking updates subtitle immediately.</scenario-5>
+      </scenarios>
+    </V-M-GUI-SUBTITLE-OVERLAY>
+
+    <V-M-GUI-TIMELINE-V2 MODULE="M-GUI-TIMELINE-V2" PRIORITY="high" STATUS="pending">
+      <test-files><file>tests/test_gui_timeline_v2.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_gui_timeline_v2.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Green markers rendered at correct positions matching slides intervals.</scenario-1>
+        <scenario-2 kind="success">Double-click green marker → QDesktopServices.openUrl called with image path.</scenario-2>
+        <scenario-3 kind="success">Right-click on timeline → context menu appears with Add Marker option.</scenario-3>
+        <scenario-4 kind="success">Blue markers rendered at correct positions.</scenario-4>
+        <scenario-5 kind="success">Click marker → emits marker_selected signal with timestamp.</scenario-5>
+        <scenario-6 kind="success">Context menu Delete Marker → emits marker_deleted signal.</scenario-6>
+      </scenarios>
+    </V-M-GUI-TIMELINE-V2>
+
+    <V-M-GUI-MENUBAR MODULE="M-GUI-MENUBAR" PRIORITY="high" STATUS="pending">
+      <test-files><file>tests/test_gui_menu_bar.py</file></test-files>
+      <module-checks>
+        <check-1>pytest tests/test_gui_menu_bar.py -v</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">File menu contains all expected items with correct shortcuts.</scenario-1>
+        <scenario-2 kind="success">File > Close triggers project_close signal, UI resets.</scenario-2>
+        <scenario-3 kind="success">File > Save triggers project_save signal, project.json written.</scenario-3>
+        <scenario-4 kind="success">File > Import Video triggers project_import_video signal with new path.</scenario-4>
+        <scenario-5 kind="success">Edit menu contains Project Settings and App Settings items.</scenario-5>
+        <scenario-6 kind="success">Menu items disabled when no project loaded (Close, Save, Import, Project Settings).</scenario-6>
+      </scenarios>
+    </V-M-GUI-MENUBAR>
+
     <V-M-GUI-WORKER MODULE="M-GUI-WORKER" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_gui_workers.py</file></test-files>
       <module-checks>
@@ -302,6 +457,14 @@
         <command-2>pytest tests/test_cli.py -v -k "project"</command-2>
       </commands>
     </Gate-Phase-9>
+
+    <Gate-Phase-11 PRIORITY="high" STATUS="pending">
+      <goal>Desktop GUI enhancements: menu bar, video player, subtitle overlay, enhanced timeline, project/app settings, app-wide config, smart snap. All new modules tested. Core pipeline unchanged.</goal>
+      <commands>
+        <command-1>QT_QPA_PLATFORM=offscreen pytest tests/test_gui_menu_bar.py tests/test_gui_video_player.py tests/test_gui_subtitle_overlay.py tests/test_gui_timeline_v2.py tests/test_gui_marker_manager.py tests/test_gui_smart_snap.py tests/test_gui_settings_project.py tests/test_gui_settings_app.py tests/test_gui_app_config.py -v</command-1>
+        <command-2>pytest tests/ -x --tb=short  # all existing tests still pass</command-2>
+      </commands>
+    </Gate-Phase-11>
 
     <Gate-Phase-10 PRIORITY="high" STATUS="pending">
       <goal>Desktop GUI: main window, timeline, settings, background workers. All tests pass in offscreen mode.</goal>

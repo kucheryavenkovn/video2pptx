@@ -58,6 +58,7 @@ class Project(BaseModel):
     llm: LlmConfig = Field(default_factory=LlmConfig, description="LLM settings")
     state: ProjectState = Field(default_factory=ProjectState, description="Pipeline progress flags")
     slides_json: str | None = Field(default=None, description="Relative path to slides.json output")
+    backend: str = Field(default="auto", description="Preferred decoder backend: auto, opencv, pyav")
     output_dir: str = Field(default=".", description="Output directory (relative to project dir)")
 
 

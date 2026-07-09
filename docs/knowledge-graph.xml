@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<KnowledgeGraph VERSION="0.3.0">
-  <Project NAME="video-slide-md" VERSION="0.5.0">
-    <keywords>video, slides, markdown, presentation, open-cv, computer-vision, slide-detection, subtitle-alignment, srt, vtt, marp, llm, lm-studio, vision, gui, pyside6, project, timeline</keywords>
-    <annotation>Automatically extract slide intervals from educational videos, link to SRT/VTT subtitles, enhance with LLM vision analysis, export presentations, and manage projects via GUI and CLI.</annotation>
+<KnowledgeGraph VERSION="0.4.0">
+  <Project NAME="video-slide-md" VERSION="0.6.0">
+    <keywords>video, slides, markdown, presentation, open-cv, computer-vision, slide-detection, subtitle-alignment, srt, vtt, marp, llm, lm-studio, vision, gui, pyside6, project, timeline, video-player, subtitle-overlay, smart-snap</keywords>
+    <annotation>Automatically extract slide intervals from educational videos, link to SRT/VTT subtitles, enhance with LLM vision analysis, export presentations, manage projects via GUI/CLI, with video player, subtitle overlay, interactive timeline, and smart manual marker snapping.</annotation>
 
     <M-MODELS NAME="Models" TYPE="UTILITY" STATUS="implemented">
       <purpose>Pydantic data models for slides document</purpose>
@@ -245,6 +245,119 @@
       </annotations>
     </M-GUI-WORKER>
 
+    <M-GUI-APPCONFIG NAME="AppConfigManager" TYPE="DATA_LAYER" STATUS="pending">
+      <purpose>App-wide configuration persistence: load/save app-config.yaml in platform config dir. Fields: LLM model/base_url/context_length, GPU backend, snap_mode, snap_flat_threshold, default_project_dir.</purpose>
+      <path>src/video_slide_md/gui/app_config.py</path>
+      <depends>PyYAML</depends>
+      <verification-ref>V-M-GUI-APPCONFIG</verification-ref>
+      <annotations>
+        <fn-load_app_config PURPOSE="Load app-config.yaml, return AppConfigModel with defaults for missing fields" />
+        <fn-save_app_config PURPOSE="Write AppConfigModel to app-config.yaml" />
+        <fn-apply_defaults_to_project PURPOSE="Inherit app config defaults into a new Project object" />
+        <type-AppConfigModel PURPOSE="Pydantic model with LLM, GPU, snap, defaults fields" />
+      </annotations>
+    </M-GUI-APPCONFIG>
+
+    <M-GUI-SMART-SNAP NAME="SmartSnap" TYPE="CORE_LOGIC" STATUS="pending">
+      <purpose>Smart snap strategies for manual markers: diff_only, fallback_analyze, hybrid. Find nearest scene boundary within configurable window.</purpose>
+      <path>src/video_slide_md/gui/smart_snap.py</path>
+      <depends>M-FRAME-FEATURES, M-VIDEO-DECODE, M-MODELS</depends>
+      <verification-ref>V-M-GUI-SMART-SNAP</verification-ref>
+      <annotations>
+        <fn-smart_snap PURPOSE="Main entry: snap_mode dispatch to diff_only / fallback_analyze / hybrid" />
+        <fn-_snap_diff_only PURPOSE="Find nearest local max in existing diff_scores ±5s window" />
+        <fn-_snap_fallback_analyze PURPOSE="Diff scores if available, otherwise decode ±3s window at sample_fps=5" />
+        <fn-_snap_hybrid PURPOSE="Diff scores if available and non-flat, otherwise high-res analysis ±2s sample_fps=10" />
+        <fn-_find_peak_in_window PURPOSE="Helper: find index of max value in array within timestamp range" />
+      </annotations>
+    </M-GUI-SMART-SNAP>
+
+    <M-GUI-MARKER-MANAGER NAME="MarkerManager" TYPE="CORE_LOGIC" STATUS="pending">
+      <purpose>CRUD for user-defined blue markers on Project. Persisted in project.json. Calls SmartSnap on creation. Stores both original and snapped timestamps.</purpose>
+      <path>src/video_slide_md/gui/marker_manager.py</path>
+      <depends>M-PROJECT, M-GUI-SMART-SNAP</depends>
+      <verification-ref>V-M-GUI-MARKER-MANAGER</verification-ref>
+      <annotations>
+        <fn-add_marker PURPOSE="Create marker at timestamp, snap it, store in project.json" />
+        <fn-delete_marker PURPOSE="Remove marker by timestamp from project.json" />
+        <fn-get_markers PURPOSE="Return list of {original, snapped, snap_mode} from project" />
+        <fn-resnap_marker PURPOSE="Re-run snap on existing marker with current settings" />
+        <type-MarkerEntry PURPOSE="Dict with original_ts, snapped_ts, snap_mode fields" />
+      </annotations>
+    </M-GUI-MARKER-MANAGER>
+
+    <M-GUI-SETTINGS-PROJECT NAME="ProjectSettingsDialog" TYPE="UI_COMPONENT" STATUS="pending">
+      <purpose>Project Settings QDialog: ROI, ignore_rois, threshold, sample_fps, min_slide_duration, dedupe, min_stable_duration. Read/write via project.json.</purpose>
+      <path>src/video_slide_md/gui/settings_project.py</path>
+      <depends>M-CONFIG, M-PROJECT</depends>
+      <verification-ref>V-M-GUI-SETTINGS-PROJECT</verification-ref>
+      <annotations>
+        <fn-ProjectSettingsDialog PURPOSE="QDialog with form fields for detection parameters" />
+      </annotations>
+    </M-GUI-SETTINGS-PROJECT>
+
+    <M-GUI-SETTINGS-APP NAME="AppSettingsDialog" TYPE="UI_COMPONENT" STATUS="pending">
+      <purpose>App Settings QDialog: tabs for LLM, GPU/Backend, Snap, Default Paths. Read/write via M-GUI-APPCONFIG.</purpose>
+      <path>src/video_slide_md/gui/settings_app.py</path>
+      <depends>M-CONFIG, M-GUI-APPCONFIG, M-BACKENDS</depends>
+      <verification-ref>V-M-GUI-SETTINGS-APP</verification-ref>
+      <annotations>
+        <fn-AppSettingsDialog PURPOSE="QDialog with QTabWidget for all app-wide settings" />
+        <tab-LLM PURPOSE="Model name, base URL, context length fields" />
+        <tab-GPUBackend PURPOSE="Backend selector (auto/OpenCV/PyAV), CUDA info" />
+        <tab-Snap PURPOSE="snap_mode dropdown, snap_flat_threshold field" />
+        <tab-DefaultPaths PURPOSE="Default project directory selector" />
+      </annotations>
+    </M-GUI-SETTINGS-APP>
+
+    <M-GUI-VIDEOPLAYER NAME="VideoPlayer" TYPE="UI_COMPONENT" STATUS="pending">
+      <purpose>QMediaPlayer + QVideoWidget with transport controls: play/pause/stop, seek slider, volume slider, time counter. Emits positionChanged for subtitle sync.</purpose>
+      <path>src/video_slide_md/gui/video_player.py</path>
+      <depends>PySide6.QtMultimedia</depends>
+      <verification-ref>V-M-GUI-VIDEOPLAYER</verification-ref>
+      <annotations>
+        <fn-VideoPlayerWidget PURPOSE="QWidget with QVideoWidget + transport bar layout" />
+        <signal-positionChanged PURPOSE="emitted (float seconds) during playback" />
+        <signal-stateChanged PURPOSE="emitted (str: playing/paused/stopped)" />
+        <signal-durationChanged PURPOSE="emitted (float total_seconds)" />
+      </annotations>
+    </M-GUI-VIDEOPLAYER>
+
+    <M-GUI-SUBTITLE-OVERLAY NAME="SubtitleOverlay" TYPE="UI_COMPONENT" STATUS="pending">
+      <purpose>Parse SRT/VTT via pysubs2, render subtitle text as QLabel over QVideoWidget. Sync with positionChanged. Hidden when no subtitles or between cues.</purpose>
+      <path>src/video_slide_md/gui/subtitle_overlay.py</path>
+      <depends>M-GUI-VIDEOPLAYER, pysubs2</depends>
+      <verification-ref>V-M-GUI-SUBTITLE-OVERLAY</verification-ref>
+      <annotations>
+        <fn-SubtitleOverlayWidget PURPOSE="QLabel subclass positioned over video, updated on positionChanged" />
+        <fn-_get_cue_at_time PURPOSE="Return SubtitleCue text for given timestamp or None" />
+      </annotations>
+    </M-GUI-SUBTITLE-OVERLAY>
+
+    <M-GUI-TIMELINE-V2 NAME="TimelineV2" TYPE="UI_COMPONENT" STATUS="pending">
+      <purpose>Enhanced timeline: green (detected) and blue (manual) markers. Double-click green → open image. Right-click → add/edit/delete marker. Context menu with snap options.</purpose>
+      <path>src/video_slide_md/gui/timeline_v2.py</path>
+      <depends>M-MODELS, M-GUI-MARKER-MANAGER</depends>
+      <verification-ref>V-M-GUI-TIMELINE-V2</verification-ref>
+      <annotations>
+        <fn-TimelineV2Widget PURPOSE="Custom QWidget with QPainter timeline + green/blue markers" />
+        <signal-marker_added PURPOSE="emitted (float timestamp) when user adds blue marker" />
+        <signal-marker_deleted PURPOSE="emitted (float timestamp) when user deletes blue marker" />
+        <signal-open_image PURPOSE="emitted (str image_path) when green marker double-clicked" />
+      </annotations>
+    </M-GUI-TIMELINE-V2>
+
+    <M-GUI-MENUBAR NAME="MenuBar" TYPE="UI_COMPONENT" STATUS="pending">
+      <purpose>QMenuBar with File menu (New/Open/Close/Save Project, Import Video/Subtitles, Exit) and Edit menu (Project Settings, App Settings). Keyboard shortcuts. Emits signals for all actions.</purpose>
+      <path>src/video_slide_md/gui/menu_bar.py</path>
+      <depends>M-PROJECT</depends>
+      <verification-ref>V-M-GUI-MENUBAR</verification-ref>
+      <annotations>
+        <fn-MenuBarWidget PURPOSE="QMenuBar with File and Edit menus, emits signals for each action" />
+        <signal-project_action PURPOSE="emitted (str action_name) — new/open/close/save/import_video/import_subs/project_settings/app_settings" />
+      </annotations>
+    </M-GUI-MENUBAR>
+
     <M-COLAB NAME="ColabDeployment" TYPE="DEPLOYMENT" STATUS="implemented">
       <purpose>Google Colab notebook for running pipeline with free T4 GPU</purpose>
       <path>colab/video_slide_md_colab.ipynb</path>
@@ -311,5 +424,23 @@
     <CrossLink from="M-GUI-WORKER" to="M-NOTES" relation="runs notes in background thread" />
     <CrossLink from="M-GUI-WORKER" to="M-LLM-ORCHESTRATOR" relation="runs LLM processing in background thread" />
     <CrossLink from="M-GUI-WORKER" to="M-PROJECT" relation="updates project state on completion" />
+    <CrossLink from="M-GUI-MENUBAR" to="M-PROJECT" relation="sends project lifecycle commands" />
+    <CrossLink from="M-GUI-MENUBAR" to="M-GUI-MAIN" relation="installed in MainWindow menuBar()" />
+    <CrossLink from="M-GUI-VIDEOPLAYER" to="M-GUI-SUBTITLE-OVERLAY" relation="emits positionChanged for sync" />
+    <CrossLink from="M-GUI-VIDEOPLAYER" to="M-GUI-MAIN" relation="embedded in central area" />
+    <CrossLink from="M-GUI-SUBTITLE-OVERLAY" to="M-GUI-VIDEOPLAYER" relation="positioned over QVideoWidget" />
+    <CrossLink from="M-GUI-TIMELINE-V2" to="M-MODELS" relation="reads SlideSegment list" />
+    <CrossLink from="M-GUI-TIMELINE-V2" to="M-GUI-MARKER-MANAGER" relation="displays and manages blue markers" />
+    <CrossLink from="M-GUI-MARKER-MANAGER" to="M-PROJECT" relation="persists markers in project.json" />
+    <CrossLink from="M-GUI-MARKER-MANAGER" to="M-GUI-SMART-SNAP" relation="calls smart_snap on marker creation" />
+    <CrossLink from="M-GUI-SMART-SNAP" to="M-FRAME-FEATURES" relation="uses visual_distance for frame comparison" />
+    <CrossLink from="M-GUI-SMART-SNAP" to="M-VIDEO-DECODE" relation="decodes frames for fallback/hybrid analysis" />
+    <CrossLink from="M-GUI-SMART-SNAP" to="M-MODELS" relation="reads diff_scores from SlideSegment" />
+    <CrossLink from="M-GUI-SETTINGS-PROJECT" to="M-CONFIG" relation="reads DetectionConfig defaults" />
+    <CrossLink from="M-GUI-SETTINGS-PROJECT" to="M-PROJECT" relation="reads/writes project config fields" />
+    <CrossLink from="M-GUI-SETTINGS-APP" to="M-CONFIG" relation="reads LlmConfig defaults" />
+    <CrossLink from="M-GUI-SETTINGS-APP" to="M-GUI-APPCONFIG" relation="reads/writes app-config.yaml" />
+    <CrossLink from="M-GUI-SETTINGS-APP" to="M-BACKENDS" relation="queries available backends" />
+    <CrossLink from="M-GUI-APPCONFIG" to="M-PROJECT" relation="applies defaults to new projects" />
   </Project>
 </KnowledgeGraph>

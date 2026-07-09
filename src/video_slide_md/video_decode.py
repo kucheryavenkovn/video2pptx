@@ -21,7 +21,7 @@ from typing import Iterator
 
 from loguru import logger
 
-from video_slide_md.backends import BACKENDS, _resolve_backend
+from video_slide_md.backends import _resolve_backend
 from video_slide_md.models import VideoFrame, VideoInfo
 
 

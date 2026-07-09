@@ -59,7 +59,7 @@ class TestLlmClientInit:
     def test_init_sets_correct_base_url(self, llm_config: LlmConfig):
         with patch("httpx.Client") as mock_client_cls:
             mock_client_cls.return_value = MagicMock()
-            client = LlmClient(llm_config)
+            LlmClient(llm_config)
             _, kwargs = mock_client_cls.call_args
             assert "http://localhost:1234/v1/" in str(kwargs.get("base_url", ""))
 
@@ -163,7 +163,7 @@ class TestLlmClientVision:
 
         with patch("httpx.Client", return_value=mock_httpx):
             client = LlmClient(llm_config)
-            result = client.vision(image_file)
+            client.vision(image_file)
             payload = mock_httpx.post.call_args[1]["json"]
             content = payload["messages"][0]["content"]
             assert "data:image/jpeg;base64," in content[1]["image_url"]["url"]

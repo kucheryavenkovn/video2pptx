@@ -22,7 +22,6 @@ from PySide6.QtWidgets import (
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
-    QLabel,
     QLineEdit,
     QPlainTextEdit,
     QPushButton,
@@ -33,7 +32,6 @@ from PySide6.QtWidgets import (
 )
 
 from video_slide_md.backends import BACKENDS
-from video_slide_md.config import DetectionConfig, LlmConfig
 from video_slide_md.project_manager import Project, save_project
 from video_slide_md.notes_processor import SYSTEM_PROMPT_REPHRASE
 

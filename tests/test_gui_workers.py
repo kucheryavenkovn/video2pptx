@@ -19,7 +19,7 @@ import pytest
 pyside_available = False
 try:
     from PySide6.QtWidgets import QApplication
-    from PySide6.QtCore import QObject, Signal, QThread, QSignalSpy
+    from PySide6.QtCore import QObject, Signal, QThread, QSignalSpy  # noqa: F401
     pyside_available = True
 except ImportError:
     pass
@@ -62,7 +62,7 @@ class TestWorkers:
         _ensure_app()
         proj, proj_dir = self._make_project(tmp_path)
 
-        spy = QSignalSpy(DetectWorker.progress)
+        QSignalSpy(DetectWorker.progress)
         worker = DetectWorker(project=proj)
         # Use a signal spy on the instance signal
         progress_spy = QSignalSpy(worker.progress)
@@ -102,6 +102,6 @@ class TestWorkers:
         proj.slides_json = str(slides_js)
 
         worker = NotesWorker(project=proj)
-        spy = QSignalSpy(worker.finished)
+        QSignalSpy(worker.finished)
         worker.run()
         assert True  # smoke test — worker runs without crash
