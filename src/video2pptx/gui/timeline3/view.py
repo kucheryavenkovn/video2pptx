@@ -12,7 +12,6 @@
 from __future__ import annotations
 
 from math import isnan
-from pathlib import Path
 
 from loguru import logger
 from PySide6.QtCore import Qt, Signal
@@ -66,7 +65,6 @@ class TimelineView(QGraphicsView):
         self._score_ts: list[float] = []
         self._score_vals: list[float] = []
         self._project = None
-        self._project_dir: str = ""
 
         self._ruler_item: TimeRulerItem | None = None
         self._playhead: PlayheadItem | None = None
@@ -379,11 +377,9 @@ class TimelineView(QGraphicsView):
 
     def _open_slide_image(self, slide: SlideBlockItem) -> None:
         path = slide.image_path()
-        if path and self._project_dir:
-            from PySide6.QtCore import QUrl
-            from PySide6.QtGui import QDesktopServices
-            full = str(Path(self._project_dir) / path)
-            QDesktopServices.openUrl(QUrl.fromLocalFile(full))
+        idx = slide.slide_index()
+        if path:
+            self.open_image.emit(path, idx)
 
     def _show_slide_subtitles(self, slide: SlideBlockItem) -> None:
         from PySide6.QtWidgets import QMessageBox

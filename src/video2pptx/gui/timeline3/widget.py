@@ -214,8 +214,6 @@ class TimelineWidget(QWidget):
 
     def set_project(self, project) -> None:
         self._view._project = project
-        if hasattr(project, 'output_dir'):
-            self._view._project_dir = str(project.output_dir)
 
     # START_BLOCK_ZOOM
     def zoom_fit(self) -> None:
