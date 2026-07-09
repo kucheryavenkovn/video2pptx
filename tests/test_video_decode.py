@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for VideoDecoder unified interface
 #   SCOPE: Frame iteration, metadata, backend selection, error handling
-#   DEPENDS: pytest, numpy, cv2, video_slide_md.video_decode
+#   DEPENDS: pytest, numpy, cv2, video2pptx.video_decode
 #   LINKS: V-M-VIDEO-DECODE
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -16,8 +16,8 @@ import cv2
 import numpy as np
 import pytest
 
-from video_slide_md.video_decode import VideoDecoder, select_backend
-from video_slide_md.models import VideoInfo
+from video2pptx.video_decode import VideoDecoder, select_backend
+from video2pptx.models import VideoInfo
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for ROI tool — CLI registration, frame seeking, coordinate format
 #   SCOPE: Verify roi_tool_main frame selection, CLI help, and coordinate output format. GUI interaction (select_roi) is excluded from automated tests.
-#   DEPENDS: pytest, typer.testing, video_slide_md.roi_tool, video_slide_md.cli
+#   DEPENDS: pytest, typer.testing, video2pptx.roi_tool, video2pptx.cli
 #   LINKS: V-M-ROI-TOOL
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -15,7 +15,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from video_slide_md.cli import app
+from video2pptx.cli import app
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

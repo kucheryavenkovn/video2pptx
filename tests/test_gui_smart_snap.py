@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from video_slide_md.gui.smart_snap import (
+from video2pptx.gui.smart_snap import (
     _decode_and_analyze_window,
     _find_peak_in_window,
     _load_diff_scores,
@@ -25,7 +25,7 @@ from video_slide_md.gui.smart_snap import (
     _snap_hybrid,
     smart_snap,
 )
-from video_slide_md.project_manager import Project
+from video2pptx.project_manager import Project
 
 
 @pytest.fixture

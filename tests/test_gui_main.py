@@ -40,7 +40,7 @@ class TestMainWindowSmoke:
         _ensure_app()
 
         # M-GUI-MAIN: MainWindow is a QMainWindow subclass
-        from video_slide_md.gui.main_window import MainWindow
+        from video2pptx.gui.main_window import MainWindow
 
         window = MainWindow()
         assert isinstance(window, QMainWindow)
@@ -48,7 +48,7 @@ class TestMainWindowSmoke:
     def test_toolbar_has_project_buttons(self):
         """Toolbar contains New, Open, Save buttons."""
         _ensure_app()
-        from video_slide_md.gui.main_window import MainWindow
+        from video2pptx.gui.main_window import MainWindow
 
         window = MainWindow()
 
@@ -65,7 +65,7 @@ class TestMainWindowSmoke:
     def test_detect_button_exists(self):
         """Detect button is present and disabled when no project loaded."""
         _ensure_app()
-        from video_slide_md.gui.main_window import MainWindow
+        from video2pptx.gui.main_window import MainWindow
 
         window = MainWindow()
 

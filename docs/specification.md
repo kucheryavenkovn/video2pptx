@@ -1,4 +1,4 @@
-# Спецификация проекта: Video Slide Transcript Builder
+# Спецификация проекта: video2pptx
 
 ## 1. Назначение проекта
 
@@ -59,7 +59,7 @@ video + subtitles
 Пользователь запускает команду:
 
 ```bash
-video-slide-md detect lesson.mp4 \
+video2pptx detect lesson.mp4 \
   --subtitles lesson.srt \
   --out out/lesson_01 \
   --sample-fps 2 \
@@ -283,12 +283,12 @@ slide-image-plus-transcript
 Рекомендуемая структура:
 
 ```text
-video-slide-md/
+video2pptx/
   pyproject.toml
   README.md
 
   src/
-    video_slide_md/
+    video2pptx/
       __init__.py
       cli.py
       config.py
@@ -336,16 +336,16 @@ CLI-интерфейс.
 Команды:
 
 ```bash
-video-slide-md detect <video>
-video-slide-md export-md <slides.json>
-video-slide-md debug <slides.json>
-video-slide-md review <slides.json>
+video2pptx detect <video>
+video2pptx export-md <slides.json>
+video2pptx debug <slides.json>
+video2pptx review <slides.json>
 ```
 
 Минимальная обязательная команда:
 
 ```bash
-video-slide-md detect lesson.mp4 --subtitles lesson.srt --out out/lesson_01
+video2pptx detect lesson.mp4 --subtitles lesson.srt --out out/lesson_01
 ```
 
 Параметры:
@@ -927,8 +927,8 @@ Gradio
 Критерий готовности:
 
 ```bash
-video-slide-md --help
-video-slide-md detect --help
+video2pptx --help
+video2pptx detect --help
 ```
 
 работают.
@@ -947,7 +947,7 @@ video-slide-md detect --help
 Критерий готовности:
 
 ```bash
-video-slide-md detect lesson.mp4 --out out/test --debug
+video2pptx detect lesson.mp4 --out out/test --debug
 ```
 
 создаёт sampled debug frames.
@@ -1173,7 +1173,7 @@ python-pptx
 После запуска:
 
 ```bash
-video-slide-md detect lesson.mp4 \
+video2pptx detect lesson.mp4 \
   --subtitles lesson.srt \
   --out out/lesson_01 \
   --sample-fps 2 \

@@ -1,4 +1,4 @@
-# video-slide-md — example configuration
+# video2pptx — example configuration
 # Copy to config.local.yaml (git-ignored) and adjust. CLI arguments override these.
 
 video:

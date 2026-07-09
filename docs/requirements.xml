@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <RequirementsAnalysis VERSION="0.5.0">
   <Project>
-    <name>video-slide-md</name>
+    <name>video2pptx</name>
     <annotation>Automatically extract slide intervals from educational videos, link to SRT/VTT subtitles, enhance with LLM vision analysis, export presentations, manage projects via GUI/CLI, with video player, subtitle overlay, interactive timeline, and smart manual marker snapping.</annotation>
     <keywords>video, slides, markdown, presentation, open-cv, computer-vision, slide-detection, subtitle-alignment, srt, vtt, marp, llm, lm-studio, vision, gui, pyside6, project, timeline, video-player, subtitle-overlay, smart-snap</keywords>
   </Project>
@@ -13,7 +13,7 @@
   <UseCases>
     <UC-001>
       <Actor>User</Actor>
-      <Action>Runs video-slide-md detect with video + subtitles (all-in-one)</Action>
+      <Action>Runs video2pptx detect with video + subtitles (all-in-one)</Action>
       <Goal>Get slides.json with slide intervals, representative images, aligned transcript, and optional exports</Goal>
       <Preconditions>Video file exists (.mp4/.mkv/.mov/.webm), subtitles exist (.srt/.vtt)</Preconditions>
       <AcceptanceCriteria>slides.json passes validation, all slides have images, transcript aligned, optional deck.md/deck.pptx generated</AcceptanceCriteria>
@@ -23,7 +23,7 @@
 
     <UC-002>
       <Actor>User</Actor>
-      <Action>Runs video-slide-md export-md with slides.json</Action>
+      <Action>Runs video2pptx export-md with slides.json</Action>
       <Goal>Get deck.md — a Marp-formatted Markdown presentation</Goal>
       <Preconditions>slides.json exists and is valid</Preconditions>
       <AcceptanceCriteria>deck.md renders correctly in Marp-compatible viewer</AcceptanceCriteria>
@@ -42,7 +42,7 @@
 
     <UC-004>
       <Actor>User</Actor>
-      <Action>Runs video-slide-md llm-process with slides.json + slides images</Action>
+      <Action>Runs video2pptx llm-process with slides.json + slides images</Action>
       <Goal>Get enriched slides.json with LLM-generated slide descriptions and corrected transcript</Goal>
       <Preconditions>slides.json exists with slide images, LM Studio running with vision-capable model</Preconditions>
       <AcceptanceCriteria>Each slide has llm_description field with accurate content summary, transcript corrected with slide context terms</AcceptanceCriteria>
@@ -52,7 +52,7 @@
 
     <UC-005>
       <Actor>User</Actor>
-      <Action>Runs video-slide-md detect-slides with video only (no subtitles)</Action>
+      <Action>Runs video2pptx detect-slides with video only (no subtitles)</Action>
       <Goal>Get slides.json with slide intervals and representative screenshots — no transcript</Goal>
       <Preconditions>Video file exists</Preconditions>
       <AcceptanceCriteria>slides.json with slide intervals and images present. No transcript fields. No errors about missing subtitles.</AcceptanceCriteria>
@@ -62,7 +62,7 @@
 
     <UC-006>
       <Actor>User</Actor>
-      <Action>Runs video-slide-md notes with slides.json + subtitles</Action>
+      <Action>Runs video2pptx notes with slides.json + subtitles</Action>
       <Goal>Get enhanced slides.json with context-aware notes — combines visual slide analysis with subtitle text</Goal>
       <Preconditions>slides.json exists with slide images, subtitles or transcript available</Preconditions>
       <AcceptanceCriteria>Notes on each slide reflect both what was said AND what is on the slide. Notes are clean, not raw SRT fragments. Can run multiple times with different subtitles/notes-modes without re-detecting slides.</AcceptanceCriteria>
@@ -72,7 +72,7 @@
 
     <UC-007>
       <Actor>User</Actor>
-      <Action>Runs video-slide-md roi-tool with a video file</Action>
+      <Action>Runs video2pptx roi-tool with a video file</Action>
       <Goal>Get ignore-roi coordinates (x1,y1,x2,y2) by visually selecting a region on the video frame</Goal>
       <Preconditions>Video file exists</Preconditions>
       <AcceptanceCriteria>Opens a window showing a frame from the video. User drags a rectangle. Coordinates printed to stdout. Pipes directly into --ignore-roi flag.</AcceptanceCriteria>
@@ -192,7 +192,7 @@
     <constraint-10>Stage-based pipeline: detect-slides and notes must be independent commands, not one monolithic step</constraint-10>
     <constraint-11>ROI tool must use only built-in OpenCV (no PyQt/Tkinter/Gradio)</constraint-11>
     <constraint-12>Adding subtitles or changing notes-mode must not require re-running slide detection</constraint-12>
-    <constraint-13>GUI must be installable as optional extras — `pip install video-slide-md[gui]`</constraint-13>
+    <constraint-13>GUI must be installable as optional extras — `pip install video2pptx[gui]`</constraint-13>
     <constraint-14>GUI must not block during long operations — workers required</constraint-14>
     <constraint-15>Project JSON must be human-readable and hand-editable</constraint-15>
   </Constraints>

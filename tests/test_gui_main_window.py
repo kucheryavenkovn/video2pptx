@@ -41,26 +41,26 @@ class TestMainWindow:
 
     def test_creates_without_error(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.main_window import MainWindow
+        from video2pptx.gui.main_window import MainWindow
         w = MainWindow()
         assert w._project is None
         assert w._menu_bar is not None
         assert w._video_player is not None
-        assert w._subtitle_overlay is not None
+        assert w._subs is None
         assert w._timeline is not None
         assert w._detect_btn is not None
         w.deleteLater()
 
     def test_window_title_default(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.main_window import MainWindow
+        from video2pptx.gui.main_window import MainWindow
         w = MainWindow()
-        assert "video-slide-md" in w.windowTitle()
+        assert "video2pptx" in w.windowTitle()
         w.deleteLater()
 
     def test_info_labels_default(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.main_window import MainWindow
+        from video2pptx.gui.main_window import MainWindow
         w = MainWindow()
         assert "—" in w._video_label.text()
         assert "—" in w._subs_label.text()
@@ -68,21 +68,21 @@ class TestMainWindow:
 
     def test_detect_button_disabled_without_project(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.main_window import MainWindow
+        from video2pptx.gui.main_window import MainWindow
         w = MainWindow()
         assert w._detect_btn.isEnabled() is False
         w.deleteLater()
 
     def test_set_project_updates_ui(self, tmp_path: Path) -> None:
         _ensure_app()
-        from video_slide_md.gui.main_window import MainWindow
+        from video2pptx.gui.main_window import MainWindow
 
         proj_dir = tmp_path / "testproj"
         proj_dir.mkdir()
         video_path = proj_dir / "test.mp4"
         video_path.write_text("fake video")
 
-        from video_slide_md.project_manager import Project
+        from video2pptx.project_manager import Project
         proj = Project(name="test", video=str(video_path), output_dir=str(proj_dir))
 
         w = MainWindow()
@@ -96,19 +96,35 @@ class TestMainWindow:
 
     def test_video_position_syncs_subtitles(self, tmp_path: Path) -> None:
         _ensure_app()
-        from video_slide_md.gui.main_window import MainWindow
+        from video2pptx.gui.main_window import MainWindow
         w = MainWindow()
-        w._subtitle_overlay.load_subtitles(None)
+        w._load_subtitles(None)
 
         with patch.object(w._video_player, "set_subtitle_text") as mock:
             w._on_video_position_changed(10.5)
-            mock.assert_called_once()
+            mock.assert_called_once_with(None)
+        w.deleteLater()
+
+    def test_load_subtitles_returns_none_without_file(self) -> None:
+        _ensure_app()
+        from video2pptx.gui.main_window import MainWindow
+        w = MainWindow()
+        w._load_subtitles(None)
+        assert w._subs is None
+        w.deleteLater()
+
+    def test_get_subtitle_at_none_when_no_subs(self) -> None:
+        _ensure_app()
+        from video2pptx.gui.main_window import MainWindow
+        w = MainWindow()
+        w._subs = None
+        assert w._get_subtitle_at(10.0) is None
         w.deleteLater()
 
     def test_project_changed_signal_emitted(self, tmp_path: Path) -> None:
         _ensure_app()
-        from video_slide_md.gui.main_window import MainWindow
-        from video_slide_md.project_manager import Project
+        from video2pptx.gui.main_window import MainWindow
+        from video2pptx.project_manager import Project
 
         proj_dir = tmp_path / "testproj"
         proj_dir.mkdir()
@@ -126,7 +142,7 @@ class TestMainWindow:
 
     def test_menu_bar_actions_present(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.main_window import MainWindow
+        from video2pptx.gui.main_window import MainWindow
         w = MainWindow()
         mb = w._menu_bar
         assert mb.act_new_project is not None
@@ -139,9 +155,9 @@ class TestMainWindow:
         assert mb.act_app_settings is not None
         w.deleteLater()
 
-    def test_timeline_hidden_initially(self) -> None:
+    def test_timeline_visible_initially(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.main_window import MainWindow
+        from video2pptx.gui.main_window import MainWindow
         w = MainWindow()
-        assert w._timeline.isHidden()
+        assert not w._timeline.isHidden()
         w.deleteLater()

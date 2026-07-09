@@ -1,4 +1,4 @@
-# video-slide-md
+# video2pptx
 
 Извлечение интервалов слайдов из обучающих видео, привязка к субтитрам, LLM-обогащение (vision + correction) и экспорт в Markdown-презентацию (Marp) и PPTX.
 
@@ -25,13 +25,13 @@
 
 ```bash
 # Установка (CLI)
-pip install video-slide-md
+pip install video2pptx
 
 # Установка с GUI
-pip install video-slide-md[gui]
+pip install video2pptx[gui]
 
 # Базовый запуск (CLI)
-video-slide-md detect lesson.mp4 \
+video2pptx detect lesson.mp4 \
   --subtitles lesson.srt \
   --out out/lesson_01 \
   --sample-fps 0.5 \
@@ -40,10 +40,10 @@ video-slide-md detect lesson.mp4 \
   --notes-mode basic
 
 # Запуск GUI
-video-slide-md gui
+video2pptx gui
 
 # С LLM-обогащением (требуется LM Studio)
-video-slide-md detect lesson.mp4 \
+video2pptx detect lesson.mp4 \
   --subtitles lesson.srt \
   --out out/lesson_01 \
   --llm \
@@ -54,8 +54,8 @@ video-slide-md detect lesson.mp4 \
 ## Установка (локальная разработка)
 
 ```bash
-git clone https://github.com/tvoi-username/video-slide-md.git
-cd video-slide-md
+git clone https://github.com/tvoi-username/video2pptx.git
+cd video2pptx
 pip install -e .
 # Или через hatch
 pip install hatch
@@ -77,24 +77,75 @@ hatch shell
 
 ```bash
 # Установка с GUI-зависимостями
-pip install video-slide-md[gui]
+pip install video2pptx[gui]
 
 # Если extras не подхватились — установить вручную:
 pip install PySide6 pysubs2
 
 # Запуск
-video-slide-md gui
+video2pptx gui
 ```
 
-Интерфейс включает:
-- **Видеоплеер** — QMediaPlayer + QVideoWidget с транспортом (play/pause/stop, seek, громкость)
-- **Таймлайн** — зелёные маркеры детектированных слайдов, синие маркеры ручных границ
-- **Субтитры** — overlay текста поверх видео (SRT/VTT через pysubs2)
-- **Меню** — File (New/Open/Close/Save/Import SRT) и Edit (Project Settings, App Settings)
-- **Dialog проектов** — настройка ROI, порогов, FPS сэмплирования, дедупликации
-- **Dialog приложения** — LLM, GPU/бэкенд, стратегии snap, пути по умолчанию
-- **Ручные маркеры** — правый клик на таймлайне → добавить/удалить/переснапнуть, три стратегии snap (diff_only, fallback_analyze, hybrid)
-- **App Config** — персистентный YAML в `%APPDATA%/video-slide-md/` (Windows) или `~/.config/video-slide-md/`
+### Обзор интерфейса
+
+Окно разделено на три основные зоны:
+
+1. **Видеоплеер** — верхняя часть; QMediaPlayer с элементами управления (play/pause, стоп, скролл, громкость). Поверх видео отображаются субтитры (если загружены).
+2. **Таймлайн** — центральная часть, многоуровневая шкала всего видео с детектированными слайдами, маркерами, субтитрами и (опционально) waveform скоринга.
+3. **Панель управления** — нижняя часть; кнопки запуска детекции, превью, информация о проекте.
+
+### Меню
+
+**File:**
+- `New Project` (`Ctrl+N`) — создать проект в выбранной папке
+- `Open Project` (`Ctrl+O`) — открыть существующий проект
+- `Recent Projects` — последние 10 проектов (быстрое открытие)
+- `Close Project` (`Ctrl+W`) — закрыть проект
+- `Save Project` (`Ctrl+S`) — сохранить текущее состояние
+- `Import Video` (`Ctrl+V`) — импортировать видео в проект
+- `Import Subtitles` (`Ctrl+I`) — загрузить SRT/VTT
+- `Exit` (`Ctrl+Q`) — выход
+
+**Edit:**
+- `Project Settings` (`Ctrl+,`) — настройки текущего проекта (ROI, пороги детекции, FPS сэмплирования, дедупликация, LLM)
+- `App Settings` — глобальные настройки приложения (LLM, бэкенд GPU, стратегия snap)
+
+### Таймлайн
+
+Таймлайн построен на QGraphicsView с зумом, панорамированием и несколькими дорожками. Дорожки (сверху вниз):
+
+| Дорожка | Цвет | Описание |
+|---------|------|----------|
+| **Time ruler** | — | Линейка времени с динамическими делениями (подстраиваются под зум) |
+| **Slides** | Зелёные блоки | Детектированные интервалы слайдов. Двойной клик — открыть скриншот |
+| **Markers** | Синие (перетаскиваемые) | Ручные маркеры границ слайдов. Правый клик — удалить или переснапнуть |
+| **Subtitles** | Текст | Фрагменты субтитров, привязанные к таймкодам |
+| **Score** | Волна (синяя) | График diff-скорринга при детекции (отображается после анализа) |
+
+**Управление таймлайном:**
+- **Колесо мыши** — зум (+15% на шаг, диапазон 5–500 px/sec), точка привязки под курсором
+- **Средняя кнопка мыши** — панорамирование
+- **Правый клик на пустой области** → добавить маркер в этой точке
+- **Правый клик на маркере** → удалить или переснапнуть (выбор стратегии: `diff_only`, `fallback_analyze`, `hybrid`)
+- **Двойной клик на блоке слайда** → открыть скриншот в системном просмотрщике
+- **Левый клик на маркере** → перетаскивание, видеоплеер следует за позицией
+- **Панель зума** под таймлайном: кнопки `Fit` (вписать весь таймлайн), `−`/`+`, слайдер
+
+**Playhead:** Красная вертикальная линия, синхронизирована с видеоплеером. Перемещается при воспроизведении и при клике на таймлайн.
+
+### Рабочий процесс
+
+1. **Создать/открыть проект** → File → New Project (`Ctrl+N`)
+2. **Импортировать видео** → Ctrl+V, выберите `.mp4`/`.mkv`/`.mov`/`.webm`
+3. **Загрузить субтитры** → Ctrl+I, выберите `.srt`/`.vtt`
+4. **Настроить детекцию** → Edit → Project Settings (ROI слайда, пороги, FPS)
+5. **Запустить детекцию** → кнопка Detect
+6. **Просмотреть результаты** — слайды отобразятся на таймлайне
+7. **Отредактировать границы** — добавить/удалить/перетащить маркеры
+8. **Превью** → кнопка Preview (если настроен LLM)
+9. **Сохранить проект** → Ctrl+S
+
+**App Config** сохраняется в `%APPDATA%/video2pptx/app-config.yaml` (Windows) или `~/.config/video2pptx/app-config.yaml` (Linux).
 
 ### Параметры `detect`
 
@@ -162,10 +213,10 @@ out/lesson_01/
 
 ```bash
 # Через флаг --llm в detect (единый запуск)
-video-slide-md detect video.mp4 --subtitles subs.srt --llm
+video2pptx detect video.mp4 --subtitles subs.srt --llm
 
 # Или отдельно для уже готового slides.json
-video-slide-md llm-process out/slides.json --model gemma-4-26b-a4b-it@q4_k_xl
+video2pptx llm-process out/slides.json --model gemma-4-26b-a4b-it@q4_k_xl
 ```
 
 **Что происходит:**

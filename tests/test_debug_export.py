@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for debug export artifacts
 #   SCOPE: CSV export, text report, contact sheet
-#   DEPENDS: pytest, video_slide_md.debug_export
+#   DEPENDS: pytest, video2pptx.debug_export
 #   LINKS: V-M-DEBUG-EXPORT
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -12,12 +12,12 @@
 
 import numpy as np
 
-from video_slide_md.debug_export import (
+from video2pptx.debug_export import (
     export_contact_sheet,
     export_debug_csv,
     export_debug_report,
 )
-from video_slide_md.models import SlideSegment
+from video2pptx.models import SlideSegment
 
 
 def make_seg(index: int, start: float, end: float) -> SlideSegment:

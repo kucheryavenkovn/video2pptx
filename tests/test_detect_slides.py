@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for standalone detect-slides pipeline (no subtitles, no export)
 #   SCOPE: run_detect_slides on synthetic video, verify SlidesDocument fields and screenshots
-#   DEPENDS: pytest, video_slide_md.detect_slides, video_slide_md.config, loguru
+#   DEPENDS: pytest, video2pptx.detect_slides, video2pptx.config, loguru
 #   LINKS: V-M-DETECT-SLIDES
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pytest
 
-from video_slide_md.config import AppConfig
-from video_slide_md.detect_slides import run_detect_slides
+from video2pptx.config import AppConfig
+from video2pptx.detect_slides import run_detect_slides
 
 FIXTURES = Path(__file__).parent / "fixtures"
 TEST_VIDEO = FIXTURES / "test_slides.mp4"

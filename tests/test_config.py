@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for configuration loading and merging
 #   SCOPE: YAML loading, CLI merge, defaults, validation
-#   DEPENDS: pytest, yaml, video_slide_md.config
+#   DEPENDS: pytest, yaml, video2pptx.config
 #   LINKS: V-M-CONFIG
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -14,7 +14,7 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from video_slide_md.config import (
+from video2pptx.config import (
     AppConfig,
     DebugConfig,
     DetectionConfig,

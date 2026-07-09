@@ -17,9 +17,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from video_slide_md.llm_client import LlmClient
-from video_slide_md.models import SlideSegment
-from video_slide_md.slide_analyzer import (
+from video2pptx.llm_client import LlmClient
+from video2pptx.models import SlideSegment
+from video2pptx.slide_analyzer import (
     VISION_SYSTEM_PROMPT,
     SlideAnalysis,
     analyze_slide,

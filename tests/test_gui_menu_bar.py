@@ -39,7 +39,7 @@ class TestMenuBarWidget:
     # END_CONTRACT: TestMenuBarWidget
 
     def _make(self):
-        from video_slide_md.gui.menu_bar import MenuBarWidget
+        from video2pptx.gui.menu_bar import MenuBarWidget
         window = QMainWindow()
         mb = MenuBarWidget(window)
         window.setMenuBar(mb)

@@ -16,15 +16,15 @@ from pathlib import Path
 
 import pytest
 
-from video_slide_md.config import LlmConfig
-from video_slide_md.gui.app_config import (
+from video2pptx.config import LlmConfig
+from video2pptx.gui.app_config import (
     AppConfigModel,
     apply_defaults_to_project,
     get_config_dir,
     load_app_config,
     save_app_config,
 )
-from video_slide_md.project_manager import Project
+from video2pptx.project_manager import Project
 
 
 class TestGetConfigDir:
@@ -41,9 +41,9 @@ class TestGetConfigDir:
         assert isinstance(path, Path)
         assert path.exists()
 
-    def test_ends_with_video_slide_md(self) -> None:
+    def test_ends_with_video2pptx(self) -> None:
         path = get_config_dir()
-        assert path.name == "video-slide-md"
+        assert path.name == "video2pptx"
 
     def test_based_on_platform(self) -> None:
         path = get_config_dir()
@@ -112,7 +112,7 @@ class TestLoadSaveAppConfig:
             import shutil
             shutil.rmtree(self._tmp_dir)
         self._tmp_dir.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setattr("video_slide_md.gui.app_config.get_config_dir", lambda: self._tmp_dir)
+        monkeypatch.setattr("video2pptx.gui.app_config.get_config_dir", lambda: self._tmp_dir)
         yield
         if self._tmp_dir.exists():
             import shutil
@@ -149,7 +149,7 @@ class TestLoadSaveAppConfig:
             nested.mkdir(parents=True, exist_ok=True)
             return nested
 
-        import video_slide_md.gui.app_config as ac
+        import video2pptx.gui.app_config as ac
         original = ac.get_config_dir
         ac.get_config_dir = mock_get_config_dir
         try:

@@ -4,7 +4,7 @@
 video, slides, markdown, presentation, open-cv, computer-vision, slide-detection, subtitle-alignment, srt, vtt, marp, educational-video, frame-diff, perceptual-hash, Python, Typer, Pydantic, Loguru, Hatchling, OpenCV, numpy, Clean Architecture, GRACE
 
 ## Annotation
-video-slide-md — инструмент для автоматического извлечения интервалов слайдов из обучающих видео, привязки к субтитрам SRT/VTT и экспорта в Markdown-презентации (Marp). Ядро проекта: детекция смены слайдов через сравнение статичных областей кадра (целевая область слайда за вычетом вебкамеры/интерфейса), генерация структурированного JSON с интервалами, сохранение representative screenshots, привязка фрагментов транскрипта по таймкодам. Экспорт в PPTX/PDF — вторичный слой. Проект рассчитан на локальную обработку с CUDA/NVDEC-ускорением (RTX 4090) и fallback на CPU.
+video2pptx — инструмент для автоматического извлечения интервалов слайдов из обучающих видео, привязки к субтитрам SRT/VTT и экспорта в Markdown-презентации (Marp). Ядро проекта: детекция смены слайдов через сравнение статичных областей кадра (целевая область слайда за вычетом вебкамеры/интерфейса), генерация структурированного JSON с интервалами, сохранение representative screenshots, привязка фрагментов транскрипта по таймкодам. Экспорт в PPTX/PDF — вторичный слой. Проект рассчитан на локальную обработку с CUDA/NVDEC-ускорением (RTX 4090) и fallback на CPU.
 
 ## Core Principles
 
@@ -161,7 +161,7 @@ docs/
   knowledge-graph.xml      - Project-wide navigation graph
   operational-packets.xml  - Canonical packet templates
   findings.md              - F-NNNN problem/constraint journal
-src/video_slide_md/
+src/video2pptx/
   ... code with GRACE markup ...
 tests/
   ... tests with GRACE-aware evidence where appropriate ...

@@ -41,7 +41,7 @@ class TestProjectSettingsDialog:
 
     @pytest.fixture
     def project(self, tmp_path: Path):
-        from video_slide_md.project_manager import Project, save_project
+        from video2pptx.project_manager import Project, save_project
         proj = Project(
             name="test",
             video=str(tmp_path / "test.mp4"),
@@ -52,7 +52,7 @@ class TestProjectSettingsDialog:
 
     def test_dialog_creates_without_error(self, project) -> None:
         _ensure_app()
-        from video_slide_md.gui.settings_project import ProjectSettingsDialog
+        from video2pptx.gui.settings_project import ProjectSettingsDialog
         dlg = ProjectSettingsDialog(project)
         assert dlg.windowTitle() == "Project Settings"
         dlg.close()
@@ -64,7 +64,7 @@ class TestProjectSettingsDialog:
         project.detection.min_slide_duration = 7.0
         project.detection.dedupe_enabled = False
 
-        from video_slide_md.gui.settings_project import ProjectSettingsDialog
+        from video2pptx.gui.settings_project import ProjectSettingsDialog
         dlg = ProjectSettingsDialog(project)
 
         roi_text = dlg._roi_edit.text()
@@ -76,7 +76,7 @@ class TestProjectSettingsDialog:
 
     def test_accept_saves_to_project(self, project, tmp_path) -> None:
         _ensure_app()
-        from video_slide_md.gui.settings_project import ProjectSettingsDialog
+        from video2pptx.gui.settings_project import ProjectSettingsDialog
         dlg = ProjectSettingsDialog(project)
         dlg._roi_edit.setText("200,200,900,700")
         dlg._threshold_edit.setText("0.15")
@@ -89,7 +89,7 @@ class TestProjectSettingsDialog:
         assert project.video_config.sample_fps == 3.0
 
         # Verify persisted
-        from video_slide_md.project_manager import Project as ProjModel
+        from video2pptx.project_manager import Project as ProjModel
         loaded = ProjModel.model_validate_json(
             (tmp_path / "project.json").read_text(encoding="utf-8")
         )
@@ -97,7 +97,7 @@ class TestProjectSettingsDialog:
 
     def test_cancel_does_not_save(self, project) -> None:
         _ensure_app()
-        from video_slide_md.gui.settings_project import ProjectSettingsDialog
+        from video2pptx.gui.settings_project import ProjectSettingsDialog
         dlg = ProjectSettingsDialog(project)
         dlg._roi_edit.setText("300,300,600,400")
 

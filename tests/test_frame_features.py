@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for frame feature extraction and visual distance
 #   SCOPE: Feature extraction, hash computation, distance metrics, auto threshold
-#   DEPENDS: pytest, numpy, video_slide_md.frame_features
+#   DEPENDS: pytest, numpy, video2pptx.frame_features
 #   LINKS: V-M-FRAME-FEATURES
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -12,13 +12,13 @@
 import numpy as np
 import pytest
 
-from video_slide_md.frame_features import (
+from video2pptx.frame_features import (
     DISTANCE_WEIGHTS,
     compute_threshold,
     extract_features,
     visual_distance,
 )
-from video_slide_md.models import FrameFeatures
+from video2pptx.models import FrameFeatures
 
 
 def make_solid_rgb(color: tuple[int, int, int], h: int = 100, w: int = 100) -> np.ndarray:

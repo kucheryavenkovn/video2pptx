@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for video decoder backends
 #   SCOPE: Backend selection, OpenCV frame iteration, metadata extraction
-#   DEPENDS: pytest, numpy, cv2, video_slide_md.backends
+#   DEPENDS: pytest, numpy, cv2, video2pptx.backends
 #   LINKS: V-M-BACKENDS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -16,8 +16,8 @@ import cv2
 import numpy as np
 import pytest
 
-from video_slide_md.backends import _resolve_backend, iter_frames, video_info
-from video_slide_md.models import VideoFrame, VideoInfo
+from video2pptx.backends import _resolve_backend, iter_frames, video_info
+from video2pptx.models import VideoFrame, VideoInfo
 
 logger = logging.getLogger(__name__)
 

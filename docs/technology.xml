@@ -83,7 +83,7 @@
 
   <DeliveryShape>
     <base>Local CLI tool, single Python package installed via pip, console_script entry point.</base>
-    <gui-option>GUI available via `pip install video-slide-md[gui]`. GUI entry point: video-slide-md-gui or python -m video_slide_md.gui.</gui-option>
+    <gui-option>GUI available via `pip install video2pptx[gui]`. GUI entry point: video2pptx-gui or python -m video2pptx.gui.</gui-option>
     <binary-distribution>Future option: PyInstaller bundle with --gui extras for standalone .exe/.app.</binary-distribution>
   </DeliveryShape>
 </TechnologyStack>

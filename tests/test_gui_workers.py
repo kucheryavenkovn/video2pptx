@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for background workers — signal emission, cancellation, error handling
 #   SCOPE: Verify worker signals (progress, finished, error) are emitted correctly
-#   DEPENDS: pytest, PySide6, video_slide_md.project_manager, video_slide_md.detect_slides
+#   DEPENDS: pytest, PySide6, video2pptx.project_manager, video2pptx.detect_slides
 #   LINKS: V-M-GUI-WORKER
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -36,7 +36,7 @@ def _ensure_app():
 class TestWorkers:
     def _make_project(self, tmp_path) -> tuple:
         """Helper: create minimal project with synthetic video."""
-        from video_slide_md.project_manager import create_project
+        from video2pptx.project_manager import create_project
 
         fixture_dir = Path(__file__).parent / "fixtures"
         test_video = fixture_dir / "test_slides.mp4"
@@ -46,7 +46,7 @@ class TestWorkers:
 
     def test_detect_worker_emits_finished(self, tmp_path, qtbot):
         """DetectWorker runs detection and emits finished signal."""
-        from video_slide_md.gui.workers import DetectWorker
+        from video2pptx.gui.workers import DetectWorker
 
         _ensure_app()
         proj, proj_dir = self._make_project(tmp_path)
@@ -57,7 +57,7 @@ class TestWorkers:
 
     def test_detect_worker_emits_progress(self, tmp_path, qtbot):
         """DetectWorker emits at least one progress signal."""
-        from video_slide_md.gui.workers import DetectWorker
+        from video2pptx.gui.workers import DetectWorker
 
         _ensure_app()
         proj, proj_dir = self._make_project(tmp_path)
@@ -71,8 +71,8 @@ class TestWorkers:
 
     def test_worker_error_on_missing_video(self, tmp_path, qtbot):
         """Worker emits error signal when video is missing."""
-        from video_slide_md.project_manager import create_project
-        from video_slide_md.gui.workers import DetectWorker
+        from video2pptx.project_manager import create_project
+        from video2pptx.gui.workers import DetectWorker
 
         _ensure_app()
         bogus = tmp_path / "no_video.mp4"
@@ -85,7 +85,7 @@ class TestWorkers:
 
     def test_notes_worker_completes(self, tmp_path):
         """NotesWorker runs basic notes processing on a project with subtitles."""
-        from video_slide_md.gui.workers import NotesWorker
+        from video2pptx.gui.workers import NotesWorker
 
         _ensure_app()
         fixture_dir = Path(__file__).parent / "fixtures"
@@ -96,7 +96,7 @@ class TestWorkers:
         if not slides_js.is_file():
             pytest.skip("test_slides.json fixture not available")
 
-        from video_slide_md.project_manager import create_project
+        from video2pptx.project_manager import create_project
         proj = create_project(proj_dir, video_path=fixture_dir / "test_slides.mp4",
                               subtitles_path=fixture_dir / "test_slides.srt")
         proj.slides_json = str(slides_js)

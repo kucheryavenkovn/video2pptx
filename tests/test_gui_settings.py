@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for settings dialog — tabs, prompt editing, backend selection
 #   SCOPE: Verify dialog opens, tabs exist, save persists changes via project manager
-#   DEPENDS: pytest, PySide6, video_slide_md.project_manager
+#   DEPENDS: pytest, PySide6, video2pptx.project_manager
 #   LINKS: V-M-GUI-SETTINGS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -34,8 +34,8 @@ def _ensure_app():
 class TestSettingsDialog:
     def test_dialog_opens(self, tmp_path):
         """Settings dialog opens with correct tab count."""
-        from video_slide_md.gui.settings_dialog import SettingsDialog
-        from video_slide_md.project_manager import create_project
+        from video2pptx.gui.settings_dialog import SettingsDialog
+        from video2pptx.project_manager import create_project
 
         _ensure_app()
         video = tmp_path / "video.mp4"
@@ -51,8 +51,8 @@ class TestSettingsDialog:
 
     def test_llm_tab_shows_prompt(self, tmp_path):
         """LLM tab displays the current system prompt in editable field."""
-        from video_slide_md.gui.settings_dialog import SettingsDialog
-        from video_slide_md.project_manager import create_project
+        from video2pptx.gui.settings_dialog import SettingsDialog
+        from video2pptx.project_manager import create_project
 
         _ensure_app()
         video = tmp_path / "video.mp4"
@@ -69,8 +69,8 @@ class TestSettingsDialog:
 
     def test_save_persists_changes(self, tmp_path):
         """Save button writes changes to project.json and can be reloaded."""
-        from video_slide_md.gui.settings_dialog import SettingsDialog
-        from video_slide_md.project_manager import create_project, open_project
+        from video2pptx.gui.settings_dialog import SettingsDialog
+        from video2pptx.project_manager import create_project, open_project
 
         _ensure_app()
         video = tmp_path / "video.mp4"

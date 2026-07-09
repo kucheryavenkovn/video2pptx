@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for timeline widget — rendering, click selection, subtitle panel
 #   SCOPE: Verify TimelineWidget paints correct number of blocks, emits signal on click, subtitle panel updates
-#   DEPENDS: pytest, PySide6, video_slide_md.models
+#   DEPENDS: pytest, PySide6, video2pptx.models
 #   LINKS: V-M-GUI-TIMELINE
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -35,8 +35,8 @@ def _ensure_app():
 class TestTimelineWidget:
     def test_render_slides(self):
         """Timeline renders correct number of slide blocks matching input."""
-        from video_slide_md.models import SlideSegment
-        from video_slide_md.gui.timeline_widget import TimelineWidget
+        from video2pptx.models import SlideSegment
+        from video2pptx.gui.timeline_widget import TimelineWidget
 
         _ensure_app()
         slides = [
@@ -51,8 +51,8 @@ class TestTimelineWidget:
 
     def test_select_emits_signal(self):
         """select_slide emits selected_slide_changed signal with correct index."""
-        from video_slide_md.models import SlideSegment
-        from video_slide_md.gui.timeline_widget import TimelineWidget
+        from video2pptx.models import SlideSegment
+        from video2pptx.gui.timeline_widget import TimelineWidget
 
         _ensure_app()
         slides = [
@@ -68,8 +68,8 @@ class TestTimelineWidget:
 
     def test_subtitle_panel_shows_text(self):
         """Subtitle panel displays correct text for selected segment."""
-        from video_slide_md.models import SlideSegment
-        from video_slide_md.gui.timeline_widget import TimelineWidget
+        from video2pptx.models import SlideSegment
+        from video2pptx.gui.timeline_widget import TimelineWidget
 
         _ensure_app()
         slides = [
@@ -86,7 +86,7 @@ class TestTimelineWidget:
 
     def test_empty_slides(self):
         """Empty slides list should not crash the widget."""
-        from video_slide_md.gui.timeline_widget import TimelineWidget
+        from video2pptx.gui.timeline_widget import TimelineWidget
 
         _ensure_app()
         widget = TimelineWidget(slides=[], video_duration=0.0)

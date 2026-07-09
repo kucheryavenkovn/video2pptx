@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for Marp Markdown export
 #   SCOPE: Markdown generation, slide rendering, time formatting
-#   DEPENDS: pytest, video_slide_md.markdown_export
+#   DEPENDS: pytest, video2pptx.markdown_export
 #   LINKS: V-M-MD-EXPORT
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -11,8 +11,8 @@
 
 
 
-from video_slide_md.markdown_export import export_to_markdown, render_slide, _fmt_time
-from video_slide_md.models import SlideSegment, SlidesDocument, VideoInfo
+from video2pptx.markdown_export import export_to_markdown, render_slide, _fmt_time
+from video2pptx.models import SlideSegment, SlidesDocument, VideoInfo
 
 
 def make_seg(index: int, start: float, end: float, image: str = "", transcript: str = "") -> SlideSegment:

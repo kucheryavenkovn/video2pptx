@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for ROI crop and ignore mask operations
 #   SCOPE: ROI parsing, cropping, masking
-#   DEPENDS: pytest, numpy, video_slide_md.roi
+#   DEPENDS: pytest, numpy, video2pptx.roi
 #   LINKS: V-M-ROI
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -11,8 +11,8 @@
 
 import numpy as np
 
-from video_slide_md.models import Roi
-from video_slide_md.roi import SlideRegion, parse_ignore_rois, parse_roi
+from video2pptx.models import Roi
+from video2pptx.roi import SlideRegion, parse_ignore_rois, parse_roi
 
 
 def make_frame(h: int = 100, w: int = 200) -> np.ndarray:

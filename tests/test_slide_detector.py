@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for slide change detection
 #   SCOPE: Change detection, debounce, threshold handling
-#   DEPENDS: pytest, numpy, video_slide_md.slide_detector
+#   DEPENDS: pytest, numpy, video2pptx.slide_detector
 #   LINKS: V-M-SLIDE-DETECTOR
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -11,9 +11,9 @@
 
 import numpy as np
 
-from video_slide_md.roi import SlideRegion
-from video_slide_md.slide_detector import ChangeEvent, detect_changes
-from video_slide_md.models import FrameFeatures
+from video2pptx.roi import SlideRegion
+from video2pptx.slide_detector import ChangeEvent, detect_changes
+from video2pptx.models import FrameFeatures
 
 
 class TestDetectChanges:

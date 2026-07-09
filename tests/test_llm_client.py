@@ -17,8 +17,8 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from video_slide_md.config import LlmConfig
-from video_slide_md.llm_client import LlmClient
+from video2pptx.config import LlmConfig
+from video2pptx.llm_client import LlmClient
 
 
 @pytest.fixture
@@ -62,6 +62,24 @@ class TestLlmClientInit:
             LlmClient(llm_config)
             _, kwargs = mock_client_cls.call_args
             assert "http://localhost:1234/v1/" in str(kwargs.get("base_url", ""))
+
+    def test_init_sets_bearer_token_when_provided(self, llm_config: LlmConfig):
+        llm_config.api_token = "sk-test-token"
+        with patch("httpx.Client") as mock_client_cls:
+            mock_client_cls.return_value = MagicMock()
+            LlmClient(llm_config)
+            _, kwargs = mock_client_cls.call_args
+            headers = kwargs.get("headers", {})
+            assert headers.get("Authorization") == "Bearer sk-test-token"
+
+    def test_init_no_token_no_auth_header(self, llm_config: LlmConfig):
+        llm_config.api_token = ""
+        with patch("httpx.Client") as mock_client_cls:
+            mock_client_cls.return_value = MagicMock()
+            LlmClient(llm_config)
+            _, kwargs = mock_client_cls.call_args
+            headers = kwargs.get("headers", {})
+            assert "Authorization" not in headers
 
 
 class TestLlmClientChat:
@@ -260,3 +278,136 @@ class TestLlmClientModelLifecycle:
             unload_calls = [call for call in mock_httpx.post.call_args_list
                           if call[0][0] == "model/unload"]
             assert len(unload_calls) == 0
+
+
+class TestLlmClientTestConnection:
+    def test_connection_success(self, llm_config: LlmConfig):
+        mock_httpx = MagicMock()
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "data": [{"id": "model-a"}, {"id": "model-b"}]
+        }
+        mock_httpx.get.return_value = mock_resp
+
+        with patch("httpx.Client", return_value=mock_httpx):
+            client = LlmClient(llm_config)
+            ok, msg = client.test_connection()
+            assert ok is True
+            assert "Connected" in msg
+            assert "model-a" in msg
+            mock_httpx.get.assert_called_once_with("models", timeout=15.0)
+
+    def test_connection_unauthorized(self, llm_config: LlmConfig):
+        mock_httpx = MagicMock()
+        mock_resp = MagicMock()
+        mock_resp.status_code = 401
+        mock_httpx.get.return_value = mock_resp
+
+        with patch("httpx.Client", return_value=mock_httpx):
+            client = LlmClient(llm_config)
+            ok, msg = client.test_connection()
+            assert ok is False
+            assert "401" in msg
+            assert "API token" in msg
+
+    def test_connection_timeout(self, llm_config: LlmConfig):
+        mock_httpx = MagicMock()
+        mock_httpx.get.side_effect = httpx.TimeoutException("timeout")
+
+        with patch("httpx.Client", return_value=mock_httpx):
+            client = LlmClient(llm_config)
+            ok, msg = client.test_connection()
+            assert ok is False
+            assert "timeout" in msg.lower()
+
+    def test_connection_http_error(self, llm_config: LlmConfig):
+        mock_httpx = MagicMock()
+        mock_resp = MagicMock(status_code=500)
+        mock_resp.text = "Internal Server Error"
+        mock_resp.raise_for_status.side_effect = \
+            httpx.HTTPStatusError("500", request=MagicMock(), response=mock_resp)
+        mock_httpx.get.return_value = mock_resp
+
+        with patch("httpx.Client", return_value=mock_httpx):
+            client = LlmClient(llm_config)
+            ok, msg = client.test_connection()
+            assert ok is False
+            assert "500" in msg
+
+    def test_connection_request_error(self, llm_config: LlmConfig):
+        mock_httpx = MagicMock()
+        mock_httpx.get.side_effect = httpx.RequestError("connection refused")
+
+        with patch("httpx.Client", return_value=mock_httpx):
+            client = LlmClient(llm_config)
+            ok, msg = client.test_connection()
+            assert ok is False
+            assert "connection refused" in msg.lower()
+
+
+class TestLlmClientFetchModels:
+    def test_fetch_models_success(self, llm_config: LlmConfig):
+        mock_httpx = MagicMock()
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "data": [{"id": "model-a"}, {"id": "model-b"}, {"id": "model-c"}]
+        }
+        mock_httpx.get.return_value = mock_resp
+
+        with patch("httpx.Client", return_value=mock_httpx):
+            client = LlmClient(llm_config)
+            models = client.fetch_models()
+            assert models == ["model-a", "model-b", "model-c"]
+
+    def test_fetch_models_empty_response(self, llm_config: LlmConfig):
+        mock_httpx = MagicMock()
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {"data": []}
+        mock_httpx.get.return_value = mock_resp
+
+        with patch("httpx.Client", return_value=mock_httpx):
+            client = LlmClient(llm_config)
+            models = client.fetch_models()
+            assert models == []
+
+    def test_fetch_models_http_error(self, llm_config: LlmConfig):
+        mock_httpx = MagicMock()
+        mock_httpx.get.side_effect = httpx.HTTPStatusError(
+            "500", request=MagicMock(), response=MagicMock(status_code=500)
+        )
+
+        with patch("httpx.Client", return_value=mock_httpx):
+            client = LlmClient(llm_config)
+            models = client.fetch_models()
+            assert models == []
+
+    def test_fetch_models_request_error(self, llm_config: LlmConfig):
+        mock_httpx = MagicMock()
+        mock_httpx.get.side_effect = httpx.RequestError("connection refused")
+
+        with patch("httpx.Client", return_value=mock_httpx):
+            client = LlmClient(llm_config)
+            models = client.fetch_models()
+            assert models == []
+
+    def test_fetch_models_custom_url(self, llm_config: LlmConfig):
+        llm_config.models_url = "http://custom/v1/models"
+        mock_httpx = MagicMock()
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "data": [{"id": "custom-model"}]
+        }
+        mock_httpx.get.return_value = mock_resp
+
+        with patch("httpx.Client", return_value=mock_httpx):
+            client = LlmClient(llm_config)
+            models = client.fetch_models()
+            assert models == ["custom-model"]
+            # Should call the custom URL directly, not via base_url
+            mock_httpx.get.assert_called_once_with(
+                "http://custom/v1/models", timeout=15.0
+            )

@@ -12,8 +12,8 @@
 from __future__ import annotations
 
 
-from video_slide_md.models import SlideSegment, SubtitleCue
-from video_slide_md.notes_processor import (
+from video2pptx.models import SlideSegment, SubtitleCue
+from video2pptx.notes_processor import (
     SYSTEM_PROMPT_REPHRASE,
     LLM_REQUEST_TEMPLATE,
     process_notes,

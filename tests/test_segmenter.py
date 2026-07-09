@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for slide segment builder
 #   SCOPE: Segment building, representative timestamp, short segment merging
-#   DEPENDS: pytest, video_slide_md.segmenter
+#   DEPENDS: pytest, video2pptx.segmenter
 #   LINKS: V-M-SEGMENTER
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -11,12 +11,12 @@
 
 import pytest
 
-from video_slide_md.models import FrameFeatures
-from video_slide_md.segmenter import (
+from video2pptx.models import FrameFeatures
+from video2pptx.segmenter import (
     build_segments,
     choose_representative_timestamp,
 )
-from video_slide_md.slide_detector import ChangeEvent
+from video2pptx.slide_detector import ChangeEvent
 
 
 def make_change(timestamp: float) -> ChangeEvent:

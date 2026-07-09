@@ -3,15 +3,15 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for subtitle parsing and alignment
 #   SCOPE: SRT/VTT parsing, cue alignment, edge cases
-#   DEPENDS: pytest, video_slide_md.subtitles
+#   DEPENDS: pytest, video2pptx.subtitles
 #   LINKS: V-M-SUBTITLES
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
 
 
-from video_slide_md.models import SlideSegment, SubtitleCue
-from video_slide_md.subtitles import (
+from video2pptx.models import SlideSegment, SubtitleCue
+from video2pptx.subtitles import (
     align_cues_to_segments,
     parse_subtitles,
 )

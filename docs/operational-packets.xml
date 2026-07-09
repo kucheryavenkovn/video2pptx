@@ -6,7 +6,7 @@
       <module-name>Example</module-name>
       <purpose>Implement the approved module without architectural drift.</purpose>
       <write-scope>
-        <file-1>src/video_slide_md/example.py</file-1>
+        <file-1>src/video2pptx/example.py</file-1>
         <file-2>tests/test_example.py</file-2>
       </write-scope>
       <contract-excerpt><![CDATA[

@@ -17,7 +17,7 @@
         <inputs><param name="none" type="none" /></inputs>
         <outputs><param name="SlidesDocument, SlideSegment, VideoInfo, Roi, SubtitleCue, FrameFeatures" type="Pydantic BaseModel classes" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/models.py</source><tests>tests/test_models.py</tests></target>
+      <target><source>src/video2pptx/models.py</source><tests>tests/test_models.py</tests></target>
       <observability><log-prefix>[Models]</log-prefix></observability>
       <verification-ref>V-M-MODELS</verification-ref>
       <depends>none</depends>
@@ -29,7 +29,7 @@
         <inputs><param name="config_path" type="Path|None" /><param name="cli_kwargs" type="dict" /></inputs>
         <outputs><param name="Config" type="Config object with validated fields" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/config.py</source><tests>tests/test_config.py</tests></target>
+      <target><source>src/video2pptx/config.py</source><tests>tests/test_config.py</tests></target>
       <verification-ref>V-M-CONFIG</verification-ref>
       <depends>M-MODELS</depends>
     </M-CONFIG>
@@ -40,7 +40,7 @@
         <inputs><param name="cli args" type="argv" /></inputs>
         <outputs><param name="exit code" type="int" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/cli.py</source><tests>tests/test_cli.py, tests/test_cli_e2e.py</tests></target>
+      <target><source>src/video2pptx/cli.py</source><tests>tests/test_cli.py, tests/test_cli_e2e.py</tests></target>
       <verification-ref>V-M-CLI</verification-ref>
       <depends>M-CONFIG, M-DETECT-SLIDES, M-NOTES, M-ROI-TOOL, M-PROJECT</depends>
     </M-CLI>
@@ -49,7 +49,7 @@
       <contract>
         <purpose>Video decoder backends: OpenCV (CPU), PyAV (CUDA). Auto-select best available.</purpose>
       </contract>
-      <target><source>src/video_slide_md/backends/</source><tests>tests/test_backends.py</tests></target>
+      <target><source>src/video2pptx/backends/</source><tests>tests/test_backends.py</tests></target>
       <verification-ref>V-M-BACKENDS</verification-ref>
       <depends>none</depends>
     </M-BACKENDS>
@@ -58,7 +58,7 @@
       <contract>
         <purpose>Unified video decoder — select backend, iterate sampled frames.</purpose>
       </contract>
-      <target><source>src/video_slide_md/video_decode.py</source></target>
+      <target><source>src/video2pptx/video_decode.py</source></target>
       <verification-ref>V-M-VIDEO-DECODE</verification-ref>
       <depends>M-BACKENDS</depends>
     </M-VIDEO-DECODE>
@@ -67,7 +67,7 @@
       <contract>
         <purpose>Crop slide region, apply ignore masks. auto = full for MVP.</purpose>
       </contract>
-      <target><source>src/video_slide_md/roi.py</source><tests>tests/test_roi.py</tests></target>
+      <target><source>src/video2pptx/roi.py</source><tests>tests/test_roi.py</tests></target>
       <verification-ref>V-M-ROI</verification-ref>
       <depends>M-MODELS</depends>
     </M-ROI>
@@ -76,7 +76,7 @@
       <contract>
         <purpose>Extract pHash, dHash, grayscale, histogram, pixel MAE. Compute weighted visual distance.</purpose>
       </contract>
-      <target><source>src/video_slide_md/frame_features.py</source><tests>tests/test_frame_features.py</tests></target>
+      <target><source>src/video2pptx/frame_features.py</source><tests>tests/test_frame_features.py</tests></target>
       <verification-ref>V-M-FRAME-FEATURES</verification-ref>
       <depends>M-ROI</depends>
     </M-FRAME-FEATURES>
@@ -85,7 +85,7 @@
       <contract>
         <purpose>Compare consecutive frames, detect changes, apply debounce.</purpose>
       </contract>
-      <target><source>src/video_slide_md/slide_detector.py</source><tests>tests/test_slide_detector.py</tests></target>
+      <target><source>src/video2pptx/slide_detector.py</source><tests>tests/test_slide_detector.py</tests></target>
       <verification-ref>V-M-SLIDE-DETECTOR</verification-ref>
       <depends>M-FRAME-FEATURES, M-ROI</depends>
     </M-SLIDE-DETECTOR>
@@ -94,7 +94,7 @@
       <contract>
         <purpose>Convert change events to slide intervals, choose representative timestamps.</purpose>
       </contract>
-      <target><source>src/video_slide_md/segmenter.py</source><tests>tests/test_segmenter.py</tests></target>
+      <target><source>src/video2pptx/segmenter.py</source><tests>tests/test_segmenter.py</tests></target>
       <verification-ref>V-M-SEGMENTER</verification-ref>
       <depends>M-MODELS</depends>
     </M-SEGMENTER>
@@ -103,7 +103,7 @@
       <contract>
         <purpose>Merge duplicate adjacent segments via hash/SSIM similarity.</purpose>
       </contract>
-      <target><source>src/video_slide_md/dedupe.py</source><tests>tests/test_dedupe.py</tests></target>
+      <target><source>src/video2pptx/dedupe.py</source><tests>tests/test_dedupe.py</tests></target>
       <verification-ref>V-M-DEDUPE</verification-ref>
       <depends>M-MODELS, M-FRAME-FEATURES</depends>
     </M-DEDUPE>
@@ -112,7 +112,7 @@
       <contract>
         <purpose>Parse SRT/VTT, align cues to slide intervals by timestamp overlap.</purpose>
       </contract>
-      <target><source>src/video_slide_md/subtitles.py</source><tests>tests/test_subtitles.py</tests></target>
+      <target><source>src/video2pptx/subtitles.py</source><tests>tests/test_subtitles.py</tests></target>
       <verification-ref>V-M-SUBTITLES</verification-ref>
       <depends>M-MODELS</depends>
     </M-SUBTITLES>
@@ -121,7 +121,7 @@
       <contract>
         <purpose>Export slides.json to Marp-formatted deck.md.</purpose>
       </contract>
-      <target><source>src/video_slide_md/markdown_export.py</source><tests>tests/test_markdown_export.py</tests></target>
+      <target><source>src/video2pptx/markdown_export.py</source><tests>tests/test_markdown_export.py</tests></target>
       <verification-ref>V-M-MD-EXPORT</verification-ref>
       <depends>M-MODELS</depends>
     </M-MD-EXPORT>
@@ -130,7 +130,7 @@
       <contract>
         <purpose>Export slides.json to PPTX presentation with slide images and speaker notes.</purpose>
       </contract>
-      <target><source>src/video_slide_md/pptx_export.py</source><tests>tests/test_pptx_export.py</tests></target>
+      <target><source>src/video2pptx/pptx_export.py</source><tests>tests/test_pptx_export.py</tests></target>
       <verification-ref>V-M-PPTX-EXPORT</verification-ref>
       <depends>M-MODELS, M-NOTES-PROCESSOR, python-pptx</depends>
     </M-PPTX-EXPORT>
@@ -139,7 +139,7 @@
       <contract>
         <purpose>Process raw transcript into clean speaker notes: basic cleanup or LLM rephrase.</purpose>
       </contract>
-      <target><source>src/video_slide_md/notes_processor.py</source><tests>tests/test_notes_processor.py</tests></target>
+      <target><source>src/video2pptx/notes_processor.py</source><tests>tests/test_notes_processor.py</tests></target>
       <verification-ref>V-M-NOTES-PROCESSOR</verification-ref>
       <depends>M-MODELS</depends>
     </M-NOTES-PROCESSOR>
@@ -148,7 +148,7 @@
       <contract>
         <purpose>Generate debug artifacts: diff_scores.csv, timeline.png, contact_sheet.jpg</purpose>
       </contract>
-      <target><source>src/video_slide_md/debug_export.py</source><tests>tests/test_debug_export.py</tests></target>
+      <target><source>src/video2pptx/debug_export.py</source><tests>tests/test_debug_export.py</tests></target>
       <verification-ref>V-M-DEBUG-EXPORT</verification-ref>
       <depends>M-MODELS</depends>
     </M-DEBUG-EXPORT>
@@ -157,7 +157,7 @@
       <contract>
         <purpose>Generic LLM client abstraction over OpenAI-compatible API (LM Studio) with vision support.</purpose>
       </contract>
-      <target><source>src/video_slide_md/llm_client.py</source><tests>tests/test_llm_client.py</tests></target>
+      <target><source>src/video2pptx/llm_client.py</source><tests>tests/test_llm_client.py</tests></target>
       <verification-ref>V-M-LLM-CLIENT</verification-ref>
       <depends>M-CONFIG, httpx</depends>
     </M-LLM-CLIENT>
@@ -166,7 +166,7 @@
       <contract>
         <purpose>Analyze slide screenshot via LLM vision: extract visual description and on-screen text terms.</purpose>
       </contract>
-      <target><source>src/video_slide_md/slide_analyzer.py</source><tests>tests/test_slide_analyzer.py</tests></target>
+      <target><source>src/video2pptx/slide_analyzer.py</source><tests>tests/test_slide_analyzer.py</tests></target>
       <verification-ref>V-M-SLIDE-ANALYZER</verification-ref>
       <depends>M-LLM-CLIENT, M-MODELS</depends>
     </M-SLIDE-ANALYZER>
@@ -175,7 +175,7 @@
       <contract>
         <purpose>Coordinate full LLM pipeline: load model → analyze slides → rephrase transcript → unload → save.</purpose>
       </contract>
-      <target><source>src/video_slide_md/llm_orchestrator.py</source><tests>tests/test_llm_orchestrator.py</tests></target>
+      <target><source>src/video2pptx/llm_orchestrator.py</source><tests>tests/test_llm_orchestrator.py</tests></target>
       <verification-ref>V-M-LLM-ORCHESTRATOR</verification-ref>
       <depends>M-LLM-CLIENT, M-SLIDE-ANALYZER, M-NOTES-PROCESSOR, M-MODELS</depends>
     </M-LLM-ORCHESTRATOR>
@@ -184,7 +184,7 @@
       <contract>
         <purpose>Wire all modules together in cli.py detect command (all-in-one mode).</purpose>
       </contract>
-      <target><source>src/video_slide_md/cli.py</source><tests>tests/test_cli_e2e.py</tests></target>
+      <target><source>src/video2pptx/cli.py</source><tests>tests/test_cli_e2e.py</tests></target>
       <verification-ref>V-M-CLI-E2E</verification-ref>
       <depends>all modules</depends>
     </M-PIPELINE>
@@ -195,7 +195,7 @@
         <inputs><param name="video_path" type="Path" /><param name="out_dir" type="Path" /><param name="config" type="AppConfig" /></inputs>
         <outputs><param name="slides.json" type="Path — slides.json with intervals + images" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/detect_slides.py</source><tests>tests/test_detect_slides.py</tests></target>
+      <target><source>src/video2pptx/detect_slides.py</source><tests>tests/test_detect_slides.py</tests></target>
       <observability><log-prefix>[DetectSlides]</log-prefix></observability>
       <verification-ref>V-M-DETECT-SLIDES</verification-ref>
       <depends>M-VIDEO-DECODE, M-SLIDE-DETECTOR, M-SEGMENTER, M-DEDUPE, M-ROI, M-MODELS</depends>
@@ -207,7 +207,7 @@
         <inputs><param name="slides_json" type="Path" /><param name="subtitles" type="Path|None" /><param name="slides_dir" type="Path" /><param name="notes_mode" type="str" /></inputs>
         <outputs><param name="slides.json" type="Path — updated slides.json with cleaned notes" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/notes_pipeline.py</source><tests>tests/test_notes_pipeline.py</tests></target>
+      <target><source>src/video2pptx/notes_pipeline.py</source><tests>tests/test_notes_pipeline.py</tests></target>
       <observability><log-prefix>[Notes]</log-prefix></observability>
       <verification-ref>V-M-NOTES</verification-ref>
       <depends>M-MODELS, M-SUBTITLES, M-NOTES-PROCESSOR</depends>
@@ -219,7 +219,7 @@
         <inputs><param name="video_path" type="Path" /></inputs>
         <outputs><param name="ignore_roi" type="str — format x1,y1,x2,y2 to stdout" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/roi_tool.py</source><tests>tests/test_roi_tool.py</tests></target>
+      <target><source>src/video2pptx/roi_tool.py</source><tests>tests/test_roi_tool.py</tests></target>
       <observability><log-prefix>[RoiTool]</log-prefix></observability>
       <verification-ref>V-M-ROI-TOOL</verification-ref>
       <depends>M-VIDEO-DECODE, opencv-python</depends>
@@ -231,7 +231,7 @@
         <inputs><param name="project_dir" type="Path" /><param name="video_path" type="Path|None" /><param name="subtitles_path" type="Path|None" /></inputs>
         <outputs><param name="project.json" type="project.json file with all settings and state" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/project_manager.py</source><tests>tests/test_project_manager.py</tests></target>
+      <target><source>src/video2pptx/project_manager.py</source><tests>tests/test_project_manager.py</tests></target>
       <observability><log-prefix>[ProjectManager]</log-prefix></observability>
       <verification-ref>V-M-PROJECT</verification-ref>
       <depends>M-MODELS, M-CONFIG</depends>
@@ -243,7 +243,7 @@
         <inputs><param name="project" type="Project|None" /></inputs>
         <outputs><param name="none" type="— GUI event loop" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/gui/main_window.py</source><tests>tests/test_gui_main.py</tests></target>
+      <target><source>src/video2pptx/gui/main_window.py</source><tests>tests/test_gui_main.py</tests></target>
       <observability><log-prefix>[GUI-Main]</log-prefix></observability>
       <verification-ref>V-M-GUI-MAIN</verification-ref>
       <depends>M-PROJECT, M-GUI-TIMELINE, M-GUI-SETTINGS, M-GUI-WORKER, M-DETECT-SLIDES, M-NOTES, M-BACKENDS</depends>
@@ -255,7 +255,7 @@
         <inputs><param name="slides" type="list[SlideSegment]" /><param name="video_duration" type="float" /></inputs>
         <outputs><param name="signal" type="selected_slide_changed(int)" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/gui/timeline_widget.py</source><tests>tests/test_gui_timeline.py</tests></target>
+      <target><source>src/video2pptx/gui/timeline_widget.py</source><tests>tests/test_gui_timeline.py</tests></target>
       <observability><log-prefix>[GUI-Timeline]</log-prefix></observability>
       <verification-ref>V-M-GUI-TIMELINE</verification-ref>
       <depends>M-MODELS</depends>
@@ -267,7 +267,7 @@
         <inputs><param name="project" type="Project" /></inputs>
         <outputs><param name="Signal" type="settings_changed()" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/gui/settings_dialog.py</source><tests>tests/test_gui_settings.py</tests></target>
+      <target><source>src/video2pptx/gui/settings_dialog.py</source><tests>tests/test_gui_settings.py</tests></target>
       <observability><log-prefix>[GUI-Settings]</log-prefix></observability>
       <verification-ref>V-M-GUI-SETTINGS</verification-ref>
       <depends>M-PROJECT, M-CONFIG, M-BACKENDS, M-NOTES-PROCESSOR</depends>
@@ -279,7 +279,7 @@
         <inputs><param name="project" type="Project" /><param name="operation" type="str — 'detect' | 'notes' | 'llm'" /></inputs>
         <outputs><param name="signals" type="progress(int, str) | finished(path) | error(str)" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/gui/workers.py</source><tests>tests/test_gui_workers.py</tests></target>
+      <target><source>src/video2pptx/gui/workers.py</source><tests>tests/test_gui_workers.py</tests></target>
       <observability><log-prefix>[GUI-Worker]</log-prefix></observability>
       <verification-ref>V-M-GUI-WORKER</verification-ref>
       <depends>M-DETECT-SLIDES, M-NOTES, M-LLM-ORCHESTRATOR, M-PROJECT</depends>
@@ -291,7 +291,7 @@
         <inputs><param name="project" type="Project | None" /></inputs>
         <outputs><param name="signals" type="project_action(str) — 'new' | 'open' | 'close' | 'save' | 'import_video' | 'import_subs' | 'project_settings' | 'app_settings'" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/gui/menu_bar.py</source><tests>tests/test_gui_menu_bar.py</tests></target>
+      <target><source>src/video2pptx/gui/menu_bar.py</source><tests>tests/test_gui_menu_bar.py</tests></target>
       <observability><log-prefix>[GUI-MenuBar]</log-prefix></observability>
       <verification-ref>V-M-GUI-MENUBAR</verification-ref>
       <depends>M-PROJECT</depends>
@@ -303,7 +303,7 @@
         <inputs><param name="video_path" type="Path | None" /><param name="subtitles_path" type="Path | None" /></inputs>
         <outputs><param name="signals" type="positionChanged(float) | stateChanged(str) | durationChanged(float)" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/gui/video_player.py</source><tests>tests/test_gui_video_player.py</tests></target>
+      <target><source>src/video2pptx/gui/video_player.py</source><tests>tests/test_gui_video_player.py</tests></target>
       <observability><log-prefix>[GUI-VideoPlayer]</log-prefix></observability>
       <verification-ref>V-M-GUI-VIDEOPLAYER</verification-ref>
       <depends>PySide6.QtMultimedia</depends>
@@ -315,7 +315,7 @@
         <inputs><param name="subtitle_path" type="Path | None" /><param name="video_position" type="float — seconds, from player positionChanged" /></inputs>
         <outputs><param name="overlay" type="QLabel or QGraphicsItem positioned over video widget with current subtitle text" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/gui/subtitle_overlay.py</source><tests>tests/test_gui_subtitle_overlay.py</tests></target>
+      <target><source>src/video2pptx/gui/subtitle_overlay.py</source><tests>tests/test_gui_subtitle_overlay.py</tests></target>
       <observability><log-prefix>[GUI-SubtitleOverlay]</log-prefix></observability>
       <verification-ref>V-M-GUI-SUBTITLE-OVERLAY</verification-ref>
       <depends>M-GUI-VIDEOPLAYER, pysubs2</depends>
@@ -327,7 +327,7 @@
         <inputs><param name="slides" type="list[SlideSegment]" /><param name="manual_markers" type="list[float] — timestamps" /><param name="video_duration" type="float" /></inputs>
         <outputs><param name="signals" type="marker_added(float) | marker_deleted(float) | marker_snapped(float, float) | open_image(str)" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/gui/timeline_v2.py</source><tests>tests/test_gui_timeline_v2.py</tests></target>
+      <target><source>src/video2pptx/gui/timeline_v2.py</source><tests>tests/test_gui_timeline_v2.py</tests></target>
       <observability><log-prefix>[GUI-TimelineV2]</log-prefix></observability>
       <verification-ref>V-M-GUI-TIMELINE-V2</verification-ref>
       <depends>M-MODELS, M-GUI-MARKER-MANAGER</depends>
@@ -339,7 +339,7 @@
         <inputs><param name="project" type="Project" /><param name="timestamp" type="float" /></inputs>
         <outputs><param name="snapped_timestamp" type="float — original or adjusted" /><param name="project.json" type="updated with markers list" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/gui/marker_manager.py</source><tests>tests/test_gui_marker_manager.py</tests></target>
+      <target><source>src/video2pptx/gui/marker_manager.py</source><tests>tests/test_gui_marker_manager.py</tests></target>
       <observability><log-prefix>[GUI-MarkerManager]</log-prefix></observability>
       <verification-ref>V-M-GUI-MARKER-MANAGER</verification-ref>
       <depends>M-PROJECT, M-GUI-SMART-SNAP</depends>
@@ -351,7 +351,7 @@
         <inputs><param name="timestamp" type="float" /><param name="project" type="Project" /><param name="snap_mode" type="str — 'diff_only' | 'fallback_analyze' | 'hybrid'" /><param name="snap_flat_threshold" type="float — default 0.05" /></inputs>
         <outputs><param name="snapped_timestamp" type="float" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/gui/smart_snap.py</source><tests>tests/test_gui_smart_snap.py</tests></target>
+      <target><source>src/video2pptx/gui/smart_snap.py</source><tests>tests/test_gui_smart_snap.py</tests></target>
       <observability><log-prefix>[GUI-SmartSnap]</log-prefix></observability>
       <verification-ref>V-M-GUI-SMART-SNAP</verification-ref>
       <depends>M-FRAME-FEATURES, M-VIDEO-DECODE, M-MODELS</depends>
@@ -363,7 +363,7 @@
         <inputs><param name="project" type="Project" /></inputs>
         <outputs><param name="signal" type="project_settings_changed()" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/gui/settings_project.py</source><tests>tests/test_gui_settings_project.py</tests></target>
+      <target><source>src/video2pptx/gui/settings_project.py</source><tests>tests/test_gui_settings_project.py</tests></target>
       <observability><log-prefix>[GUI-SettingsProject]</log-prefix></observability>
       <verification-ref>V-M-GUI-SETTINGS-PROJECT</verification-ref>
       <depends>M-CONFIG, M-PROJECT</depends>
@@ -375,7 +375,7 @@
         <inputs><param name="app_config" type="AppConfigModel" /></inputs>
         <outputs><param name="signal" type="app_settings_changed()" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/gui/settings_app.py</source><tests>tests/test_gui_settings_app.py</tests></target>
+      <target><source>src/video2pptx/gui/settings_app.py</source><tests>tests/test_gui_settings_app.py</tests></target>
       <observability><log-prefix>[GUI-SettingsApp]</log-prefix></observability>
       <verification-ref>V-M-GUI-SETTINGS-APP</verification-ref>
       <depends>M-CONFIG, M-GUI-APPCONFIG, M-BACKENDS</depends>
@@ -383,11 +383,11 @@
 
     <M-GUI-APPCONFIG NAME="AppConfigManager" TYPE="DATA_LAYER" LAYER="0" ORDER="36" STATUS="pending">
       <contract>
-        <purpose>App-wide configuration persistence: reads/writes app-config.yaml in platform-appropriate config directory (Windows: %APPDATA%/video-slide-md/config.yaml, Linux/macOS: ~/.config/video-slide-md/config.yaml). Fields: LLM model/base_url/context_length, GPU backend default, snap_mode, snap_flat_threshold, default_project_dir. New projects created with inherited defaults. CLI fallback: no app-config = built-in defaults.</purpose>
+        <purpose>App-wide configuration persistence: reads/writes app-config.yaml in platform-appropriate config directory (Windows: %APPDATA%/video2pptx/config.yaml, Linux/macOS: ~/.config/video2pptx/config.yaml). Fields: LLM model/base_url/context_length, GPU backend default, snap_mode, snap_flat_threshold, default_project_dir. New projects created with inherited defaults. CLI fallback: no app-config = built-in defaults.</purpose>
         <inputs><param name="none" /></inputs>
         <outputs><param name="app_config" type="AppConfigModel" /></outputs>
       </contract>
-      <target><source>src/video_slide_md/gui/app_config.py</source><tests>tests/test_gui_app_config.py</tests></target>
+      <target><source>src/video2pptx/gui/app_config.py</source><tests>tests/test_gui_app_config.py</tests></target>
       <observability><log-prefix>[GUI-AppConfig]</log-prefix></observability>
       <verification-ref>V-M-GUI-APPCONFIG</verification-ref>
       <depends>PyYAML</depends>
@@ -578,7 +578,7 @@
     <Phase-9 name="ProjectManagement" status="pending">
       <goal>Create project system: project.json schema, CRUD operations, CLI subcommands. Projects tie video, subtitles, configs, and pipeline state into a single output folder.</goal>
       <step-26 module="M-PROJECT" status="done" verification="V-M-PROJECT">
-        Create src/video_slide_md/project_manager.py with Project model (pydantic), project.json I/O, state management. Add project create/open/info CLI subcommands in cli.py.
+        Create src/video2pptx/project_manager.py with Project model (pydantic), project.json I/O, state management. Add project create/open/info CLI subcommands in cli.py.
       </step-26>
       <stop-condition>project.json must be human-readable and re-openable. CLI project commands must round-trip (create → open → verify paths resolve).</stop-condition>
     </Phase-9>
@@ -586,34 +586,34 @@
     <Phase-11 name="DesktopGUIEnhancements" status="pending">
       <goal>Full desktop GUI with menu bar, video player, subtitle overlay, enhanced timeline (green/blue markers), project/app settings dialogs, app-wide config, and smart manual marker snapping with three strategies.</goal>
       <step-1 module="M-GUI-APPCONFIG" status="done" verification="V-M-GUI-APPCONFIG">
-        Create src/video_slide_md/gui/app_config.py: AppConfigModel pydantic model, load/save app-config.yaml to platform config dir. Fields: LLM model/base_url/context_length, GPU backend default, snap_mode, snap_flat_threshold, default_project_dir. CLI fallback = built-in defaults.
+        Create src/video2pptx/gui/app_config.py: AppConfigModel pydantic model, load/save app-config.yaml to platform config dir. Fields: LLM model/base_url/context_length, GPU backend default, snap_mode, snap_flat_threshold, default_project_dir. CLI fallback = built-in defaults.
       </step-1>
       <step-2 module="M-GUI-SMART-SNAP" status="done" verification="V-M-GUI-SMART-SNAP">
-        Create src/video_slide_md/gui/smart_snap.py: three snap strategies. diff_only: load diff_scores from slides.json, window ±5s, find nearest local max. fallback_analyze: try diff_scores first, if none decode ±3s window sample_fps=5, compute frame differences. hybrid: diff_scores, if flat (max-min < threshold) high-res ±2s sample_fps=10.
+        Create src/video2pptx/gui/smart_snap.py: three snap strategies. diff_only: load diff_scores from slides.json, window ±5s, find nearest local max. fallback_analyze: try diff_scores first, if none decode ±3s window sample_fps=5, compute frame differences. hybrid: diff_scores, if flat (max-min < threshold) high-res ±2s sample_fps=10.
       </step-2>
       <step-3 module="M-GUI-MARKER-MANAGER" status="done" verification="V-M-GUI-MARKER-MANAGER">
-        Create src/video_slide_md/gui/marker_manager.py: CRUD for blue markers on Project model. Persist in project.json as list of {original_ts, snapped_ts, snap_mode}. Calls M-GUI-SMART-SNAP on creation.
+        Create src/video2pptx/gui/marker_manager.py: CRUD for blue markers on Project model. Persist in project.json as list of {original_ts, snapped_ts, snap_mode}. Calls M-GUI-SMART-SNAP on creation.
       </step-3>
       <step-4 module="M-GUI-SETTINGS-PROJECT" status="done" verification="V-M-GUI-SETTINGS-PROJECT">
-        Create src/video_slide_md/gui/settings_project.py: QDialog with fields for ROI, ignore_rois, threshold, sample_fps, min_slide_duration, dedupe, min_stable_duration. Read/write via project.json.
+        Create src/video2pptx/gui/settings_project.py: QDialog with fields for ROI, ignore_rois, threshold, sample_fps, min_slide_duration, dedupe, min_stable_duration. Read/write via project.json.
       </step-4>
       <step-5 module="M-GUI-SETTINGS-APP" status="done" verification="V-M-GUI-SETTINGS-APP">
-        Create src/video_slide_md/gui/settings_app.py: QDialog with tabs for LLM, GPU/Backend, Snap, Default Paths. Read/write via M-GUI-APPCONFIG.
+        Create src/video2pptx/gui/settings_app.py: QDialog with tabs for LLM, GPU/Backend, Snap, Default Paths. Read/write via M-GUI-APPCONFIG.
       </step-5>
       <step-6 module="M-GUI-VIDEOPLAYER" status="done" verification="V-M-GUI-VIDEOPLAYER">
-        Create src/video_slide_md/gui/video_player.py: QWidget containing QVideoWidget + transport bar (play/pause/stop, seek slider, volume slider, time label). Emits positionChanged for subtitle sync.
+        Create src/video2pptx/gui/video_player.py: QWidget containing QVideoWidget + transport bar (play/pause/stop, seek slider, volume slider, time label). Emits positionChanged for subtitle sync.
       </step-6>
       <step-7 module="M-GUI-SUBTITLE-OVERLAY" status="done" verification="V-M-GUI-SUBTITLE-OVERLAY">
-        Create src/video_slide_md/gui/subtitle_overlay.py: QLabel positioned over QVideoWidget, updated on positionChanged. Parses SRT/VTT via pysubs2.
+        Create src/video2pptx/gui/subtitle_overlay.py: QLabel positioned over QVideoWidget, updated on positionChanged. Parses SRT/VTT via pysubs2.
       </step-7>
       <step-8 module="M-GUI-TIMELINE-V2" status="done" verification="V-M-GUI-TIMELINE-V2">
-        Create src/video_slide_md/gui/timeline_v2.py: Enhanced timeline with green (detected) and blue (manual) markers. Double-click green → open image. Right-click → add/edit/delete blue marker. Context menu with snap options.
+        Create src/video2pptx/gui/timeline_v2.py: Enhanced timeline with green (detected) and blue (manual) markers. Double-click green → open image. Right-click → add/edit/delete blue marker. Context menu with snap options.
       </step-8>
       <step-9 module="M-GUI-MENUBAR" status="done" verification="V-M-GUI-MENUBAR">
-        Create src/video_slide_md/gui/menu_bar.py: QMenuBar with File + Edit menus. Emits signals for all actions. Integrates into MainWindow replacing toolbar-only approach.
+        Create src/video2pptx/gui/menu_bar.py: QMenuBar with File + Edit menus. Emits signals for all actions. Integrates into MainWindow replacing toolbar-only approach.
       </step-9>
       <step-10 module="M-GUI-MAIN" status="done" verification="V-M-GUI-MAIN">
-        Update src/video_slide_md/gui/main_window.py: Add M-GUI-MENUBAR, M-GUI-VIDEOPLAYER, M-GUI-TIMELINE-V2. Integrate project/app settings dialogs. Connect menu signals to project lifecycle. Replace old toolbar with menu bar. Split central area into video player + timeline + subtitle panel.
+        Update src/video2pptx/gui/main_window.py: Add M-GUI-MENUBAR, M-GUI-VIDEOPLAYER, M-GUI-TIMELINE-V2. Integrate project/app settings dialogs. Connect menu signals to project lifecycle. Replace old toolbar with menu bar. Split central area into video player + timeline + subtitle panel.
       </step-10>
       <stop-condition>GUI must not block during video playback or smart snap. Green/blue markers render correctly. Double-click opens system viewer. Smart snap adjusts markers according to selected mode. Settings persist across restarts. New projects inherit app defaults. All tests pass (offscreen-compatible).</stop-condition>
     </Phase-11>
@@ -621,16 +621,16 @@
     <Phase-10 name="DesktopGUI" status="done">
       <goal>Desktop GUI with PySide6: main window, timeline, settings dialog, background workers. GUI must be optional (extras = ["gui"]).</goal>
       <step-27 module="M-GUI-MAIN" status="done" verification="V-M-GUI-MAIN">
-        Create src/video_slide_md/gui/ package. main_window.py: QMainWindow with project toolbar, video/subtitle file selectors, backend/GPU status panel, detect button, central splitter (timeline | subtitle panel). Entry point: video-slide-md-gui or python -m video_slide_md.gui.
+        Create src/video2pptx/gui/ package. main_window.py: QMainWindow with project toolbar, video/subtitle file selectors, backend/GPU status panel, detect button, central splitter (timeline | subtitle panel). Entry point: video2pptx-gui or python -m video2pptx.gui.
       </step-27>
       <step-28 module="M-GUI-TIMELINE" status="done" verification="V-M-GUI-TIMELINE">
-        Create src/video_slide_md/gui/timeline_widget.py: custom QWidget with QPainter-drawn timeline. Colored blocks for slide intervals. Click selects → signal emitted. Right panel: QTextEdit with subtitle text + Process via LLM button.
+        Create src/video2pptx/gui/timeline_widget.py: custom QWidget with QPainter-drawn timeline. Colored blocks for slide intervals. Click selects → signal emitted. Right panel: QTextEdit with subtitle text + Process via LLM button.
       </step-28>
       <step-29 module="M-GUI-SETTINGS" status="done" verification="V-M-GUI-SETTINGS">
-        Create src/video_slide_md/gui/settings_dialog.py: QDialog with QTabWidget. LLM tab: QPlainTextEdit for system prompt, model name, base URL. GPU/Backend tab: radio buttons for backend selection, CUDA availability info. Detection tab: threshold, min duration, ROI fields. Settings saved to project.json.
+        Create src/video2pptx/gui/settings_dialog.py: QDialog with QTabWidget. LLM tab: QPlainTextEdit for system prompt, model name, base URL. GPU/Backend tab: radio buttons for backend selection, CUDA availability info. Detection tab: threshold, min duration, ROI fields. Settings saved to project.json.
       </step-29>
       <step-30 module="M-GUI-WORKER" status="done" verification="V-M-GUI-WORKER">
-        Create src/video_slide_md/gui/workers.py: QObject + QThread workers for detect, notes, llm operations. Signals: started, progress(int, str), finished(Path), error(str). Workers use existing M-DETECT-SLIDES, M-NOTES, M-LLM-ORCHESTRATOR.
+        Create src/video2pptx/gui/workers.py: QObject + QThread workers for detect, notes, llm operations. Signals: started, progress(int, str), finished(Path), error(str). Workers use existing M-DETECT-SLIDES, M-NOTES, M-LLM-ORCHESTRATOR.
       </step-30>
       <stop-condition>GUI must not block during detect or LLM calls. Detecting in GUI must produce same slides.json as CLI detect-slides. Workers must clean up on project switch or app close.</stop-condition>
     </Phase-10>
@@ -639,15 +639,15 @@
   <DeploymentScenarios>
     <DS-COLAB NAME="GoogleColab" STATUS="done" PRIORITY="medium">
       <purpose>Run pipeline on Google Colab with free T4 GPU.</purpose>
-      <target>colab/video_slide_md_colab.ipynb</target>
+      <target>colab/video2pptx_colab.ipynb</target>
     </DS-COLAB>
     <DS-GUI NAME="DesktopApp" STATUS="pending" PRIORITY="medium">
       <purpose>Desktop GUI application for Windows/Linux/macOS.</purpose>
-      <target>pip install video-slide-md[gui]; video-slide-md-gui</target>
+      <target>pip install video2pptx[gui]; video2pptx-gui</target>
     </DS-GUI>
     <DS-BINARY NAME="BinaryDistribution" STATUS="pending" PRIORITY="low">
       <purpose>Standalone executable with PyInstaller for users without Python.</purpose>
-      <target>pyinstaller --onefile --add-data ... video-slide-md-gui</target>
+      <target>pyinstaller --onefile --add-data ... video2pptx-gui</target>
     </DS-BINARY>
   </DeploymentScenarios>
 </DevelopmentPlan>

@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: End-to-end tests for the full pipeline via CLI
 #   SCOPE: Run detect command on synthetic video, verify slides.json and artifacts
-#   DEPENDS: pytest, typer.testing, video_slide_md.cli
+#   DEPENDS: pytest, typer.testing, video2pptx.cli
 #   LINKS: V-M-CLI-E2E
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -13,7 +13,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from video_slide_md.cli import app
+from video2pptx.cli import app
 
 FIXTURES = Path(__file__).parent / "fixtures"
 TEST_VIDEO = FIXTURES / "test_slides.mp4"

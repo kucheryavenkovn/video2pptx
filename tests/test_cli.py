@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for CLI commands and argument parsing
 #   SCOPE: detect, export-md, debug commands, help, error handling
-#   DEPENDS: pytest, typer, video_slide_md.cli
+#   DEPENDS: pytest, typer, video2pptx.cli
 #   LINKS: V-M-CLI
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -13,7 +13,7 @@ import logging
 
 from typer.testing import CliRunner
 
-from video_slide_md.cli import _build_cli_overrides, app
+from video2pptx.cli import _build_cli_overrides, app
 
 runner = CliRunner()
 logger = logging.getLogger(__name__)

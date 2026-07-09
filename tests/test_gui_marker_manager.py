@@ -16,12 +16,12 @@ from unittest.mock import patch
 
 import pytest
 
-from video_slide_md.gui.marker_manager import (
+from video2pptx.gui.marker_manager import (
     add_marker,
     delete_marker,
     get_markers,
 )
-from video_slide_md.project_manager import Project, save_project
+from video2pptx.project_manager import Project, save_project
 
 
 @pytest.fixture
@@ -42,7 +42,7 @@ class TestAddMarker:
     # END_CONTRACT: TestAddMarker
 
     def test_adds_marker_with_snapped_timestamp(self, project: Project) -> None:
-        with patch("video_slide_md.gui.marker_manager.smart_snap", return_value=11.0):
+        with patch("video2pptx.gui.marker_manager.smart_snap", return_value=11.0):
             entry = add_marker(project, 12.0, snap_mode="diff_only")
 
         assert entry["original_ts"] == 12.0
@@ -50,7 +50,7 @@ class TestAddMarker:
         assert entry["snap_mode"] == "diff_only"
 
     def test_marker_appended_to_project(self, project: Project) -> None:
-        with patch("video_slide_md.gui.marker_manager.smart_snap", return_value=15.0):
+        with patch("video2pptx.gui.marker_manager.smart_snap", return_value=15.0):
             add_marker(project, 14.0)
 
         assert len(project.markers) == 1
@@ -58,7 +58,7 @@ class TestAddMarker:
         assert project.markers[0]["snapped_ts"] == 15.0
 
     def test_multiple_markers(self, project: Project) -> None:
-        with patch("video_slide_md.gui.marker_manager.smart_snap") as mock_snap:
+        with patch("video2pptx.gui.marker_manager.smart_snap") as mock_snap:
             mock_snap.side_effect = [5.0, 15.0, 25.0]
             add_marker(project, 4.0)
             add_marker(project, 14.0)
@@ -74,7 +74,7 @@ class TestGetMarkers:
     # END_CONTRACT: TestGetMarkers
 
     def test_returns_list_of_marker_dicts(self, project: Project) -> None:
-        with patch("video_slide_md.gui.marker_manager.smart_snap", return_value=11.0):
+        with patch("video2pptx.gui.marker_manager.smart_snap", return_value=11.0):
             add_marker(project, 12.0)
 
         markers = get_markers(project)
@@ -94,7 +94,7 @@ class TestDeleteMarker:
     # END_CONTRACT: TestDeleteMarker
 
     def test_deletes_existing_marker(self, project: Project) -> None:
-        with patch("video_slide_md.gui.marker_manager.smart_snap", return_value=11.0):
+        with patch("video2pptx.gui.marker_manager.smart_snap", return_value=11.0):
             add_marker(project, 12.0)
             add_marker(project, 20.0)
 
@@ -110,7 +110,7 @@ class TestDeleteMarker:
         assert result is False
 
     def test_persists_after_delete(self, project: Project, tmp_path: Path) -> None:
-        with patch("video_slide_md.gui.marker_manager.smart_snap", return_value=11.0):
+        with patch("video2pptx.gui.marker_manager.smart_snap", return_value=11.0):
             add_marker(project, 12.0)
             add_marker(project, 20.0)
 
@@ -131,9 +131,9 @@ class TestResnapMarker:
     # END_CONTRACT: TestResnapMarker
 
     def test_resnap_updates_timestamp(self, project: Project) -> None:
-        from video_slide_md.gui.marker_manager import resnap_marker
+        from video2pptx.gui.marker_manager import resnap_marker
 
-        with patch("video_slide_md.gui.marker_manager.smart_snap") as mock_snap:
+        with patch("video2pptx.gui.marker_manager.smart_snap") as mock_snap:
             mock_snap.return_value = 11.0
             add_marker(project, 12.0)
 
@@ -145,7 +145,7 @@ class TestResnapMarker:
         assert updated["snap_mode"] == "hybrid"
 
     def test_resnap_nonexistent_returns_none(self, project: Project) -> None:
-        from video_slide_md.gui.marker_manager import resnap_marker
+        from video2pptx.gui.marker_manager import resnap_marker
 
         result = resnap_marker(project, 99.0)
         assert result is None

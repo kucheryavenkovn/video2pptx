@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for Pydantic data models
 #   SCOPE: VideoInfo, Roi, SubtitleCue, FrameFeatures, SlideSegment, SlidesDocument serialization and validation
-#   DEPENDS: pytest, pydantic, video_slide_md.models
+#   DEPENDS: pytest, pydantic, video2pptx.models
 #   LINKS: V-M-MODELS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -14,7 +14,7 @@ import logging
 import pytest
 from pydantic import ValidationError
 
-from video_slide_md.models import (
+from video2pptx.models import (
     FrameFeatures,
     Roi,
     SlideSegment,

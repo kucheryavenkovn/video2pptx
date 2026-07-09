@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for duplicate slide segment removal
 #   SCOPE: Deduplication of similar segments, edge cases
-#   DEPENDS: pytest, numpy, video_slide_md.dedupe
+#   DEPENDS: pytest, numpy, video2pptx.dedupe
 #   LINKS: V-M-DEDUPE
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -11,8 +11,8 @@
 
 import numpy as np
 
-from video_slide_md.dedupe import deduplicate_segments
-from video_slide_md.models import SlideSegment
+from video2pptx.dedupe import deduplicate_segments
+from video2pptx.models import SlideSegment
 
 
 def make_seg(index: int, start: float, end: float) -> SlideSegment:

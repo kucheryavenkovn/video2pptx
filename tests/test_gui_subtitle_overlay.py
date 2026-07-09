@@ -58,7 +58,7 @@ class TestSubtitleOverlayWidget:
 
     def test_creates_without_error(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.subtitle_overlay import SubtitleOverlayWidget
+        from video2pptx.gui.subtitle_overlay import SubtitleOverlayWidget
         widget = SubtitleOverlayWidget()
         assert widget._subs is None
         assert widget.isHidden()
@@ -66,7 +66,7 @@ class TestSubtitleOverlayWidget:
 
     def test_load_subtitles_from_file(self, srt_file: Path) -> None:
         _ensure_app()
-        from video_slide_md.gui.subtitle_overlay import SubtitleOverlayWidget
+        from video2pptx.gui.subtitle_overlay import SubtitleOverlayWidget
         widget = SubtitleOverlayWidget()
         widget.load_subtitles(srt_file)
         assert widget._subs is not None
@@ -75,7 +75,7 @@ class TestSubtitleOverlayWidget:
 
     def test_load_none_clears(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.subtitle_overlay import SubtitleOverlayWidget
+        from video2pptx.gui.subtitle_overlay import SubtitleOverlayWidget
         widget = SubtitleOverlayWidget()
         widget.load_subtitles(None)
         assert widget._subs is None
@@ -84,7 +84,7 @@ class TestSubtitleOverlayWidget:
 
     def test_load_missing_file_does_not_crash(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.subtitle_overlay import SubtitleOverlayWidget
+        from video2pptx.gui.subtitle_overlay import SubtitleOverlayWidget
         widget = SubtitleOverlayWidget()
         widget.load_subtitles("/nonexistent/file.srt")
         assert widget._subs is None
@@ -92,7 +92,7 @@ class TestSubtitleOverlayWidget:
 
     def test_get_text_at_time_returns_correct_cue(self, srt_file: Path) -> None:
         _ensure_app()
-        from video_slide_md.gui.subtitle_overlay import SubtitleOverlayWidget
+        from video2pptx.gui.subtitle_overlay import SubtitleOverlayWidget
         widget = SubtitleOverlayWidget()
         widget.load_subtitles(srt_file)
 
@@ -105,7 +105,7 @@ class TestSubtitleOverlayWidget:
 
     def test_get_text_between_cues_returns_none(self, srt_file: Path) -> None:
         _ensure_app()
-        from video_slide_md.gui.subtitle_overlay import SubtitleOverlayWidget
+        from video2pptx.gui.subtitle_overlay import SubtitleOverlayWidget
         widget = SubtitleOverlayWidget()
         widget.load_subtitles(srt_file)
 
@@ -115,7 +115,7 @@ class TestSubtitleOverlayWidget:
 
     def test_sync_to_position_shows_text(self, srt_file: Path) -> None:
         _ensure_app()
-        from video_slide_md.gui.subtitle_overlay import SubtitleOverlayWidget
+        from video2pptx.gui.subtitle_overlay import SubtitleOverlayWidget
         widget = SubtitleOverlayWidget()
         widget.load_subtitles(srt_file)
 
@@ -126,7 +126,7 @@ class TestSubtitleOverlayWidget:
 
     def test_sync_to_position_hides_between_cues(self, srt_file: Path) -> None:
         _ensure_app()
-        from video_slide_md.gui.subtitle_overlay import SubtitleOverlayWidget
+        from video2pptx.gui.subtitle_overlay import SubtitleOverlayWidget
         widget = SubtitleOverlayWidget()
         widget.load_subtitles(srt_file)
 
@@ -136,7 +136,7 @@ class TestSubtitleOverlayWidget:
 
     def test_sync_without_subtitles_hides(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.subtitle_overlay import SubtitleOverlayWidget
+        from video2pptx.gui.subtitle_overlay import SubtitleOverlayWidget
         widget = SubtitleOverlayWidget()
 
         widget.sync_to_position(10.0)
@@ -145,7 +145,7 @@ class TestSubtitleOverlayWidget:
 
     def test_clear_subtitles(self, srt_file: Path) -> None:
         _ensure_app()
-        from video_slide_md.gui.subtitle_overlay import SubtitleOverlayWidget
+        from video2pptx.gui.subtitle_overlay import SubtitleOverlayWidget
         widget = SubtitleOverlayWidget()
         widget.load_subtitles(srt_file)
         assert widget._subs is not None

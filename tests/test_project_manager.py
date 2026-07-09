@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for project manager — create, open, update project.json
 #   SCOPE: Verify project.json creation, round-trip, state/state update, path resolution, error handling
-#   DEPENDS: pytest, loguru, video_slide_md.project_manager
+#   DEPENDS: pytest, loguru, video2pptx.project_manager
 #   LINKS: V-M-PROJECT
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from video_slide_md.project_manager import (
+from video2pptx.project_manager import (
     Project,
     create_project,
     import_subtitles_to_project,
@@ -193,7 +193,7 @@ class TestImportSubtitles:
 
 class TestFindSiblingSubtitle:
     def test_finds_exact_match(self, tmp_path):
-        from video_slide_md.project_manager import _find_sibling_subtitle
+        from video2pptx.project_manager import _find_sibling_subtitle
         video = tmp_path / "lecture.mp4"
         video.write_text("fake")
         sub = tmp_path / "lecture.srt"
@@ -203,7 +203,7 @@ class TestFindSiblingSubtitle:
         assert result == sub
 
     def test_returns_none_when_no_subs(self, tmp_path):
-        from video_slide_md.project_manager import _find_sibling_subtitle
+        from video2pptx.project_manager import _find_sibling_subtitle
         video = tmp_path / "lecture.mp4"
         video.write_text("fake")
 
@@ -211,7 +211,7 @@ class TestFindSiblingSubtitle:
         assert result is None
 
     def test_finds_vtt_ext(self, tmp_path):
-        from video_slide_md.project_manager import _find_sibling_subtitle
+        from video2pptx.project_manager import _find_sibling_subtitle
         video = tmp_path / "lecture.mp4"
         video.write_text("fake")
         sub = tmp_path / "lecture.vtt"

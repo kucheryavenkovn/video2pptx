@@ -17,9 +17,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from video_slide_md.config import LlmConfig
-from video_slide_md.models import SlidesDocument, SlideSegment, SubtitleCue, VideoInfo
-from video_slide_md.llm_orchestrator import run_llm_pipeline
+from video2pptx.config import LlmConfig
+from video2pptx.models import SlidesDocument, SlideSegment, SubtitleCue, VideoInfo
+from video2pptx.llm_orchestrator import run_llm_pipeline
 
 
 @pytest.fixture
@@ -80,7 +80,7 @@ class TestRunLlmPipeline:
     def test_full_pipeline_success(self, llm_config: LlmConfig, tmp_path: Path):
         json_path, slides_dir = _create_sample_doc(tmp_path, slide_count=2)
 
-        with patch("video_slide_md.llm_orchestrator.LlmClient") as MockClient:
+        with patch("video2pptx.llm_orchestrator.LlmClient") as MockClient:
             mock_instance = MagicMock()
             mock_instance.chat.return_value = "Corrected transcript for slide."
             mock_instance.vision.return_value = SAMPLE_VISION_RESPONSE
@@ -115,7 +115,7 @@ class TestRunLlmPipeline:
         json_path = tmp_path / "slides.json"
         json_path.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
 
-        with patch("video_slide_md.llm_orchestrator.LlmClient") as MockClient:
+        with patch("video2pptx.llm_orchestrator.LlmClient") as MockClient:
             mock_instance = MagicMock()
             mock_instance.chat.return_value = "Corrected"
             mock_instance.vision.return_value = SAMPLE_VISION_RESPONSE
@@ -135,7 +135,7 @@ class TestRunLlmPipeline:
     def test_pipeline_vision_failure_continues(self, llm_config: LlmConfig, tmp_path: Path):
         json_path, slides_dir = _create_sample_doc(tmp_path, slide_count=2)
 
-        with patch("video_slide_md.llm_orchestrator.LlmClient") as MockClient:
+        with patch("video2pptx.llm_orchestrator.LlmClient") as MockClient:
             mock_instance = MagicMock()
             mock_instance.vision.side_effect = RuntimeError("API error")
             mock_instance.chat.return_value = "Transcript without vision context."
@@ -155,7 +155,7 @@ class TestRunLlmPipeline:
     def test_pipeline_custom_output_path(self, llm_config: LlmConfig, tmp_path: Path):
         json_path, slides_dir = _create_sample_doc(tmp_path)
 
-        with patch("video_slide_md.llm_orchestrator.LlmClient") as MockClient:
+        with patch("video2pptx.llm_orchestrator.LlmClient") as MockClient:
             mock_instance = MagicMock()
             mock_instance.chat.return_value = "Corrected."
             mock_instance.vision.return_value = SAMPLE_VISION_RESPONSE
@@ -176,7 +176,7 @@ class TestRunLlmPipeline:
     def test_pipeline_sidecars_saved(self, llm_config: LlmConfig, tmp_path: Path):
         json_path, slides_dir = _create_sample_doc(tmp_path, slide_count=2)
 
-        with patch("video_slide_md.llm_orchestrator.LlmClient") as MockClient:
+        with patch("video2pptx.llm_orchestrator.LlmClient") as MockClient:
             mock_instance = MagicMock()
             mock_instance.chat.return_value = "Corrected."
             mock_instance.vision.return_value = SAMPLE_VISION_RESPONSE

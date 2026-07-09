@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for notes pipeline — load slides.json, align subtitles, process notes
 #   SCOPE: run_notes with synthetic slides.json + SRT, verify transcript/notes fields updated
-#   DEPENDS: pytest, video_slide_md.notes_pipeline, video_slide_md.models, loguru
+#   DEPENDS: pytest, video2pptx.notes_pipeline, video2pptx.models, loguru
 #   LINKS: V-M-NOTES
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -14,8 +14,8 @@ from __future__ import annotations
 from pathlib import Path
 
 
-from video_slide_md.models import SlidesDocument, SlideSegment, VideoInfo
-from video_slide_md.notes_pipeline import run_notes
+from video2pptx.models import SlidesDocument, SlideSegment, VideoInfo
+from video2pptx.notes_pipeline import run_notes
 
 FIXTURES = Path(__file__).parent / "fixtures"
 TEST_SRT = FIXTURES / "test_slides.srt"

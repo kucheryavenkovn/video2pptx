@@ -12,7 +12,7 @@
 - Symptom/Reproduction: `POST /v1/model/load` returns 404 or connection refused if LM Studio version doesn't support the endpoint.
 - Impact: Model lifecycle management is best-effort. The pipeline works regardless — model must be pre-loaded in LM Studio UI for first use.
 - Resolution: `load_model()` catches `httpx.RequestError` and sets `_model_loaded = True` to continue. `unload_model()` logs warning and returns False.
-- LINKS: M-LLM-CLIENT, src/video_slide_md/llm_client.py
+- LINKS: M-LLM-CLIENT, src/video2pptx/llm_client.py
 
 ### F-0012 — Vision API requires base64 data URIs for image content
 - Date: 2026-07-08
@@ -21,7 +21,7 @@
 - Symptom/Reproduction: Passing raw bytes as `image_url` causes 400 error from LM Studio.
 - Impact: Must read full image into memory and base64-encode — acceptable for slide screenshots (typically <500KB).
 - Resolution: Implemented base64 encoding with correct MIME type detection from file extension.
-- LINKS: M-LLM-CLIENT, src/video_slide_md/llm_client.py
+- LINKS: M-LLM-CLIENT, src/video2pptx/llm_client.py
 
 ---
 
@@ -66,7 +66,7 @@
 - Symptom/Reproduction: `stream.codec_context.hwaccel = 'cuda'` raises `AttributeError: not writable`; calling `HWAccel.create(codec)` before `av.open()` raises `RuntimeError: Hardware context already initialized`.
 - Impact: Naive approach fails — must pass HWAccel to `av.open()` directly.
 - Resolution: Implemented `pyav_iter_frames` with correct pattern: `_pick_hw_device()` → `_create_hwaccel()` → `av.open(path, hwaccel=hwaccel)`.
-- LINKS: M-BACKEND-PYAV, src/video_slide_md/backends/pyav_backend.py
+- LINKS: M-BACKEND-PYAV, src/video2pptx/backends/pyav_backend.py
 
 ### F-0006 — `hwdevices_available()` returns ['cuda', 'dxva2', 'qsv', 'd3d11va', 'd3d12va', 'amf'] on RTX 4090 + Windows
 - Date: 2026-07-08
@@ -115,10 +115,10 @@
 ### F-0013 — `httpx` is an eager import dependency for the GUI even when LLM is not used
 - Date: 2026-07-09
 - Area: gui
-- Finding: `gui/workers.py` had a top-level `from video_slide_md.llm_orchestrator import run_llm_pipeline`, which caused `llm_client.py` to import `httpx` eagerly. Users without `httpx` installed could not launch the GUI at all, even if they never intended to use LLM features.
-- Symptom/Reproduction: `video-slide-md gui` → `ModuleNotFoundError: No module named 'httpx'`.
+- Finding: `gui/workers.py` had a top-level `from video2pptx.llm_orchestrator import run_llm_pipeline`, which caused `llm_client.py` to import `httpx` eagerly. Users without `httpx` installed could not launch the GUI at all, even if they never intended to use LLM features.
+- Symptom/Reproduction: `video2pptx gui` → `ModuleNotFoundError: No module named 'httpx'`.
 - Impact: GUI was unreachable without installing `httpx`.
-- Resolution: Moved the `from video_slide_md.llm_orchestrator import run_llm_pipeline` import inside `LlmWorker.run()` (lazy import). The GUI now starts without `httpx`; the error only appears if the user actually triggers LLM processing.
+- Resolution: Moved the `from video2pptx.llm_orchestrator import run_llm_pipeline` import inside `LlmWorker.run()` (lazy import). The GUI now starts without `httpx`; the error only appears if the user actually triggers LLM processing.
 - LINKS: M-GUI-WORKER, M-GUI-MAIN
 
 ### F-0014 — Qt6/PySide6 requires explicit `setVideoOutput()` for QVideoWidget
@@ -137,4 +137,22 @@
 - Symptom/Reproduction: Load video with subtitles, play — subtitle text prints in log but nothing visible on screen.
 - Impact: Subtitles invisible.
 - Resolution: Moved overlay management into `VideoPlayerWidget` via `set_overlay_widget(w)` + `resizeEvent` override that calls `_position_overlay()`, which sets overlay geometry to match `_video_widget.geometry()` on every resize.
+- LINKS: M-GUI-VIDEOPLAYER, M-GUI-SUBTITLE-OVERLAY
+
+### F-0017 — `httpx` module-level import in `llm_client.py` crashes `ModelListCombo.showPopup()` and `Test Connection`
+- Date: 2026-07-09
+- Area: llm
+- Finding: `import httpx` at module level in `llm_client.py` causes `ModuleNotFoundError` when `settins_app.py` imports `LlmClient` (lazily) for `ModelListCombo._fetch_and_populate()` and `_do_test_llm()`. The error propagates through `showPopup()` override → `QComboBox` Python override error → console spam, and crashes the "Test Connection" button handler.
+- Symptom/Reproduction: Open App Settings → click LLM tab → click model dropdown → 5 repeated `Error calling Python override of QComboBox::showPopup()` + `ModuleNotFoundError: No module named 'httpx'`. Click "Test Connection" → same error.
+- Impact: GUI unusable for users without `httpx` installed, even if they never use LLM features.
+- Resolution: Wrapped `import httpx` in try/except at module level with `_HAS_HTTPX` flag. `LlmClient.__init__` now raises clear `ImportError` with install instructions only when instantiation is attempted. Both callers in `settings_app.py` already catch `Exception` → no more crash.
+- LINKS: M-LLM-CLIENT, M-GUI-SETTINGS-APP, src/video2pptx/llm_client.py, src/video2pptx/gui/settings_app.py
+
+### F-0016 — QVideoWidget hardware overlay renders above all QWidget siblings; use QGraphicsVideoItem instead
+- Date: 2026-07-09
+- Area: gui
+- Finding: `QVideoWidget` renders video via platform-specific hardware overlay (Direct3D on Windows, etc.) which is outside Qt's widget stacking order. No amount of `raise_()`, `WA_NativeWindow`, or Z-order manipulation can make a regular `QWidget` (including `QLabel`) render on top of the video surface.
+- Symptom/Reproduction: Subtitle text is synced and positioned correctly (verified via test) but invisible to user. Audio plays, video shows, overlay geometry is correct — text just never appears on screen.
+- Impact: All text overlays (subtitles, UI labels) are invisible on top of QVideoWidget.
+- Resolution: Replaced `QVideoWidget` + `QLabel` overlay with `QGraphicsView` + `QGraphicsScene` + `QGraphicsVideoItem` for video, and `QGraphicsSimpleTextItem` (ZValue=1) for subtitles. Graphics items live in the same scene and respect z-ordering natively.
 - LINKS: M-GUI-VIDEOPLAYER, M-GUI-SUBTITLE-OVERLAY

@@ -56,7 +56,7 @@ class TestTimelineV2Widget:
 
     def test_creates_without_error(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.timeline_v2 import TimelineV2Widget
+        from video2pptx.gui.timeline_v2 import TimelineV2Widget
         widget = TimelineV2Widget()
         assert widget._slides == []
         assert widget._markers == []
@@ -64,12 +64,12 @@ class TestTimelineV2Widget:
 
     def test_set_slides_updates_display(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.timeline_v2 import TimelineV2Widget
+        from video2pptx.gui.timeline_v2 import TimelineV2Widget
         widget = TimelineV2Widget()
         widget.set_video_duration(100.0)
         slides_data = [make_slide(1, 0.0, 10.0), make_slide(2, 10.0, 30.0)]
 
-        from video_slide_md.models import SlideSegment
+        from video2pptx.models import SlideSegment
         slides = [SlideSegment(**s) for s in slides_data]
         widget.set_slides(slides)
         assert len(widget._slides) == 2
@@ -77,7 +77,7 @@ class TestTimelineV2Widget:
 
     def test_set_markers_updates_display(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.timeline_v2 import TimelineV2Widget
+        from video2pptx.gui.timeline_v2 import TimelineV2Widget
         widget = TimelineV2Widget()
         widget.set_video_duration(100.0)
         widget.set_markers([{"original_ts": 25.0, "snapped_ts": 24.0, "snap_mode": "hybrid"}])
@@ -86,7 +86,7 @@ class TestTimelineV2Widget:
 
     def test_marker_added_signal(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.timeline_v2 import TimelineV2Widget
+        from video2pptx.gui.timeline_v2 import TimelineV2Widget
         widget = TimelineV2Widget()
         mock_handler = MagicMock()
         widget.marker_added.connect(mock_handler)
@@ -97,7 +97,7 @@ class TestTimelineV2Widget:
 
     def test_marker_deleted_signal(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.timeline_v2 import TimelineV2Widget
+        from video2pptx.gui.timeline_v2 import TimelineV2Widget
         widget = TimelineV2Widget()
         mock_handler = MagicMock()
         widget.marker_deleted.connect(mock_handler)
@@ -108,14 +108,14 @@ class TestTimelineV2Widget:
 
     def test_fmt_time(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.timeline_v2 import TimelineV2Widget
+        from video2pptx.gui.timeline_v2 import TimelineV2Widget
         assert TimelineV2Widget._fmt_time(0) == "0:00"
         assert TimelineV2Widget._fmt_time(65) == "1:05"
         assert TimelineV2Widget._fmt_time(3661) == "61:01"
 
     def test_resolve_image_path_returns_none_without_project(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.timeline_v2 import TimelineV2Widget
+        from video2pptx.gui.timeline_v2 import TimelineV2Widget
         widget = TimelineV2Widget()
         result = widget._resolve_image_path("slides/slide_001.png")
         assert result is None
@@ -123,8 +123,8 @@ class TestTimelineV2Widget:
 
     def test_resolve_image_path_with_project(self, tmp_path: Path) -> None:
         _ensure_app()
-        from video_slide_md.gui.timeline_v2 import TimelineV2Widget
-        from video_slide_md.project_manager import Project
+        from video2pptx.gui.timeline_v2 import TimelineV2Widget
+        from video2pptx.project_manager import Project
 
         proj = Project(name="test", video="/tmp/test.mp4", output_dir=str(tmp_path))
 
@@ -143,7 +143,7 @@ class TestTimelineV2Widget:
 
     def test_ts_to_x_conversion(self) -> None:
         _ensure_app()
-        from video_slide_md.gui.timeline_v2 import TimelineV2Widget
+        from video2pptx.gui.timeline_v2 import TimelineV2Widget
         widget = TimelineV2Widget()
         widget.set_video_duration(100.0)
         widget.resize(500, 60)
