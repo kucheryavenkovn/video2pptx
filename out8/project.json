@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "name": "02_1. Введение",
+  "video": "E:\\edu\\vibecoding\\Автономные агенты\\02_1. Введение.mp4",
+  "subtitles": "E:\\edu\\vibecoding\\Автономные агенты\\02_1. Введение.srt",
+  "video_config": {
+    "sample_fps": 2.0,
+    "decoder_backend": "auto"
+  },
+  "detection": {
+    "slide_roi": "auto",
+    "ignore_rois": [],
+    "threshold": "auto",
+    "min_slide_duration": 3.0,
+    "min_stable_duration": 1.5,
+    "dedupe_enabled": true
+  },
+  "llm": {
+    "enabled": false,
+    "provider": "openai-compat",
+    "base_url": "http://localhost:1234/v1",
+    "model": "gemma-4-26b-a4b-it@q4_k_xl",
+    "context_window": 60000,
+    "temperature": 0.2,
+    "max_tokens": 4096,
+    "unload_when_done": true
+  },
+  "state": {
+    "detect_done": false,
+    "notes_done": false,
+    "llm_done": false
+  },
+  "markers": [],
+  "slides": [],
+  "backend": "auto",
+  "output_dir": "D:\\git\\video2pptx\\out8"
+}

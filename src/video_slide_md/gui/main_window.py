@@ -34,7 +34,7 @@ from PySide6.QtWidgets import (
 )
 
 from video_slide_md.backends import BACKENDS
-from video_slide_md.project_manager import Project, create_project, load_slides_into_project, open_project, save_project, update_project_state
+from video_slide_md.project_manager import Project, create_project, import_video_to_project, import_subtitles_to_project, load_slides_into_project, open_project, save_project, update_project_state
 
 
 class MainWindow(QMainWindow):
@@ -73,6 +73,11 @@ class MainWindow(QMainWindow):
         new_btn.triggered.connect(self._on_new_project)
         open_btn = toolbar.addAction("Open Project")
         open_btn.triggered.connect(self._on_open_project)
+        toolbar.addSeparator()
+        import_video_btn = toolbar.addAction("Import Video")
+        import_video_btn.triggered.connect(self._on_import_video)
+        import_subs_btn = toolbar.addAction("Import Subtitles")
+        import_subs_btn.triggered.connect(self._on_import_srt)
 
         # --- Central widget ---
         central = QWidget()
@@ -148,6 +153,7 @@ class MainWindow(QMainWindow):
         mb.act_open_project.triggered.connect(self._on_open_project)
         mb.act_close_project.triggered.connect(self._on_close_project)
         mb.act_save_project.triggered.connect(self._on_save_project)
+        mb.act_import_video.triggered.connect(self._on_import_video)
         mb.act_import_srt.triggered.connect(self._on_import_srt)
         mb.act_exit.triggered.connect(self.close)
         mb.act_project_settings.triggered.connect(self._on_project_settings)
@@ -166,31 +172,18 @@ class MainWindow(QMainWindow):
 
     # START_BLOCK_PROJECT_LIFECYCLE
     def _on_new_project(self) -> None:
-        video_path, _ = QFileDialog.getOpenFileName(
-            self, "Select Video", "", "Video Files (*.mp4 *.mkv *.mov *.webm);;All Files (*)"
-        )
-        if not video_path:
-            return
-
         proj_dir = QFileDialog.getExistingDirectory(self, "Select Project Directory")
         if not proj_dir:
             return
 
-        subs_path, _ = QFileDialog.getOpenFileName(
-            self, "Select Subtitles (optional)", "", "Subtitle Files (*.srt *.vtt);;All Files (*)"
-        )
-        subs_arg = subs_path if subs_path else None
+        import os
+        folder_name = os.path.basename(os.path.normpath(proj_dir))
 
         try:
-            proj = create_project(
-                project_dir=proj_dir,
-                video_path=video_path,
-                subtitles_path=subs_arg,
-                name=Path(video_path).stem,
-            )
+            proj = create_project(project_dir=proj_dir, name=folder_name)
             self._set_project(proj)
             self.statusBar().showMessage(f"Project created: {proj.name}")
-        except (FileNotFoundError, FileExistsError) as e:
+        except FileExistsError as e:
             QMessageBox.critical(self, "Error", str(e))
 
     def _on_open_project(self) -> None:
@@ -231,6 +224,28 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save project: {e}")
 
+    def _on_import_video(self) -> None:
+        if self._project is None:
+            return
+        video_path, _ = QFileDialog.getOpenFileName(
+            self, "Import Video", "", "Video Files (*.mp4 *.mkv *.mov *.webm);;All Files (*)"
+        )
+        if not video_path:
+            return
+        try:
+            import_video_to_project(self._project, video_path)
+            self._video_label.setText(f"Video: {Path(video_path).name}")
+            self._video_player.load_video(video_path)
+            self.statusBar().showMessage(f"Video imported: {Path(video_path).name}")
+
+            if self._project.subtitles:
+                sub_path = Path(self._project.subtitles)
+                self._subs_label.setText(f"Subtitles: {sub_path.name}")
+                self._subtitle_overlay.load_subtitles(self._project.subtitles)
+                self.statusBar().showMessage(f"Video imported, subtitles auto-detected: {sub_path.name}")
+        except FileNotFoundError as e:
+            QMessageBox.critical(self, "Error", str(e))
+
     def _on_import_srt(self) -> None:
         if self._project is None:
             return
@@ -240,23 +255,30 @@ class MainWindow(QMainWindow):
         if not subs_path:
             return
         try:
-            import shutil
-            dst = Path(self._project.project_dir) / Path(subs_path).name
-            shutil.copy2(subs_path, dst)
-            self._project.subtitles = str(dst)
-            from video_slide_md.project_manager import save_project
-            save_project(self._project)
-            self._subs_label.setText(f"Subtitles: {dst.name}")
-            self._subtitle_overlay.load_subtitles(str(dst))
-            self.statusBar().showMessage(f"Subtitles imported: {dst.name}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to import subtitles: {e}")
+            import_subtitles_to_project(self._project, subs_path)
+            sub_path = Path(subs_path)
+            self._subs_label.setText(f"Subtitles: {sub_path.name}")
+            self._subtitle_overlay.load_subtitles(subs_path)
+            self.statusBar().showMessage(f"Subtitles imported: {sub_path.name}")
+        except FileNotFoundError as e:
+            QMessageBox.critical(self, "Error", str(e))
 
     def _set_project(self, proj: Project) -> None:
         self._project = proj
-        self._video_label.setText(f"Video: {Path(proj.video).name}")
+
+        # Video label
+        if proj.video:
+            self._video_label.setText(f"Video: {Path(proj.video).name}")
+            self._video_player.load_video(proj.video)
+        else:
+            self._video_label.setText("Video: —")
+
+        # Subtitles label
         self._subs_label.setText(f"Subtitles: {Path(proj.subtitles).name}" if proj.subtitles else "Subtitles: —")
-        self._detect_btn.setEnabled(True)
+        if proj.subtitles:
+            self._subtitle_overlay.load_subtitles(proj.subtitles)
+
+        self._detect_btn.setEnabled(bool(proj.video))
         self.setWindowTitle(f"video-slide-md — {proj.name}")
 
         # Init marker manager ref
@@ -266,11 +288,6 @@ class MainWindow(QMainWindow):
         # Init app config (lazy)
         from video_slide_md.gui.app_config import load_app_config
         self._app_config = load_app_config()
-
-        # Load video
-        self._video_player.load_video(proj.video)
-        if proj.subtitles:
-            self._subtitle_overlay.load_subtitles(proj.subtitles)
 
         # Load slides into timeline
         if proj.slides:

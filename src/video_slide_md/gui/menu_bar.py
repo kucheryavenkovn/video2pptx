@@ -58,7 +58,13 @@ class MenuBarWidget(QMenuBar):
 
         file_menu.addSeparator()
 
-        self.act_import_srt = QAction("&Import SRT...", self)
+        file_menu.addSeparator()
+
+        self.act_import_video = QAction("Import &Video...", self)
+        self.act_import_video.setShortcut("Ctrl+V")
+        file_menu.addAction(self.act_import_video)
+
+        self.act_import_srt = QAction("Import &Subtitles...", self)
         self.act_import_srt.setShortcut("Ctrl+I")
         file_menu.addAction(self.act_import_srt)
 

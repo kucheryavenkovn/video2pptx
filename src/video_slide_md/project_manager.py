@@ -12,10 +12,13 @@
 # START_MODULE_MAP
 #   Project - Pydantic model for project.json schema
 #   ProjectState - pipeline progress flags
-#   create_project - create project dir + project.json with video/subtitle paths
+#   create_project - create project dir + project.json (video optional, auto-name from folder)
 #   open_project - load and validate project.json from dir
 #   save_project - write Project to project.json
+#   import_video_to_project - set video path, auto-detect sibling subtitles
+#   import_subtitles_to_project - set subtitle path
 #   update_project_state - modify state flags and persist
+#   load_slides_into_project - load slides from slides_json into project.slides
 # END_MODULE_MAP
 
 from __future__ import annotations
@@ -28,6 +31,8 @@ from pydantic import BaseModel, Field
 
 from video_slide_md.config import DetectionConfig, LlmConfig, VideoConfig
 from video_slide_md.models import SlideSegment
+
+SUBTITLE_EXTS = {".srt", ".vtt", ".ass", ".ssa", ".sub"}
 
 
 class ProjectState(BaseModel):
@@ -68,7 +73,7 @@ class Project(BaseModel):
 
 def create_project(
     project_dir: str | Path,
-    video_path: str | Path,
+    video_path: str | Path | None = None,
     subtitles_path: str | Path | None = None,
     name: str | None = None,
 ) -> Project:
@@ -76,7 +81,7 @@ def create_project(
     #   PURPOSE: Create project directory and project.json with given parameters
     #   INPUTS: {
     #       project_dir: str|Path — output project directory,
-    #       video_path: str|Path — path to video file (must exist),
+    #       video_path: str|Path|None — optional path to video file,
     #       subtitles_path: str|Path|None — optional SRT/VTT path,
     #       name: str|None — optional project name
     #   }
@@ -86,14 +91,19 @@ def create_project(
     # END_CONTRACT: create_project
 
     proj_path = Path(project_dir)
-    vid = Path(video_path).resolve()
-
-    if not vid.is_file():
-        raise FileNotFoundError(f"Video not found: {vid}")
     if proj_path.exists() and any(proj_path.iterdir()):
         raise FileExistsError(f"Project directory not empty: {proj_path}")
 
     proj_path.mkdir(parents=True, exist_ok=True)
+
+    vid_str = ""
+    vid_stem = "Untitled"
+    if video_path:
+        vid = Path(video_path).resolve()
+        if not vid.is_file():
+            raise FileNotFoundError(f"Video not found: {vid}")
+        vid_str = str(vid)
+        vid_stem = vid.stem
 
     subs = None
     if subtitles_path:
@@ -102,14 +112,14 @@ def create_project(
             subs = str(s)
 
     proj = Project(
-        name=name or vid.stem,
-        video=str(vid),
+        name=name or vid_stem,
+        video=vid_str,
         subtitles=subs,
         output_dir=str(proj_path.resolve()),
     )
 
     save_project(proj, proj_path)
-    logger.info(f"[ProjectManager][create_project] Project created | path={proj_path} video={vid.name}")
+    logger.info(f"[ProjectManager][create_project] Project created | path={proj_path} name={proj.name} video={'yes' if vid_str else 'no'}")
 
     return proj
 
@@ -153,6 +163,82 @@ def save_project(project: Project, project_dir: str | Path | None = None) -> Non
         json_path = Path(project.output_dir) / "project.json"
 
     json_path.write_text(project.model_dump_json(indent=2, exclude_none=True), encoding="utf-8")
+
+
+def import_video_to_project(
+    project: Project,
+    video_path: str | Path,
+) -> Project:
+    # START_CONTRACT: import_video_to_project
+    #   PURPOSE: Set video path in project, auto-detect sibling subtitle file
+    #   INPUTS: { project: Project, video_path: str|Path }
+    #   OUTPUTS: Project — updated in-place and saved
+    #   SIDE_EFFECTS: copies video to project dir if outside, saves project.json
+    #   LINKS: M-PROJECT
+    # END_CONTRACT: import_video_to_project
+
+    vid = Path(video_path).resolve()
+    if not vid.is_file():
+        raise FileNotFoundError(f"Video not found: {vid}")
+
+    project.video = str(vid)
+
+    # Auto-detect sibling subtitle file
+    if not project.subtitles:
+        guessed = _find_sibling_subtitle(vid)
+        if guessed:
+            project.subtitles = str(guessed)
+            logger.info(f"[ProjectManager][import_video] Auto-detected subtitles | path={guessed}")
+
+    save_project(project)
+    logger.info(f"[ProjectManager][import_video] Video set | path={vid}")
+    return project
+
+
+def import_subtitles_to_project(
+    project: Project,
+    subtitle_path: str | Path,
+) -> Project:
+    # START_CONTRACT: import_subtitles_to_project
+    #   PURPOSE: Set subtitle path in project
+    #   INPUTS: { project: Project, subtitle_path: str|Path }
+    #   OUTPUTS: Project — updated in-place and saved
+    #   SIDE_EFFECTS: saves project.json
+    #   LINKS: M-PROJECT
+    # END_CONTRACT: import_subtitles_to_project
+
+    sub = Path(subtitle_path).resolve()
+    if not sub.is_file():
+        raise FileNotFoundError(f"Subtitles not found: {sub}")
+
+    project.subtitles = str(sub)
+    save_project(project)
+    logger.info(f"[ProjectManager][import_subtitles] Subtitles set | path={sub}")
+    return project
+
+
+def _find_sibling_subtitle(video_path: Path) -> Path | None:
+    # START_CONTRACT: _find_sibling_subtitle
+    #   PURPOSE: Look for a subtitle file with same stem as video in same directory
+    #   INPUTS: { video_path: Path }
+    #   OUTPUTS: Path | None
+    #   LINKS: M-PROJECT
+    # END_CONTRACT: _find_sibling_subtitle
+
+    parent = video_path.parent
+    stem = video_path.stem
+
+    for ext in SUBTITLE_EXTS:
+        candidate = parent / f"{stem}{ext}"
+        if candidate.is_file():
+            return candidate
+
+    # Fallback: any subtitle file in the same directory
+    for ext in SUBTITLE_EXTS:
+        for candidate in parent.glob(f"*{ext}"):
+            return candidate
+
+    return None
 
 
 def update_project_state(project: Project, **state_kwargs: Any) -> Project:

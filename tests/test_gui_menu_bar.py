@@ -52,6 +52,7 @@ class TestMenuBarWidget:
         assert mb.act_open_project is not None
         assert mb.act_close_project is not None
         assert mb.act_save_project is not None
+        assert mb.act_import_video is not None
         assert mb.act_import_srt is not None
         assert mb.act_exit is not None
         assert mb.act_project_settings is not None
@@ -66,6 +67,7 @@ class TestMenuBarWidget:
         assert mb.act_open_project.shortcut().toString() == "Ctrl+O"
         assert mb.act_close_project.shortcut().toString() == "Ctrl+W"
         assert mb.act_save_project.shortcut().toString() == "Ctrl+S"
+        assert mb.act_import_video.shortcut().toString() == "Ctrl+V"
         assert mb.act_import_srt.shortcut().toString() == "Ctrl+I"
         assert mb.act_exit.shortcut().toString() == "Ctrl+Q"
         assert mb.act_project_settings.shortcut().toString() == "Ctrl+,"
@@ -108,6 +110,16 @@ class TestMenuBarWidget:
         handler = MagicMock()
         mb.act_save_project.triggered.connect(handler)
         mb.act_save_project.triggered.emit()
+        handler.assert_called_once()
+        window.deleteLater()
+        mb.deleteLater()
+
+    def test_import_video_signal_emitted(self) -> None:
+        _ensure_app()
+        mb, window = self._make()
+        handler = MagicMock()
+        mb.act_import_video.triggered.connect(handler)
+        mb.act_import_video.triggered.emit()
         handler.assert_called_once()
         window.deleteLater()
         mb.deleteLater()

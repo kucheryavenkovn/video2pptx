@@ -18,6 +18,8 @@ import pytest
 from video_slide_md.project_manager import (
     Project,
     create_project,
+    import_subtitles_to_project,
+    import_video_to_project,
     open_project,
     update_project_state,
 )
@@ -144,3 +146,76 @@ class TestLogMarkers:
         " ".join(loguru_sink)
         # At minimum some log output was produced about project creation
         assert len(loguru_sink) > 0
+
+
+class TestImportVideo:
+    def test_import_video_sets_path(self, tmp_path):
+        video = tmp_path / "video.mp4"
+        video.write_text("fake")
+        proj = create_project(tmp_path / "proj", name="Test")
+        assert proj.video == ""
+
+        import_video_to_project(proj, str(video))
+        assert Path(proj.video).resolve() == video.resolve()
+
+    def test_import_video_auto_detects_subtitles(self, tmp_path):
+        video = tmp_path / "lecture.mp4"
+        video.write_text("fake")
+        sub = tmp_path / "lecture.srt"
+        sub.write_text("1\n00:00:01,000 --> 00:00:02,000\nhello")
+
+        proj = create_project(tmp_path / "proj", name="Test")
+        import_video_to_project(proj, str(video))
+        assert proj.subtitles is not None
+        assert Path(proj.subtitles).resolve() == sub.resolve()
+
+    def test_import_video_raises_on_missing(self, tmp_path):
+        proj = create_project(tmp_path / "proj", name="Test")
+        with pytest.raises(FileNotFoundError):
+            import_video_to_project(proj, str(tmp_path / "missing.mp4"))
+
+
+class TestImportSubtitles:
+    def test_import_subtitles_sets_path(self, tmp_path):
+        sub = tmp_path / "subs.srt"
+        sub.write_text("1\n00:00:01,000 --> 00:00:02,000\nhello")
+        proj = create_project(tmp_path / "proj", name="Test")
+
+        import_subtitles_to_project(proj, str(sub))
+        assert proj.subtitles is not None
+        assert Path(proj.subtitles).resolve() == sub.resolve()
+
+    def test_import_subtitles_raises_on_missing(self, tmp_path):
+        proj = create_project(tmp_path / "proj", name="Test")
+        with pytest.raises(FileNotFoundError):
+            import_subtitles_to_project(proj, str(tmp_path / "missing.srt"))
+
+
+class TestFindSiblingSubtitle:
+    def test_finds_exact_match(self, tmp_path):
+        from video_slide_md.project_manager import _find_sibling_subtitle
+        video = tmp_path / "lecture.mp4"
+        video.write_text("fake")
+        sub = tmp_path / "lecture.srt"
+        sub.write_text("content")
+
+        result = _find_sibling_subtitle(video)
+        assert result == sub
+
+    def test_returns_none_when_no_subs(self, tmp_path):
+        from video_slide_md.project_manager import _find_sibling_subtitle
+        video = tmp_path / "lecture.mp4"
+        video.write_text("fake")
+
+        result = _find_sibling_subtitle(video)
+        assert result is None
+
+    def test_finds_vtt_ext(self, tmp_path):
+        from video_slide_md.project_manager import _find_sibling_subtitle
+        video = tmp_path / "lecture.mp4"
+        video.write_text("fake")
+        sub = tmp_path / "lecture.vtt"
+        sub.write_text("content")
+
+        result = _find_sibling_subtitle(video)
+        assert result == sub
