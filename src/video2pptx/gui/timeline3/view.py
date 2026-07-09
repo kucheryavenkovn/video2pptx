@@ -20,7 +20,6 @@ from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QWheelEvent
 from PySide6.QtWidgets import QGraphicsItem, QGraphicsScene, QGraphicsView, QMenu
 
 from video2pptx.gui.timeline3.items import (
-    MarkerItem,
     PlayheadItem,
     SlideBlockItem,
     SubtitleBlockItem,
@@ -39,10 +38,9 @@ class TimelineView(QGraphicsView):
     # END_CONTRACT: TimelineView
 
     seek_requested = Signal(float)
-    marker_added = Signal(float)
-    marker_deleted = Signal(float)
     open_image = Signal(str, int)  # path, slide_index
     open_subtitle_editor = Signal(int)  # slide_index
+    add_manual_slide = Signal(float)  # timestamp
     slide_moved = Signal(int, float, float)  # index, new_start, new_end
     slide_resized = Signal(int, float, float)  # index, new_start, new_end
 
@@ -71,7 +69,6 @@ class TimelineView(QGraphicsView):
         self._playhead: PlayheadItem | None = None
         self._waveform_path: QGraphicsItem | None = None
         self._slide_items: list[SlideBlockItem] = []
-        self._marker_items: list[MarkerItem] = []
         self._subtitle_items: list[SubtitleBlockItem] = []
 
         self.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -118,7 +115,6 @@ class TimelineView(QGraphicsView):
     def _rebuild_scene(self) -> None:
         self._scene.clear()
         self._slide_items = []
-        self._marker_items = []
         self._subtitle_items = []
         self._waveform_path = None
         self._ruler_item = None
@@ -190,18 +186,6 @@ class TimelineView(QGraphicsView):
                 )
                 self._slide_items.append(item)
                 self._scene.addItem(item)
-
-        # Markers
-        for marker in self._markers:
-            snapped = marker.get("snapped_ts", marker.get("original_ts", 0))
-            mx = float(snapped) * self._px_per_sec
-            item = MarkerItem(
-                mx - 3, y_markers, 6, self.TRACK_H_MARKERS,
-                float(marker.get("original_ts", 0)),
-                float(snapped),
-            )
-            self._marker_items.append(item)
-            self._scene.addItem(item)
 
         # Subtitles as colored blocks above slides
         if y_subs >= 0 and subtitles:
@@ -311,8 +295,8 @@ class TimelineView(QGraphicsView):
         # Left click: seek on empty area (markers/slide blocks handle their own clicks)
         if event.button() == Qt.MouseButton.LeftButton:
             item = self.itemAt(event.pos())
-            from video2pptx.gui.timeline3.items import MarkerItem, SlideBlockItem, SubtitleBlockItem
-            if not isinstance(item, (MarkerItem, SlideBlockItem, SubtitleBlockItem)):
+            from video2pptx.gui.timeline3.items import SlideBlockItem, SubtitleBlockItem
+            if not isinstance(item, (SlideBlockItem, SubtitleBlockItem)):
                 scene_pos = self.mapToScene(event.pos())
                 ts = scene_pos.x() / self._px_per_sec if self._px_per_sec > 0 else 0
                 ts = max(0, min(ts, self._duration))
@@ -351,22 +335,6 @@ class TimelineView(QGraphicsView):
     def contextMenuEvent(self, event) -> None:  # noqa: N802
         item = self.itemAt(event.pos())
         if item is not None:
-            marker_item = None
-            p = item
-            while p is not None:
-                if isinstance(p, MarkerItem):
-                    marker_item = p
-                    break
-                p = p.parentItem()
-
-            if marker_item is not None:
-                menu = QMenu(self)
-                ts = marker_item.original_ts()
-                menu.addAction("Delete Marker", lambda: self._delete_marker(ts))
-                menu.addAction("Snap Again", lambda: self._resnap_marker(ts))
-                menu.exec(event.globalPos())
-                return
-
             # Check for slide
             slide_item = None
             p = item
@@ -380,32 +348,25 @@ class TimelineView(QGraphicsView):
                 menu = QMenu(self)
                 menu.addAction("Open Image", lambda: self._open_slide_image(slide_item))
                 menu.addAction("Edit Subtitles", lambda: self.open_subtitle_editor.emit(slide_item.slide_index()))
+                menu.addSeparator()
                 menu.addAction("Show Subtitles", lambda: self._show_slide_subtitles(slide_item))
                 menu.exec(event.globalPos())
                 return
 
-        # Click on empty → add marker
+        # Click on empty → add manual slide marker
         scene_pos = self.mapToScene(event.pos())
         ts = scene_pos.x() / self._px_per_sec if self._px_per_sec > 0 else 0
         ts = max(0, min(ts, self._duration))
         menu = QMenu(self)
-        menu.addAction(f"Add Marker at {self._fmt_time(ts)}", lambda: self._add_marker(ts))
+        menu.addAction(f"Add Marker at {self._fmt_time(ts)}", lambda: self._add_manual_slide(ts))
         menu.exec(event.globalPos())
     # END_BLOCK_ZOOM_PAN
 
     # START_BLOCK_ACTIONS
-    def _add_marker(self, ts: float) -> None:
+    def _add_manual_slide(self, ts: float) -> None:
         from PySide6.QtCore import QTimer
-        QTimer.singleShot(0, lambda: self.marker_added.emit(ts))
-        logger.info(f"[Timeline3][_add_marker] ts={ts:.3f}")
-
-    def _delete_marker(self, ts: float) -> None:
-        self.marker_deleted.emit(ts)
-        logger.info(f"[Timeline3][_delete_marker] ts={ts:.3f}")
-
-    def _resnap_marker(self, ts: float) -> None:
-        self.marker_added.emit(ts)
-        logger.info(f"[Timeline3][_resnap_marker] ts={ts:.3f}")
+        QTimer.singleShot(0, lambda: self.add_manual_slide.emit(ts))
+        logger.info(f"[Timeline3][_add_manual_slide] ts={ts:.3f}")
 
     def _open_slide_image(self, slide: SlideBlockItem) -> None:
         path = slide.image_path()

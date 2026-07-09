@@ -135,6 +135,7 @@ class SlideSegment(BaseModel):
     slide_context: str | None = Field(default=None, description="LLM-extracted key terms and context from slide for transcript correction")
     confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Detection confidence score")
     warnings: list[str] = Field(default_factory=list, description="Non-critical issues with this segment")
+    manual: bool = Field(default=False, description="User-created manual marker (not from detection)")
 
 
 class SlidesDocument(BaseModel):

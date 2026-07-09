@@ -21,11 +21,7 @@ from typing import Callable, Iterator
 import numpy as np
 from loguru import logger
 
-from video2pptx.frame_features import (
-    compute_threshold,
-    extract_features,
-    visual_distance,
-)
+from video2pptx.frame_features import compute_threshold, extract_features, visual_distance
 from video2pptx.models import FrameFeatures
 from video2pptx.roi import SlideRegion
 
@@ -52,6 +48,8 @@ def detect_changes(
     sample_fps: float = 2.0,
     video_duration: float | None = None,
     progress_callback: Callable[[int, str], None] | None = None,
+    extract_fn: Callable | None = None,
+    distance_fn: Callable | None = None,
 ) -> tuple[list[ChangeEvent], list[FrameFeatures], list[float]]:
     # START_CONTRACT: detect_changes
     #   PURPOSE: Scan frames, compare consecutive, detect slide changes
@@ -75,12 +73,14 @@ def detect_changes(
     next_progress: float = progress_step
     for timestamp, image in frames:
         cropped = slide_region.process(image)
-        ff = extract_features(cropped)
+        _extract = extract_fn or extract_features
+        _dist = distance_fn or visual_distance
+        ff = _extract(cropped)
         ff.timestamp = timestamp
         all_features.append(ff)
 
         if prev_features is not None:
-            score = visual_distance(prev_features, ff)
+            score = _dist(prev_features, ff)
             all_scores.append(score)
 
             actual_threshold = _resolve_threshold(threshold, all_scores, timestamp)

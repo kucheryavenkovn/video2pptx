@@ -69,10 +69,17 @@
     </M-ROI>
 
     <M-FRAME-FEATURES NAME="FrameFeatures" TYPE="CORE_LOGIC" STATUS="implemented">
-      <purpose>Frame feature extraction: pHash, dHash, histogram, grayscale, pixel MAE, visual distance</purpose>
+      <purpose>Frame feature extraction: pHash, dHash, histogram, grayscale, pixel MAE, visual distance, quick_extract/quick_visual_distance for fast preview</purpose>
       <path>src/video2pptx/frame_features.py</path>
       <depends>M-ROI</depends>
       <verification-ref>V-M-FRAME-FEATURES</verification-ref>
+      <annotations>
+        <fn-extract_features PURPOSE="Full feature extraction: pHash, dHash, hist, gray_thumb" />
+        <fn-visual_distance PURPOSE="Weighted distance from full FrameFeatures" />
+        <fn-quick_extract PURPOSE="Lightweight: 32x24 gray thumbnail only, no hashes/histograms" />
+        <fn-quick_visual_distance PURPOSE="Pixel MAE between two quick_extract thumbnails" />
+        <fn-compute_threshold PURPOSE="Auto threshold from score distribution: median + k*MAD" />
+      </annotations>
     </M-FRAME-FEATURES>
 
     <M-SLIDE-DETECTOR NAME="SlideDetector" TYPE="CORE_LOGIC" STATUS="implemented">
@@ -195,17 +202,23 @@
     </M-PROJECT>
 
     <M-GUI-MAIN NAME="MainWindow" TYPE="UI_COMPONENT" STATUS="implemented">
-      <purpose>Main GUI window with project management, video/backend selection, detect/preview buttons, always-visible timeline, marker panel, marker toolbar</purpose>
+      <purpose>Main GUI window with project management, video/backend selection, Detect/QuickDetect buttons, Export dropdown, Save button, manual slides, subtitle editor, timeline3, status bar manager</purpose>
       <path>src/video2pptx/gui/main_window.py</path>
-      <depends>M-PROJECT, M-GUI-TIMELINE, M-GUI-SETTINGS, M-GUI-WORKER, M-DETECT-SLIDES, M-NOTES, M-BACKENDS, M-GUI-MARKER-PANEL, M-GUI-SETTINGS-PROJECT</depends>
+      <depends>M-PROJECT, M-GUI-TIMELINE3, M-GUI-SETTINGS, M-GUI-WORKER, M-DETECT-SLIDES, M-NOTES, M-BACKENDS, M-GUI-SETTINGS-PROJECT, M-GUI-STATUS, M-GUI-SUBTITLE-EDITOR</depends>
       <verification-ref>V-M-GUI-MAIN</verification-ref>
       <annotations>
-        <fn-show_main_window PURPOSE="Create and show QMainWindow" />
-        <type-MainWindow PURPOSE="QMainWindow subclass with toolbars, panels, and menu; always-visible timeline, preview analysis" />
-        <fn-_on_add_marker PURPOSE="Add marker at current video position" />
-        <fn-_on_open_marker_panel PURPOSE="Open MarkerPanel dialog with marker list" />
-        <fn-_on_preview PURPOSE="Run fast preview analysis, show score waveform on timeline" />
-        <fn-_grab_current_frame PURPOSE="Capture current video frame as QPixmap for ROI selector" />
+        <type-MainWindow PURPOSE="QMainWindow with toolbar, File/Edit menus, video player, timeline3, status bar" />
+        <fn-_on_detect PURPOSE="Full detection (3 passes, pHash+hist) in QThread" />
+        <fn-_on_quick_detect PURPOSE="Quick detection (keyframes + pixel MAE) in QThread, saves slides.json + screenshots" />
+        <fn-_on_add_manual_slide PURPOSE="Create SlideSegment(manual=True) at timestamp, insert into project.slides" />
+        <fn-_on_export_md PURPOSE="Export slides.json → deck.md, offer to open file" />
+        <fn-_on_export_pptx PURPOSE="Export slides.json → deck.pptx, offer to open file" />
+        <fn-_on_process_notes PURPOSE="Run NotesWorker + notes pipeline (basic or LLM mode)" />
+        <fn-_on_open_subtitle_editor PURPOSE="Open SubtitleEditorDialog for a slide with raw cues + LLM" />
+        <fn-_on_video_duration_changed PURPOSE="Update timeline duration + zoom_fit on video load" />
+        <fn-_on_seek_to_marker PURPOSE="Seek video to timestamp + briefly play+pause to show frame" />
+        <fn-_on_worker_progress PURPOSE="Slot: progress percent → StatusBarManager.update()" />
+        <fn-_on_detect_finished PURPOSE="Signal: reload slides into timeline, enable export/notes buttons" />
       </annotations>
     </M-GUI-MAIN>
 
@@ -235,15 +248,15 @@
     </M-GUI-SETTINGS>
 
     <M-GUI-WORKER NAME="Workers" TYPE="UTILITY" STATUS="implemented">
-      <purpose>QThread-based background workers for detect, preview, notes, and LLM operations with progress signaling</purpose>
+      <purpose>QThread-based background workers for detect, quick-detect, notes, and LLM operations with progress signaling</purpose>
       <path>src/video2pptx/gui/workers.py</path>
       <depends>M-DETECT-SLIDES, M-NOTES, M-LLM-ORCHESTRATOR, M-PROJECT, M-FRAME-FEATURES, M-VIDEO-DECODE</depends>
       <verification-ref>V-M-GUI-WORKER</verification-ref>
       <annotations>
         <type-DetectWorker PURPOSE="QObject worker: runs detect-slides on project, emits progress/finished/error" />
-        <type-PreviewWorker PURPOSE="QObject worker: fast preview — decode video, compute visual_distance scores, emit timestamps+scores" />
+        <type-QuickDetectWorker PURPOSE="QObject worker: keyframes + pixel MAE → slides.json + screenshots (quick_mode=True)" />
         <type-NotesWorker PURPOSE="QObject worker: runs notes pipeline on project" />
-        <type-LlmWorker PURPOSE="QObject worker: runs LLM processing on selected segment text" />
+        <type-LlmWorker PURPOSE="QObject worker: runs LLM enrichment on project" />
         <signal-progress PURPOSE="emitted (int percent, str status_message) during operation" />
         <signal-finished PURPOSE="emitted (str result_path) on success" />
         <signal-error PURPOSE="emitted (str error_message) on failure" />
@@ -262,6 +275,30 @@
         <type-AppConfigModel PURPOSE="Pydantic model with LLM, GPU, snap, defaults fields" />
       </annotations>
     </M-GUI-APPCONFIG>
+
+    <M-GUI-STATUS NAME="StatusBarManager" TYPE="UI_COMPONENT" STATUS="implemented">
+      <purpose>QMainWindow status bar helper — progress, elapsed time, ETA for long operations</purpose>
+      <path>src/video2pptx/gui/status_manager.py</path>
+      <depends>PySide6</depends>
+      <verification-ref>V-M-GUI-STATUS</verification-ref>
+      <annotations>
+        <fn-StatusBarManager PURPOSE="start/update/finish lifecycle with formatted progress string" />
+        <fn-start PURPOSE="Show starting message, record start time" />
+        <fn-update PURPOSE="Show pct, elapsed, ETA, optional message" />
+        <fn-finish PURPOSE="Show completion message with elapsed time" />
+      </annotations>
+    </M-GUI-STATUS>
+
+    <M-GUI-SUBTITLE-EDITOR NAME="SubtitleEditor" TYPE="UI_COMPONENT" STATUS="implemented">
+      <purpose>QDialog for editing slide subtitles with LLM vision analysis and transcript correction</purpose>
+      <path>src/video2pptx/gui/subtitle_editor.py</path>
+      <depends>M-LLM-CLIENT, M-CONFIG, M-PROJECT</depends>
+      <verification-ref>V-M-GUI-SUBTITLE-EDITOR</verification-ref>
+      <annotations>
+        <fn-SubtitleEditorDialog PURPOSE="QDialog with screenshot, raw subtitles, transcript, LLM Process button" />
+        <fn-_on_llm_process PURPOSE="Run vision analysis + transcript correction using LlmClient" />
+      </annotations>
+    </M-GUI-SUBTITLE-EDITOR>
 
     <M-GUI-SMART-SNAP NAME="SmartSnap" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Smart snap strategies for manual markers: diff_only, fallback_analyze, hybrid. Find nearest scene boundary within configurable window.</purpose>
@@ -342,6 +379,26 @@
     </M-GUI-SUBTITLE-OVERLAY>
 
     <M-GUI-TIMELINE-V2 NAME="TimelineV2" TYPE="UI_COMPONENT" STATUS="implemented">
+
+    <M-GUI-TIMELINE3 NAME="Timeline3" TYPE="UI_COMPONENT" STATUS="implemented">
+      <purpose>QGraphicsView-based multi-track timeline: SubtitleBlockItem (click to seek), SlideBlockItem (drag/resize/move), PlayheadItem, TimeRulerItem, waveform track. Dynamic track heights. Manual slides as orange blocks.</purpose>
+      <path>src/video2pptx/gui/timeline3/</path>
+      <depends>M-MODELS</depends>
+      <verification-ref>V-M-GUI-TIMELINE3</verification-ref>
+      <annotations>
+        <type-SlideBlockItem PURPOSE="Green/orange QGraphicsRectItem with drag edges, Alt+move, Y-lock. Manual slides = orange." />
+        <type-SubtitleBlockItem PURPOSE="Orange interval block, click → seek_requested, Alt+drag to move" />
+        <type-PlayheadItem PURPOSE="Red vertical line following playback position" />
+        <type-TimeRulerItem PURPOSE="Top ruler with dynamic tick interval based on zoom" />
+        <fn-TimelineView PURPOSE="QGraphicsView with wheel zoom, middle-click pan, context menus, seek on click" />
+        <fn-TimelineWidget PURPOSE="Top-level container: TrackHeaderPanel + TimelineView + zoom controls" />
+        <signal-seek_requested PURPOSE="emitted (float seconds) on timeline click" />
+        <signal-open_image PURPOSE="emitted (str path, int slide_index) on slide block click" />
+        <signal-add_manual_slide PURPOSE="emitted (float ts) when user adds manual slide marker" />
+        <signal-slide_moved PURPOSE="emitted (int index, float start, float end) after Alt+drag" />
+        <signal-slide_resized PURPOSE="emitted (int index, float start, float end) after edge drag" />
+      </annotations>
+    </M-GUI-TIMELINE3>
       <purpose>Enhanced timeline: green (detected) and blue (manual) markers, score waveform graph. Double-click green → open image. Right-click → add/edit/delete marker.</purpose>
       <path>src/video2pptx/gui/timeline_v2.py</path>
       <depends>M-MODELS, M-GUI-MARKER-MANAGER</depends>
@@ -451,7 +508,16 @@
     <CrossLink from="M-GUI-MAIN" to="M-BACKENDS" relation="queries available backends" />
     <CrossLink from="M-GUI-MAIN" to="M-GUI-MARKER-PANEL" relation="creates and shows marker panel" />
     <CrossLink from="M-GUI-MAIN" to="M-GUI-SETTINGS-PROJECT" relation="opens project settings dialog" />
-    <CrossLink from="M-GUI-MAIN" to="M-FRAME-FEATURES" relation="uses via PreviewWorker for score waveform" />
+    <CrossLink from="M-GUI-MAIN" to="M-GUI-TIMELINE3" relation="embeds TimelineWidget (V3 multi-track)" />
+    <CrossLink from="M-GUI-MAIN" to="M-GUI-STATUS" relation="uses StatusBarManager for progress display" />
+    <CrossLink from="M-GUI-MAIN" to="M-GUI-SUBTITLE-EDITOR" relation="opens SubtitleEditorDialog on context menu" />
+    <CrossLink from="M-GUI-TIMELINE3" to="M-MODELS" relation="reads SlideSegment list, SlideSegment.manual flag" />
+    <CrossLink from="M-GUI-TIMELINE3" to="M-GUI-MAIN" relation="emits signals for add_manual_slide, seek, open_image" />
+    <CrossLink from="M-GUI-TIMELINE3" to="M-FRAME-FEATURES" relation="uses quick_extract/quick_visual_distance via QuickDetectWorker" />
+    <CrossLink from="M-GUI-WORKER" to="M-DETECT-SLIDES" relation="QuickDetectWorker uses quick_mode=True for fast detection" />
+    <CrossLink from="M-GUI-WORKER" to="M-FRAME-FEATURES" relation="QuickDetectWorker uses quick_extract/quick_visual_distance" />
+    <CrossLink from="M-GUI-WORKER" to="M-GUI-APPCONFIG" relation="reads notes_mode config" />
+    <CrossLink from="M-GUI-STATUS" to="M-GUI-MAIN" relation="attached to MainWindow.statusBar()" />
     <CrossLink from="M-GUI-TIMELINE" to="M-MODELS" relation="reads SlideSegment list" />
     <CrossLink from="M-GUI-SETTINGS" to="M-PROJECT" relation="reads/writes project config" />
     <CrossLink from="M-GUI-SETTINGS" to="M-CONFIG" relation="reads LlmConfig, DetectionConfig defaults" />

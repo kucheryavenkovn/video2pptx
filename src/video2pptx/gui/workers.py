@@ -271,51 +271,71 @@ class PreviewWorker(QObject):
             self.error.emit(str(e))
 
 
-class QuickPreviewWorker(QObject):
+class QuickDetectWorker(QObject):
 
-    finished = Signal(list, list, float)  # timestamps, scores, video_duration
-    progress = Signal(int)
+    progress = Signal(int, str)
+    finished = Signal(str)  # path to slides.json
     error = Signal(str)
 
-    def __init__(self, video_path: str, parent=None) -> None:
+    def __init__(self, project: Project, parent=None) -> None:
         super().__init__(parent)
-        self._video_path = video_path
+        self._project = project
 
     def run(self) -> None:
         try:
-            from video2pptx.frame_features import quick_extract, quick_visual_distance
-            from video2pptx.video_decode import VideoDecoder
-
-            decoder = VideoDecoder(self._video_path, sample_fps=1.0)
-            info = decoder.get_info()
-            duration = info.duration
-            if duration <= 0:
-                self.error.emit("Could not determine video duration")
+            video_path = Path(self._project.video)
+            if not video_path.is_file():
+                self.error.emit(f"Video not found: {video_path}")
                 return
 
-            prev_thumb: list[float] | None = None
-            timestamps: list[float] = []
-            scores: list[float] = []
-            processed = 0
+            from video2pptx.detect_slides import run_detect_slides
+            
+            proj_dir = Path(self._project.output_dir)
+            cfg = AppConfig()
+            cfg.video.sample_fps = 1.0
+            cfg.video.decoder_backend = self._project.video_config.decoder_backend or self._project.backend or "auto"
+            cfg.detection.slide_roi = self._project.detection.slide_roi
+            cfg.detection.ignore_rois = self._project.detection.ignore_rois
+            cfg.detection.threshold = self._project.detection.threshold
+            cfg.detection.min_slide_duration = self._project.detection.min_slide_duration
+            cfg.detection.min_stable_duration = self._project.detection.min_stable_duration
+            cfg.detection.dedupe_enabled = False  # no dedup for quick
 
-            for vf in decoder.iter_frames(keyframes_only=True):
-                thumb = quick_extract(vf.image)
-                if prev_thumb is not None:
-                    score = quick_visual_distance(prev_thumb, thumb)
-                    scores.append(score)
-                    timestamps.append(vf.timestamp)
+            def on_progress(pct: int, msg: str) -> None:
+                self.progress.emit(5 + int(pct * 0.65), msg)
 
-                prev_thumb = thumb
-                processed += 1
-                pct = int((vf.timestamp / duration) * 100)
-                self.progress.emit(pct)
-
-            logger.info(
-                "[GUI-Worker][QuickPreviewWorker] Quick preview complete | "
-                f"frames={processed} scores={len(scores)}"
+            self.progress.emit(2, "Quick detecting (keyframes)...")
+            doc = run_detect_slides(
+                video_path=video_path,
+                out_dir=proj_dir,
+                cfg=cfg,
+                quick_mode=True,
+                progress_callback=on_progress,
             )
-            self.finished.emit(timestamps, scores, duration)
+
+            slides_json = proj_dir / "slides.json"
+            update_project_state(self._project, detect_done=True, slides_json=str(slides_json))
+
+            # Notes pipeline if subtitles available
+            sub_path = Path(self._project.subtitles) if self._project.subtitles else None
+            if sub_path and sub_path.is_file():
+                from video2pptx.gui.app_config import load_app_config
+                from video2pptx.notes_pipeline import run_notes
+                app_cfg = load_app_config()
+                notes_mode = app_cfg.notes_mode
+                llm_cfg = self._project.llm if notes_mode == "llm" else None
+                self.progress.emit(73, "Processing notes...")
+                run_notes(
+                    slides_json=slides_json,
+                    subtitles_path=sub_path,
+                    slides_dir=proj_dir / "slides",
+                    notes_mode=notes_mode,
+                    llm_config=llm_cfg,
+                )
+
+            self.progress.emit(100, f"Quick detect complete: {len(doc.slides)} slides")
+            self.finished.emit(str(slides_json))
 
         except Exception as e:
-            logger.error(f"[GUI-Worker][QuickPreviewWorker] Error: {e}")
+            logger.error(f"[GUI-Worker][QuickDetectWorker] Error: {e}")
             self.error.emit(str(e))

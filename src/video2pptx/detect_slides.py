@@ -35,6 +35,7 @@ def run_detect_slides(
     video_path: Path,
     out_dir: Path,
     cfg: AppConfig,
+    quick_mode: bool = False,
     progress_callback: Callable[[int, str], None] | None = None,
 ) -> SlidesDocument:
     # START_CONTRACT: run_detect_slides
@@ -80,6 +81,12 @@ def run_detect_slides(
     # START_BLOCK_DETECT_CHANGES
     logger.info("[DetectSlides][run_detect_slides] Pass 1/3: detecting changes")
     frames_iter = ((f.timestamp, f.image) for f in decoder.iter_frames())
+    if quick_mode:
+        from video2pptx.frame_features import quick_extract as _extract
+        from video2pptx.frame_features import quick_visual_distance as _dist
+    else:
+        from video2pptx.frame_features import extract_features as _extract
+        from video2pptx.frame_features import visual_distance as _dist
     changes, all_features, all_scores = detect_changes(
         frames=frames_iter,
         slide_region=slide_region,
@@ -88,6 +95,8 @@ def run_detect_slides(
         sample_fps=cfg.video.sample_fps,
         video_duration=info.duration,
         progress_callback=progress_callback,
+        extract_fn=_extract,
+        distance_fn=_dist,
     )
     # END_BLOCK_DETECT_CHANGES
 

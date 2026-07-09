@@ -79,9 +79,8 @@ class TimelineWidget(QWidget):
     # END_CONTRACT: TimelineWidget
 
     seek_requested = Signal(float)
-    marker_added = Signal(float)
-    marker_deleted = Signal(float)
     open_image = Signal(str, int)  # path, slide_index
+    add_manual_slide = Signal(float)  # timestamp
     slide_moved = Signal(int, float, float)  # index, new_start, new_end
     slide_resized = Signal(int, float, float)  # index, new_start, new_end
     open_subtitle_editor = Signal(int)  # slide_index
@@ -153,9 +152,8 @@ class TimelineWidget(QWidget):
     def _connect_signals(self) -> None:
         self._zoom_slider.valueChanged.connect(self._on_zoom_slider)
         self._view.seek_requested.connect(self.seek_requested)
-        self._view.marker_added.connect(self.marker_added)
-        self._view.marker_deleted.connect(self.marker_deleted)
         self._view.open_image.connect(self.open_image)
+        self._view.add_manual_slide.connect(self.add_manual_slide)
         self._view.slide_moved.connect(self.slide_moved)
         self._view.slide_resized.connect(self.slide_resized)
         self._view.open_subtitle_editor.connect(self.open_subtitle_editor)

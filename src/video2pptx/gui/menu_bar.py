@@ -43,19 +43,15 @@ class MenuBarWidget(QMenuBar):
         self._build_edit_menu()
 
     def set_recent_projects(self, paths: list[str]) -> None:
-        # Remove all old recent actions
         for act in self._recent_actions:
             self._recent_menu.removeAction(act)
         self._recent_actions.clear()
-
         if not paths:
             self._recent_menu.setEnabled(False)
             return
-
         self._recent_menu.setEnabled(True)
         for p in paths:
-            name = Path(p).name
-            act = QAction(name, self)
+            act = QAction(Path(p).name, self)
             act.setToolTip(str(p))
             act.setData(p)
             act.triggered.connect(lambda checked=False, path=p: self.open_recent_project.emit(path))
@@ -102,11 +98,12 @@ class MenuBarWidget(QMenuBar):
         self.act_process_notes = QAction("Process &Notes...", self)
         file_menu.addAction(self.act_process_notes)
 
-        self.act_export_md = QAction("Export &Markdown...", self)
-        file_menu.addAction(self.act_export_md)
-
-        self.act_export_pptx = QAction("Export &PPTX...", self)
-        file_menu.addAction(self.act_export_pptx)
+        # Export submenu
+        export_menu = file_menu.addMenu("&Export")
+        self.act_export_md = QAction("&Markdown (Marp)...", self)
+        export_menu.addAction(self.act_export_md)
+        self.act_export_pptx = QAction("&PPTX...", self)
+        export_menu.addAction(self.act_export_pptx)
 
         file_menu.addSeparator()
 

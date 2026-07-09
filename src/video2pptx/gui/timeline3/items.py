@@ -1,7 +1,7 @@
 # FILE: src/video2pptx/gui/timeline3/items.py
 # VERSION: 0.1.0
 # START_MODULE_CONTRACT
-#   PURPOSE: QGraphicsItem subclasses for multi-track timeline: SlideBlockItem, MarkerItem, PlayheadItem, TimeRulerItem, SubtitleTrackItem
+#   PURPOSE: QGraphicsItem subclasses for multi-track timeline: SlideBlockItem, SubtitleBlockItem, PlayheadItem, TimeRulerItem
 #   SCOPE: Item classes with paint, bounding rect, interaction handling
 #   DEPENDS: PySide6
 #   LINKS: M-GUI-TIMELINE3
@@ -13,9 +13,9 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QTextOption
-from PySide6.QtWidgets import QGraphicsItem, QGraphicsRectItem, QGraphicsTextItem
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen
+from PySide6.QtWidgets import QGraphicsItem, QGraphicsRectItem
 
 
 class SlideBlockItem(QGraphicsRectItem):
@@ -35,6 +35,7 @@ class SlideBlockItem(QGraphicsRectItem):
         start_sec: float,
         end_sec: float,
         image_path: str = "",
+        is_manual: bool = False,
         on_moved: Callable[[int, float, float], None] | None = None,
         on_resized: Callable[[int, float, float], None] | None = None,
         on_clicked: Callable[[str, int], None] | None = None,
@@ -45,6 +46,7 @@ class SlideBlockItem(QGraphicsRectItem):
         self._start_sec = start_sec
         self._end_sec = end_sec
         self._image_path = image_path
+        self._is_manual = is_manual
         self._on_moved = on_moved
         self._on_resized = on_resized
         self._on_clicked = on_clicked
@@ -52,8 +54,12 @@ class SlideBlockItem(QGraphicsRectItem):
         self._drag_start_scene_x: float = 0.0
         self._drag_start_item_x: float = 0.0
         self._drag_start_rect: tuple[float, float, float, float] = (0, 0, 0, 0)
-        self.setBrush(QBrush(QColor("#4caf50")))
-        self.setPen(QPen(QColor("#388e3c"), 1))
+        if self._is_manual:
+            self.setBrush(QBrush(QColor("#ff9800")))
+            self.setPen(QPen(QColor("#e65100"), 1))
+        else:
+            self.setBrush(QBrush(QColor("#4caf50")))
+            self.setPen(QPen(QColor("#388e3c"), 1))
         self.setAcceptHoverEvents(True)
         self.setAcceptedMouseButtons(Qt.MouseButton.LeftButton)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges, True)
@@ -180,45 +186,6 @@ class SlideBlockItem(QGraphicsRectItem):
     # END_BLOCK_HOVER
 
 
-class MarkerItem(QGraphicsRectItem):
-    # START_CONTRACT: MarkerItem
-    #   PURPOSE: Blue draggable marker — Y-locked, X-only move
-    #   INPUTS: { x, y, w, h, original_ts: float, snapped_ts: float }
-    #   OUTPUTS: marker_moved(old_ts, new_ts)
-    #   SIDE_EFFECTS: none
-    #   LINKS: M-GUI-TIMELINE3
-    # END_CONTRACT: MarkerItem
-
-    marker_moved = Signal(float, float)  # old_ts, new_ts
-
-    def __init__(
-        self,
-        x: float, y: float, w: float, h: float,
-        original_ts: float,
-        snapped_ts: float,
-        parent: QGraphicsItem | None = None,
-    ) -> None:
-        super().__init__(x, y, w, h, parent)
-        self._original_ts = original_ts
-        self._snapped_ts = snapped_ts
-        self.setBrush(QBrush(QColor("#2196f3")))
-        self.setPen(QPen(QColor("#1565c0"), 1))
-        self.setCursor(Qt.CursorShape.SizeHorCursor)
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges, True)
-
-    def original_ts(self) -> float:
-        return self._original_ts
-
-    def snapped_ts(self) -> float:
-        return self._snapped_ts
-
-    def itemChange(self, change, value):  # noqa: N802
-        if change == QGraphicsItem.GraphicsItemChange.ItemPositionChange:
-            value.setY(0)
-        return super().itemChange(change, value)
-
-
 class SubtitleBlockItem(QGraphicsRectItem):
     # START_CONTRACT: SubtitleBlockItem
     #   PURPOSE: Orange subtitle interval block — click to seek, Alt+drag to move (Y-locked)
@@ -310,49 +277,6 @@ class PlayheadItem(QGraphicsRectItem):
 
     def set_position(self, x: float) -> None:
         self.setPos(x - 1.5, 0)
-
-
-class SubtitleTrackItem(QGraphicsTextItem):
-    # START_CONTRACT: SubtitleTrackItem
-    #   PURPOSE: Subtitle text block on the subtitle track with word wrap
-    #   INPUTS: { text: str, start_ts: float, end_ts: float, px_per_sec: float }
-    #   OUTPUTS: none (visual only)
-    #   SIDE_EFFECTS: none
-    #   LINKS: M-GUI-TIMELINE3
-    # END_CONTRACT: SubtitleTrackItem
-
-    def __init__(
-        self,
-        text: str,
-        start_ts: float,
-        end_ts: float,
-        px_per_sec: float,
-        parent: QGraphicsItem | None = None,
-    ) -> None:
-        super().__init__(parent)
-        self._start_ts = start_ts
-        self._end_ts = end_ts
-        self.setPlainText(text)
-
-        font = QFont()
-        font.setPointSize(9)
-        self.setFont(font)
-        self.setDefaultTextColor(QColor("#e0e0e0"))
-
-        opt = self.document().defaultTextOption()
-        opt.setWrapMode(QTextOption.WrapMode.WordWrap)
-        opt.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        self.document().setDefaultTextOption(opt)
-
-        dur = max(end_ts - start_ts, 0.5)
-        tw = min(dur * px_per_sec, 400)
-        self.setTextWidth(max(tw, 40))
-
-    def start_ts(self) -> float:
-        return self._start_ts
-
-    def end_ts(self) -> float:
-        return self._end_ts
 
 
 class TimeRulerItem(QGraphicsRectItem):

@@ -8,6 +8,18 @@ video2pptx — инструмент для автоматического изв
 
 ## Core Principles
 
+### 0. Always Complete the Full GRACE Cycle
+
+Every feature/change task follows this sequence without skipping steps:
+
+1. **grace-plan** → produces module breakdown, data flows, verification surface, implementation order, risk assessment. **Wait for user approval.**
+2. **On approval** → update `docs/development-plan.xml`, `docs/knowledge-graph.xml`, `docs/verification-plan.xml` with the new modules/flows/verification entries.
+3. **Implement** code via `grace-execute` (sequential) or `grace-multiagent-execute` (parallel), never standalone.
+4. **grace-refresh** → sync docs/artifacts after implementation to reflect actual code state.
+5. **grace-review** → check integrity of docs, contracts, semantic blocks, and test coverage at phase boundaries.
+
+**Violation:** Any implementation without step 2 (docs artifacts update) or step 4 (refresh) is considered incomplete. The agent MUST refuse to write code if the docs/artifacts are not updated first.
+
 ### 1. Never Write Code Without a Contract
 Before generating or editing any module, create or update its MODULE_CONTRACT with PURPOSE, SCOPE, INPUTS, and OUTPUTS. The contract is the source of truth. Code implements the contract, not the other way around.
 
