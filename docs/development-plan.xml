@@ -603,7 +603,7 @@
       <step-6 module="M-GUI-VIDEOPLAYER" status="done" verification="V-M-GUI-VIDEOPLAYER">
         Create src/video_slide_md/gui/video_player.py: QWidget containing QVideoWidget + transport bar (play/pause/stop, seek slider, volume slider, time label). Emits positionChanged for subtitle sync.
       </step-6>
-      <step-7 module="M-GUI-SUBTITLE-OVERLAY" status="pending" verification="V-M-GUI-SUBTITLE-OVERLAY">
+      <step-7 module="M-GUI-SUBTITLE-OVERLAY" status="done" verification="V-M-GUI-SUBTITLE-OVERLAY">
         Create src/video_slide_md/gui/subtitle_overlay.py: QLabel positioned over QVideoWidget, updated on positionChanged. Parses SRT/VTT via pysubs2.
       </step-7>
       <step-8 module="M-GUI-TIMELINE-V2" status="pending" verification="V-M-GUI-TIMELINE-V2">

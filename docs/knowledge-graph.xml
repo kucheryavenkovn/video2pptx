@@ -323,7 +323,7 @@
       </annotations>
     </M-GUI-VIDEOPLAYER>
 
-    <M-GUI-SUBTITLE-OVERLAY NAME="SubtitleOverlay" TYPE="UI_COMPONENT" STATUS="pending">
+    <M-GUI-SUBTITLE-OVERLAY NAME="SubtitleOverlay" TYPE="UI_COMPONENT" STATUS="implemented">
       <purpose>Parse SRT/VTT via pysubs2, render subtitle text as QLabel over QVideoWidget. Sync with positionChanged. Hidden when no subtitles or between cues.</purpose>
       <path>src/video_slide_md/gui/subtitle_overlay.py</path>
       <depends>M-GUI-VIDEOPLAYER, pysubs2</depends>

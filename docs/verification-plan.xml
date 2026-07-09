@@ -377,7 +377,7 @@
       </scenarios>
     </V-M-GUI-VIDEOPLAYER>
 
-    <V-M-GUI-SUBTITLE-OVERLAY MODULE="M-GUI-SUBTITLE-OVERLAY" PRIORITY="high" STATUS="pending">
+    <V-M-GUI-SUBTITLE-OVERLAY MODULE="M-GUI-SUBTITLE-OVERLAY" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_gui_subtitle_overlay.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_subtitle_overlay.py -v</check-1>
