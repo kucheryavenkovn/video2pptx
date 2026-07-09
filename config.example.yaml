@@ -2,16 +2,18 @@
 # Copy to config.local.yaml (git-ignored) and adjust. CLI arguments override these.
 
 video:
-  sample_fps: 2
+  sample_fps: 0.5
   decoder_backend: auto
 
 detection:
   slide_roi: auto
   ignore_rois: []
   threshold: auto
-  min_slide_duration: 3.0
-  min_stable_duration: 1.5
+  min_slide_duration: 10.0
+  min_stable_duration: 5.0
   dedupe_enabled: true
+  export_md: false
+  export_pptx: false
 
 export:
   markdown_format: marp

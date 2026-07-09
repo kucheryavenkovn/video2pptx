@@ -22,6 +22,7 @@ from loguru import logger
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QCloseEvent, QKeySequence, QPixmap, QShortcut
 from PySide6.QtWidgets import (
+    QDialog,
     QFileDialog,
     QHBoxLayout,
     QLabel,
@@ -37,6 +38,7 @@ from PySide6.QtWidgets import (
 
 from video2pptx.backends import BACKENDS
 from video2pptx.gui.app_config import add_recent_project, load_app_config, save_app_config
+from video2pptx.gui.status_manager import StatusBarManager
 from video2pptx.project_manager import Project, create_project, import_video_to_project, import_subtitles_to_project, load_slides_into_project, open_project, save_project, update_project_state
 
 
@@ -58,6 +60,7 @@ class MainWindow(QMainWindow):
         self._marker_manager = None
         self._app_config = load_app_config()
         self._subs: pysubs2.SSAFile | None = None
+        self._status = StatusBarManager(self)
         self._setup_ui()
         self._connect_menu_signals()
         self._try_restore_last_project()
@@ -107,20 +110,46 @@ class MainWindow(QMainWindow):
         self._detect_btn.setEnabled(False)
         self._detect_btn.clicked.connect(self._on_detect)
         self._preview_btn = QPushButton("Preview")
-        self._preview_btn.setToolTip("Quick preview — show score waveform on timeline (no files written)")
+        self._preview_btn.setToolTip("Full preview — score waveform (hashes + histograms)")
         self._preview_btn.setEnabled(False)
         self._preview_btn.clicked.connect(self._on_preview)
+
+        self._quick_preview_btn = QPushButton("Quick Preview")
+        self._quick_preview_btn.setToolTip("Ultra-fast preview — keyframes only, pixel MAE")
+        self._quick_preview_btn.setEnabled(False)
+        self._quick_preview_btn.clicked.connect(self._on_quick_preview)
+
+        self._export_md_btn = QPushButton("Export MD")
+        self._export_md_btn.setToolTip("Export slides.json → deck.md (Marp)")
+        self._export_md_btn.setEnabled(False)
+        self._export_md_btn.clicked.connect(self._on_export_md)
+
+        self._export_pptx_btn = QPushButton("Export PPTX")
+        self._export_pptx_btn.setToolTip("Export slides.json → deck.pptx")
+        self._export_pptx_btn.setEnabled(False)
+        self._export_pptx_btn.clicked.connect(self._on_export_pptx)
+
+        self._notes_btn = QPushButton("Process Notes")
+        self._notes_btn.setToolTip("Align subtitles + process speaker notes")
+        self._notes_btn.setEnabled(False)
+        self._notes_btn.clicked.connect(self._on_process_notes)
 
         info_row.addWidget(self._video_label)
         info_row.addWidget(self._subs_label)
         info_row.addWidget(self._backend_label)
         info_row.addStretch()
+        info_row.addWidget(self._quick_preview_btn)
         info_row.addWidget(self._preview_btn)
         info_row.addWidget(self._detect_btn)
+        info_row.addWidget(QLabel("  "))
+        info_row.addWidget(self._notes_btn)
+        info_row.addWidget(self._export_md_btn)
+        info_row.addWidget(self._export_pptx_btn)
         main_layout.addLayout(info_row)
 
         # Splitter: top = video + overlay, bottom = timeline
         self._splitter = QSplitter(Qt.Orientation.Vertical)
+        self._splitter.setChildrenCollapsible(False)
 
         # --- Video + subtitle overlay container ---
         video_container = QWidget()
@@ -140,7 +169,7 @@ class MainWindow(QMainWindow):
         self._splitter.addWidget(video_container)
         self._splitter.addWidget(self._timeline)
         self._splitter.setStretchFactor(0, 3)
-        self._splitter.setStretchFactor(1, 1)
+        self._splitter.setStretchFactor(1, 2)  # more timeline height
         main_layout.addWidget(self._splitter, stretch=1)
 
         # Status bar
@@ -149,12 +178,16 @@ class MainWindow(QMainWindow):
 
         # Connect video position → subtitle overlay
         self._video_player.positionChanged.connect(self._on_video_position_changed)
+        self._video_player.durationChanged.connect(self._on_video_duration_changed)
 
         # Connect timeline signals
         self._timeline.marker_added.connect(self._on_timeline_marker_added)
         self._timeline.marker_deleted.connect(self._on_timeline_marker_deleted)
         self._timeline.seek_requested.connect(self._on_seek_to_marker)
         self._timeline.open_image.connect(self._on_open_timeline_image)
+        self._timeline.slide_moved.connect(self._on_slide_moved)
+        self._timeline.slide_resized.connect(self._on_slide_resized)
+        self._timeline.open_subtitle_editor.connect(self._on_open_subtitle_editor)
 
         # Keyboard shortcuts
         self._shortcut_add_marker = QShortcut(QKeySequence("Ctrl+M"), self)
@@ -169,6 +202,9 @@ class MainWindow(QMainWindow):
         mb.act_import_video.triggered.connect(self._on_import_video)
         mb.act_import_srt.triggered.connect(self._on_import_srt)
         mb.act_exit.triggered.connect(self.close)
+        mb.act_export_md.triggered.connect(self._on_export_md)
+        mb.act_export_pptx.triggered.connect(self._on_export_pptx)
+        mb.act_process_notes.triggered.connect(self._on_process_notes)
         mb.act_project_settings.triggered.connect(self._on_project_settings)
         mb.act_app_settings.triggered.connect(self._on_app_settings)
         mb.open_recent_project.connect(self._on_open_recent_project)
@@ -186,7 +222,16 @@ class MainWindow(QMainWindow):
     def _on_video_position_changed(self, seconds: float) -> None:
         text = self._get_subtitle_at(seconds)
         self._video_player.set_subtitle_text(text)
+        self._video_player.hide_slide_image()
         self._timeline.set_position(seconds)
+
+    def _on_video_duration_changed(self, seconds: float) -> None:
+        if seconds <= 0:
+            return
+        self._timeline.set_video_duration(seconds)
+        if self._project and self._project.slides:
+            from PySide6.QtCore import QTimer
+            QTimer.singleShot(100, self._timeline.zoom_fit)
 
     def _get_subtitle_at(self, seconds: float) -> str | None:
         if self._subs is None:
@@ -250,7 +295,10 @@ class MainWindow(QMainWindow):
         proj_dir = Path(path).resolve()
         if not proj_dir.is_dir():
             QMessageBox.critical(self, "Error", f"Project directory not found:\n{path}")
-            self._app_config = add_recent_project(str(proj_dir), self._app_config)
+            # Remove invalid path from recent list
+            if path in self._app_config.recent_projects:
+                self._app_config.recent_projects.remove(path)
+                save_app_config(self._app_config)
             self._refresh_recent_projects()
             return
         try:
@@ -272,6 +320,7 @@ class MainWindow(QMainWindow):
         self._subs_label.setText("Subtitles: —")
         self._detect_btn.setEnabled(False)
         self._preview_btn.setEnabled(False)
+        self._quick_preview_btn.setEnabled(False)
         self._timeline.set_slides([])
         self._timeline.set_markers([])
         self._timeline.clear_scores()
@@ -300,6 +349,9 @@ class MainWindow(QMainWindow):
             import_video_to_project(self._project, video_path)
             self._video_label.setText(f"Video: {Path(video_path).name}")
             self._video_player.load_video(video_path)
+            self._detect_btn.setEnabled(True)
+            self._preview_btn.setEnabled(True)
+            self._quick_preview_btn.setEnabled(True)
             self.statusBar().showMessage(f"Video imported: {Path(video_path).name}")
 
             if self._project.subtitles:
@@ -344,6 +396,12 @@ class MainWindow(QMainWindow):
 
         self._detect_btn.setEnabled(bool(proj.video))
         self._preview_btn.setEnabled(bool(proj.video))
+        self._quick_preview_btn.setEnabled(bool(proj.video))
+        has_slides = bool(proj.slides)
+        self._export_md_btn.setEnabled(has_slides)
+        self._export_pptx_btn.setEnabled(has_slides)
+        has_slides_and_subs = has_slides and bool(proj.subtitles)
+        self._notes_btn.setEnabled(has_slides_and_subs)
         self.setWindowTitle(f"video2pptx — {proj.name}")
 
         # Init marker manager ref
@@ -355,6 +413,7 @@ class MainWindow(QMainWindow):
         # Load slides into timeline
         dur = getattr(proj, "video_duration", 0) or 0
         if proj.slides:
+            dur = max(dur, proj.slides[-1].end)
             self._timeline.set_slides(proj.slides)
             self._timeline.set_video_duration(dur)
             self._timeline.set_markers(proj.markers)
@@ -372,6 +431,7 @@ class MainWindow(QMainWindow):
         # Add to recent projects and refresh menu
         if self._current_project_dir:
             self._app_config = add_recent_project(self._current_project_dir, self._app_config)
+            save_app_config(self._app_config)
             self._menu_bar.set_recent_projects(self._app_config.recent_projects)
     # END_BLOCK_PROJECT_LIFECYCLE
 
@@ -424,37 +484,118 @@ class MainWindow(QMainWindow):
     def _on_detect(self) -> None:
         if self._project is None:
             return
-        self.statusBar().showMessage("Detection started...")
+
+        # Warn if slides already exist
+        if self._project.slides:
+            reply = QMessageBox.question(
+                self,
+                "Re-detect?",
+                f"Project already has {len(self._project.slides)} detected slides.\n"
+                "Re-detection will overwrite slides.json and screenshots.\n\nContinue?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            )
+            if reply != QMessageBox.StandardButton.Yes:
+                return
+
+        self._status.start("Detection")
         logger.info("[GUI-Main][_on_detect] Detect triggered")
 
+        from PySide6.QtCore import QThread
         from video2pptx.gui.workers import DetectWorker
 
-        def on_finished(path: str) -> None:
-            self.statusBar().showMessage(f"Detection complete: {path}")
-            update_project_state(self._project, detect_done=True, slides_json=path)
-            load_slides_into_project(self._project)
-            # Reload slides into timeline
-            if self._project.slides:
-                self._timeline.set_slides(self._project.slides)
-                self._timeline.set_video_duration(self._project.video_duration or 0)
-                self._timeline.set_subtitles(self._subs)
-                self._timeline.set_project(self._project)
-
-        def on_error(msg: str) -> None:
-            self.statusBar().showMessage(f"Detection failed: {msg}")
-            QMessageBox.critical(self, "Detection Error", msg)
-
-        worker = DetectWorker(project=self._project)
-        worker.finished.connect(on_finished)
-        worker.error.connect(on_error)
-        worker.run()
+        self._detect_thread = QThread(self)
+        self._detect_worker = DetectWorker(project=self._project)
+        self._detect_worker.moveToThread(self._detect_thread)
+        self._detect_worker.finished.connect(self._on_detect_finished)
+        self._detect_worker.error.connect(self._on_detect_error)
+        self._detect_worker.progress.connect(self._on_worker_progress_msg)
+        self._detect_thread.started.connect(self._detect_worker.run)
+        self._detect_thread.start()
     # END_BLOCK_DETECT
+
+    def _on_export_md(self) -> None:
+        if not self._project or not self._project.slides_json:
+            return
+        try:
+            from video2pptx.markdown_export import export_to_markdown
+            from video2pptx.models import SlidesDocument
+            json_path = Path(self._project.output_dir) / self._project.slides_json
+            out_path = Path(self._project.output_dir) / "deck.md"
+            if out_path.exists():
+                r = QMessageBox.question(self, "Overwrite?", f"{out_path} already exists.\nOverwrite?",
+                                         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                if r != QMessageBox.StandardButton.Yes:
+                    return
+            doc = SlidesDocument.model_validate_json(json_path.read_text(encoding="utf-8"))
+            export_to_markdown(doc, out_path, slides_dir=str(Path(self._project.output_dir) / "slides"), title=self._project.name)
+            self.statusBar().showMessage(f"Markdown exported: {out_path}")
+            self._offer_open_file(out_path)
+            logger.info("[GUI-Main][_on_export_md] Markdown export complete")
+        except Exception as e:
+            QMessageBox.critical(self, "Export Error", str(e))
+
+    def _on_export_pptx(self) -> None:
+        if not self._project or not self._project.slides_json:
+            return
+        try:
+            from video2pptx.pptx_export import export_to_pptx
+            from video2pptx.models import SlidesDocument
+            json_path = Path(self._project.output_dir) / self._project.slides_json
+            out_path = Path(self._project.output_dir) / "deck.pptx"
+            if out_path.exists():
+                r = QMessageBox.question(self, "Overwrite?", f"{out_path} already exists.\nOverwrite?",
+                                         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                if r != QMessageBox.StandardButton.Yes:
+                    return
+            doc = SlidesDocument.model_validate_json(json_path.read_text(encoding="utf-8"))
+            export_to_pptx(doc, out_path, slides_dir=str(Path(self._project.output_dir) / "slides"), title=self._project.name, notes_mode="basic")
+            self.statusBar().showMessage(f"PPTX exported: {out_path}")
+            self._offer_open_file(out_path)
+            logger.info("[GUI-Main][_on_export_pptx] PPTX export complete")
+        except Exception as e:
+            QMessageBox.critical(self, "Export Error", str(e))
+
+    @staticmethod
+    def _offer_open_file(path: Path) -> None:
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+        r = QMessageBox.question(None, "Export complete", f"File saved:\n{path}\n\nOpen?",
+                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if r == QMessageBox.StandardButton.Yes:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
+
+    def _on_process_notes(self) -> None:
+        if not self._project or not self._project.slides:
+            return
+
+        # Check if already processed
+        if self._project.state.notes_done:
+            r = QMessageBox.question(self, "Re-process?",
+                                     "Notes were already processed. Re-run?",
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if r != QMessageBox.StandardButton.Yes:
+                return
+
+        self._status.start("Notes")
+        self._notes_btn.setEnabled(False)
+
+        from PySide6.QtCore import QThread
+        from video2pptx.gui.workers import NotesWorker
+
+        self._notes_thread = QThread(self)
+        self._notes_worker = NotesWorker(project=self._project)
+        self._notes_worker.moveToThread(self._notes_thread)
+        self._notes_worker.finished.connect(self._on_notes_finished)
+        self._notes_worker.error.connect(self._on_notes_error)
+        self._notes_worker.progress.connect(self._on_worker_progress_msg)
+        self._notes_thread.started.connect(self._notes_worker.run)
+        self._notes_thread.start()
 
     # START_BLOCK_PREVIEW
     def _on_preview(self) -> None:
         if self._project is None or not self._project.video:
             return
-        self.statusBar().showMessage("Preview analysis running...")
+        self._status.start("Preview")
         self._preview_btn.setEnabled(False)
         logger.info("[GUI-Main][_on_preview] Preview triggered")
 
@@ -464,24 +605,33 @@ class MainWindow(QMainWindow):
         self._preview_thread = QThread(self)
         self._preview_worker = PreviewWorker(video_path=self._project.video)
         self._preview_worker.moveToThread(self._preview_thread)
-
-        def on_finished(ts: list[float], scores: list[float]) -> None:
-            self._timeline.set_scores(ts, scores)
-            self._timeline.set_video_duration(self._project.video_duration or 0)
-            self.statusBar().showMessage(f"Preview complete — {len(scores)} frames")
-            self._preview_btn.setEnabled(True)
-            self._preview_thread.quit()
-
-        def on_error(msg: str) -> None:
-            self.statusBar().showMessage(f"Preview failed: {msg}")
-            self._preview_btn.setEnabled(True)
-            self._preview_thread.quit()
-
-        self._preview_worker.finished.connect(on_finished)
-        self._preview_worker.error.connect(on_error)
+        self._preview_worker.finished.connect(self._on_preview_finished)
+        self._preview_worker.error.connect(self._on_preview_error)
+        self._preview_worker.progress.connect(self._on_worker_progress)
         self._preview_thread.started.connect(self._preview_worker.run)
         self._preview_thread.start()
     # END_BLOCK_PREVIEW
+
+    # START_BLOCK_QUICK_PREVIEW
+    def _on_quick_preview(self) -> None:
+        if self._project is None or not self._project.video:
+            return
+        self._status.start("Quick Preview")
+        self._quick_preview_btn.setEnabled(False)
+        logger.info("[GUI-Main][_on_quick_preview] Quick preview triggered")
+
+        from PySide6.QtCore import QThread
+        from video2pptx.gui.workers import QuickPreviewWorker
+
+        self._quick_preview_thread = QThread(self)
+        self._quick_preview_worker = QuickPreviewWorker(video_path=self._project.video)
+        self._quick_preview_worker.moveToThread(self._quick_preview_thread)
+        self._quick_preview_worker.finished.connect(self._on_quick_preview_finished)
+        self._quick_preview_worker.error.connect(self._on_quick_preview_error)
+        self._quick_preview_worker.progress.connect(self._on_worker_progress)
+        self._quick_preview_thread.started.connect(self._quick_preview_worker.run)
+        self._quick_preview_thread.start()
+    # END_BLOCK_QUICK_PREVIEW
 
     # START_BLOCK_SETTINGS_MENU
     def _on_project_settings(self) -> None:
@@ -531,6 +681,59 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(f"Marker deleted at {original_ts:.1f}s")
     # END_BLOCK_TIMELINE_MARKERS
 
+    def _on_slide_moved(self, index: int, new_start: float, new_end: float) -> None:
+        if self._project and 0 <= index < len(self._project.slides):
+            s = self._project.slides[index]
+            s.start = new_start
+            s.end = new_end
+            s.duration = new_end - new_start
+            save_project(self._project)
+            self.statusBar().showMessage(f"Slide {index} moved: {new_start:.1f}s – {new_end:.1f}s")
+
+    def _on_slide_resized(self, index: int, new_start: float, new_end: float) -> None:
+        if self._project and 0 <= index < len(self._project.slides):
+            s = self._project.slides[index]
+            s.start = new_start
+            s.end = new_end
+            s.duration = new_end - new_start
+            save_project(self._project)
+            self.statusBar().showMessage(f"Slide {index} resized: {new_start:.1f}s – {new_end:.1f}s")
+
+    def _on_open_subtitle_editor(self, slide_index: int) -> None:
+        if not self._project or slide_index >= len(self._project.slides):
+            return
+        from video2pptx.gui.subtitle_editor import SubtitleEditorDialog
+
+        slide = self._project.slides[slide_index]
+        img_path = str(Path(self._project.output_dir) / slide.image) if slide.image else ""
+
+        # Gather raw subtitle cues for this slide interval
+        raw_cues: list[str] = []
+        if self._subs is not None:
+            for ev in self._subs.events:
+                if ev.start >= slide.start * 1000 and ev.end <= slide.end * 1000:
+                    text = ev.plaintext.strip()
+                    if text:
+                        raw_cues.append(text)
+
+        dlg = SubtitleEditorDialog(
+            slide_index=slide.index,
+            start_sec=slide.start,
+            end_sec=slide.end,
+            image_path=img_path,
+            transcript=slide.transcript or "",
+            subtitle_cues=raw_cues,
+            llm_config=self._project.llm,
+            parent=self,
+        )
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            slide.transcript = dlg.transcript()
+            desc = dlg.description()
+            if desc.strip():
+                slide.llm_description = desc.strip()
+            save_project(self._project)
+            self.statusBar().showMessage(f"Slide {slide_index} saved")
+
     # START_BLOCK_MARKER_ACTIONS
     def _on_add_marker(self) -> None:
         if self._project is None:
@@ -551,14 +754,21 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _on_seek_to_marker(self, ts: float) -> None:
-        self._video_player._player.setPosition(int(ts * 1000))
-        self.statusBar().showMessage(f"Seeked to marker at {ts:.1f}s")
+        player = self._video_player._player
+        player.setPosition(int(ts * 1000))
+        from PySide6.QtCore import QTimer
+        player.play()
+        QTimer.singleShot(10, player.pause)
+        self.statusBar().showMessage(f"Seeked to {ts:.1f}s")
 
-    def _on_open_timeline_image(self, path: str) -> None:
-        from PySide6.QtCore import QUrl
-        from PySide6.QtGui import QDesktopServices
-        QDesktopServices.openUrl(QUrl.fromLocalFile(path))
-        self.statusBar().showMessage(f"Opened: {path}")
+    def _on_open_timeline_image(self, path: str, slide_index: int = 0) -> None:
+        if self._project:
+            full = str(Path(self._project.output_dir) / path)
+        else:
+            full = path
+        label = f"Slide #{slide_index}" if slide_index else ""
+        self._video_player.show_slide_image(full, label)
+        self.statusBar().showMessage(f"Slide #{slide_index}: {path}")
     # END_BLOCK_MARKER_ACTIONS
 
     # START_BLOCK_BACKEND_INFO
@@ -573,3 +783,68 @@ class MainWindow(QMainWindow):
 
     def project(self) -> Project | None:
         return self._project
+
+    def _on_worker_progress(self, pct: int) -> None:
+        self._status.update(pct)
+
+    def _on_worker_progress_msg(self, pct: int, msg: str) -> None:
+        self._status.update(pct, msg)
+
+    def _on_preview_finished(self, ts: list[float], scores: list[float], duration: float) -> None:
+        self._timeline.set_scores(ts, scores)
+        self._timeline.set_video_duration(duration)
+        self._timeline.zoom_fit()
+        self._status.finish(f"Preview complete — {len(scores)} frames")
+        self._preview_btn.setEnabled(True)
+        self._preview_thread.quit()
+
+    def _on_preview_error(self, msg: str) -> None:
+        self._status.finish(f"Preview failed: {msg}")
+        self._preview_btn.setEnabled(True)
+        self._preview_thread.quit()
+
+    def _on_quick_preview_finished(self, ts: list[float], scores: list[float], duration: float) -> None:
+        self._timeline.set_scores(ts, scores)
+        self._timeline.set_video_duration(duration)
+        self._timeline.zoom_fit()
+        self._status.finish(f"Quick preview complete — {len(scores)} frames")
+        self._quick_preview_btn.setEnabled(True)
+        self._quick_preview_thread.quit()
+
+    def _on_quick_preview_error(self, msg: str) -> None:
+        self._status.finish(f"Quick preview failed: {msg}")
+        self._quick_preview_btn.setEnabled(True)
+        self._quick_preview_thread.quit()
+
+    def _on_detect_finished(self, path: str) -> None:
+        self._status.finish(f"Detection complete: {path}")
+        update_project_state(self._project, detect_done=True, slides_json=path)
+        load_slides_into_project(self._project)
+        if self._project.slides:
+            dur = max(self._project.slides[-1].end, self._video_player.duration())
+            self._timeline.set_slides(self._project.slides)
+            self._timeline.set_video_duration(dur)
+            self._timeline.set_markers(self._project.markers)
+            self._timeline.set_subtitles(self._subs)
+            self._timeline.set_project(self._project)
+            self._timeline.zoom_fit()
+        self._export_md_btn.setEnabled(bool(self._project.slides))
+        self._export_pptx_btn.setEnabled(bool(self._project.slides))
+        self._notes_btn.setEnabled(bool(self._project.slides) and bool(self._project.subtitles))
+        self._detect_thread.quit()
+
+    def _on_detect_error(self, msg: str) -> None:
+        self._status.finish(f"Detection failed: {msg}")
+        QMessageBox.critical(self, "Detection Error", msg)
+        self._detect_thread.quit()
+
+    def _on_notes_finished(self, path: str) -> None:
+        load_slides_into_project(self._project)
+        self._status.finish(f"Notes processed: {len(self._project.slides)} slides")
+        self._notes_btn.setEnabled(True)
+        self._notes_thread.quit()
+
+    def _on_notes_error(self, msg: str) -> None:
+        self._status.finish(f"Notes failed: {msg}")
+        self._notes_btn.setEnabled(True)
+        self._notes_thread.quit()

@@ -108,7 +108,18 @@ class ProjectSettingsDialog(QDialog):
         self._dedupe_check = QCheckBox("Enable deduplication")
         det_layout.addRow(self._dedupe_check)
 
+        # Export group
+        export_group = QGroupBox("Export after detection")
+        export_layout = QVBoxLayout(export_group)
+
+        self._export_md_check = QCheckBox("Export deck.md (Marp)")
+        export_layout.addWidget(self._export_md_check)
+
+        self._export_pptx_check = QCheckBox("Export deck.pptx")
+        export_layout.addWidget(self._export_pptx_check)
+
         layout.addWidget(det_group)
+        layout.addWidget(export_group)
 
         # Buttons
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
@@ -157,6 +168,8 @@ class ProjectSettingsDialog(QDialog):
         self._min_dur_spin.setValue(det.min_slide_duration)
         self._min_stable_spin.setValue(det.min_stable_duration)
         self._dedupe_check.setChecked(det.dedupe_enabled)
+        self._export_md_check.setChecked(det.export_md)
+        self._export_pptx_check.setChecked(det.export_pptx)
     # END_BLOCK_LOAD_VALUES
 
     # START_BLOCK_ON_ACCEPT
@@ -196,6 +209,8 @@ class ProjectSettingsDialog(QDialog):
         det.min_slide_duration = self._min_dur_spin.value()
         det.min_stable_duration = self._min_stable_spin.value()
         det.dedupe_enabled = self._dedupe_check.isChecked()
+        det.export_md = self._export_md_check.isChecked()
+        det.export_pptx = self._export_pptx_check.isChecked()
 
         save_project(self._project)
         logger.info(

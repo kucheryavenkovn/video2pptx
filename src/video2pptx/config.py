@@ -37,24 +37,25 @@ class VideoConfig(BaseModel):
     #   SIDE_EFFECTS: none
     #   LINKS: M-CONFIG
     # END_CONTRACT: VideoConfig
-    sample_fps: float = Field(default=2.0, ge=0.1, le=30.0, description="Frame sampling rate")
+    sample_fps: float = Field(default=0.5, ge=0.1, le=30.0, description="Frame sampling rate")
     decoder_backend: str = Field(default="auto", description="Decoder backend: auto, opencv, pyav, decord, pynv")
 
 
 class DetectionConfig(BaseModel):
     # START_CONTRACT: DetectionConfig
-    #   PURPOSE: Slide detection parameters
-    #   INPUTS: { slide_roi, ignore_rois, threshold, min_slide_duration, min_stable_duration, dedupe_enabled }
-    #   OUTPUTS: { DetectionConfig }
-    #   SIDE_EFFECTS: none
+    #   PURPOSE: Slide detection parameters and post-detection export flags
+    #   SCOPE: ROI, threshold, durations, deduplication, export-md/pptx flags
+    #   DEPENDS: none
     #   LINKS: M-CONFIG
     # END_CONTRACT: DetectionConfig
     slide_roi: str = Field(default="auto", description="ROI mode or coordinates: auto, full, x1,y1,x2,y2")
     ignore_rois: list[list[int]] = Field(default_factory=list, description="Regions to ignore [[x1,y1,x2,y2], ...]")
     threshold: str | float = Field(default="auto", description="Diff score threshold or auto")
-    min_slide_duration: float = Field(default=3.0, ge=0.5, description="Minimum slide duration in seconds")
-    min_stable_duration: float = Field(default=1.5, ge=0.5, description="Minimum stable duration to confirm change")
+    min_slide_duration: float = Field(default=10.0, ge=0.5, description="Minimum slide duration in seconds")
+    min_stable_duration: float = Field(default=5.0, ge=0.5, description="Minimum stable duration to confirm change")
     dedupe_enabled: bool = Field(default=True, description="Enable neighbor deduplication")
+    export_md: bool = Field(default=False, description="Export deck.md after detection")
+    export_pptx: bool = Field(default=False, description="Export deck.pptx after detection")
 
 
 class ExportConfig(BaseModel):
@@ -113,6 +114,20 @@ class LlmConfig(BaseModel):
     max_tokens: int = Field(default=4096, ge=64, le=128000, description="Max output tokens")
     api_token: str = Field(default="", description="API key / bearer token for LLM provider authentication")
     unload_when_done: bool = Field(default=True, description="Unload model from VRAM after processing")
+    vision_prompt: str = Field(
+        default="Describe this slide image. List ALL key technical terms, concepts, formulas, "
+                "and any visible text. Be specific and thorough — use the exact spelling of terms as they appear on screen.",
+        description="System prompt for slide image vision analysis"
+    )
+    correction_prompt: str = Field(
+        default="You are a transcript editor. Below is a slide description with technical terms "
+                "and a raw transcript. Correct the transcript:\n"
+                "- Fix misspelled technical terms using the exact terms from the slide description\n"
+                "- Remove filler words and repetitions\n"
+                "- Keep the original meaning and flow\n"
+                "- Return ONLY the corrected transcript, no commentary",
+        description="System prompt for transcript correction with slide context"
+    )
 
 
 class AppConfig(BaseModel):

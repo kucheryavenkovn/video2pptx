@@ -119,18 +119,18 @@ def detect_best_backend() -> str:
     return "opencv"
 
 
-def iter_frames(video_path: str | Path, sample_fps: float = 2.0, backend: str = "auto") -> Iterator[VideoFrame]:
+def iter_frames(video_path: str | Path, sample_fps: float = 2.0, backend: str = "auto", keyframes_only: bool = False) -> Iterator[VideoFrame]:
     # START_CONTRACT: iter_frames
     #   PURPOSE: Auto-select backend and iterate video frames at sample_fps
-    #   INPUTS: { video_path, sample_fps, backend }
+    #   INPUTS: { video_path, sample_fps, backend, keyframes_only }
     #   OUTPUTS: Iterator[VideoFrame]
     #   SIDE_EFFECTS: opens video, reads frames
     #   LINKS: M-BACKENDS
     # END_CONTRACT: iter_frames
 
     name, info = _resolve_backend(backend)
-    logger.info(f"[Backends][iter_frames] backend={name} path={video_path} sample_fps={sample_fps}")
-    yield from info["iter_frames"](video_path, sample_fps)
+    logger.info(f"[Backends][iter_frames] backend={name} path={video_path} sample_fps={sample_fps} keyframes_only={keyframes_only}")
+    yield from info["iter_frames"](video_path, sample_fps, keyframes_only)
 
 
 def video_info(video_path: str | Path, backend: str = "auto") -> VideoInfo:

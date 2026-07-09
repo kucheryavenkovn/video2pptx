@@ -137,7 +137,7 @@ def compute_threshold(scores: Sequence[float], k: float = 3.0) -> float:
     median = float(np.median(arr))
     mad = float(np.median(np.abs(arr - median)))
     threshold = median + k * mad
-    logger.debug(
+    logger.trace(
         f"[FrameFeatures][compute_threshold] "
         f"median={median:.4f} mad={mad:.4f} k={k} threshold={threshold:.4f}"
     )
@@ -219,6 +219,32 @@ def _pixel_mae(thumb_a: list[float], thumb_b: list[float]) -> float:
     b = np.array(thumb_b, dtype=np.float32)
     mae = float(np.mean(np.abs(a - b)))
     return min(1.0, mae / 255.0)
+
+
+def quick_extract(image: np.ndarray) -> list[float]:
+    # START_CONTRACT: quick_extract
+    #   PURPOSE: Lightweight thumbnail extraction for fast preview — no hashes/histograms
+    #   INPUTS: { image: np.ndarray — RGB array (H, W, C) }
+    #   OUTPUTS: list[float] — flattened 32×24 grayscale, values in 0-255
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-FRAME-FEATURES
+    # END_CONTRACT: quick_extract
+
+    gray = cv2_to_gray(image)
+    thumb = cv2.resize(gray, (32, 24), interpolation=cv2.INTER_LINEAR)
+    return thumb.ravel().astype(np.float32).tolist()
+
+
+def quick_visual_distance(thumb_a: list[float], thumb_b: list[float]) -> float:
+    # START_CONTRACT: quick_visual_distance
+    #   PURPOSE: Fast pixel MAE between two quick_extract thumbnails (0-1)
+    #   INPUTS: { thumb_a, thumb_b: list[float] }
+    #   OUTPUTS: float — 0 = identical, 1 = completely different
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-FRAME-FEATURES
+    # END_CONTRACT: quick_visual_distance
+
+    return _pixel_mae(thumb_a, thumb_b)
 
 
 def array_to_pil(image: np.ndarray) -> Image.Image:

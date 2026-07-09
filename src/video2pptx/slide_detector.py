@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Iterator
+from typing import Callable, Iterator
 
 import numpy as np
 from loguru import logger
@@ -51,6 +51,7 @@ def detect_changes(
     min_stable_duration: float = 1.5,
     sample_fps: float = 2.0,
     video_duration: float | None = None,
+    progress_callback: Callable[[int, str], None] | None = None,
 ) -> tuple[list[ChangeEvent], list[FrameFeatures], list[float]]:
     # START_CONTRACT: detect_changes
     #   PURPOSE: Scan frames, compare consecutive, detect slide changes
@@ -96,6 +97,11 @@ def detect_changes(
                 f"[SlideDetector][detect_changes] Progress | "
                 f"{pct} ts={timestamp:.0f}s changes={len(changes)}"
             )
+            if progress_callback and video_duration:
+                progress_callback(
+                    int(timestamp / video_duration * 100),
+                    f"Pass 1/3 — {len(changes)} changes at {timestamp:.0f}s",
+                )
             next_progress += progress_step
 
         prev_features = ff

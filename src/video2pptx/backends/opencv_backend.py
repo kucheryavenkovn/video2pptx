@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Iterator
 
 import cv2
+from loguru import logger
 
 from video2pptx.models import VideoFrame, VideoInfo
 
@@ -64,10 +65,11 @@ def opencv_video_info(video_path: str | Path) -> VideoInfo:
 def opencv_iter_frames(
     video_path: str | Path,
     sample_fps: float = 2.0,
+    keyframes_only: bool = False,
 ) -> Iterator[VideoFrame]:
     # START_CONTRACT: opencv_iter_frames
     #   PURPOSE: Iterate video frames at given sample rate using OpenCV
-    #   INPUTS: { video_path: str|Path, sample_fps: float }
+    #   INPUTS: { video_path: str|Path, sample_fps: float, keyframes_only: bool }
     #   OUTPUTS: Iterator[VideoFrame] — yields frames with timestamps
     #   SIDE_EFFECTS: opens video file, reads frames sequentially
     #   LINKS: M-BACKEND-OPENCV
@@ -83,6 +85,9 @@ def opencv_iter_frames(
     video_fps = cap.get(cv2.CAP_PROP_FPS)
     if video_fps <= 0:
         video_fps = 30.0
+
+    if keyframes_only:
+        logger.info("[OpenCV][iter_frames] keyframes_only requested — falling back to normal sampling (OpenCV has no keyframe API)")
 
     frame_interval = max(1, int(round(video_fps / sample_fps)))
     current_frame_idx = 0

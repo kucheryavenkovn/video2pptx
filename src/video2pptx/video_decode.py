@@ -93,10 +93,10 @@ class VideoDecoder:
             # END_BLOCK_GET_INFO
         return self._cached_info
 
-    def iter_frames(self) -> Iterator[VideoFrame]:
+    def iter_frames(self, keyframes_only: bool = False) -> Iterator[VideoFrame]:
         # START_CONTRACT: iter_frames
         #   PURPOSE: Iterate video frames at configured sample rate
-        #   INPUTS: none
+        #   INPUTS: { keyframes_only: bool }
         #   OUTPUTS: Iterator[VideoFrame]
         #   SIDE_EFFECTS: reads video file sequentially
         #   LINKS: M-VIDEO-DECODE
@@ -105,7 +105,7 @@ class VideoDecoder:
         # START_BLOCK_ITER_FRAMES
         logger.info(
             f"[VideoDecode][iter_frames] Sampling frames | "
-            f"backend={self.backend_name} sample_fps={self.sample_fps}"
+            f"backend={self.backend_name} sample_fps={self.sample_fps} keyframes_only={keyframes_only}"
         )
-        yield from self._iter_frames_fn(self.video_path, self.sample_fps)
+        yield from self._iter_frames_fn(self.video_path, self.sample_fps, keyframes_only)
         # END_BLOCK_ITER_FRAMES

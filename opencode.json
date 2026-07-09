@@ -9,17 +9,26 @@
     "zread": {
       "type": "remote",
       "url": "https://api.z.ai/api/mcp/zread/sse",
-      "enabled": true
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer {file:.secrets/zread_api_key}"
+      }
     },
     "web-search-prime": {
       "type": "remote",
       "url": "https://api.z.ai/api/mcp/web_search_prime/mcp",
-      "enabled": true
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer {file:.secrets/zread_api_key}"
+      }
     },
     "web-reader": {
       "type": "remote",
       "url": "https://api.z.ai/api/mcp/web_reader/mcp",
-      "enabled": true
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer {file:.secrets/zread_api_key}"
+      }
     }
   },
   "permission": {

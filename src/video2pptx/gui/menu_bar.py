@@ -99,6 +99,17 @@ class MenuBarWidget(QMenuBar):
 
         file_menu.addSeparator()
 
+        self.act_process_notes = QAction("Process &Notes...", self)
+        file_menu.addAction(self.act_process_notes)
+
+        self.act_export_md = QAction("Export &Markdown...", self)
+        file_menu.addAction(self.act_export_md)
+
+        self.act_export_pptx = QAction("Export &PPTX...", self)
+        file_menu.addAction(self.act_export_pptx)
+
+        file_menu.addSeparator()
+
         self.act_exit = QAction("E&xit", self)
         self.act_exit.setShortcut("Ctrl+Q")
         file_menu.addAction(self.act_exit)

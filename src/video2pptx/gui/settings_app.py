@@ -34,6 +34,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSpinBox,
     QTabWidget,
+    QTextEdit,
     QVBoxLayout,
     QWidget,
 )
@@ -170,6 +171,22 @@ class AppSettingsDialog(QDialog):
         self._llm_max_tokens_spin.setSingleStep(256)
         form.addRow("Max Tokens:", self._llm_max_tokens_spin)
 
+        self._notes_mode_combo = QComboBox()
+        self._notes_mode_combo.addItem("Basic (regex cleanup only)", "basic")
+        self._notes_mode_combo.addItem("LLM (vision + rephrase)", "llm")
+        form.addRow("Notes Mode:", self._notes_mode_combo)
+
+        # Prompt editors
+        self._llm_vision_prompt_edit = QTextEdit()
+        self._llm_vision_prompt_edit.setMaximumHeight(80)
+        self._llm_vision_prompt_edit.setPlaceholderText("Prompt for slide image vision analysis...")
+        form.addRow("Vision Prompt:", self._llm_vision_prompt_edit)
+
+        self._llm_correction_prompt_edit = QTextEdit()
+        self._llm_correction_prompt_edit.setMaximumHeight(80)
+        self._llm_correction_prompt_edit.setPlaceholderText("Prompt for transcript correction...")
+        form.addRow("Correction Prompt:", self._llm_correction_prompt_edit)
+
         # Test Connection button row
         test_layout = QHBoxLayout()
         self._llm_test_btn = QPushButton("Test Connection")
@@ -260,6 +277,12 @@ class AppSettingsDialog(QDialog):
         self._llm_context_spin.setValue(llm.context_window)
         self._llm_temperature_spin.setValue(llm.temperature)
         self._llm_max_tokens_spin.setValue(llm.max_tokens)
+        self._llm_vision_prompt_edit.setPlainText(llm.vision_prompt)
+        self._llm_correction_prompt_edit.setPlainText(llm.correction_prompt)
+
+        idx = self._notes_mode_combo.findData(self._app_config.notes_mode)
+        if idx >= 0:
+            self._notes_mode_combo.setCurrentIndex(idx)
 
         self._sync_model_combo_config()
 
@@ -285,6 +308,10 @@ class AppSettingsDialog(QDialog):
         llm.context_window = self._llm_context_spin.value()
         llm.temperature = self._llm_temperature_spin.value()
         llm.max_tokens = self._llm_max_tokens_spin.value()
+        llm.vision_prompt = self._llm_vision_prompt_edit.toPlainText().strip()
+        llm.correction_prompt = self._llm_correction_prompt_edit.toPlainText().strip()
+
+        self._app_config.notes_mode = self._notes_mode_combo.currentData() or "basic"
 
         self._app_config.backend = self._backend_combo.currentData()
         self._app_config.snap_mode = self._snap_mode_combo.currentData()

@@ -46,6 +46,7 @@ class AppConfigModel(BaseModel):
     default_project_dir: str = Field(default="", description="Default directory for new projects")
     last_project_path: str = Field(default="", description="Path to the last opened project for auto-restore")
     restore_last_project: bool = Field(default=True, description="Prompt to restore the last project on startup")
+    notes_mode: str = Field(default="basic", description="Notes processing mode: basic or llm")
     recent_projects: list[str] = Field(default_factory=list, description="Last 10 unique project paths")
 
 

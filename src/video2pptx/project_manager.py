@@ -289,7 +289,7 @@ def load_slides_into_project(project: Project) -> Project:
     import json
     try:
         raw = json.loads(slides_path.read_text(encoding="utf-8"))
-        project.slides = [SlideSegment(**s) for s in raw]
+        project.slides = [SlideSegment(**s) for s in raw.get("slides", [])]
         logger.info(f"[ProjectManager][load_slides_into_project] Loaded | count={len(project.slides)}")
     except Exception as exc:
         logger.error(f"[ProjectManager][load_slides_into_project] Failed | error={exc}")

@@ -28,7 +28,7 @@ from video2pptx.config import (
 class TestVideoConfig:
     def test_defaults(self):
         vc = VideoConfig()
-        assert vc.sample_fps == 2.0
+        assert vc.sample_fps == 0.5
         assert vc.decoder_backend == "auto"
 
     def test_custom(self):
@@ -50,9 +50,11 @@ class TestDetectionConfig:
         dc = DetectionConfig()
         assert dc.slide_roi == "auto"
         assert dc.ignore_rois == []
-        assert dc.min_slide_duration == 3.0
-        assert dc.min_stable_duration == 1.5
+        assert dc.min_slide_duration == 10.0
+        assert dc.min_stable_duration == 5.0
         assert dc.dedupe_enabled is True
+        assert dc.export_md is False
+        assert dc.export_pptx is False
 
     def test_with_ignore_rois(self):
         dc = DetectionConfig(ignore_rois=[[1450, 720, 1900, 1080]])
@@ -85,8 +87,8 @@ class TestDebugConfig:
 class TestAppConfig:
     def test_defaults(self):
         cfg = AppConfig()
-        assert cfg.video.sample_fps == 2.0
-        assert cfg.detection.min_slide_duration == 3.0
+        assert cfg.video.sample_fps == 0.5
+        assert cfg.detection.min_slide_duration == 10.0
         assert cfg.export.markdown_format == "marp"
         assert cfg.debug.save_timeline is True
         assert cfg.logging.level == "INFO"
@@ -156,15 +158,15 @@ class TestLoadConfig:
 
     def test_defaults_without_file(self):
         cfg = load_config()
-        assert cfg.video.sample_fps == 2.0
-        assert cfg.detection.min_slide_duration == 3.0
+        assert cfg.video.sample_fps == 0.5
+        assert cfg.detection.min_slide_duration == 10.0
 
     def test_missing_file_falls_back(self):
         cfg = load_config(config_path="/nonexistent/config.yaml")
-        assert cfg.video.sample_fps == 2.0
+        assert cfg.video.sample_fps == 0.5
 
     def test_json_serialization(self):
         cfg = AppConfig()
         raw = cfg.model_dump_json()
         restored = AppConfig.model_validate_json(raw)
-        assert restored.video.sample_fps == 2.0
+        assert restored.video.sample_fps == 0.5

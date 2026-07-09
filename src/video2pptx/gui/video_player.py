@@ -19,10 +19,11 @@ from pathlib import Path
 
 from loguru import logger
 from PySide6.QtCore import QSizeF, Qt, Signal
-from PySide6.QtGui import QFont, QKeyEvent, QResizeEvent, QTextOption
+from PySide6.QtGui import QColor, QFont, QKeyEvent, QPixmap, QResizeEvent, QTextOption
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from PySide6.QtWidgets import (
+    QGraphicsPixmapItem,
     QGraphicsScene,
     QGraphicsTextItem,
     QGraphicsView,
@@ -59,6 +60,8 @@ class VideoPlayerWidget(QWidget):
         self._is_playing = False
         self._setup_ui()
         self._connect_signals()
+
+        self._slide_pixmap: QGraphicsPixmapItem | None = None
 
     # START_BLOCK_SETUP_UI
     def _setup_ui(self) -> None:
@@ -238,7 +241,10 @@ class VideoPlayerWidget(QWidget):
 
     def set_subtitle_text(self, text: str | None) -> None:
         if text:
-            self._subtitle_item.setPlainText(text)
+            self._subtitle_item.setHtml(
+                f'<div style="background: rgba(0,0,0,180); color: white; '
+                f'padding: 6px 12px; border-radius: 4px;">{text}</div>'
+            )
             # Set text width to video width for wrapping
             vr = self._video_item.boundingRect()
             tw = max(vr.width() - 20, 50)
@@ -250,7 +256,7 @@ class VideoPlayerWidget(QWidget):
             self._subtitle_item.setPos(x, y)
             self._subtitle_item.show()
         else:
-            self._subtitle_item.setPlainText("")
+            self._subtitle_item.setHtml("")
             self._subtitle_item.hide()
 
     def resizeEvent(self, event: QResizeEvent) -> None:  # noqa: N802
@@ -322,3 +328,48 @@ class VideoPlayerWidget(QWidget):
     def duration(self) -> float:
         return self._player.duration() / 1000.0
     # END_BLOCK_KEYBOARD_NAV
+
+    # START_BLOCK_SLIDE_IMAGE
+    def show_slide_image(self, path: str, label: str = "") -> None:
+        self.hide_slide_image()
+        pix = QPixmap(path)
+        if pix.isNull():
+            logger.warning(f"[GUI-VideoPlayer][show_slide_image] Cannot load: {path}")
+            return
+        self._slide_pixmap = QGraphicsPixmapItem()
+        vr = self._video_item.boundingRect()
+        scaled = pix.scaled(
+            int(vr.width()),
+            int(vr.height()),
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        self._slide_pixmap.setPixmap(scaled)
+        pr = self._slide_pixmap.boundingRect()
+        self._slide_pixmap.setPos((vr.width() - pr.width()) / 2, (vr.height() - pr.height()) / 2)
+        self._slide_pixmap.setZValue(2)
+        self._scene.addItem(self._slide_pixmap)
+
+        if label:
+            self._slide_label = QGraphicsTextItem(label)
+            font = QFont()
+            font.setPointSize(18)
+            font.setBold(True)
+            self._slide_label.setFont(font)
+            self._slide_label.setDefaultTextColor(QColor(76, 175, 80))
+            self._slide_label.setZValue(3)
+            self._slide_label.setPos(12, 8)
+            self._scene.addItem(self._slide_label)
+        else:
+            self._slide_label = None
+
+        logger.info(f"[GUI-VideoPlayer][show_slide_image] Showing | path={path} label={label}")
+
+    def hide_slide_image(self) -> None:
+        if self._slide_pixmap is not None:
+            self._scene.removeItem(self._slide_pixmap)
+            self._slide_pixmap = None
+        if hasattr(self, '_slide_label') and self._slide_label is not None:
+            self._scene.removeItem(self._slide_label)
+            self._slide_label = None
+    # END_BLOCK_SLIDE_IMAGE

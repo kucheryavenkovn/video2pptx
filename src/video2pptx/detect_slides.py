@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Callable
 
 import cv2
 import numpy as np
@@ -34,6 +35,7 @@ def run_detect_slides(
     video_path: Path,
     out_dir: Path,
     cfg: AppConfig,
+    progress_callback: Callable[[int, str], None] | None = None,
 ) -> SlidesDocument:
     # START_CONTRACT: run_detect_slides
     #   PURPOSE: Run standalone slide detection — no subtitles, no export, only slides.json + screenshots
@@ -85,6 +87,7 @@ def run_detect_slides(
         min_stable_duration=cfg.detection.min_stable_duration,
         sample_fps=cfg.video.sample_fps,
         video_duration=info.duration,
+        progress_callback=progress_callback,
     )
     # END_BLOCK_DETECT_CHANGES
 

@@ -35,9 +35,9 @@ class TrackHeaderPanel(QWidget):
     # END_CONTRACT: TrackHeaderPanel
 
     TRACK_NAMES = [
+        ("subtitles", "Subtitles"),
         ("slides", "Slides"),
         ("markers", "Markers"),
-        ("subtitles", "Subtitles"),
         ("waveform", "Score"),
     ]
 
@@ -51,16 +51,20 @@ class TrackHeaderPanel(QWidget):
         # Spacer for ruler area
         layout.addSpacing(28)
 
+        from video2pptx.gui.timeline3.view import TimelineView
+        heights = {
+            "subtitles": TimelineView.TRACK_H_SUBS,
+            "slides": TimelineView.TRACK_H_SLIDES,
+            "markers": TimelineView.TRACK_H_MARKERS,
+            "waveform": TimelineView.TRACK_H_WAVEFORM,
+        }
         for key, name in self.TRACK_NAMES:
-            from video2pptx.gui.timeline3.view import TimelineView
-            h = TimelineView.TRACK_H.get(key, 24)
-            y = TimelineView.TRACK_Y.get(key, 0)
+            h = heights.get(key, 24)
             lbl = QLabel(name)
             lbl.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
             lbl.setStyleSheet("color: #888; font-size: 10px; padding-left: 4px;")
             lbl.setFixedHeight(h)
             layout.addWidget(lbl)
-            layout.addSpacing(y - (TimelineView.TRACK_Y.get(key, 0) + h) if y > 0 else 0)
 
         layout.addStretch()
 
@@ -77,7 +81,10 @@ class TimelineWidget(QWidget):
     seek_requested = Signal(float)
     marker_added = Signal(float)
     marker_deleted = Signal(float)
-    open_image = Signal(str)
+    open_image = Signal(str, int)  # path, slide_index
+    slide_moved = Signal(int, float, float)  # index, new_start, new_end
+    slide_resized = Signal(int, float, float)  # index, new_start, new_end
+    open_subtitle_editor = Signal(int)  # slide_index
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -149,6 +156,9 @@ class TimelineWidget(QWidget):
         self._view.marker_added.connect(self.marker_added)
         self._view.marker_deleted.connect(self.marker_deleted)
         self._view.open_image.connect(self.open_image)
+        self._view.slide_moved.connect(self.slide_moved)
+        self._view.slide_resized.connect(self.slide_resized)
+        self._view.open_subtitle_editor.connect(self.open_subtitle_editor)
     # END_BLOCK_SIGNALS
 
     # START_BLOCK_DATA
@@ -200,15 +210,20 @@ class TimelineWidget(QWidget):
 
     def set_project(self, project) -> None:
         self._view._project = project
-    # END_BLOCK_DATA
+        if hasattr(project, 'output_dir'):
+            self._view._project_dir = str(project.output_dir)
 
     # START_BLOCK_ZOOM
+    def zoom_fit(self) -> None:
+        self._on_zoom_fit()
+
     def _on_zoom_fit(self) -> None:
         dur = self._view._duration
         if dur <= 0:
             return
         view_w = self._view.viewport().width()
-        px_per_sec = (view_w - 20) / dur if dur > 0 else 50
+        px_per_sec = view_w / dur if dur > 0 and view_w > 0 else 50
+        px_per_sec = max(1.0, px_per_sec)
         self._set_px_per_sec(px_per_sec)
 
     def _on_zoom_in(self) -> None:

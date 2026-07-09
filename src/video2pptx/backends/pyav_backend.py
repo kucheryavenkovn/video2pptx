@@ -104,7 +104,7 @@ def pyav_video_info(video_path: str | Path) -> VideoInfo:
 
 # START_CONTRACT: pyav_iter_frames
 #   PURPOSE: Iterate video frames at sample_fps using PyAV with hardware-accelerated decode
-#   INPUTS: { video_path: str|Path, sample_fps: float }
+#   INPUTS: { video_path: str|Path, sample_fps: float, keyframes_only: bool }
 #   OUTPUTS: Iterator[VideoFrame] — RGB uint8 arrays with timestamps
 #   SIDE_EFFECTS: opens video file, decodes frames sequentially
 #   LINKS: M-BACKEND-PYAV
@@ -112,6 +112,7 @@ def pyav_video_info(video_path: str | Path) -> VideoInfo:
 def pyav_iter_frames(
     video_path: str | Path,
     sample_fps: float = 2.0,
+    keyframes_only: bool = False,
 ) -> Iterator[VideoFrame]:
     # START_BLOCK_INIT
     import av
@@ -134,7 +135,11 @@ def pyav_iter_frames(
     try:
         for packet in container.demux(stream):
             for frame in packet.decode():
-                if current_frame_idx % frame_interval == 0:
+                if keyframes_only and not frame.key_frame:
+                    current_frame_idx += 1
+                    continue
+                # yield all keyframes (no interval skip), or apply sampling for normal mode
+                if keyframes_only or current_frame_idx % frame_interval == 0:
                     timestamp = current_frame_idx / video_fps
                     # to_ndarray handles GPU->CPU transfer automatically
                     img = frame.to_ndarray(format="rgb24")
