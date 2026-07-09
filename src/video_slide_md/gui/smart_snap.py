@@ -25,7 +25,6 @@ import csv
 from pathlib import Path
 
 import cv2
-import numpy as np
 from loguru import logger
 
 from video_slide_md.frame_features import extract_features, visual_distance
@@ -290,7 +289,6 @@ def _decode_and_analyze_window(
         if fps <= 0:
             fps = 30.0
 
-        frame_times: list[float] = []
         prev_features = None
         best_score: float = -1.0
         best_time: float = timestamp

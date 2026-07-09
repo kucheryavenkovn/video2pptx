@@ -15,7 +15,6 @@ import sys
 from pathlib import Path
 
 import pytest
-import yaml
 
 from video_slide_md.config import LlmConfig
 from video_slide_md.gui.app_config import (

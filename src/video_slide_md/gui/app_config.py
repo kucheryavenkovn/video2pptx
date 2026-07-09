@@ -21,13 +21,12 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any
 
 import yaml
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from video_slide_md.config import DetectionConfig, LlmConfig
+from video_slide_md.config import LlmConfig
 from video_slide_md.project_manager import Project
 
 

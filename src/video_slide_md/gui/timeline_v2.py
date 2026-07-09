@@ -18,10 +18,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from loguru import logger
-from PySide6.QtCore import Qt, Signal, QRectF, QPointF
+from PySide6.QtCore import Qt, Signal, QRectF
 from PySide6.QtCore import QUrl
 from PySide6.QtGui import QBrush, QColor, QDesktopServices, QPainter, QPen
-from PySide6.QtWidgets import QMenu, QToolTip, QWidget
+from PySide6.QtWidgets import QMenu, QWidget
 
 from video_slide_md.models import SlideSegment
 from video_slide_md.project_manager import Project

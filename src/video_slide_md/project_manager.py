@@ -27,6 +27,7 @@ from loguru import logger
 from pydantic import BaseModel, Field
 
 from video_slide_md.config import DetectionConfig, LlmConfig, VideoConfig
+from video_slide_md.models import SlideSegment
 
 
 class ProjectState(BaseModel):
@@ -60,6 +61,7 @@ class Project(BaseModel):
     state: ProjectState = Field(default_factory=ProjectState, description="Pipeline progress flags")
     slides_json: str | None = Field(default=None, description="Relative path to slides.json output")
     markers: list[dict[str, str | float]] = Field(default_factory=list, description="User-defined manual markers [{original_ts, snapped_ts, snap_mode}]")
+    slides: list[SlideSegment] = Field(default_factory=list, description="Loaded slide segments (populated from slides_json)")
     backend: str = Field(default="auto", description="Preferred decoder backend: auto, opencv, pyav")
     output_dir: str = Field(default=".", description="Output directory (relative to project dir)")
 
@@ -130,7 +132,8 @@ def open_project(project_dir: str | Path) -> Project:
         raise FileNotFoundError(f"project.json not found in {proj_path}")
 
     proj = Project.model_validate_json(json_path.read_text(encoding="utf-8"))
-    logger.info(f"[ProjectManager][open_project] Project loaded | path={json_path} name={proj.name}")
+    load_slides_into_project(proj)
+    logger.info(f"[ProjectManager][open_project] Project loaded | path={json_path} name={proj.name} slides={len(proj.slides)}")
 
     return proj
 
@@ -174,5 +177,36 @@ def update_project_state(project: Project, **state_kwargs: Any) -> Project:
         f"notes_done={project.state.notes_done} "
         f"llm_done={project.state.llm_done}"
     )
+
+    return project
+
+
+def load_slides_into_project(project: Project) -> Project:
+    # START_CONTRACT: load_slides_into_project
+    #   PURPOSE: Load slides from slides_json into project.slides
+    #   INPUTS: { project: Project }
+    #   OUTPUTS: Project — updated in-place
+    #   SIDE_EFFECTS: reads slides.json if it exists
+    #   LINKS: M-PROJECT
+    # END_CONTRACT: load_slides_into_project
+
+    if not project.slides_json:
+        project.slides = []
+        return project
+
+    slides_path = Path(project.output_dir) / project.slides_json
+    if not slides_path.is_file():
+        logger.warning(f"[ProjectManager][load_slides_into_project] slides.json not found | path={slides_path}")
+        project.slides = []
+        return project
+
+    import json
+    try:
+        raw = json.loads(slides_path.read_text(encoding="utf-8"))
+        project.slides = [SlideSegment(**s) for s in raw]
+        logger.info(f"[ProjectManager][load_slides_into_project] Loaded | count={len(project.slides)}")
+    except Exception as exc:
+        logger.error(f"[ProjectManager][load_slides_into_project] Failed | error={exc}")
+        project.slides = []
 
     return project

@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from loguru import logger
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QCheckBox,
     QDialog,
@@ -24,9 +24,7 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QFormLayout,
     QGroupBox,
-    QHBoxLayout,
     QLineEdit,
-    QSpinBox,
     QVBoxLayout,
     QWidget,
 )
