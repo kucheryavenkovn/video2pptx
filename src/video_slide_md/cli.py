@@ -12,7 +12,9 @@
 # START_MODULE_MAP
 #   app - main Typer application
 #   run - entry point for console_scripts
-#   detect - detect command: video + subtitles → slides.json + images
+#   detect - detect command: video + subtitles → slides.json + images (all-in-one)
+#   detect_slides - detect-slides command: video → slides.json + screenshots (standalone)
+#   notes_cmd - notes command: slides.json + subtitles → enriched notes
 #   export_md - export-md command: slides.json → deck.md
 #   export_pptx - export-pptx command: slides.json → deck.pptx
 #   debug_cmd - debug command: slides.json → debug artifacts
@@ -33,8 +35,10 @@ from rich.table import Table
 
 from video_slide_md.config import load_config, AppConfig, LlmConfig
 from video_slide_md.dedupe import deduplicate_segments
+from video_slide_md.detect_slides import run_detect_slides
 from video_slide_md.frame_features import extract_features
 from video_slide_md.markdown_export import export_to_markdown
+from video_slide_md.notes_pipeline import run_notes
 from video_slide_md.pptx_export import export_to_pptx
 from video_slide_md.models import SlideSegment, SlidesDocument, VideoInfo, SubtitleCue
 from video_slide_md.roi import SlideRegion, parse_roi, parse_ignore_rois
@@ -252,6 +256,103 @@ def detect(
         # END_BLOCK_OPTIONAL_EXPORT
 
     logger.info(f"[CLI][detect] Detection complete | output={out_dir}")
+    console.print(f"[green]Done.[/green]")
+
+
+@app.command(name="detect-slides")
+def detect_slides(
+    video: str = typer.Argument(..., help="Path to video file"),
+    out: str = typer.Option("./out", "--out", help="Output directory"),
+    config: Optional[str] = typer.Option(None, "--config", "-c", help="Path to YAML config file"),
+    sample_fps: Optional[float] = typer.Option(None, "--sample-fps", help="Frame sampling rate"),
+    decoder_backend: Optional[str] = typer.Option(None, "--decoder-backend", help="Decoder backend"),
+    slide_roi: Optional[str] = typer.Option(None, "--slide-roi", help="ROI: auto, full, or x1,y1,x2,y2"),
+    ignore_roi: Optional[list[str]] = typer.Option(None, "--ignore-roi", help="Region to ignore"),
+    threshold: Optional[str] = typer.Option(None, "--threshold", help="Diff threshold or auto"),
+    min_slide_duration: Optional[float] = typer.Option(None, "--min-slide-duration", help="Min slide seconds"),
+    min_stable_duration: Optional[float] = typer.Option(None, "--min-stable-duration", help="Min stable seconds"),
+    dedupe: bool = typer.Option(True, "--dedupe/--no-dedupe", help="Enable neighbor deduplication"),
+    debug: bool = typer.Option(False, "--debug", help="Enable debug artifacts"),
+):
+    # START_CONTRACT: detect_slides
+    #   PURPOSE: Standalone slide detection — video → slides.json + screenshots, no subtitles required
+    #   INPUTS: video path, output dir, config, detection parameters
+    #   OUTPUTS: directory with slides/ and slides.json
+    #   SIDE_EFFECTS: creates output directory, writes slides.json and images
+    #   LINKS: M-CLI
+    # END_CONTRACT: detect_slides
+
+    cli_overrides = _build_cli_overrides(
+        sample_fps=sample_fps,
+        decoder_backend=decoder_backend,
+        slide_roi=slide_roi,
+        ignore_roi=ignore_roi,
+        threshold=threshold,
+        min_slide_duration=min_slide_duration,
+        min_stable_duration=min_stable_duration,
+        dedupe=dedupe,
+        debug=debug,
+    )
+    cfg = load_config(config_path=config, cli_overrides=cli_overrides)
+
+    out_dir = Path(out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    video_path = Path(video)
+    if not video_path.is_file():
+        console.print(f"[red]Video file not found: {video}[/red]")
+        raise typer.Exit(code=1)
+
+    console.print(f"[green]✓[/green] Output: {out_dir.resolve()}")
+    console.print(f"[green]✓[/green] Video: {video_path.resolve()}")
+
+    doc = run_detect_slides(
+        video_path=video_path,
+        out_dir=out_dir,
+        cfg=cfg,
+    )
+
+    console.print(f"[green]✓[/green] Slides: {len(doc.slides)} detected")
+    console.print(f"[green]Done.[/green]")
+
+
+@app.command(name="notes")
+def notes_cmd(
+    slides_json: str = typer.Argument(..., help="Path to slides.json from detect-slides"),
+    subtitles: Optional[str] = typer.Option(None, "--subtitles", help="Path to SRT/VTT file"),
+    slides_dir: Optional[str] = typer.Option(None, "--slides-dir", help="Directory with slide images for vision context"),
+    notes_mode: str = typer.Option("basic", "--notes-mode", help="Notes mode: basic or llm"),
+):
+    # START_CONTRACT: notes_cmd
+    #   PURPOSE: Post-process notes — load slides.json, align subtitles, build notes, save enriched document
+    #   INPUTS: slides.json path, optional SRT, slides dir, notes mode
+    #   OUTPUTS: updated slides.json with cleaned transcript
+    #   SIDE_EFFECTS: overwrites slides.json
+    #   LINKS: M-CLI
+    # END_CONTRACT: notes_cmd
+
+    json_path = Path(slides_json)
+    if not json_path.is_file():
+        console.print(f"[red]File not found: {slides_json}[/red]")
+        raise typer.Exit(code=1)
+
+    subs_path = Path(subtitles) if subtitles else None
+    if subtitles and subs_path and not subs_path.is_file():
+        console.print(f"[red]Subtitles file not found: {subtitles}[/red]")
+        raise typer.Exit(code=1)
+
+    slides_dir_path = Path(slides_dir) if slides_dir else None
+
+    logger.info(f"[CLI][notes] Starting notes processing | slides={slides_json} mode={notes_mode}")
+
+    run_notes(
+        slides_json=json_path,
+        subtitles_path=subs_path,
+        slides_dir=slides_dir_path,
+        notes_mode=notes_mode,
+    )
+
+    console.print(f"[green]✓[/green] Notes updated: {json_path.resolve()}")
     console.print(f"[green]Done.[/green]")
 
 
