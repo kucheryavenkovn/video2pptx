@@ -674,16 +674,17 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(f"Manual slide added at {ts:.1f}s")
 
     def _on_set_slide_frame(self, slide_index: int) -> None:
-        if not self._project or slide_index >= len(self._project.slides):
+        pos = slide_index - 1
+        if not self._project or pos >= len(self._project.slides):
             return
-        slide = self._project.slides[slide_index]
-        pos = self._video_player._player.position() / 1000.0
+        slide = self._project.slides[pos]
+        pos_sec = self._video_player._player.position() / 1000.0
         try:
             from video2pptx.video_decode import VideoDecoder
             import cv2
             decoder = VideoDecoder(self._project.video, sample_fps=1.0)
             for vf in decoder.iter_frames():
-                if vf.timestamp >= pos:
+                if vf.timestamp >= pos_sec:
                     img = cv2.cvtColor(vf.image, cv2.COLOR_RGB2BGR)
                     slides_dir = Path(self._project.output_dir) / "slides"
                     slides_dir.mkdir(parents=True, exist_ok=True)
@@ -692,28 +693,30 @@ class MainWindow(QMainWindow):
                     slide.image = f"slides/{fname}"
                     save_project(self._project)
                     self._timeline.set_slides(self._project.slides)
-                    self.statusBar().showMessage(f"Slide {slide_index} image set from {pos:.1f}s")
+                    self.statusBar().showMessage(f"Slide {slide_index} image set from {pos_sec:.1f}s")
                     break
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to capture frame: {e}")
 
     def _on_clear_slide_image(self, slide_index: int) -> None:
-        if not self._project or slide_index >= len(self._project.slides):
+        pos = slide_index - 1
+        if not self._project or pos >= len(self._project.slides):
             return
-        self._project.slides[slide_index].image = ""
+        self._project.slides[pos].image = ""
         save_project(self._project)
         self._timeline.set_slides(self._project.slides)
         self.statusBar().showMessage(f"Slide {slide_index} image cleared")
 
     def _on_delete_slide(self, slide_index: int) -> None:
-        if not self._project or slide_index >= len(self._project.slides):
+        pos = slide_index - 1
+        if not self._project or pos >= len(self._project.slides):
             return
         r = QMessageBox.question(self, "Delete Slide?",
                                  f"Delete slide #{slide_index}?",
                                  QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if r != QMessageBox.StandardButton.Yes:
             return
-        del self._project.slides[slide_index]
+        del self._project.slides[pos]
         for i, s in enumerate(self._project.slides):
             s.index = i + 1
         save_project(self._project)
@@ -731,20 +734,28 @@ class MainWindow(QMainWindow):
     # END_BLOCK_TIMELINE_MARKERS
 
     def _on_slide_moved(self, index: int, new_start: float, new_end: float) -> None:
-        if self._project and 0 <= index < len(self._project.slides):
-            s = self._project.slides[index]
+        pos = index - 1
+        if self._project and 0 <= pos < len(self._project.slides):
+            s = self._project.slides[pos]
             s.start = new_start
             s.end = new_end
             s.duration = new_end - new_start
             save_project(self._project)
+            self._project.slides.sort(key=lambda s: s.start)
+            for i, s in enumerate(self._project.slides):
+                s.index = i + 1
+            self._timeline.set_slides(self._project.slides)
             self.statusBar().showMessage(f"Slide {index} moved: {new_start:.1f}s – {new_end:.1f}s")
 
     def _on_slide_resized(self, index: int, new_start: float, new_end: float) -> None:
-        if self._project and 0 <= index < len(self._project.slides):
-            s = self._project.slides[index]
+        pos = index - 1
+        if self._project and 0 <= pos < len(self._project.slides):
+            s = self._project.slides[pos]
             s.start = new_start
             s.end = new_end
             s.duration = new_end - new_start
+            save_project(self._project)
+            self.statusBar().showMessage(f"Slide {index} resized: {new_start:.1f}s – {new_end:.1f}s")
             save_project(self._project)
             self.statusBar().showMessage(f"Slide {index} resized: {new_start:.1f}s – {new_end:.1f}s")
 
