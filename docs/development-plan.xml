@@ -935,7 +935,7 @@
     <Phase-16 name="DomainRefactoring" status="planned">
       <goal>Incremental layered architecture: domain/application/ports/infrastructure/adapters. 9 phases, no Big Bang.
       See docs/architecture.md for full context, layers, sequence diagrams, and migration table.</goal>
-      <step-1 name="CharacterizationTests" status="in_progress" verification="V-REF-CHAR-TESTS">
+      <step-1 name="CharacterizationTests" status="done" verification="V-REF-CHAR-TESTS">
         Audit existing E2E-001..015; classify each as passing/failing/stub/env. Create real characterization tests
         exercising equivalent operations through all paths (application service, CLI, MCP, GUI).
         Use synthetic fixture for deterministic baselines. Freeze valid behavior, record known bugs in findings.
