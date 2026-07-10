@@ -68,30 +68,41 @@ def run_notes(
         logger.info("[Notes][run_notes] LLM mode — initializing client")
         llm_client = LlmClient(llm_config)
 
-    for i, seg in enumerate(doc.slides):
-        desc = seg.llm_description
-        ctx = seg.slide_context
+    try:
+        for i, seg in enumerate(doc.slides):
+            desc = seg.llm_description
+            ctx = seg.slide_context
 
-        if notes_mode == "llm" and llm_client is not None:
-            # Vision analysis if not yet done
-            if not desc and slides_dir is not None:
-                img_path = slides_dir / seg.image if seg.image else None
-                if img_path and img_path.is_file():
-                    logger.info(f"[Notes][run_notes] Vision analysis | slide={i + 1}/{len(doc.slides)}")
-                    try:
-                        raw = llm_client.vision(str(img_path), prompt=llm_config.vision_prompt)
-                        from video2pptx.slide_analyzer import _parse_vision_response
-                        analysis = _parse_vision_response(raw)
-                        desc = analysis.description
-                        ctx = ", ".join(analysis.key_terms)
-                        seg.llm_description = desc
-                        seg.slide_context = ctx
-                    except Exception as e:
-                        logger.warning(f"[Notes][run_notes] Vision failed for slide {i + 1}: {e}")
+            if notes_mode == "llm" and llm_client is not None:
+                # Vision analysis if not yet done
+                if not desc and slides_dir is not None and seg.image:
+                    from video2pptx.paths import resolve_artifact_path
+                    img_path = resolve_artifact_path(slides_dir, seg.image)
+                    if img_path.is_file():
+                        logger.info(f"[Notes][run_notes] Vision analysis | slide={i + 1}/{len(doc.slides)}")
+                        try:
+                            raw = llm_client.vision(str(img_path), prompt=llm_config.vision_prompt)
+                            from video2pptx.slide_analyzer import _parse_vision_response
+                            analysis = _parse_vision_response(raw)
+                            desc = analysis.description
+                            ctx = ", ".join(analysis.key_terms)
+                            seg.llm_description = desc
+                            seg.slide_context = ctx
+                        except Exception as e:
+                            logger.warning(f"[Notes][run_notes] Vision failed for slide {i + 1}: {e}")
 
-        cleaned = process_notes(seg, mode=notes_mode, llm_client=llm_client,
-                                slide_description=desc, slide_context=ctx)
-        seg.transcript = cleaned
+            cleaned = process_notes(seg, mode=notes_mode, llm_client=llm_client,
+                                    slide_description=desc, slide_context=ctx)
+            seg.transcript = cleaned
+    finally:
+        if llm_client is not None:
+            try:
+                if llm_config and llm_config.unload_when_done:
+                    llm_client.unload_model()
+                llm_client.close()
+                logger.info("[Notes][run_notes] LLM client closed")
+            except Exception as e:
+                logger.warning(f"[Notes][run_notes] Client cleanup failed: {e}")
 
     logger.info(f"[Notes][run_notes] Notes processed | mode={notes_mode} slides={len(doc.slides)}")
     # END_BLOCK_PROCESS_NOTES

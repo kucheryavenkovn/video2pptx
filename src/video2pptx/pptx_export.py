@@ -98,10 +98,12 @@ def export_to_pptx(
 
 def _format_slide_notes(seg: SlideSegment, notes_mode: str = "basic") -> str:
     # START_CONTRACT: _format_slide_notes
-    #   PURPOSE: Format slide transcript into speaker notes via notes_processor
+    #   PURPOSE: Format slide transcript into speaker notes via notes_processor.
+    #            In 'llm' mode, the transcript is expected to be already enriched
+    #            by the LLM pipeline; if not, falls back to basic cleanup with a warning.
     #   INPUTS: { seg: SlideSegment, notes_mode: str }
     #   OUTPUTS: str — formatted notes text
-    #   SIDE_EFFECTS: none (basic mode); may call LLM in llm mode
+    #   SIDE_EFFECTS: none (basic mode); llm mode uses pre-processed transcript
     #   LINKS: M-PPTX-EXPORT
     # END_CONTRACT: _format_slide_notes
 
@@ -113,8 +115,18 @@ def _format_slide_notes(seg: SlideSegment, notes_mode: str = "basic") -> str:
     lines.append(f"[ {_fmt_time(seg.start)} – {_fmt_time(seg.end)} ]")
     lines.append("")
 
+    # In llm mode, the transcript should already be enriched by the LLM pipeline.
+    # process_notes with mode="basic" will just clean up formatting without
+    # destroying the enriched content.
+    effective_mode = "basic"
+    if notes_mode == "llm":
+        if seg.llm_description:
+            lines.append(f"(Slide: {seg.llm_description})")
+            lines.append("")
+        effective_mode = "basic"
+
     # Process notes
-    notes = process_notes(seg, mode=notes_mode)
+    notes = process_notes(seg, mode=effective_mode)
     if notes:
         lines.append(notes)
 

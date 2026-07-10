@@ -353,6 +353,14 @@ def notes_cmd(
 
     slides_dir_path = Path(slides_dir) if slides_dir else None
 
+    llm_config = None
+    if notes_mode == "llm":
+        cfg = load_config()
+        llm_config = cfg.llm
+        if not llm_config.enabled:
+            llm_config.enabled = True
+        logger.info(f"[CLI][notes] LLM mode | model={llm_config.model} base_url={llm_config.base_url}")
+
     logger.info(f"[CLI][notes] Starting notes processing | slides={slides_json} mode={notes_mode}")
 
     run_notes(
@@ -360,6 +368,7 @@ def notes_cmd(
         subtitles_path=subs_path,
         slides_dir=slides_dir_path,
         notes_mode=notes_mode,
+        llm_config=llm_config,
     )
 
     console.print(f"[green]✓[/green] Notes updated: {json_path.resolve()}")
