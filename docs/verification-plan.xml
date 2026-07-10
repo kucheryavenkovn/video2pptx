@@ -799,4 +799,63 @@
     </scenarios>
   </V-M-E2E-SCENARIOS>
 
+  <!-- ===== DOMAIN REFACTORING (Phase-16) ===== -->
+  <V-ARCH-OVERVIEW MODULE="M-ARCH-OVERVIEW" PRIORITY="high" STATUS="planned">
+    <scenarios>
+      <scenario-1 kind="success">docs/architecture.md exists with layers, dependency rules, sequence diagrams, migration table.</scenario-1>
+    </scenarios>
+  </V-ARCH-OVERVIEW>
+
+  <V-DOMAIN-VALUE MODULE="M-DOMAIN-VALUE" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/domain/test_value_objects.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">TimeInterval(start, end): end > start enforced, duration computed, contains/overlaps methods.</scenario-1>
+      <scenario-2 kind="failure">TimeInterval(end &lt;= start) raises ValidationError.</scenario-2>
+      <scenario-3 kind="success">SlideId: uuid-based, stable across renames.</scenario-3>
+      <scenario-4 kind="success">ArtifactRef: normalizes path, prevents double prefix, resolves relative to project dir.</scenario-4>
+      <scenario-5 kind="success">PipelineState: valid transitions, terminal states, cannot restart from succeeded without force.</scenario-5>
+    </scenarios>
+  </V-DOMAIN-VALUE>
+
+  <V-DOMAIN-PROJECT MODULE="M-DOMAIN-PROJECT" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/domain/test_project.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">add_slide(): stable SlideId, correct index assignment.</scenario-1>
+      <scenario-2 kind="success">remove_slide(): other SlideIds preserved, indices recalculated.</scenario-2>
+      <scenario-3 kind="success">move_slide(): overlap prevented by domain invariant.</scenario-3>
+      <scenario-4 kind="success">replace_detected_slides(): replaces all, invalidates downstream.</scenario-4>
+      <scenario-5 kind="success">invalidate_downstream_from('detect'): align/notes/md/pptx all stale.</scenario-5>
+      <scenario-6 kind="failure">Adding overlapping slide raises DomainError.</scenario-6>
+    </scenarios>
+  </V-DOMAIN-PROJECT>
+
+  <V-PORT-REPO MODULE="M-PORT-REPO" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/infra/test_file_repository.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Save → load round-trip preserves all fields.</scenario-1>
+      <scenario-2 kind="success">Atomic write: crash during write leaves previous version intact.</scenario-2>
+      <scenario-3 kind="success">Schema migration: v1 project.json upgrades to v2 on load.</scenario-3>
+      <scenario-4 kind="failure">Loading invalid project.json raises ProjectPersistenceError.</scenario-4>
+    </scenarios>
+  </V-PORT-REPO>
+
+  <V-REF-CHAR-TESTS MODULE="Phase-16/Step-1" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/e2e/test_mcp_gui_workflow.py</file><file>tests/test_characterization.py</file></test-files>
+    <scenarios>
+      <scenario-E2E-001 kind="audit">Classify: executable+passing / executable+failing / stub / env-dependent.</scenario-E2E-001>
+      <scenario-CHAR-001 kind="success">Direct application call: Detect produces same slides.json as CLI detect.</scenario-CHAR-001>
+      <scenario-CHAR-002 kind="success">MCP detect produces same slides.json as direct call.</scenario-CHAR-002>
+      <scenario-CHAR-003 kind="success">Slide CRUD via MCP matches slide CRUD via GUI.</scenario-CHAR-003>
+      <scenario-CHAR-004 kind="success">Save/Close/Open round-trip preserves all fields.</scenario-CHAR-004>
+    </scenarios>
+  </V-REF-CHAR-TESTS>
+
+  <V-ARCH-IMPORTS MODULE="Phase-16" PRIORITY="medium" STATUS="planned">
+    <scenarios>
+      <scenario-1 kind="success">domain/ does not import application, infrastructure, adapters, PySide6.</scenario-1>
+      <scenario-2 kind="success">application/ does not import gui, mcp, cli, PySide6.</scenario-2>
+      <scenario-3 kind="success">GUI does not import direct json.load/json.dump from persistence.</scenario-3>
+      <scenario-4 kind="success">MCP does not import MainWindow.</scenario-4>
+    </scenarios>
+  </V-ARCH-IMPORTS>
 </VerificationPlan>

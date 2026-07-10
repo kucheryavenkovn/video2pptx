@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<KnowledgeGraph VERSION="0.5.0">
+<KnowledgeGraph VERSION="0.6.0">
   <Project NAME="video2pptx" VERSION="0.6.0">
     <keywords>video, slides, markdown, presentation, open-cv, computer-vision, slide-detection, subtitle-alignment, srt, vtt, marp, llm, lm-studio, vision, gui, pyside6, project, timeline, video-player, subtitle-overlay, smart-snap</keywords>
     <annotation>Automatically extract slide intervals from educational videos, link to SRT/VTT subtitles, enhance with LLM vision analysis, export presentations, manage projects via GUI/CLI, with video player, subtitle overlay, interactive timeline, and smart manual marker snapping.</annotation>
@@ -885,5 +885,94 @@
     <CrossLink from="M-E2E-SCENARIOS" to="M-E2E-RUNNER" relation="drives runner per scenario" />
     <CrossLink from="M-APP-SERVICE" to="M-ATOMIC-JSON" relation="all writes atomic" />
     <CrossLink from="M-PIPELINE-STATES" to="M-ATOMIC-JSON" relation="project.json written atomically" />
+    <!-- ===== DOMAIN REFACTORING (Phase-16) ===== -->
+    <M-ARCH-OVERVIEW NAME="ArchitectureOverview" TYPE="UTILITY" STATUS="planned">
+      <purpose>Target layered architecture: domain/application/infrastructure/adapters with ports and dependency rules. See docs/architecture.md for full context.</purpose>
+      <path>docs/architecture.md</path>
+      <verification-ref>V-ARCH-OVERVIEW</verification-ref>
+      <annotations>
+        <type-DomainLayer PURPOSE="PySide6-free domain: Project aggregate, Slide entity, TimeInterval, PipelineState, events, exceptions" />
+        <type-ApplicationLayer PURPOSE="PySide6-free application: Commands, Services (use cases), DTOs, Ports (Protocols)" />
+        <type-InfrastructureLayer PURPOSE="Persistence, video decoder, subtitle parser, exporters, LLM client implementations" />
+        <type-AdapterLayer PURPOSE="GUI (thin MainWindow + controllers), MCP (explicit handler registry), CLI (Typer → commands)" />
+      </annotations>
+    </M-ARCH-OVERVIEW>
+    <M-DOMAIN-VALUE NAME="ValueObjects" TYPE="UTILITY" STATUS="planned">
+      <purpose>Frozen value objects: SlideId, TimeInterval (validated), ArtifactRef (normalized relative path), PipelineState enum</purpose>
+      <path>src/video2pptx/domain/value_objects.py</path>
+      <verification-ref>V-DOMAIN-VALUE</verification-ref>
+    </M-DOMAIN-VALUE>
+    <M-DOMAIN-PROJECT NAME="ProjectAggregate" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Project aggregate root controlling slide invariants, downstream invalidation, state transitions. Canonical source of truth.</purpose>
+      <path>src/video2pptx/domain/project.py</path>
+      <depends>M-DOMAIN-VALUE</depends>
+      <verification-ref>V-DOMAIN-PROJECT</verification-ref>
+    </M-DOMAIN-PROJECT>
+    <M-DOMAIN-SLIDE NAME="SlideEntity" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Slide entity with stable SlideId, visual/aligned TimeInterval, image ArtifactRef, transcript, confidence, manual flag</purpose>
+      <path>src/video2pptx/domain/slide.py</path>
+      <depends>M-DOMAIN-VALUE</depends>
+      <verification-ref>V-DOMAIN-SLIDE</verification-ref>
+    </M-DOMAIN-SLIDE>
+    <M-DOMAIN-STATE NAME="PipelineState" TYPE="UTILITY" STATUS="planned">
+      <purpose>Pipeline stage state machine: NOT_STARTED→RUNNING→SUCCEEDED/FAILED/CANCELLED/STALE/SKIPPED</purpose>
+      <path>src/video2pptx/domain/pipeline_state.py</path>
+      <depends>none</depends>
+      <verification-ref>V-DOMAIN-STATE</verification-ref>
+    </M-DOMAIN-STATE>
+    <M-DOMAIN-EVENTS NAME="DomainEvents" TYPE="UTILITY" STATUS="planned">
+      <purpose>Domain event dataclasses: ProjectCreated, SlidesDetected, SlidesAligned, NotesProcessed, SlideAdded, etc.</purpose>
+      <path>src/video2pptx/domain/events.py</path>
+      <depends>M-DOMAIN-VALUE</depends>
+      <verification-ref>V-DOMAIN-EVENTS</verification-ref>
+    </M-DOMAIN-EVENTS>
+    <M-APP-PROJECT name="ProjectService" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Create, open, close, save project via repository port. No direct file access.</purpose>
+      <path>src/video2pptx/application/services/project_service.py</path>
+      <depends>M-DOMAIN-PROJECT, M-PORT-REPO</depends>
+      <verification-ref>V-APP-PROJECT</verification-ref>
+    </M-APP-PROJECT>
+    <M-APP-DETECT name="DetectionService" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run full or preview detection via strategy. Project invariant enforcement. Single canonical detect path.</purpose>
+      <path>src/video2pptx/application/services/detection_service.py</path>
+      <depends>M-DOMAIN-PROJECT, M-PORT-VIDEO, M-PORT-DETECTOR</depends>
+      <verification-ref>V-APP-DETECT</verification-ref>
+    </M-APP-DETECT>
+    <M-APP-ALIGN name="AlignmentService" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Align visual boundaries to subtitle anchors via strategy + anchor provider.</purpose>
+      <path>src/video2pptx/application/services/alignment_service.py</path>
+      <depends>M-DOMAIN-PROJECT, M-PORT-ALIGN</depends>
+      <verification-ref>V-APP-ALIGN</verification-ref>
+    </M-APP-ALIGN>
+    <M-APP-AUTO name="AutoService" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Orchestrate detect→align→notes→export→validate. Not a copy of pipeline, uses services.</purpose>
+      <path>src/video2pptx/application/services/auto_service.py</path>
+      <depends>M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-VALIDATE</depends>
+      <verification-ref>V-APP-AUTO</verification-ref>
+    </M-APP-AUTO>
+    <M-PORT-REPO name="ProjectRepository" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Protocol for loading/saving Project aggregate. Implementations: FileProjectRepository.</purpose>
+      <path>src/video2pptx/application/ports/project_repository.py</path>
+      <depends>M-DOMAIN-PROJECT</depends>
+      <verification-ref>V-PORT-REPO</verification-ref>
+    </M-PORT-REPO>
+    <M-PORT-EVENTS name="EventBus" TYPE="UTILITY" STATUS="planned">
+      <purpose>Synchronous event bus: publish domain events, notify subscribers. Adapter for Qt signals.</purpose>
+      <path>src/video2pptx/application/ports/event_bus.py</path>
+      <depends>M-DOMAIN-EVENTS</depends>
+      <verification-ref>V-PORT-EVENTS</verification-ref>
+    </M-PORT-EVENTS>
+    <CrossLink from="M-DOMAIN-PROJECT" to="M-DOMAIN-SLIDE" relation="aggregate root owns Slide entities" />
+    <CrossLink from="M-DOMAIN-PROJECT" to="M-DOMAIN-VALUE" relation="uses TimeInterval, ArtifactRef" />
+    <CrossLink from="M-DOMAIN-PROJECT" to="M-DOMAIN-STATE" relation="manages pipeline state transitions" />
+    <CrossLink from="M-DOMAIN-PROJECT" to="M-DOMAIN-EVENTS" relation="publishes events on mutation" />
+    <CrossLink from="M-APP-PROJECT" to="M-PORT-REPO" relation="persists/restores Project" />
+    <CrossLink from="M-APP-DETECT" to="M-PORT-REPO" relation="loads project, saves after detection" />
+    <CrossLink from="M-APP-DETECT" to="M-DOMAIN-PROJECT" relation="calls project.replace_detected_slides()" />
+    <CrossLink from="M-APP-ALIGN" to="M-DOMAIN-PROJECT" relation="calls project.align_boundaries()" />
+    <CrossLink from="M-APP-AUTO" to="M-APP-DETECT" relation="orchestrates detection stage" />
+    <CrossLink from="M-APP-AUTO" to="M-APP-ALIGN" relation="orchestrates alignment stage" />
+    <CrossLink from="M-PORT-REPO" to="M-DOMAIN-PROJECT" relation="persists Project to project.json + slides.json" />
+    <CrossLink from="M-PORT-EVENTS" to="M-DOMAIN-EVENTS" relation="distributes domain events to subscribers" />
   </Project>
 </KnowledgeGraph>

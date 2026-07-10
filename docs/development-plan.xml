@@ -567,6 +567,34 @@
       <verification-ref>V-M-E2E-SCENARIOS</verification-ref>
       <depends>M-E2E-RUNNER, M-E2E-SNAPSHOT</depends>
     </M-E2E-SCENARIOS>
+
+    <!-- ===== DOMAIN REFACTORING (Phase-16) ===== -->
+    <M-ARCH-OVERVIEW NAME="ArchitectureOverview" TYPE="UTILITY" LAYER="0" ORDER="68" STATUS="planned">
+      <contract>
+        <purpose>Target layered architecture: domain/application/ports/infrastructure/adapters. See docs/architecture.md for full detail.</purpose>
+      </contract>
+      <target><source>docs/architecture.md</source></target>
+      <verification-ref>V-ARCH-OVERVIEW</verification-ref>
+      <depends>none</depends>
+    </M-ARCH-OVERVIEW>
+    <M-DOMAIN-VALUE NAME="ValueObjects" TYPE="UTILITY" LAYER="0" ORDER="69" STATUS="planned">
+      <contract><purpose>Frozen value objects: SlideId, TimeInterval (validated), ArtifactRef (normalized relative path), PipelineState enum</purpose></contract>
+      <target><source>src/video2pptx/domain/value_objects.py</source><tests>tests/domain/test_value_objects.py</tests></target>
+      <verification-ref>V-DOMAIN-VALUE</verification-ref>
+      <depends>none</depends>
+    </M-DOMAIN-VALUE>
+    <M-DOMAIN-PROJECT NAME="ProjectAggregate" TYPE="CORE_LOGIC" LAYER="0" ORDER="70" STATUS="planned">
+      <contract><purpose>Project aggregate root with invariant control, slide CRUD, downstream invalidation, state transitions. Canonical source of truth.</purpose></contract>
+      <target><source>src/video2pptx/domain/project.py</source><tests>tests/domain/test_project.py</tests></target>
+      <verification-ref>V-DOMAIN-PROJECT</verification-ref>
+      <depends>M-DOMAIN-VALUE</depends>
+    </M-DOMAIN-PROJECT>
+    <M-PORT-REPO NAME="ProjectRepository" TYPE="DATA_LAYER" LAYER="3" ORDER="71" STATUS="planned">
+      <contract><purpose>Protocol for loading/saving Project aggregate. Atomic writes, schema migration.</purpose></contract>
+      <target><source>src/video2pptx/application/ports/project_repository.py</source><tests>tests/infra/test_file_repository.py</tests></target>
+      <verification-ref>V-PORT-REPO</verification-ref>
+      <depends>M-DOMAIN-PROJECT</depends>
+    </M-PORT-REPO>
   </Modules>
 
   <DataFlow>
@@ -903,6 +931,49 @@
       </step-50>
       <stop-condition>All E2E happy-path scenarios pass against synthetic fixtures. 102/102 tests. Branch test/mcp-e2e-hardening with 7 commits ready for PR.</stop-condition>
     </Phase-15>
+
+    <Phase-16 name="DomainRefactoring" status="planned">
+      <goal>Incremental layered architecture: domain/application/ports/infrastructure/adapters. 9 phases, no Big Bang.
+      See docs/architecture.md for full context, layers, sequence diagrams, and migration table.</goal>
+      <step-1 name="CharacterizationTests" status="planned" verification="V-REF-CHAR-TESTS">
+        Audit existing E2E-001..015; classify each as passing/failing/stub/env. Create real characterization tests
+        exercising equivalent operations through all paths (application service, CLI, MCP, GUI).
+        Use synthetic fixture for deterministic baselines. Freeze valid behavior, record known bugs in findings.
+      </step-1>
+      <step-2 name="ValueObjects" status="planned" verification="V-REF-VALUE-OBJECTS">
+        Create domain/value_objects.py: SlideId, TimeInterval (frozen, validated), ArtifactRef, PipelineState enum.
+        Replace raw float tuples in critical paths. No behavioral change.
+      </step-2>
+      <step-3 name="ProjectAggregate" status="planned" verification="V-REF-PROJECT-AGGREGATE">
+        Create domain/project.py: Project as aggregate root with add_slide(), remove_slide(),
+        replace_detected_slides(), invalidate_downstream_from(). Internal Pydantic model delegates.
+      </step-3>
+      <step-4 name="RepositoryIsolation" status="planned" verification="V-REF-REPOSITORY">
+        Create application/ports/project_repository.py (Protocol). Create FileProjectRepository with
+        atomic writes, schema migration. MainWindow stops writing project.json directly.
+      </step-4>
+      <step-5 name="ApplicationServices" status="planned" verification="V-REF-APP-SERVICES">
+        Extract DetectionService, AlignmentService, NotesService, ExportService. AppServiceRunner
+        calls services instead of raw functions. All use cases testable without Qt.
+      </step-5>
+      <step-6 name="MCPtoApplication" status="planned" verification="V-REF-MCP-ADAPTER">
+        MCP tools call DetectionService etc. Remove @mcp_action scanning from MainWindow.
+        Explicit handler registry in application layer.
+      </step-6>
+      <step-7 name="CLItoApplication" status="planned" verification="V-REF-CLI-ADAPTER">
+        CLI commands call same services as MCP. Remove run_detect_slides call from cli.py.
+      </step-7>
+      <step-8 name="GUIRefactoring" status="planned" verification="V-REF-GUI-ADAPTER">
+        Extract ProjectController, PipelineController, TimelineController. Workers call use cases.
+        MainWindow below 600 LOC.
+      </step-8>
+      <step-9 name="LegacyRemoval" status="planned" verification="V-REF-LEGACY">
+        Delete dead code, remove duplicate implementations, enforce architecture rules in CI (import-linter).
+      </step-9>
+      <stop-condition>All existing 568+ tests pass at each phase. Architecture rules enforced in CI.
+        No PySide6 in domain/ or application/. MainWindow does not contain pipeline business logic.
+        MCP does not call GUI slots. One canonical source of project state.</stop-condition>
+    </Phase-16>
   </ImplementationOrder>
 
   <DeploymentScenarios>
