@@ -589,7 +589,7 @@
       <verification-ref>V-DOMAIN-PROJECT</verification-ref>
       <depends>M-DOMAIN-VALUE</depends>
     </M-DOMAIN-PROJECT>
-    <M-PORT-REPO NAME="ProjectRepository" TYPE="DATA_LAYER" LAYER="3" ORDER="71" STATUS="planned">
+    <M-PORT-REPO NAME="ProjectRepository" TYPE="DATA_LAYER" LAYER="3" ORDER="71" STATUS="implemented">
       <contract><purpose>Protocol for loading/saving Project aggregate. Atomic writes, schema migration.</purpose></contract>
       <target><source>src/video2pptx/application/ports/project_repository.py</source><tests>tests/infra/test_file_repository.py</tests></target>
       <verification-ref>V-PORT-REPO</verification-ref>
@@ -948,7 +948,7 @@
         Create domain/project.py: Project as aggregate root with add_slide(), remove_slide(),
         replace_detected_slides(), invalidate_downstream_from(). Internal Pydantic model delegates.
       </step-3>
-      <step-4 name="RepositoryIsolation" status="planned" verification="V-REF-REPOSITORY">
+      <step-4 name="RepositoryIsolation" status="done" verification="V-REF-REPOSITORY">
         Create application/ports/project_repository.py (Protocol). Create FileProjectRepository with
         atomic writes, schema migration. MainWindow stops writing project.json directly.
       </step-4>

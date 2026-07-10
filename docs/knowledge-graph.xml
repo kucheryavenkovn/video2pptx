@@ -955,7 +955,7 @@
       <depends>M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-VALIDATE</depends>
       <verification-ref>V-APP-AUTO</verification-ref>
     </M-APP-AUTO>
-    <M-PORT-REPO name="ProjectRepository" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-PORT-REPO name="ProjectRepository" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Protocol for loading/saving Project aggregate. Implementations: FileProjectRepository.</purpose>
       <path>src/video2pptx/application/ports/project_repository.py</path>
       <depends>M-DOMAIN-PROJECT</depends>
