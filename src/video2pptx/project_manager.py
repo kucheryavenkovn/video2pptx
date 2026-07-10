@@ -1,9 +1,9 @@
 # FILE: src/video2pptx/project_manager.py
-# VERSION: 0.1.0
+# VERSION: 0.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Project management — create, open, save project.json with video/subtitle paths, configs, pipeline state
 #   SCOPE: Project model (Pydantic), project.json I/O, CLI-friendly helpers, state update
-#   DEPENDS: pydantic, pathlib, config
+#   DEPENDS: pydantic, pathlib, config, M-ATOMIC-JSON
 #   LINKS: M-PROJECT
 #   ROLE: DATA_LAYER
 #   MAP_MODE: EXPORTS
@@ -22,6 +22,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.2.0 - Write project.json atomically through shared JSON I/O
 #   v0.1.1 - load_slides_into_project: added force parameter to preserve manually-adjusted slides
 # END_CHANGE_SUMMARY
 
@@ -208,7 +209,13 @@ def save_project(project: Project, project_dir: str | Path | None = None) -> Non
     else:
         json_path = Path(project.output_dir) / "project.json"
 
-    json_path.write_text(project.model_dump_json(indent=2, exclude_none=True), encoding="utf-8")
+    from video2pptx.utils.json_io import write_json_atomic
+
+    write_json_atomic(
+        json_path,
+        project.model_dump(mode="json", exclude_none=True),
+        indent=2,
+    )
 
 
 def import_video_to_project(

@@ -857,6 +857,7 @@
       <scenario-CHAR-006 kind="success">MCP terminal success implies project, timeline, disk, and UI synchronization.</scenario-CHAR-006>
       <scenario-CHAR-007 kind="success">Auto Align dry-run is side-effect free; apply preserves invariants and is idempotent.</scenario-CHAR-007>
       <scenario-CHAR-008 kind="success">UID-based slide CRUD keeps project, timeline, project.json, and slides.json consistent.</scenario-CHAR-008>
+      <scenario-CHAR-009 kind="success">Save/Close/Open preserves normalized project state and disables all project actions while closed.</scenario-CHAR-009>
     </scenarios>
   </V-REF-CHAR-TESTS>
 

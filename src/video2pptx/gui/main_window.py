@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/gui/main_window.py
-# VERSION: 0.4.0
+# VERSION: 0.4.1
 # START_MODULE_CONTRACT
 #   PURPOSE: Main GUI window — QMainWindow with menu bar, video player, subtitle overlay, always-visible timeline, marker panel, project lifecycle, detection
 #   SCOPE: Integrate MenuBarWidget, VideoPlayerWidget, TimelineV2Widget, MarkerPanel, SettingsProjectDialog, SettingsAppDialog, MarkerManager
@@ -14,6 +14,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.4.1 - Reset Auto and Auto Align controls when a project closes
 #   v0.4.0 - Refactor to use ProjectModel (QObject with signals) instead of Project (Pydantic data bag)
 #   v0.3.1 - Fix _on_slide_resized duplicate save + missing timeline refresh
 #   v0.3.1 - Fix closeEvent not clearing timeline (now calls _on_close_project)
@@ -127,6 +128,8 @@ class MainWindow(QMainWindow):
         self._subs_label.setText("Subtitles: —")
         self._btn_detect.setEnabled(False)
         self._btn_quick_preview.setEnabled(False)
+        self._btn_auto.setEnabled(False)
+        self._btn_auto_align.setEnabled(False)
         self._btn_export.setEnabled(False)
         self._btn_process_notes.setEnabled(False)
         self._btn_save.setEnabled(False)

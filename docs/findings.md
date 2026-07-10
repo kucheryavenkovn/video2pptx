@@ -503,3 +503,12 @@
 - Impact: E2E-011 and adapter parity were impossible; Save/Open could not preserve edits.
 - Resolution/Status: Fixed for characterization with persisted string UIDs, atomic `slides.json` updates, project/timeline synchronization, UID-preferred MCP routing, interval validation, and frame capture. Phase 2 will replace the string field with the `SlideId` value object.
 - LINKS: M-MODELS, M-PROJECT-MODEL, M-CANONICAL-COMMANDS, M-DEBUG-MCP, V-REF-CHAR-TESTS
+
+### F-0056 — Project close left Auto actions enabled and project writes were non-atomic
+- Date: 2026-07-10
+- Area: gui, persistence
+- Finding: the close handler reset most controls but omitted Auto and Auto Align. `save_project()` also contradicted the graph's atomic-write contract by writing `project.json` directly.
+- Symptom/Reproduction: after real MCP close, an action requiring an open project could remain enabled; interruption during save could leave partial JSON.
+- Impact: E2E-014 postconditions and persistence guarantees were incomplete.
+- Resolution/Status: Fixed. Close disables all project-dependent actions and `save_project()` uses the shared atomic JSON writer. Full repository/schema migration remains Phase 4.
+- LINKS: M-GUI-MAIN, M-PROJECT, M-ATOMIC-JSON, V-REF-CHAR-TESTS

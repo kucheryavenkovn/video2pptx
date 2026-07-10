@@ -24,6 +24,41 @@ def _call_and_wait(client, tool, arguments, timeout=30):
     return completed
 
 
+def _normalized_timeline_state(timeline):
+    tracks = timeline["tracks"]
+    return {
+        "slides": [
+            {
+                key: clip.get(key)
+                for key in (
+                    "uid",
+                    "index",
+                    "start_sec",
+                    "end_sec",
+                    "image_path",
+                    "manual",
+                    "transcript",
+                )
+            }
+            for clip in tracks.get("slides", {}).get("clips", [])
+        ],
+        "subtitles": [
+            {
+                key: clip.get(key)
+                for key in ("start_sec", "end_sec", "text")
+            }
+            for clip in tracks.get("subtitles", {}).get("clips", [])
+        ],
+        "scores": [
+            {
+                key: clip.get(key)
+                for key in ("start_sec", "end_sec", "value", "method")
+            }
+            for clip in tracks.get("scores", {}).get("clips", [])
+        ],
+    }
+
+
 def test_real_gui_mcp_startup(repo_dir, tmp_path):
     harness = GuiProcessHarness(
         repo=repo_dir,
@@ -418,5 +453,112 @@ def test_real_gui_mcp_slide_crud_keeps_four_views_consistent(
         assert len(document["slides"]) == original_count
         assert len(project_doc["slides"]) == original_count
         assert all(slide["uid"] != uid for slide in document["slides"])
+    finally:
+        harness.stop()
+
+
+def test_real_gui_mcp_save_close_open_preserves_project_state(
+    repo_dir,
+    tmp_path,
+    synthetic_video_path,
+    synthetic_subtitle_path,
+):
+    harness = GuiProcessHarness(
+        repo=repo_dir,
+        run_dir=tmp_path / "run",
+        startup_timeout=30.0,
+        qt_platform="offscreen",
+    )
+    try:
+        client = harness.start()
+        project_parent = tmp_path / "projects"
+        project_dir = project_parent / "roundtrip_characterized"
+        _call_and_wait(
+            client,
+            "project_create",
+            {"path": str(project_parent), "name": "roundtrip_characterized"},
+        )
+        _call_and_wait(
+            client,
+            "video_import",
+            {"path": str(synthetic_video_path)},
+        )
+        _call_and_wait(
+            client,
+            "subtitle_import",
+            {"path": str(synthetic_subtitle_path)},
+        )
+        _call_and_wait(client, "detect", {"confirm": True}, timeout=120)
+
+        timeline = McpClient.result_data(client.tool_call("get_timeline"))
+        first = timeline["tracks"]["slides"]["clips"][0]
+        added = _call_and_wait(
+            client,
+            "slide_add",
+            {"ts": (first["start_sec"] + first["end_sec"]) / 2},
+        )
+        added_uid = added["result"]["uid"]
+        _call_and_wait(client, "project_save", {})
+
+        project_before = McpClient.result_data(
+            client.tool_call("get_project")
+        )
+        timeline_before = _normalized_timeline_state(
+            McpClient.result_data(client.tool_call("get_timeline"))
+        )
+        project_json_before = json.loads(
+            (project_dir / "project.json").read_text("utf-8")
+        )
+        slides_json_before = json.loads(
+            (project_dir / "slides.json").read_text("utf-8")
+        )
+
+        _call_and_wait(
+            client,
+            "project_close",
+            {"confirm": True},
+        )
+        closed_project = McpClient.result_data(
+            client.tool_call("get_project")
+        )
+        closed_timeline = McpClient.result_data(
+            client.tool_call("get_timeline")
+        )
+        closed_ui = McpClient.result_data(client.tool_call("get_ui_state"))
+        assert closed_project["error"] == "no project"
+        assert closed_timeline["tracks"] == {}
+        for button in (
+            "detect",
+            "quick_preview",
+            "auto",
+            "auto_align",
+            "export_md",
+            "export_pptx",
+            "process_notes",
+            "save",
+        ):
+            assert closed_ui["buttons"][button]["enabled"] is False
+
+        _call_and_wait(client, "project_open", {"path": str(project_dir)})
+        project_after = McpClient.result_data(client.tool_call("get_project"))
+        timeline_after = _normalized_timeline_state(
+            McpClient.result_data(client.tool_call("get_timeline"))
+        )
+        assert project_after == project_before
+        assert timeline_after == timeline_before
+        assert json.loads(
+            (project_dir / "project.json").read_text("utf-8")
+        ) == project_json_before
+        assert json.loads(
+            (project_dir / "slides.json").read_text("utf-8")
+        ) == slides_json_before
+        assert any(
+            slide["uid"] == added_uid for slide in slides_json_before["slides"]
+        )
+        assert all(
+            not slide["image"]
+            or (project_dir / slide["image"]).is_file()
+            for slide in slides_json_before["slides"]
+        )
     finally:
         harness.stop()

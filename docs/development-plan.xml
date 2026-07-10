@@ -234,7 +234,7 @@
       <target><source>src/video2pptx/project_manager.py</source><tests>tests/test_project_manager.py</tests></target>
       <observability><log-prefix>[ProjectManager]</log-prefix></observability>
       <verification-ref>V-M-PROJECT</verification-ref>
-      <depends>M-MODELS, M-CONFIG</depends>
+      <depends>M-MODELS, M-CONFIG, M-ATOMIC-JSON</depends>
     </M-PROJECT>
 
     <M-GUI-MAIN NAME="MainWindow" TYPE="UI_COMPONENT" LAYER="6" ORDER="24" STATUS="implemented">

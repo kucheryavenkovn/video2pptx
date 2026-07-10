@@ -21,7 +21,7 @@ The existing scenario file is a catalog, not a trusted characterization suite. K
 | E2E-011 Slide CRUD | executable and passing | Real GUI+MCP test covers UID-based add/get/resize/move/set-frame/clear/delete and compares project, timeline, `project.json`, and `slides.json`. |
 | E2E-012 Markdown | executable but failing | Does not compare slide count or validate all image references; runner observations do not affect pass/fail. |
 | E2E-013 PPTX | environment-dependent | Only ZIP signature checked; `python-pptx` reopen, slide count, media and relationships are not verified. |
-| E2E-014 Save/Close/Open | executable but failing | Fixed sleep and incomplete restored-state assertions. |
+| E2E-014 Save/Close/Open | executable and passing | Real GUI+MCP test compares project, normalized timeline, pipeline state, persisted UID/order/intervals/images, score waveform, and both JSON files across close/open. |
 | E2E-015 Auto | incomplete | No clean-project full/resume/force scenario. |
 
 ## Phase-1 characterization gates
