@@ -387,3 +387,11 @@
 - Impact: Canonical command architecture requires retrofitting app_service as single entry point.
 - Resolution: Phase 2 wires app_service into GUI/MCP/CLI.
 - LINKS: M-APP-SERVICE, src/video2pptx/app_service.py
+
+### F-0043 — MCP OpRunnerThread lacks Qt binding: app_service commands cannot mutate ProjectModel
+- Date: 2026-07-10
+- Area: mcp, architecture
+- Finding: `AppServiceRunner` runs `app_service.execute_command` in a background `OpRunnerThread`. However, `detect` and other pipeline commands call `run_detect_slides` which is a standalone function that writes directly to disk — it does NOT go through ProjectModel. GUI refresh depends on ProjectModel Qt signals, which are not triggered by disk-only writes. Auto Align (`run_auto_align`) modifies `slides` in memory and writes `slides.json` but does not emit `slidesChanged`.
+- Impact: After MCP-driven detect/align, the GUI timeline may not refresh automatically. A project_save → project_close → project_open cycle is needed for now.
+- Resolution: Documented as known limitation. Phase 2 wiring (app_service → ProjectModel signals) is the planned fix — but app_service must remain Qt-free.
+- LINKS: M-MCP-OPERATIONS, M-APP-SERVICE
