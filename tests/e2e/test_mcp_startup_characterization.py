@@ -652,3 +652,162 @@ def test_real_gui_mcp_markdown_and_pptx_exports_are_structurally_valid(
         assert project["artifact_paths"]["deck_pptx"] == str(pptx_path)
     finally:
         harness.stop()
+
+
+def test_real_gui_mcp_video_and_subtitle_import_gates(
+    repo_dir,
+    tmp_path,
+    synthetic_video_path,
+    synthetic_subtitle_path,
+):
+    harness = GuiProcessHarness(
+        repo=repo_dir,
+        run_dir=tmp_path / "run",
+        startup_timeout=30.0,
+        qt_platform="offscreen",
+    )
+    try:
+        client = harness.start()
+        project_parent = tmp_path / "projects"
+        _call_and_wait(
+            client,
+            "project_create",
+            {"path": str(project_parent), "name": "import_char"},
+        )
+        _call_and_wait(
+            client,
+            "video_import",
+            {"path": str(synthetic_video_path)},
+        )
+        project = McpClient.result_data(client.tool_call("get_project"))
+        assert project["video"] == str(synthetic_video_path)
+        ui = McpClient.result_data(client.tool_call("get_ui_state"))
+        assert ui["buttons"]["detect"]["enabled"] is True
+        assert ui["buttons"]["quick_preview"]["enabled"] is True
+
+        _call_and_wait(
+            client,
+            "subtitle_import",
+            {"path": str(synthetic_subtitle_path)},
+        )
+        project = McpClient.result_data(client.tool_call("get_project"))
+        timeline = McpClient.result_data(client.tool_call("get_timeline"))
+        assert project["subtitle_path"] == str(synthetic_subtitle_path)
+        sub_clips = timeline["tracks"].get("subtitles", {}).get("clips", [])
+        assert len(sub_clips) == 4
+        assert all(clip["text"].strip() for clip in sub_clips)
+        assert sub_clips[0]["start_sec"] == 0.0
+        assert sub_clips[-1]["end_sec"] == 12.0
+    finally:
+        harness.stop()
+
+
+def test_real_gui_mcp_process_notes_enriches_transcript(
+    repo_dir,
+    tmp_path,
+    synthetic_video_path,
+    synthetic_subtitle_path,
+):
+    harness = GuiProcessHarness(
+        repo=repo_dir,
+        run_dir=tmp_path / "run",
+        startup_timeout=30.0,
+        qt_platform="offscreen",
+    )
+    try:
+        client = harness.start()
+        project_parent = tmp_path / "projects"
+        project_dir = project_parent / "notes_char"
+        _call_and_wait(
+            client,
+            "project_create",
+            {"path": str(project_parent), "name": "notes_char"},
+        )
+        _call_and_wait(
+            client,
+            "video_import",
+            {"path": str(synthetic_video_path)},
+        )
+        _call_and_wait(
+            client,
+            "subtitle_import",
+            {"path": str(synthetic_subtitle_path)},
+        )
+        _call_and_wait(client, "detect", {"confirm": True}, timeout=120)
+        _call_and_wait(
+            client,
+            "auto_align",
+            {"dry_run": False, "max_shift_sec": 3.0, "confirm": True},
+        )
+
+        before = json.loads((project_dir / "slides.json").read_text("utf-8"))
+        assert not all(slide.get("transcript", "").strip() for slide in before["slides"])
+
+        _call_and_wait(
+            client,
+            "process_notes",
+            {"confirm": True},
+            timeout=60,
+        )
+        after = json.loads((project_dir / "slides.json").read_text("utf-8"))
+        assert after["slides"]
+        assert any(
+            slide.get("transcript", "").strip() for slide in after["slides"]
+        )
+
+        project = McpClient.result_data(client.tool_call("get_project"))
+        assert project["pipeline_state"]["notes_done"] is True
+    finally:
+        harness.stop()
+
+
+def test_real_gui_mcp_full_auto_completes_all_stages(
+    repo_dir,
+    tmp_path,
+    synthetic_video_path,
+    synthetic_subtitle_path,
+):
+    harness = GuiProcessHarness(
+        repo=repo_dir,
+        run_dir=tmp_path / "run",
+        startup_timeout=30.0,
+        qt_platform="offscreen",
+    )
+    try:
+        client = harness.start()
+        project_parent = tmp_path / "projects"
+        project_dir = project_parent / "auto_char"
+        _call_and_wait(
+            client,
+            "project_create",
+            {"path": str(project_parent), "name": "auto_char"},
+        )
+        _call_and_wait(
+            client,
+            "video_import",
+            {"path": str(synthetic_video_path)},
+        )
+        _call_and_wait(
+            client,
+            "subtitle_import",
+            {"path": str(synthetic_subtitle_path)},
+        )
+
+        _call_and_wait(client, "auto", {"confirm": True}, timeout=180)
+
+        project = McpClient.result_data(client.tool_call("get_project"))
+        state = project["pipeline_state"]
+        assert state["detect_done"] is True
+        assert state["align_done"] is True
+        assert state["notes_done"] is True
+        assert state["md_exported"] is True
+        assert state["pptx_exported"] is True
+        assert state["auto_done"] is True
+        assert project["slides_count"] > 0
+        assert (project_dir / "slides.json").is_file()
+        assert (project_dir / "deck.md").is_file()
+        assert (project_dir / "deck.pptx").is_file()
+        assert (project_dir / "alignment_report.json").is_file()
+        assert (project_dir / "slides").is_dir()
+    finally:
+        harness.stop()

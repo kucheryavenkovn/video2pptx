@@ -859,6 +859,9 @@
       <scenario-CHAR-008 kind="success">UID-based slide CRUD keeps project, timeline, project.json, and slides.json consistent.</scenario-CHAR-008>
       <scenario-CHAR-009 kind="success">Save/Close/Open preserves normalized project state and disables all project actions while closed.</scenario-CHAR-009>
       <scenario-CHAR-010 kind="success">MCP Markdown and PPTX exports match source slide/image counts and preserve project identity.</scenario-CHAR-010>
+      <scenario-CHAR-011 kind="success">Video and subtitle import set correct project paths, subtitle clips, and button enablement.</scenario-CHAR-011>
+      <scenario-CHAR-012 kind="success">Process Notes enriches transcript text and sets notes_done.</scenario-CHAR-012>
+      <scenario-CHAR-013 kind="success">Full Auto completes detect+align+notes+export in a single clean project with all artifacts.</scenario-CHAR-013>
     </scenarios>
   </V-REF-CHAR-TESTS>
 

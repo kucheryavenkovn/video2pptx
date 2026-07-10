@@ -521,3 +521,12 @@
 - Impact: Adapter outputs were structurally different and lost project identity.
 - Resolution/Status: Fixed. The MCP application adapter supplies project name to both exporters and PPTX writes it to Open XML core properties. Overwrite-policy cleanup remains assigned to adapter migration.
 - LINKS: M-APP-SERVICE, M-MCP-OPERATIONS, M-MD-EXPORT, M-PPTX-EXPORT, V-REF-CHAR-TESTS
+
+### F-0058 — Video transport MCP tools routed to wrong object
+- Date: 2026-07-10
+- Area: mcp, gui
+- Finding: `video_seek`, `video_play`, `video_pause` are in `_QT_WRITE_CMDS` and execute against `ProjectModel`, but the actual methods are on `VideoPlayerWidget`, not on `ProjectModel`. All three fail with `AttributeError: ProjectModel command not found`.
+- Symptom/Reproduction: real MCP `video_seek(position=3.0)` returns failed operation with `ProjectModel command not found: seek`.
+- Impact: E2E-005 Playback cannot be characterized through MCP.
+- Resolution/Status: Open. Playback commands must route to `MainWindow._video_player` or a dedicated bridge method on ProjectModel. Playback in offscreen Qt may also require a multimedia backend; deferred to Phase 8 GUI migration.
+- LINKS: M-DEBUG-MCP, M-GUI-VIDEOPLAYER, V-REF-CHAR-TESTS

@@ -30,7 +30,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.3.0 - Supply project name to export application commands
+#   LAST_CHANGE: v1.4.0 - Add process_notes and auto persistence to compatibility bridge
 #   v1.2.0 - Skip project persistence and Qt refresh for pure Auto Align dry-runs
 #   v1.1.0 - Added adapter mapping, compatibility persistence, and Qt completion synchronization
 # END_CHANGE_SUMMARY
@@ -313,6 +313,26 @@ class AppServiceRunner(OperationRunner):
         elif tool == "export_pptx":
             project.state.pptx_exported = True
             project.state.pptx_stale = False
+        elif tool == "process_notes":
+            load_slides_into_project(project, force=True)
+            project.state.notes_done = True
+            project.state.notes_stale = False
+            project.state.mark_stale_downstream("notes")
+        elif tool == "auto":
+            project.slides_json = "slides.json"
+            load_slides_into_project(project, force=True)
+            project.state.detect_done = True
+            project.state.detect_stale = False
+            if project.subtitles:
+                project.state.align_done = True
+                project.state.align_stale = False
+                project.state.notes_done = True
+                project.state.notes_stale = False
+            project.state.md_exported = True
+            project.state.md_stale = False
+            project.state.pptx_exported = True
+            project.state.pptx_stale = False
+            project.state.auto_done = True
         save_project(project, project_path)
 
 

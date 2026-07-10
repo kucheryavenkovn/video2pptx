@@ -21,7 +21,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.3.0 - Propagate adapter-supplied project titles to Markdown and PPTX exports
+#   LAST_CHANGE: v0.4.0 - Add process_notes command to execute_command dispatcher
 #   v0.2.0 - Auto Align apply writes report and slides atomically
 # END_CHANGE_SUMMARY
 
@@ -418,6 +418,20 @@ def execute_command(command: str, **kwargs: Any) -> dict[str, Any]:
             out_path=Path(kwargs["out_path"]) if kwargs.get("out_path") else None,
             title=str(kwargs.get("title", "Presentation")),
             notes_mode=str(kwargs.get("notes_mode", "basic")),
+        )
+    elif command == "process_notes":
+        from video2pptx.notes_pipeline import run_notes as _run_notes
+
+        doc = _run_notes(
+            slides_json=Path(kwargs["slides_json"]),
+            subtitles_path=Path(kwargs["subtitles_path"]) if kwargs.get("subtitles_path") else None,
+            slides_dir=Path(kwargs["out_dir"]) / "slides" if kwargs.get("out_dir") else None,
+            notes_mode=str(kwargs.get("mode", "basic")),
+        )
+        result = CommandResult(
+            success=True,
+            data={"slides_count": len(doc.slides)},
+            stage="notes",
         )
     elif command == "auto":
         result = run_auto(
