@@ -99,8 +99,6 @@ def detect(
 
     out_dir = Path(out)
     out_dir.mkdir(parents=True, exist_ok=True)
-    slides_dir = out_dir / "slides"
-    slides_dir.mkdir(exist_ok=True)
 
     video_path = Path(video)
     if not video_path.is_file():
@@ -119,97 +117,26 @@ def detect(
     if subs_path:
         console.print(f"[green]✓[/green] Subtitles: {subs_path.resolve()}")
 
-    # START_BLOCK_OPEN_VIDEO
-    decoder = VideoDecoder(
+    # START_BLOCK_RUN_DETECT
+    doc = run_detect_slides(
         video_path=video_path,
-        sample_fps=cfg.video.sample_fps,
-        backend=cfg.video.decoder_backend,
+        out_dir=out_dir,
+        cfg=cfg,
     )
-    info = decoder.get_info()
-    logger.info(f"[CLI][detect] Video info | duration={info.duration:.2f} {info.width}x{info.height} fps={info.fps:.2f}")
-    # END_BLOCK_OPEN_VIDEO
-
-    # START_BLOCK_PARSE_ROI
-    ignore_rois = parse_ignore_rois(cfg.detection.ignore_rois)
-    slide_region = SlideRegion(
-        roi=parse_roi(cfg.detection.slide_roi).roi,
-        ignore_rois=ignore_rois,
-    )
-    # END_BLOCK_PARSE_ROI
-
-    sample_tolerance = 0.5 / max(cfg.video.sample_fps, 0.1)
-
-    # START_BLOCK_DETECT_CHANGES
-    frames_iter = ((f.timestamp, f.image) for f in decoder.iter_frames())
-    changes, all_features, all_scores = detect_changes(
-        frames=frames_iter,
-        slide_region=slide_region,
-        threshold=cfg.detection.threshold,
-        min_stable_duration=cfg.detection.min_stable_duration,
-        sample_fps=cfg.video.sample_fps,
-        video_duration=info.duration,
-    )
-    # END_BLOCK_DETECT_CHANGES
-
-    # START_BLOCK_BUILD_SEGMENTS
-    segments: list[SlideSegment] = build_segments(
-        changes=changes,
-        video_duration=info.duration,
-        min_slide_duration=cfg.detection.min_slide_duration,
-    )
-    # END_BLOCK_BUILD_SEGMENTS
-
-    # START_BLOCK_DEDUPE
-    if cfg.detection.dedupe_enabled and len(segments) > 1:
-        # Re-iterate frames to collect representative images keyed by segment ts
-        rep_frames: dict[float, np.ndarray] = {}
-        for vf in decoder.iter_frames():
-            for s in segments:
-                ts = s.representative_timestamp
-                if ts not in rep_frames and abs(vf.timestamp - ts) < sample_tolerance:
-                    rep_frames[ts] = slide_region.process(vf.image)
-                    break
-        segments = deduplicate_segments(segments, rep_frames)
-    # END_BLOCK_DEDUPE
+    segments = doc.slides
+    json_path = out_dir / "slides.json"
+    console.print(f"[green]✓[/green] Detected {len(segments)} slides")
+    # END_BLOCK_RUN_DETECT
 
     # START_BLOCK_ALIGN_SUBTITLES
-    cues: list[SubtitleCue] = []
     if subs_path:
         content = subs_path.read_text(encoding="utf-8")
         fmt = "vtt" if subs_path.suffix.lower() == ".vtt" else "srt"
         cues = parse_subtitles(content, format=fmt)
-        segments = align_cues_to_segments(segments, cues)
+        align_cues_to_segments(segments, cues)
+        json_path.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
+        logger.info(f"[CLI][detect] Subtitles aligned | cues={len(cues)}")
     # END_BLOCK_ALIGN_SUBTITLES
-
-    # START_BLOCK_SAVE_SCREENSHOTS
-    saved_timestamps: set[float] = set()
-    for vf in decoder.iter_frames():
-        for seg in segments:
-            ts = seg.representative_timestamp
-            if ts not in saved_timestamps and abs(vf.timestamp - ts) < sample_tolerance:
-                cropped = slide_region.process(vf.image)
-                fname = f"slide_{seg.index:03d}.png"
-                cv2.imwrite(str(slides_dir / fname), cv2.cvtColor(cropped, cv2.COLOR_RGB2BGR))
-                seg.image = f"slides/{fname}"
-                saved_timestamps.add(ts)
-                break
-    # END_BLOCK_SAVE_SCREENSHOTS
-
-    # START_BLOCK_BUILD_DOCUMENT
-    doc = SlidesDocument(
-        video=VideoInfo(
-            path=str(video_path.resolve()),
-            duration=info.duration,
-            width=info.width,
-            height=info.height,
-            fps=info.fps,
-        ),
-        slides=segments,
-    )
-    json_path = out_dir / "slides.json"
-    json_path.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
-    logger.info(f"[CLI][detect] Document saved | path={json_path} slides={len(segments)}")
-    # END_BLOCK_BUILD_DOCUMENT
 
     # START_BLOCK_LLM_PROCESSING
     if llm:
@@ -218,9 +145,8 @@ def detect(
         run_llm_pipeline(
             slides_path=json_path,
             llm_config=cfg.llm,
-            slides_dir=slides_dir,
+            slides_dir=out_dir / "slides",
         )
-        # Reload enriched document so subsequent exports use LLM-enriched data
         doc = SlidesDocument.model_validate_json(json_path.read_text(encoding="utf-8"))
         console.print(f"[green]✓[/green] LLM enriched: {json_path.resolve()}")
     # END_BLOCK_LLM_PROCESSING
@@ -246,23 +172,33 @@ def detect(
         debug_dir.mkdir(exist_ok=True)
         from video2pptx.debug_export import export_debug_csv, export_debug_report
 
-        if all_scores:
-            ts_list = [f.timestamp for f in all_features[1:]]  # scores align with frame 1..N
-            export_debug_csv(all_scores, ts_list, debug_dir / "diff_scores.csv")
+        if doc.score_values:
+            export_debug_csv(doc.score_values, doc.score_timestamps, debug_dir / "diff_scores.csv")
 
-        export_debug_report(segments, str(video_path), debug_dir / "debug_report.txt")
+        export_debug_report(doc.slides, str(video_path), debug_dir / "debug_report.txt")
 
-        # Contact sheet if PIL available
+        # Contact sheet
+        decoder = VideoDecoder(
+            video_path=video_path,
+            sample_fps=cfg.video.sample_fps,
+            backend=cfg.video.decoder_backend,
+        )
+        ignore_rois = parse_ignore_rois(cfg.detection.ignore_rois)
+        slide_region = SlideRegion(
+            roi=parse_roi(cfg.detection.slide_roi).roi,
+            ignore_rois=ignore_rois,
+        )
+        sample_tolerance = 0.5 / max(cfg.video.sample_fps, 0.1)
         rep_frames_contact: dict[float, np.ndarray] = {}
         for vf in decoder.iter_frames():
-            for seg in segments:
+            for seg in doc.slides:
                 ts = seg.representative_timestamp
                 if ts not in rep_frames_contact and abs(vf.timestamp - ts) < sample_tolerance:
                     rep_frames_contact[ts] = slide_region.process(vf.image)
                     break
         if rep_frames_contact:
             from video2pptx.debug_export import export_contact_sheet
-            export_contact_sheet(segments, rep_frames_contact, debug_dir / "contact_sheet.jpg")
+            export_contact_sheet(doc.slides, rep_frames_contact, debug_dir / "contact_sheet.jpg")
         # END_BLOCK_OPTIONAL_EXPORT
 
     logger.info(f"[CLI][detect] Detection complete | output={out_dir}")
