@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/app_service.py
-# VERSION: 0.2.0
+# VERSION: 0.3.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Centralized application service — single entry point for detect, preview, align, notes, export, auto
 #   SCOPE: Command handlers that GUI slots, MCP tools, and CLI all delegate to. No Qt, no HTTP.
@@ -21,7 +21,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.2.0 - Auto Align apply writes report and slides atomically
+#   LAST_CHANGE: v0.3.0 - Propagate adapter-supplied project titles to Markdown and PPTX exports
+#   v0.2.0 - Auto Align apply writes report and slides atomically
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -221,13 +222,14 @@ def run_auto_align(
 def run_export_md(
     slides_json: Path,
     out_path: Path | None = None,
+    title: str = "Presentation",
     image_as_background: bool = True,
     transcript_location: str = "body",
     include_timecodes: bool = True,
 ) -> CommandResult:
     # START_CONTRACT: run_export_md
     #   PURPOSE: Export slides.json to Marp Markdown deck.md
-    #   INPUTS: { slides_json, out_path, image_as_background, transcript_location, include_timecodes }
+    #   INPUTS: { slides_json, out_path, title, image_as_background, transcript_location, include_timecodes }
     #   OUTPUTS: CommandResult with deck path
     #   SIDE_EFFECTS: writes deck.md
     #   LINKS: M-APP-SERVICE
@@ -244,6 +246,7 @@ def run_export_md(
             doc,
             target,
             slides_dir=str(slides_json.parent),
+            title=title,
             image_as_background=image_as_background,
             transcript_location=transcript_location,
             include_timecodes=include_timecodes,
@@ -257,11 +260,12 @@ def run_export_md(
 def run_export_pptx(
     slides_json: Path,
     out_path: Path | None = None,
+    title: str = "Presentation",
     notes_mode: str = "basic",
 ) -> CommandResult:
     # START_CONTRACT: run_export_pptx
     #   PURPOSE: Export slides.json to PPTX with speaker notes
-    #   INPUTS: { slides_json, out_path, notes_mode }
+    #   INPUTS: { slides_json, out_path, title, notes_mode }
     #   OUTPUTS: CommandResult with pptx path
     #   SIDE_EFFECTS: writes deck.pptx
     #   LINKS: M-APP-SERVICE
@@ -274,7 +278,13 @@ def run_export_pptx(
     try:
         doc = SlidesDocument.model_validate_json(slides_json.read_text(encoding="utf-8"))
         target = out_path or slides_json.parent / "deck.pptx"
-        export_to_pptx(doc, target, slides_dir=slides_json.parent, notes_mode=notes_mode)
+        export_to_pptx(
+            doc,
+            target,
+            slides_dir=slides_json.parent,
+            title=title,
+            notes_mode=notes_mode,
+        )
         return CommandResult(success=True, data={"deck_pptx": str(target)}, stage="export_pptx")
     except Exception as e:
         logger.error(f"[AppService][run_export_pptx] Failed | error={e}")
@@ -400,11 +410,13 @@ def execute_command(command: str, **kwargs: Any) -> dict[str, Any]:
         result = run_export_md(
             slides_json=Path(kwargs["slides_json"]),
             out_path=Path(kwargs["out_path"]) if kwargs.get("out_path") else None,
+            title=str(kwargs.get("title", "Presentation")),
         )
     elif command == "export_pptx":
         result = run_export_pptx(
             slides_json=Path(kwargs["slides_json"]),
             out_path=Path(kwargs["out_path"]) if kwargs.get("out_path") else None,
+            title=str(kwargs.get("title", "Presentation")),
             notes_mode=str(kwargs.get("notes_mode", "basic")),
         )
     elif command == "auto":

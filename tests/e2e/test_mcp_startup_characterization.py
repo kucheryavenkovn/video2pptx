@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import json
+import re
 
 from tools.mcp_e2e_runner import GuiProcessHarness, McpClient
 
@@ -560,5 +561,94 @@ def test_real_gui_mcp_save_close_open_preserves_project_state(
             or (project_dir / slide["image"]).is_file()
             for slide in slides_json_before["slides"]
         )
+    finally:
+        harness.stop()
+
+
+def test_real_gui_mcp_markdown_and_pptx_exports_are_structurally_valid(
+    repo_dir,
+    tmp_path,
+    synthetic_video_path,
+    synthetic_subtitle_path,
+):
+    from pptx import Presentation
+    from pptx.enum.shapes import MSO_SHAPE_TYPE
+
+    harness = GuiProcessHarness(
+        repo=repo_dir,
+        run_dir=tmp_path / "run",
+        startup_timeout=30.0,
+        qt_platform="offscreen",
+    )
+    try:
+        client = harness.start()
+        project_parent = tmp_path / "projects"
+        project_name = "exports_characterized"
+        project_dir = project_parent / project_name
+        _call_and_wait(
+            client,
+            "project_create",
+            {"path": str(project_parent), "name": project_name},
+        )
+        _call_and_wait(
+            client,
+            "video_import",
+            {"path": str(synthetic_video_path)},
+        )
+        _call_and_wait(
+            client,
+            "subtitle_import",
+            {"path": str(synthetic_subtitle_path)},
+        )
+        _call_and_wait(client, "detect", {"confirm": True}, timeout=120)
+
+        source = json.loads((project_dir / "slides.json").read_text("utf-8"))
+        source_slides = source["slides"]
+        assert source_slides
+        assert all(slide["image"] for slide in source_slides)
+
+        _call_and_wait(
+            client,
+            "export_md",
+            {"overwrite": True, "confirm": True},
+        )
+        markdown_path = project_dir / "deck.md"
+        markdown = markdown_path.read_text(encoding="utf-8")
+        image_refs = re.findall(r"!\[bg\]\(([^)]+)\)", markdown)
+        assert "marp: true" in markdown
+        assert f'title: "{project_name}"' in markdown
+        assert "slides/slides/" not in markdown
+        assert len(image_refs) == len(source_slides)
+        assert all((project_dir / ref).is_file() for ref in image_refs)
+        assert len(
+            re.findall(r"^> \d+:\d{2} – \d+:\d{2}$", markdown, re.MULTILINE)
+        ) == len(source_slides)
+
+        _call_and_wait(
+            client,
+            "export_pptx",
+            {"overwrite": True, "confirm": True},
+        )
+        pptx_path = project_dir / "deck.pptx"
+        presentation = Presentation(str(pptx_path))
+        assert presentation.core_properties.title == project_name
+        assert len(presentation.slides) == len(source_slides)
+        assert all(
+            any(
+                shape.shape_type == MSO_SHAPE_TYPE.PICTURE
+                for shape in slide.shapes
+            )
+            for slide in presentation.slides
+        )
+        assert all(
+            slide.notes_slide.notes_text_frame.text.strip()
+            for slide in presentation.slides
+        )
+
+        project = McpClient.result_data(client.tool_call("get_project"))
+        assert project["pipeline_state"]["md_exported"] is True
+        assert project["pipeline_state"]["pptx_exported"] is True
+        assert project["artifact_paths"]["deck_md"] == str(markdown_path)
+        assert project["artifact_paths"]["deck_pptx"] == str(pptx_path)
     finally:
         harness.stop()

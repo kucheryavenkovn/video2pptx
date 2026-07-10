@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/pptx_export.py
-# VERSION: 0.1.0
+# VERSION: 0.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Export slides.json to PPTX presentation with slide images and speaker notes
 #   SCOPE: Generate .pptx with full-slide screenshots, formatted transcript as speaker notes,
@@ -12,8 +12,11 @@
 #
 # START_MODULE_MAP
 #   export_to_pptx - write .pptx with all slides (screenshots + speaker notes)
-#   export_slides_to_pptx - convenience: read slides.json, write .pptx
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.2.0 - Persist presentation title in Open XML core properties
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -54,6 +57,7 @@ def export_to_pptx(
     prs = Presentation()
     prs.slide_width = Emu(12192000)    # 16:9 widescreen
     prs.slide_height = Emu(6858000)
+    prs.core_properties.title = title
 
     slides_root = Path(slides_dir)
 

@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/debug/mcp_operations.py
-# VERSION: 1.2.0
+# VERSION: 1.3.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Wire OperationRegistry into MCP — write tools create op, run app_service in OpRunnerThread, return operation_id.
 #            Lifecycle tools: health, get_capabilities, get_operation, wait_operation, cancel_operation, list_operations.
@@ -30,7 +30,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.2.0 - Skip project persistence and Qt refresh for pure Auto Align dry-runs
+#   LAST_CHANGE: v1.3.0 - Supply project name to export application commands
+#   v1.2.0 - Skip project persistence and Qt refresh for pure Auto Align dry-runs
 #   v1.1.0 - Added adapter mapping, compatibility persistence, and Qt completion synchronization
 # END_CHANGE_SUMMARY
 
@@ -248,6 +249,7 @@ class AppServiceRunner(OperationRunner):
             "out_dir": str(out_dir),
             "slides_json": str(out_dir / "slides.json") if out_dir else "",
             "subtitles_path": getattr(project, "subtitles", None),
+            "title": getattr(project, "name", "Presentation"),
         }
 
         if cfg:

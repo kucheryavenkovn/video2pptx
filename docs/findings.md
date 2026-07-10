@@ -512,3 +512,12 @@
 - Impact: E2E-014 postconditions and persistence guarantees were incomplete.
 - Resolution/Status: Fixed. Close disables all project-dependent actions and `save_project()` uses the shared atomic JSON writer. Full repository/schema migration remains Phase 4.
 - LINKS: M-GUI-MAIN, M-PROJECT, M-ATOMIC-JSON, V-REF-CHAR-TESTS
+
+### F-0057 — MCP exports discarded the project title
+- Date: 2026-07-10
+- Area: export, mcp
+- Finding: GUI supplied `Project.name`, but AppServiceRunner omitted it, so MCP Markdown used `Presentation`; PPTX accepted a title argument but did not persist it in package metadata.
+- Symptom/Reproduction: export a named project through MCP and inspect `deck.md` front matter or PPTX core properties.
+- Impact: Adapter outputs were structurally different and lost project identity.
+- Resolution/Status: Fixed. The MCP application adapter supplies project name to both exporters and PPTX writes it to Open XML core properties. Overwrite-policy cleanup remains assigned to adapter migration.
+- LINKS: M-APP-SERVICE, M-MCP-OPERATIONS, M-MD-EXPORT, M-PPTX-EXPORT, V-REF-CHAR-TESTS
