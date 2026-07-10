@@ -103,8 +103,8 @@ class ProjectModel(QObject):
         return list(self._score_values)
 
     def create(self, path: str, name: str = "Untitled") -> None:
-        out_dir = Path(path)
-        self._project = create_project(str(out_dir), name)
+        out_dir = Path(path) / name
+        self._project = create_project(str(out_dir), name=name)
         self._subs = None
         self._timeline.clear()
         self._sync_subtitles_to_timeline() if self._subs else None

@@ -126,9 +126,13 @@ def run_preview(
             ignore_rois=ignore_rois,
         )
 
-        frames_iter = ((f.timestamp, f.image) for f in decoder.iter_frames())
-        _, all_features, all_scores = detect_changes(
-            frames=frames_iter,
+        # Collect all frames first for quick mode (avoids double decode)
+        all_frames = list(decoder.iter_frames())
+        all_ts = [f.timestamp for f in all_frames]
+        frames_input = ((f.timestamp, f.image) for f in all_frames)
+
+        _, _, all_scores = detect_changes(
+            frames=frames_input,
             slide_region=slide_region,
             threshold=cfg.detection.threshold,
             min_stable_duration=cfg.detection.min_stable_duration,
@@ -139,7 +143,8 @@ def run_preview(
             distance_fn=quick_visual_distance,
         )
 
-        score_ts = [f.timestamp for f in all_features[1:]]
+        # Score timestamps: scores align with frame pairs (frame 1..N)
+        score_ts = all_ts[1:len(all_scores) + 1] if len(all_scores) <= len(all_ts) - 1 else all_ts[1:]
         return CommandResult(
             success=True,
             data={

@@ -16,6 +16,8 @@
 
 from __future__ import annotations
 
+import os
+import sys
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -23,6 +25,22 @@ import cv2
 from loguru import logger
 
 from video2pptx.models import VideoFrame, VideoInfo
+
+
+def _win_short_path(path: str | Path) -> str:
+    """Convert a Unicode path to Windows 8.3 short path for OpenCV compatibility."""
+    p = str(path)
+    if sys.platform != "win32":
+        return p
+    try:
+        import ctypes
+        buf = ctypes.create_unicode_buffer(260)
+        n = ctypes.windll.kernel32.GetShortPathNameW(p, buf, 260)
+        if n > 0:
+            return buf.value
+    except Exception:
+        pass
+    return p
 
 
 def opencv_video_info(video_path: str | Path) -> VideoInfo:
@@ -35,7 +53,7 @@ def opencv_video_info(video_path: str | Path) -> VideoInfo:
     # END_CONTRACT: opencv_video_info
 
     # START_BLOCK_OPEN_VIDEO
-    cap = cv2.VideoCapture(str(video_path))
+    cap = cv2.VideoCapture(_win_short_path(video_path))
     if not cap.isOpened():
         raise FileNotFoundError(f"Cannot open video: {video_path}")
     # END_BLOCK_OPEN_VIDEO
@@ -76,7 +94,7 @@ def opencv_iter_frames(
     # END_CONTRACT: opencv_iter_frames
 
     # START_BLOCK_OPEN_VIDEO
-    cap = cv2.VideoCapture(str(video_path))
+    cap = cv2.VideoCapture(_win_short_path(video_path))
     if not cap.isOpened():
         raise FileNotFoundError(f"Cannot open video: {video_path}")
     # END_BLOCK_OPEN_VIDEO

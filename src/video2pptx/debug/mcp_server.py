@@ -191,6 +191,9 @@ class _Handler(BaseHTTPRequestHandler):
     _running = True
 
     def do_GET(self) -> None:
+        if self.path == "/health":
+            self._send_json({"status": "ok", "port": self.server.server_address[1]})
+            return
         self._handle_sse()
 
     def do_POST(self) -> None:
@@ -274,11 +277,15 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _send_json(self, data: dict) -> None:
         payload = json.dumps(data, ensure_ascii=False, default=str)
+        payload_bytes = payload.encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(payload_bytes)))
         self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Connection", "close")
         self.end_headers()
-        self.wfile.write(payload.encode("utf-8"))
+        self.wfile.write(payload_bytes)
+        self.close_connection = True
 
     def log_message(self, fmt, *args) -> None:
         logger.debug(f"[McpServer] {fmt % args}")
