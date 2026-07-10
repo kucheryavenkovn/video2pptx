@@ -9,9 +9,8 @@
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
 
-import time
 
-from video2pptx.debug.operation_registry import OperationRegistry, TERMINAL_STATUSES
+from video2pptx.debug.operation_registry import OperationRegistry
 
 
 class TestOperationRegistry:
@@ -90,7 +89,7 @@ class TestOperationRegistry:
         op = reg.create("detect")
         try:
             reg.update(op.operation_id, status="invalid")
-            assert False, "Should have raised"
+            raise AssertionError("Should have raised")  # noqa: B011
         except ValueError:
             pass
 

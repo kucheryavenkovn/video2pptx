@@ -22,16 +22,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
-import numpy as np
 from loguru import logger
 
-from video2pptx.config import AppConfig, load_config
-from video2pptx.models import SlideSegment, SlidesDocument, VideoInfo
-from video2pptx.paths import resolve_artifact_path
+from video2pptx.config import AppConfig
+from video2pptx.models import SlidesDocument
 from video2pptx.video_decode import VideoDecoder
 
 
@@ -294,7 +293,6 @@ def run_auto(
     # END_CONTRACT: run_auto
 
     stages: list[dict] = []
-    total_stages = 4 if subtitles_path else 2
 
     def _progress(pct: int, msg: str) -> None:
         if progress_callback:

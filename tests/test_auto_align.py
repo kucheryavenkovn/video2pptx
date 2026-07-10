@@ -12,10 +12,9 @@
 from pathlib import Path
 
 from video2pptx.auto_align import (
-    AlignmentReport,
     SubtitleAnchorProvider,
-    align_slides_to_subtitles,
     _validate_boundaries,
+    align_slides_to_subtitles,
 )
 from video2pptx.models import SlideSegment, SubtitleCue
 
