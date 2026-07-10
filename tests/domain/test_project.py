@@ -14,21 +14,28 @@ from __future__ import annotations
 import pytest
 
 from video2pptx.domain import (
-    DomainError,
+    OverlappingSlides,
     Project,
+    Slide,
     SlideId,
+    SlideView,
     StageStatus,
     ValidationError,
 )
 
 
+def _make_slides_for_project() -> list[Slide]:
+    """Create two non-overlapping slides: [0,5) and [5,10)."""
+    return [
+        Slide.from_dict({"uid": "aaa111", "start": 0.0, "end": 5.0, "index": 1, "image": "slides/slide_001.png"}),
+        Slide.from_dict({"uid": "bbb222", "start": 5.0, "end": 10.0, "index": 2, "image": "slides/slide_002.png"}),
+    ]
+
+
 def _make_project_with_two_slides() -> Project:
     """Create a project with two non-overlapping slides: [0,5) and [5,10)."""
     project = Project(name="test", video_path="vid.mp4")
-    project.replace_detected_slides([
-        {"uid": "aaa111", "start": 0.0, "end": 5.0, "index": 1, "image": "slides/slide_001.png"},
-        {"uid": "bbb222", "start": 5.0, "end": 10.0, "index": 2, "image": "slides/slide_002.png"},
-    ])
+    project.replace_detected_slides(_make_slides_for_project())
     return project
 
 
@@ -38,6 +45,7 @@ class TestAddSlide:
         sid = project.add_slide(2.5)
         assert isinstance(sid, SlideId)
         assert project.get_slide(sid) is not None
+        assert isinstance(project.get_slide(sid), SlideView)
 
     def test_split_containing_slide(self):
         project = _make_project_with_two_slides()
@@ -60,8 +68,8 @@ class TestAddSlide:
     def test_add_in_gap(self):
         project = Project()
         project.replace_detected_slides([
-            {"uid": "x", "start": 0.0, "end": 3.0, "index": 1},
-            {"uid": "y", "start": 7.0, "end": 10.0, "index": 2},
+            Slide.from_dict({"uid": "x", "start": 0.0, "end": 3.0, "index": 1}),
+            Slide.from_dict({"uid": "y", "start": 7.0, "end": 10.0, "index": 2}),
         ])
         sid = project.add_slide(4.0)
         slide = project.get_slide(sid)
@@ -91,7 +99,8 @@ class TestRemoveSlide:
 
     def test_remove_nonexistent_raises(self):
         project = _make_project_with_two_slides()
-        with pytest.raises(DomainError, match="not found"):
+        from video2pptx.domain.errors import SlideNotFound
+        with pytest.raises(SlideNotFound, match="not found"):
             project.remove_slide("nonexistent")
 
 
@@ -105,12 +114,13 @@ class TestMoveSlide:
 
     def test_move_overlap_prevented(self):
         project = _make_project_with_two_slides()
-        with pytest.raises(DomainError, match="overlap"):
+        with pytest.raises(OverlappingSlides, match="overlap"):
             project.move_slide("aaa111", 4.0, 7.0)
 
     def test_move_nonexistent_raises(self):
         project = _make_project_with_two_slides()
-        with pytest.raises(DomainError, match="not found"):
+        from video2pptx.domain.errors import SlideNotFound
+        with pytest.raises(SlideNotFound, match="not found"):
             project.move_slide("nope", 0.0, 1.0)
 
 
@@ -118,9 +128,9 @@ class TestReplaceDetectedSlides:
     def test_replaces_all(self):
         project = _make_project_with_two_slides()
         project.replace_detected_slides([
-            {"uid": "new1", "start": 0.0, "end": 6.0, "index": 1},
-            {"uid": "new2", "start": 6.0, "end": 12.0, "index": 2},
-            {"uid": "new3", "start": 12.0, "end": 18.0, "index": 3},
+            Slide.from_dict({"uid": "new1", "start": 0.0, "end": 6.0, "index": 1}),
+            Slide.from_dict({"uid": "new2", "start": 6.0, "end": 12.0, "index": 2}),
+            Slide.from_dict({"uid": "new3", "start": 12.0, "end": 18.0, "index": 3}),
         ])
         assert project.slide_count == 3
         assert project.get_slide("new3") is not None
@@ -132,7 +142,7 @@ class TestReplaceDetectedSlides:
         project.pipeline.start("align")
         project.pipeline.succeed("align")
         project.replace_detected_slides([
-            {"uid": "z", "start": 0.0, "end": 10.0, "index": 1},
+            Slide.from_dict({"uid": "z", "start": 0.0, "end": 10.0, "index": 1}),
         ])
         assert project.pipeline.status("align") == StageStatus.STALE
 
@@ -175,8 +185,58 @@ class TestSerialization:
             assert orig.end == rest.end
 
 
+class TestSlideViewImmutability:
+    def test_slides_returns_slideview(self):
+        project = _make_project_with_two_slides()
+        for view in project.slides:
+            assert isinstance(view, SlideView)
+
+    def test_get_slide_returns_slideview(self):
+        project = _make_project_with_two_slides()
+        view = project.get_slide("aaa111")
+        assert isinstance(view, SlideView)
+        assert view.slide_id.value == "aaa111"
+
+    def test_slideview_is_frozen(self):
+        project = _make_project_with_two_slides()
+        view = project.get_slide("aaa111")
+        with pytest.raises(Exception):
+            view.transcript = "hacked"
+
+
+class TestClearImageInvalidatesExports:
+    def test_clear_image_invalidates_markdown_pptx_auto(self):
+        project = _make_project_with_two_slides()
+        for stage in ("notes", "markdown_export", "pptx_export"):
+            project.pipeline.start(stage)
+            project.pipeline.succeed(stage)
+        project.clear_image("aaa111")
+        assert project.pipeline.status("markdown_export") == StageStatus.STALE
+        assert project.pipeline.status("pptx_export") == StageStatus.STALE
+
+
+class TestCandidateValidation:
+    def test_duplicate_slideid_rejected(self):
+        from video2pptx.domain.errors import DuplicateSlideId
+        project = Project()
+        with pytest.raises(DuplicateSlideId):
+            project.replace_detected_slides([
+                Slide.from_dict({"uid": "dup", "start": 0.0, "end": 5.0, "index": 1}),
+                Slide.from_dict({"uid": "dup", "start": 5.0, "end": 10.0, "index": 2}),
+            ])
+
+    def test_overlap_in_candidates_rejected(self):
+        from video2pptx.domain.errors import OverlappingSlides
+        project = Project()
+        with pytest.raises(OverlappingSlides):
+            project.replace_detected_slides([
+                Slide.from_dict({"uid": "a", "start": 0.0, "end": 6.0, "index": 1}),
+                Slide.from_dict({"uid": "b", "start": 5.0, "end": 10.0, "index": 2}),
+            ])
+
+
 class TestOverlapRejection:
     def test_move_into_occupied_interval_raises(self):
         project = _make_project_with_two_slides()
-        with pytest.raises(DomainError, match="overlap"):
+        with pytest.raises(OverlappingSlides, match="overlap"):
             project.move_slide("bbb222", 3.0, 8.0)

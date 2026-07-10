@@ -1,9 +1,10 @@
 # FILE: src/video2pptx/domain/project.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Project aggregate root — owns slides, enforces invariants, manages pipeline state.
 #   SCOPE: add_slide, remove_slide, move_slide, resize_slide, replace_detected_slides,
-#          invalidate_downstream_from, clear_image, to_slides_dict, from_slides_dict
+#          invalidate_downstream_from, clear_image, to_slides_dict, from_slides_dict,
+#          _validate_candidate_slides
 #   DEPENDS: video2pptx.domain.slide, video2pptx.domain.identifiers, video2pptx.domain.time,
 #            video2pptx.domain.pipeline_state, video2pptx.domain.errors
 #   LINKS: M-DOMAIN-PROJECT
@@ -16,17 +17,26 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Initial Project aggregate root
+#   LAST_CHANGE: v1.1.0 - Harden aggregate: SlideView projection, candidate validation, specialized errors
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
+import math
+from collections.abc import Sequence
 from typing import Any
 
-from video2pptx.domain.errors import DomainError, ValidationError
+from video2pptx.domain.errors import (
+    DomainError,
+    DuplicateSlideId,
+    InvalidRepresentativeTimestamp,
+    OverlappingSlides,
+    SlideNotFound,
+    ValidationError,
+)
 from video2pptx.domain.identifiers import SlideId
 from video2pptx.domain.pipeline_state import PipelineState
-from video2pptx.domain.slide import Slide
+from video2pptx.domain.slide import Slide, SlideView
 from video2pptx.domain.time import TimeInterval
 
 
@@ -56,21 +66,29 @@ class Project:
         self.score_values: list[float] = []
 
     @property
-    def slides(self) -> tuple[Slide, ...]:
-        """Read-only view of slides."""
-        return tuple(self._slides)
+    def slides(self) -> tuple[SlideView, ...]:
+        """Read-only immutable view of slides."""
+        return tuple(SlideView.from_slide(s) for s in self._slides)
 
     @property
     def slide_count(self) -> int:
         return len(self._slides)
 
-    def get_slide(self, slide_id: SlideId | str) -> Slide | None:
-        """Find a slide by SlideId or string value."""
+    def get_slide(self, slide_id: SlideId | str) -> SlideView | None:
+        """Find a slide by SlideId or string value. Returns immutable view."""
+        target = str(slide_id) if isinstance(slide_id, SlideId) else slide_id
+        for slide in self._slides:
+            if str(slide.slide_id) == target:
+                return SlideView.from_slide(slide)
+        return None
+
+    def _require_slide(self, slide_id: SlideId | str) -> Slide:
+        """Internal: find mutable Slide entity or raise SlideNotFound."""
         target = str(slide_id) if isinstance(slide_id, SlideId) else slide_id
         for slide in self._slides:
             if str(slide.slide_id) == target:
                 return slide
-        return None
+        raise SlideNotFound(f"Slide not found: {slide_id}")
 
     def add_slide(self, timestamp: float) -> SlideId:
         """Add a manual slide at *timestamp*.
@@ -133,9 +151,7 @@ class Project:
 
     def remove_slide(self, slide_id: SlideId | str) -> None:
         """Remove a slide by SlideId. Other SlideIds are preserved."""
-        target = self.get_slide(slide_id)
-        if target is None:
-            raise DomainError(f"Slide not found: {slide_id}")
+        target = self._require_slide(slide_id)
         self._slides.remove(target)
         self._reindex()
         self.invalidate_downstream_from("detect")
@@ -148,12 +164,10 @@ class Project:
     ) -> None:
         """Move a slide to a new [start, end] interval.
 
-        Raises DomainError if the new interval overlaps any other slide.
+        Raises OverlappingSlides if the new interval overlaps any other slide.
         Raises ValidationError if start/end are invalid.
         """
-        slide = self.get_slide(slide_id)
-        if slide is None:
-            raise DomainError(f"Slide not found: {slide_id}")
+        slide = self._require_slide(slide_id)
 
         new_interval = TimeInterval(start, end)
         self._validate_no_overlap_excluding(new_interval, slide)
@@ -169,33 +183,27 @@ class Project:
         end: float,
     ) -> None:
         """Resize a slide by changing its end boundary."""
-        slide = self.get_slide(slide_id)
-        if slide is None:
-            raise DomainError(f"Slide not found: {slide_id}")
+        slide = self._require_slide(slide_id)
         self.move_slide(slide_id, slide.interval.start, end)
 
     def clear_image(self, slide_id: SlideId | str) -> None:
-        """Clear the representative image for a slide."""
-        slide = self.get_slide(slide_id)
-        if slide is None:
-            raise DomainError(f"Slide not found: {slide_id}")
+        """Clear the representative image for a slide and invalidate exports."""
+        slide = self._require_slide(slide_id)
         slide.image = None
+        self.pipeline.invalidate_from("notes")
 
-    def replace_detected_slides(self, slides_data: list[dict[str, Any]]) -> None:
-        """Replace all detected slides with a new set.
+    def replace_detected_slides(self, slides: Sequence[Slide]) -> None:
+        """Replace all detected slides with a new set of domain Slide objects.
 
+        Validates the complete candidate collection before committing.
         All existing slides are removed. Pipeline state is invalidated downstream.
         """
-        new_slides: list[Slide] = []
-        for data in slides_data:
-            slide = Slide.from_dict(data)
-            new_slides.append(slide)
-
-        new_slides.sort(key=lambda s: (s.interval.start, s.interval.end))
-        for i, slide in enumerate(new_slides, start=1):
+        candidate = list(slides)
+        self._validate_candidate_slides(candidate)
+        candidate.sort(key=lambda s: (s.interval.start, s.interval.end))
+        for i, slide in enumerate(candidate, start=1):
             slide.index = i
-
-        self._slides = new_slides
+        self._slides = candidate
         self.invalidate_downstream_from("detect")
 
     def invalidate_downstream_from(self, stage: str) -> list[str]:
@@ -236,13 +244,50 @@ class Project:
         for i, slide in enumerate(self._slides, start=1):
             slide.index = i
 
+    def _validate_candidate_slides(
+        self,
+        slides: list[Slide],
+        video_duration: float | None = None,
+    ) -> None:
+        """Validate a complete candidate slide collection before committing.
+
+        Checks uniqueness, sort order, overlap, interval validity,
+        representative timestamp placement, and optional video bounds.
+        """
+        seen_ids: set[str] = set()
+        prev_end: float | None = None
+        for slide in slides:
+            sid = str(slide.slide_id)
+            if sid in seen_ids:
+                raise DuplicateSlideId(f"Duplicate SlideId: {sid}")
+            seen_ids.add(sid)
+            if prev_end is not None and slide.interval.start < prev_end:
+                raise OverlappingSlides(
+                    f"Slide {sid} starts at {slide.interval.start} "
+                    f"before previous end {prev_end}"
+                )
+            prev_end = slide.interval.end
+            if video_duration is not None and slide.interval.end > video_duration:
+                raise ValidationError(
+                    f"Slide {sid} extends beyond video duration {video_duration}"
+                )
+            if not slide.interval.start <= slide.representative_timestamp <= slide.interval.end:
+                raise InvalidRepresentativeTimestamp(
+                    f"Slide {sid} representative_timestamp {slide.representative_timestamp} "
+                    f"outside [{slide.interval.start}, {slide.interval.end}]"
+                )
+            if math.isnan(slide.confidence) or not (0.0 <= slide.confidence <= 1.0):
+                raise ValidationError(
+                    f"Slide {sid} confidence out of range: {slide.confidence}"
+                )
+
     def _validate_no_overlap(self, slide: Slide) -> None:
         """Ensure the slide does not overlap any existing slide."""
         for existing in self._slides:
             if existing is slide:
                 continue
             if slide.interval.overlaps(existing.interval):
-                raise DomainError(
+                raise OverlappingSlides(
                     f"Slide {slide.slide_id} overlaps slide {existing.slide_id}"
                 )
 
@@ -256,7 +301,7 @@ class Project:
             if existing is excluded:
                 continue
             if interval.overlaps(existing.interval):
-                raise DomainError(
+                raise OverlappingSlides(
                     f"Interval [{interval.start}, {interval.end}) overlaps "
                     f"slide {existing.slide_id}"
                 )

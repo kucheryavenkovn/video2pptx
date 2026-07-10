@@ -24,7 +24,15 @@
 from video2pptx.domain.artifacts import ArtifactRef, migrate_legacy_artifact
 from video2pptx.domain.errors import (
     DomainError,
+    DuplicateSlideId,
     IllegalStateTransition,
+    InvalidRepresentativeTimestamp,
+    InvalidSlideConfidence,
+    InvalidSlideOrder,
+    OverlappingSlides,
+    ProjectInvariantError,
+    SlideNotFound,
+    TimestampOutsideVideo,
     ValidationError,
 )
 from video2pptx.domain.identifiers import SlideId
@@ -37,23 +45,32 @@ from video2pptx.domain.pipeline_state import (
     StageStatus,
 )
 from video2pptx.domain.project import Project
-from video2pptx.domain.slide import Slide
+from video2pptx.domain.slide import Slide, SlideView
 from video2pptx.domain.time import TIME_EPSILON, TimeInterval
 
 __all__ = [
     "ArtifactRef",
     "DomainError",
     "DOWNSTREAM",
+    "DuplicateSlideId",
     "IllegalStateTransition",
+    "InvalidRepresentativeTimestamp",
+    "InvalidSlideConfidence",
+    "InvalidSlideOrder",
     "migrate_legacy_artifact",
+    "OverlappingSlides",
     "PIPELINE_STAGES",
     "PipelineState",
     "Project",
+    "ProjectInvariantError",
     "Slide",
     "SlideId",
+    "SlideNotFound",
+    "SlideView",
     "StageState",
     "StageStatus",
     "TIME_EPSILON",
+    "TimestampOutsideVideo",
     "TimeInterval",
     "VALID_TRANSITIONS",
     "ValidationError",
