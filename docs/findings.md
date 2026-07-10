@@ -413,3 +413,21 @@
 - Impact: MCP read tools returned incomplete project data.
 - Resolution: Added `_project_path` attribute, `project_path` property, stored path in `create()` and `open()`, cleared in `close()`.
 - LINKS: M-PROJECT-MODEL, M-MCP-READ-TOOLS
+
+### F-0046 — CLI has no Quick Preview use case
+- Date: 2026-07-10
+- Area: architecture, cli
+- Finding: Direct application service and GUI expose Quick Preview, but the Typer CLI has no equivalent command. The CLI only exposes full `detect` and `detect-slides`.
+- Symptom/Reproduction: inspect `src/video2pptx/cli.py`; no preview command is registered.
+- Impact: Adapter equivalence cannot currently be characterized for Preview across direct service, CLI, MCP, and GUI.
+- Resolution/Status: Open for Phase-16 Step 7. Phase-1 characterization covers valid direct Preview invariants and records the adapter gap rather than treating it as desired behavior.
+- LINKS: M-APP-SERVICE, M-CLI, V-REF-CHAR-TESTS
+
+### F-0047 — MCP E2E runner bypasses GUI and MCP transport
+- Date: 2026-07-10
+- Area: tooling, mcp
+- Finding: `tools/mcp_e2e_runner.py::run_e2e` imports and calls `run_preview`, `run_detect`, `run_auto_align`, and exporters directly. It does not launch `video2pptx gui`, discover an instance-owned MCP port, or call MCP tools.
+- Symptom/Reproduction: `tools/mcp_e2e_runner.py:113-128` explicitly describes and implements direct Python API execution.
+- Impact: Existing runner results cannot certify GUI/MCP operation lifecycle or adapter synchronization.
+- Resolution/Status: Open in Phase-16 Step 1. A real subprocess/MCP harness must replace the direct path before characterization is complete.
+- LINKS: M-E2E-RUNNER, M-DEBUG-MCP, V-REF-CHAR-TESTS
