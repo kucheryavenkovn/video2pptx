@@ -128,10 +128,9 @@ def run_preview(
 
         # Collect all frames first for quick mode (avoids double decode)
         all_frames = list(decoder.iter_frames())
-        all_ts = [f.timestamp for f in all_frames]
         frames_input = ((f.timestamp, f.image) for f in all_frames)
 
-        _, _, all_scores = detect_changes(
+        _, all_features, all_scores = detect_changes(
             frames=frames_input,
             slide_region=slide_region,
             threshold=cfg.detection.threshold,
@@ -143,8 +142,8 @@ def run_preview(
             distance_fn=quick_visual_distance,
         )
 
-        # Score timestamps: scores align with frame pairs (frame 1..N)
-        score_ts = all_ts[1:len(all_scores) + 1] if len(all_scores) <= len(all_ts) - 1 else all_ts[1:]
+        # Timestamps for scores (skip first frame since scores are between frames)
+        score_ts = [f.timestamp for f in all_features[1:]]
         return CommandResult(
             success=True,
             data={

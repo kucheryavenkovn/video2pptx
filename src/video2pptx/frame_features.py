@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass, field
 
 import cv2
 import imagehash
@@ -26,6 +27,13 @@ from loguru import logger
 from PIL import Image
 
 from video2pptx.models import FrameFeatures
+
+
+@dataclass
+class QuickFrame:
+    """Lightweight frame representation for quick preview mode."""
+    thumb: list[float] = field(default_factory=list)
+    timestamp: float = 0.0
 
 # START_BLOCK_DEFAULT_WEIGHTS
 DISTANCE_WEIGHTS: dict[str, float] = {
@@ -221,30 +229,30 @@ def _pixel_mae(thumb_a: list[float], thumb_b: list[float]) -> float:
     return min(1.0, mae / 255.0)
 
 
-def quick_extract(image: np.ndarray) -> list[float]:
+def quick_extract(image: np.ndarray) -> QuickFrame:
     # START_CONTRACT: quick_extract
     #   PURPOSE: Lightweight thumbnail extraction for fast preview — no hashes/histograms
     #   INPUTS: { image: np.ndarray — RGB array (H, W, C) }
-    #   OUTPUTS: list[float] — flattened 32×24 grayscale, values in 0-255
+    #   OUTPUTS: QuickFrame — dataclass with thumb list[float] and timestamp
     #   SIDE_EFFECTS: none
     #   LINKS: M-FRAME-FEATURES
     # END_CONTRACT: quick_extract
 
     gray = cv2_to_gray(image)
     thumb = cv2.resize(gray, (32, 24), interpolation=cv2.INTER_LINEAR)
-    return thumb.ravel().astype(np.float32).tolist()
+    return QuickFrame(thumb=thumb.ravel().astype(np.float32).tolist())
 
 
-def quick_visual_distance(thumb_a: list[float], thumb_b: list[float]) -> float:
+def quick_visual_distance(a: QuickFrame, b: QuickFrame) -> float:
     # START_CONTRACT: quick_visual_distance
     #   PURPOSE: Fast pixel MAE between two quick_extract thumbnails (0-1)
-    #   INPUTS: { thumb_a, thumb_b: list[float] }
+    #   INPUTS: { a: QuickFrame, b: QuickFrame }
     #   OUTPUTS: float — 0 = identical, 1 = completely different
     #   SIDE_EFFECTS: none
     #   LINKS: M-FRAME-FEATURES
     # END_CONTRACT: quick_visual_distance
 
-    return _pixel_mae(thumb_a, thumb_b)
+    return _pixel_mae(a.thumb, b.thumb)
 
 
 def array_to_pil(image: np.ndarray) -> Image.Image:
