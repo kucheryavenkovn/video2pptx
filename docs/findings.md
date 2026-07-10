@@ -431,3 +431,30 @@
 - Impact: Existing runner results cannot certify GUI/MCP operation lifecycle or adapter synchronization.
 - Resolution/Status: Open in Phase-16 Step 1. A real subprocess/MCP harness must replace the direct path before characterization is complete.
 - LINKS: M-E2E-RUNNER, M-DEBUG-MCP, V-REF-CHAR-TESTS
+
+### F-0048 — Qt-affine MCP commands had no operation lifecycle and lost arguments
+- Date: 2026-07-10
+- Area: mcp, architecture
+- Finding: `project_create`, project lifecycle, media import, and slide mutations used `_CMD_QUEUE` but returned only `{status: queued}` without an operation ID. `project_create` forwarded only `path`; `name` was silently dropped, creating `Untitled`.
+- Symptom/Reproduction: real GUI MCP call `project_create(path=..., name='characterized')` created `projects/Untitled/project.json` and could not be awaited through `wait_operation`.
+- Impact: E2E synchronization was impossible and the requested project identity was corrupted.
+- Resolution/Status: Fixed. Qt-affine commands now create OperationRegistry entries, transition in the Qt timer, return structured terminal state, preserve `name`, and use the common completion bridge.
+- LINKS: M-DEBUG-MCP, M-OPERATION-REGISTRY, V-REF-CHAR-TESTS
+
+### F-0049 — get_project fallback hid project_dir due to str/Path mismatch
+- Date: 2026-07-10
+- Area: mcp, persistence
+- Finding: `ProjectModel.project_path` is a string while `_find_artifact_paths` assumed `Path` and used `/`. The exception activated the legacy fallback serializer, dropping `project_dir`, pipeline details, and artifact paths.
+- Symptom/Reproduction: subprocess log contained `get_project fallback: unsupported operand type(s) for /: 'str' and 'str'`.
+- Impact: MCP state snapshots were incomplete even though the project was valid.
+- Resolution/Status: Fixed by normalizing the adapter boundary with `Path(project_dir)`.
+- LINKS: M-MCP-READ-TOOLS, M-PROJECT-MODEL, V-REF-CHAR-TESTS
+
+### F-0050 — ProjectModel lacked a project-opened event for adapter refresh
+- Date: 2026-07-10
+- Area: gui, architecture
+- Finding: GUI-originated code manually called `MainWindow._on_project_opened()`, while MCP-originated `ProjectModel.create/open/refresh_from_disk` had no neutral event. Model and disk updated but the window title and button state remained stale.
+- Symptom/Reproduction: real MCP `project_create` succeeded and `get_project` returned the new project, while `get_ui_state.window_title` remained `video2pptx`.
+- Impact: F-0043 remained partially unresolved for project lifecycle commands.
+- Resolution/Status: Fixed with `ProjectModel.projectOpened` signal. MainWindow subscribes as a GUI adapter; manual lifecycle slot calls were removed.
+- LINKS: M-PROJECT-MODEL, M-GUI-MAIN, V-REF-CHAR-TESTS

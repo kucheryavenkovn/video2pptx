@@ -82,6 +82,7 @@ class MainWindow(QMainWindow):
         self._model.slidesChanged.connect(self._on_model_slides_changed)
         self._model.subtitlesChanged.connect(self._on_model_subtitles_changed)
         self._model.videoChanged.connect(self._on_model_video_changed)
+        self._model.projectOpened.connect(self._on_project_opened)
         self._model.projectClosed.connect(self._on_model_project_closed)
         self._model.scoresChanged.connect(self._on_model_scores_changed)
 
@@ -416,7 +417,6 @@ class MainWindow(QMainWindow):
         try:
             self._model.close()
             self._model.create(parent_dir, folder_name)
-            self._on_project_opened()
             self.statusBar().showMessage(f"Project created: {folder_name}")
         except FileExistsError as e:
             QMessageBox.critical(self, "Error", str(e))
@@ -429,7 +429,6 @@ class MainWindow(QMainWindow):
         try:
             self._model.close()
             self._model.open(proj_dir)
-            self._on_project_opened()
             self.statusBar().showMessage(f"Project opened: {self._model.project_data.name}")
         except FileNotFoundError as e:
             QMessageBox.critical(self, "Error", str(e))
@@ -445,7 +444,6 @@ class MainWindow(QMainWindow):
             return
         try:
             self._model.open(str(proj_dir))
-            self._on_project_opened()
             self.statusBar().showMessage(f"Project opened: {self._model.project_data.name}")
         except FileNotFoundError as e:
             QMessageBox.critical(self, "Error", str(e))
@@ -591,7 +589,6 @@ class MainWindow(QMainWindow):
             )
             if reply == QMessageBox.StandardButton.Yes:
                 self._model.open(project_path)
-                self._on_project_opened()
                 self.statusBar().showMessage(f"Restored project: {self._model.project_data.name}")
         except Exception:
             pass

@@ -48,6 +48,7 @@ class ProjectModel(QObject):
     markersChanged = Signal()
     scoresChanged = Signal()
     videoChanged = Signal(str)
+    projectOpened = Signal()
     projectClosed = Signal()
     stateChanged = Signal()
 
@@ -115,6 +116,7 @@ class ProjectModel(QObject):
         self._timeline.clear()
         self._sync_subtitles_to_timeline() if self._subs else None
         self.videoChanged.emit("")
+        self.projectOpened.emit()
 
     def open(self, path: str) -> None:
         self._project = open_project(path)
@@ -134,6 +136,7 @@ class ProjectModel(QObject):
                 self.scoresChanged.emit()
             if self._project.video:
                 self.videoChanged.emit(self._project.video)
+        self.projectOpened.emit()
         logger.info(f"[ProjectModel][open] Opened | path={path} name={self._project.name if self._project else '?'}")
 
     def save(self) -> None:
@@ -151,7 +154,7 @@ class ProjectModel(QObject):
         if not self._project or not self._project_path:
             return
         try:
-            from video2pptx.project_manager import open_project, load_slides_into_project
+            from video2pptx.project_manager import load_slides_into_project, open_project
             self._project = open_project(self._project_path)
             self._subs = self._load_subs_if_needed()
             self._timeline.clear()
@@ -167,7 +170,8 @@ class ProjectModel(QObject):
                     self._sync_scores_to_timeline()
                     self.scoresChanged.emit()
                 self.slidesChanged.emit()
-            logger.info(f"[ProjectModel][refresh_from_disk] Refreshed from disk")
+                self.projectOpened.emit()
+            logger.info("[ProjectModel][refresh_from_disk] Refreshed from disk")
         except Exception as e:
             logger.error(f"[ProjectModel][refresh_from_disk] Failed: {e}")
 

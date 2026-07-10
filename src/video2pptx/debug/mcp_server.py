@@ -38,6 +38,7 @@ from loguru import logger
 
 from video2pptx.debug.action_registry import ActionRegistry
 from video2pptx.debug.confirm import require_confirm
+from video2pptx.debug.errors import OperationError
 from video2pptx.debug.mcp_operations import (
     AppServiceRunner,
     OpRunnerThread,
@@ -46,7 +47,7 @@ from video2pptx.debug.mcp_operations import (
     get_registry,
     health,
     list_operations,
-    submit,
+    record_completed,
     wait_operation,
 )
 from video2pptx.debug.mcp_write_tools import (
@@ -220,14 +221,44 @@ def _handle_rpc(method: str, params: dict, model, timeline: Timeline, main_windo
             cmd_name = info[0]
             arg_name = info[1]
             default_val = info[2]
-            if arg_name is not None and arg_name in args:
+            if tool == "project_create":
+                cargs = (args.get("path", ""),)
+                ckwargs = {"name": args.get("name", "Untitled")}
+            elif tool == "slide_move":
+                cargs = (
+                    args.get("index", 1),
+                    args.get("start", 0.0),
+                    args.get("end", 5.0),
+                )
+                ckwargs = {}
+            elif arg_name is not None and arg_name in args:
                 cargs = (args[arg_name],)
+                ckwargs = {}
             elif arg_name is not None and default_val is not None:
                 cargs = (default_val,)
+                ckwargs = {}
             else:
                 cargs = ()
-            _CMD_QUEUE.put((tool, cmd_name, cargs, {}))
-            return {"content": [{"type": "text", "text": json.dumps({"status": "queued", "tool": tool, "op_type": "qt"})}]}
+                ckwargs = {}
+            operation = get_registry().create(tool, args)
+            _CMD_QUEUE.put(
+                (operation.operation_id, tool, cmd_name, cargs, ckwargs)
+            )
+            return {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": json.dumps(
+                            {
+                                "operation_id": operation.operation_id,
+                                "status": "queued",
+                                "tool": tool,
+                                "op_type": "qt",
+                            }
+                        ),
+                    }
+                ]
+            }
 
         # -- write tools (app_service via OpRunnerThread) --
         if not is_sync_tool(tool) and tool not in _QT_WRITE_CMDS:
@@ -319,7 +350,7 @@ def _read_artifacts(model) -> list:
 
 
 def _handle_special_read(tool: str, args: dict, timeline, main_window) -> dict:
-    from video2pptx.debug.mcp_read_tools import get_slide, get_subtitle_clip, capture_screenshot
+    from video2pptx.debug.mcp_read_tools import capture_screenshot, get_slide, get_subtitle_clip
     if tool == "get_slide":
         return {"content": [{"type": "text", "text": json.dumps(get_slide(timeline, uid=args.get("uid"), index=args.get("index")), ensure_ascii=False, default=str, indent=2)}]}
     if tool == "get_subtitle_clip":
@@ -441,7 +472,7 @@ class _ThreadedServer(ThreadingMixIn, TCPServer):
     daemon_threads = True
 
 
-_CMD_QUEUE: Queue[tuple[str, str, tuple, dict]] = Queue()
+_CMD_QUEUE: Queue[tuple[str, str, str, tuple, dict]] = Queue()
 _ACTION_QUEUE: Queue[tuple[str, tuple, dict]] = Queue()
 ACTION_REGISTRY: ActionRegistry | None = None
 _OP_RUNNER_THREAD: OpRunnerThread | None = None
@@ -449,11 +480,41 @@ _OP_RUNNER_THREAD: OpRunnerThread | None = None
 
 def mcp_process_queue(model) -> None:
     while not _CMD_QUEUE.empty():
-        tool_name, cmd_name, args, kwargs = _CMD_QUEUE.get_nowait()
-        fn = getattr(model, cmd_name, None)
-        if fn:
+        operation_id, tool_name, cmd_name, args, kwargs = _CMD_QUEUE.get_nowait()
+        registry = get_registry()
+        registry.update(operation_id, status="running", stage=tool_name)
+        try:
+            fn = getattr(model, cmd_name, None)
+            if fn is None:
+                raise AttributeError(
+                    f"ProjectModel command not found: {cmd_name}"
+                )
             fn(*args, **kwargs)
-            logger.debug(f"[McpServer] Qt command processed | tool={tool_name} cmd={cmd_name}")
+            registry.update(
+                operation_id,
+                status="succeeded",
+                progress=100,
+                stage="complete",
+                result={"tool": tool_name},
+            )
+            logger.debug(
+                f"[McpServer] Qt command processed | "
+                f"operation_id={operation_id} tool={tool_name} cmd={cmd_name}"
+            )
+        except Exception as exc:
+            error = OperationError.from_exception(
+                exc,
+                stage=tool_name,
+                trace_id=operation_id,
+            )
+            registry.update(
+                operation_id,
+                status="failed",
+                stage=tool_name,
+                error=error.to_dict(),
+            )
+        finally:
+            record_completed(operation_id)
     while not _ACTION_QUEUE.empty():
         name, args, kwargs = _ACTION_QUEUE.get_nowait()
         if name == "__action__" and ACTION_REGISTRY is not None:

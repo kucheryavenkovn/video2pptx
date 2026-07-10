@@ -68,6 +68,18 @@ class McpClient:
     def tool_call(self, name: str, arguments: dict | None = None) -> dict:
         return self.call("tools/call", {"name": name, "arguments": arguments or {}})
 
+    def wait_operation(
+        self,
+        operation_id: str,
+        timeout: float = 120.0,
+    ) -> dict:
+        return self.result_data(
+            self.tool_call(
+                "wait_operation",
+                {"operation_id": operation_id, "timeout": timeout},
+            )
+        )
+
     @staticmethod
     def result_data(response: dict) -> Any:
         result = response.get("result", response)

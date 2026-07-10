@@ -23,8 +23,6 @@
 
 from __future__ import annotations
 
-import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -77,6 +75,7 @@ def get_project(project_model=None) -> dict[str, Any]:
 
 
 def _find_artifact_paths(project_dir: Path) -> dict[str, str | None]:
+    project_dir = Path(project_dir)
     return {
         "project_json": str(project_dir / "project.json") if (project_dir / "project.json").is_file() else None,
         "slides_json": str(project_dir / "slides.json") if (project_dir / "slides.json").is_file() else None,
@@ -91,11 +90,11 @@ def _serialize_timeline(timeline) -> dict[str, Any]:
     if timeline is None:
         return {"duration": 0, "tracks": {}}
     from video2pptx.timeline_model import (
+        MarkerClip,
+        ScoreClip,
         ScoreTrack,
         SlideClip,
         SubtitleClip,
-        MarkerClip,
-        ScoreClip,
     )
     tracks: dict[str, Any] = {}
     for name in timeline.track_names():
@@ -232,8 +231,7 @@ def capture_screenshot(main_window=None) -> dict[str, Any]:
     if main_window is None:
         return {"error": "no window"}
     try:
-        from PySide6.QtCore import QByteArray, QBuffer
-        from PySide6.QtGui import QPixmap
+        from PySide6.QtCore import QBuffer, QByteArray
         pixmap = main_window.grab()
         ba = QByteArray()
         buf = QBuffer(ba)
