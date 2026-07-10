@@ -13,4 +13,4 @@
 #   __version__ - package version string
 # END_MODULE_MAP
 
-__version__ = "0.1.0"
+__version__ = "0.5.0"

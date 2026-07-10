@@ -4,14 +4,15 @@ build-backend = "hatchling.build"
 
 [project]
 name = "video2pptx"
-version = "0.5.0"
-description = "Extract slide intervals from educational videos, link to SRT/VTT subtitles, and export Markdown presentations."
+dynamic = ["version"]
+description = "Extract slide intervals from educational videos, link to SRT/VTT subtitles, and export Markdown/PPTX presentations."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "video2pptx contributors" }]
+authors = [{ name = "kucheryavenkovn" }]
 keywords = ["video", "slides", "presentation", "markdown", "marp", "subtitle", "detection", "open-cv"]
 classifiers = [
+    "Development Status :: 4 - Beta",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -20,7 +21,7 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS :: MacOS X",
     "Topic :: Multimedia :: Video",
-    "Private :: Do Not Upload",
+    "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
     "typer>=0.12",
@@ -38,26 +39,45 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-gpu = [
-    "decord>=0.6",
-    "av>=12.0",
-    "torch>=2.1",
-]
-dev = [
-    "pytest>=8.0",
-]
-review = [
-    "streamlit>=1.30",
+gui = [
+    "PySide6>=6.6",
+    "PySide6-Addons>=6.6",
 ]
 pptx = [
     "python-pptx>=0.6",
+]
+llm = [
+    "httpx>=0.27",
+]
+gpu = [
+    "av>=12.0",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.4",
+    "mypy>=1.8",
+    "httpx>=0.27",
+    "python-pptx>=0.6",
+]
+all = [
+    "PySide6>=6.6",
+    "PySide6-Addons>=6.6",
+    "python-pptx>=0.6",
+    "httpx>=0.27",
 ]
 
 [project.scripts]
 video2pptx = "video2pptx.cli:run"
 
 [project.urls]
-Documentation = "https://github.com/user/video2pptx"
+Homepage = "https://github.com/kucheryavenkovn/video2pptx"
+Documentation = "https://github.com/kucheryavenkovn/video2pptx#readme"
+Repository = "https://github.com/kucheryavenkovn/video2pptx"
+Issues = "https://github.com/kucheryavenkovn/video2pptx/issues"
+
+[tool.hatch.version]
+path = "src/video2pptx/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/video2pptx"]
@@ -71,4 +91,8 @@ pythonpath = ["src"]
 addopts = "-q"
 markers = [
     "integration: tests that require real video files or network access",
+    "gpu: tests that require CUDA/GPU hardware",
+    "llm: tests that require a running LM Studio instance",
+    "gui: tests that require a display or offscreen Qt platform",
+    "slow: tests that take more than 10 seconds",
 ]

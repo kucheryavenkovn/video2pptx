@@ -87,3 +87,19 @@ Thumbs.db
 out/
 slides/
 # debug/ — now tracked (MCP server + ActionRegistry)
+
+# Input directory (local video/subtitle sources)
+in/
+
+# Project state at repo root (not part of package)
+/project.json
+/.mcp_port
+
+# Session / transient logs
+session-*.md
+opencode_today.md
+gui_*.log
+mcp_stderr*.log
+
+# zread output
+/zread/
