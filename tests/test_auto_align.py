@@ -114,7 +114,9 @@ class TestAlignSlidesToSubtitles:
         srt = make_srt(tmp_path, [(0, 5, "a"), (6, 12, "b")])
         slides = [make_seg(1, 0.0, 10.0, manual=True), make_seg(2, 10.0, 30.0, manual=True)]
         report = align_slides_to_subtitles(slides, srt, include_manual=False, video_duration=30.0)
-        assert report.boundaries_total == 0
+        assert report.boundaries_total == 1  # counted but source=manual_skip
+        assert report.details[0]["source"] == "manual_skip"
+        assert report.boundaries_moved == 0
 
     def test_manual_boundary_included(self, tmp_path):
         srt = make_srt(tmp_path, [(0, 5, "a"), (6, 12, "b")])

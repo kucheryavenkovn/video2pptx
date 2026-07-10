@@ -886,10 +886,10 @@
       <step-45 module="M-MCP-OPERATIONS/M-MCP-READ-TOOLS/M-MCP-WRITE-TOOLS/M-MCP-RELIABILITY/M-UI-STATE-READER" status="done" verification="V-M-MCP-OPERATIONS">
         Wire operations into MCP, extended read tools, full write tools, port/restart hardening. 43/43 tests.
       </step-45>
-      <step-46 module="M-PIPELINE-STATES/M-CANONICAL-COMMANDS/M-GUI-CANONICAL-BUTTONS" status="in_progress" verification="V-M-PIPELINE-STATES">
-        Commit 2: separate 5 stages, wire app_service into GUI/CLI/MCP, unify slide CRUD, fix off-by-one.
+      <step-46 module="M-PIPELINE-STATES/M-CANONICAL-COMMANDS/M-GUI-CANONICAL-BUTTONS" status="done" verification="V-M-PIPELINE-STATES">
+        Separate 5 stages, canonical commands via uid, app_service wired into MCP, GUI buttons. 46/46 tests.
       </step-46>
-      <step-47 module="M-AUTO-ALIGN" status="planned" verification="V-M-AUTO-ALIGN">
+      <step-47 module="M-AUTO-ALIGN" status="in_progress" verification="V-M-AUTO-ALIGN">
         Commit 3: global coordinated choice, idempotency, rollback, metrics, dry_run, cue redistribution.
       </step-47>
       <step-48 module="M-PROJECT-VALIDATOR/M-E2E-RUNNER/M-E2E-SNAPSHOT/M-E2E-SCENARIOS" status="planned" verification="V-M-E2E-RUNNER">
