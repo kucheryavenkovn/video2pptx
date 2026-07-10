@@ -331,3 +331,41 @@
 - Impact: All text overlays (subtitles, UI labels) are invisible on top of QVideoWidget.
 - Resolution: Replaced `QVideoWidget` + `QLabel` overlay with `QGraphicsView` + `QGraphicsScene` + `QGraphicsVideoItem` for video, and `QGraphicsSimpleTextItem` (ZValue=1) for subtitles. Graphics items live in the same scene and respect z-ordering natively.
 - LINKS: M-GUI-VIDEOPLAYER, M-GUI-SUBTITLE-OVERLAY
+
+---
+
+<!-- MCP E2E Hardening findings (F-0037+) -->
+
+### F-0037 — ProjectModel.create passes 'name' as 'video_path' positional arg
+- Date: 2026-07-10
+- Area: project
+- Finding: `ProjectModel.create(path, name)` called `create_project(str(out_dir), name)` — the second positional arg of `create_project` is `video_path`, not `name`. The project name was interpreted as a video file path.
+- Symptom/Reproduction: MCP `project_create` → project directory not created at expected path.
+- Impact: Project creation broken via MCP.
+- Resolution: Changed to `create_project(str(Path(path) / name), name=name)`.
+- LINKS: M-PROJECT-MODEL, src/video2pptx/project_model.py:105
+
+### F-0038 — MCP server _send_json missing Content-Length causes HTTP client timeout
+- Date: 2026-07-10
+- Area: debug
+- Finding: The MCP HTTP server's `_send_json` didn't set `Content-Length`. The client waits for connection close, server keeps open → 30s+ timeouts.
+- Symptom/Reproduction: Any MCP tool call after `initialize` → client hangs until timeout.
+- Impact: MCP server unusable for automated testing.
+- Resolution: Added `Content-Length` header + `close_connection=True` + `/health` endpoint.
+- LINKS: M-DEBUG-MCP
+
+### F-0039 — OpenCV cannot open paths with non-ASCII chars on Windows
+- Date: 2026-07-10
+- Area: video
+- Finding: `cv2.VideoCapture` on Windows fails for paths with Cyrillic characters. Returns `isOpened()=False` silently.
+- Impact: All video processing broken for non-English Windows users.
+- Resolution: Added `_win_short_path()` using `GetShortPathNameW` ctypes.
+- LINKS: M-BACKEND-OPENCV
+
+### F-0040 — quick_extract returns list[float], detect_changes needs settable .timestamp
+- Date: 2026-07-10
+- Area: detection
+- Finding: `detect_changes` sets `ff.timestamp = timestamp` on extracted features. `quick_extract` returned `list[float]` which doesn't support attribute assignment.
+- Impact: Quick Preview pipeline non-functional.
+- Resolution: Created `QuickFrame` dataclass with `thumb` and `timestamp`. Updated `quick_extract` and `quick_visual_distance`.
+- LINKS: M-FRAME-FEATURES
