@@ -641,9 +641,11 @@
       <depends>M-OPERATION-REGISTRY, M-APP-SERVICE, M-STRUCTURED-ERRORS, M-CONFIRM-POLICY</depends>
       <verification-ref>V-M-MCP-OPERATIONS</verification-ref>
       <annotations>
+        <type-AppServiceRunner PURPOSE="Maps MCP tools to application commands; temporary result persistence bridge until Phase-16 Step 5" />
         <type-OpRunnerThread PURPOSE="Dedicated thread draining operation queue; calls app_service; updates op status" />
         <fn-submit PURPOSE="Create op + enqueue; return operation_id" />
         <fn-health PURPOSE="MCP health + version + capabilities" />
+        <fn-wait-operation PURPOSE="Wait for terminal operation and required Qt completion synchronization" />
       </annotations>
     </M-MCP-OPERATIONS>
 

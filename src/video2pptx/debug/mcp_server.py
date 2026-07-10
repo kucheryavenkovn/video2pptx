@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/debug/mcp_server.py
-# VERSION: 0.3.0
+# VERSION: 0.4.0
 # START_MODULE_CONTRACT
 #   PURPOSE: MCP HTTP server with SSE transport on 9812..9816 — exposes full app state, operation lifecycle, read/write tools
 #   SCOPE: SSE at /sse, JSON-RPC at /messages. Operation lifecycle via M-OPERATION-REGISTRY + M-MCP-OPERATIONS.
@@ -17,7 +17,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.3.0 - Wire OperationRegistry, full read/write tools, lifecycle tools, port hardening
+#   LAST_CHANGE: v0.4.0 - Added owned JSON port records and synchronized Qt-affine operation lifecycle
+#   v0.3.0 - Wire OperationRegistry, full read/write tools, lifecycle tools, port hardening
 #   v0.2.0 - Added SSE transport for OpenCode compatibility
 #   v0.1.0 - Initial implementation
 # END_CHANGE_SUMMARY

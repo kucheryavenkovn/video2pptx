@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/debug/mcp_operations.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Wire OperationRegistry into MCP — write tools create op, run app_service in OpRunnerThread, return operation_id.
 #            Lifecycle tools: health, get_capabilities, get_operation, wait_operation, cancel_operation, list_operations.
@@ -11,14 +11,27 @@
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
+#   AppServiceRunner - maps MCP names to application commands and persists compatibility results
 #   OpRunnerThread - background thread running app_service commands with op status updates
 #   OperationRunner - single-dispatch: runs one operation via app_service
+#   clear_registry - clear operations, queues, and completion synchronization state
+#   drain_completed_ops - consume operation IDs awaiting Qt refresh
+#   get_capabilities - describe lifecycle and reliability features
+#   get_operation - return one serialized operation by ID
+#   get_registry - return process-local operation registry
+#   list_operations - return recent serialized operations
+#   mark_completion_synchronized - release successful waiters after Qt refresh
+#   record_completed - enqueue an operation for Qt completion processing
+#   require_completion_sync - mark an operation as unsafe to inspect before Qt refresh
 #   submit - create op + enqueue; return operation_id
-#   get_operation_status - wrapper around registry.get
 #   wait_operation - poll registry with timeout
 #   cancel_operation - mark op cancelled, signal runner
 #   health - MCP health + version
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added adapter mapping, compatibility persistence, and Qt completion synchronization
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
