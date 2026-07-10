@@ -17,8 +17,8 @@ from pydantic import ValidationError
 from video2pptx.models import (
     FrameFeatures,
     Roi,
-    SlideSegment,
     SlidesDocument,
+    SlideSegment,
     SubtitleCue,
     VideoInfo,
 )

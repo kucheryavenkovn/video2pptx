@@ -289,7 +289,7 @@ class QuickDetectWorker(QObject):
                 return
 
             from video2pptx.detect_slides import run_detect_slides
-            
+
             proj_dir = Path(self._project.output_dir)
             cfg = AppConfig()
             cfg.video.sample_fps = 1.0

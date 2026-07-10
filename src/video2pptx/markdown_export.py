@@ -21,7 +21,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from video2pptx.models import SlideSegment, SlidesDocument
+from video2pptx.models import SlidesDocument, SlideSegment
 from video2pptx.paths import format_time, resolve_markdown_image_path
 
 

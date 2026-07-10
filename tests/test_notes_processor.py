@@ -11,14 +11,13 @@
 
 from __future__ import annotations
 
-
 from video2pptx.models import SlideSegment, SubtitleCue
 from video2pptx.notes_processor import (
-    SYSTEM_PROMPT_REPHRASE,
     LLM_REQUEST_TEMPLATE,
-    process_notes,
+    SYSTEM_PROMPT_REPHRASE,
     _basic_cleanup,
     _build_raw_text,
+    process_notes,
 )
 
 

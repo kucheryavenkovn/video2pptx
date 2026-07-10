@@ -24,9 +24,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
-import cv2
 import numpy as np
 import typer
 from loguru import logger
@@ -34,17 +32,14 @@ from rich.console import Console
 from rich.table import Table
 
 from video2pptx.config import load_config
-from video2pptx.dedupe import deduplicate_segments
 from video2pptx.detect_slides import run_detect_slides
-from video2pptx.roi_tool import roi_tool_main
-from video2pptx.project_manager import create_project, open_project
 from video2pptx.markdown_export import export_to_markdown
+from video2pptx.models import SlidesDocument
 from video2pptx.notes_pipeline import run_notes
 from video2pptx.pptx_export import export_to_pptx
-from video2pptx.models import SlideSegment, SlidesDocument, VideoInfo, SubtitleCue
-from video2pptx.roi import SlideRegion, parse_roi, parse_ignore_rois
-from video2pptx.segmenter import build_segments
-from video2pptx.slide_detector import detect_changes
+from video2pptx.project_manager import create_project, open_project
+from video2pptx.roi import SlideRegion, parse_ignore_rois, parse_roi
+from video2pptx.roi_tool import roi_tool_main
 from video2pptx.subtitles import align_cues_to_segments, parse_subtitles
 from video2pptx.video_decode import VideoDecoder
 
@@ -57,16 +52,16 @@ console = Console()
 @app.command()
 def detect(
     video: str = typer.Argument(..., help="Path to video file"),
-    subtitles: Optional[str] = typer.Option(None, "--subtitles", help="Path to SRT/VTT file"),
+    subtitles: str | None = typer.Option(None, "--subtitles", help="Path to SRT/VTT file"),
     out: str = typer.Option("./out", "--out", help="Output directory"),
-    config: Optional[str] = typer.Option(None, "--config", "-c", help="Path to YAML config file"),
-    sample_fps: Optional[float] = typer.Option(None, "--sample-fps", help="Frame sampling rate"),
-    decoder_backend: Optional[str] = typer.Option(None, "--decoder-backend", help="Decoder backend"),
-    slide_roi: Optional[str] = typer.Option(None, "--slide-roi", help="ROI: auto, full, or x1,y1,x2,y2"),
-    ignore_roi: Optional[list[str]] = typer.Option(None, "--ignore-roi", help="Region to ignore"),
-    threshold: Optional[str] = typer.Option(None, "--threshold", help="Diff threshold or auto"),
-    min_slide_duration: Optional[float] = typer.Option(None, "--min-slide-duration", help="Min slide seconds"),
-    min_stable_duration: Optional[float] = typer.Option(None, "--min-stable-duration", help="Min stable seconds"),
+    config: str | None = typer.Option(None, "--config", "-c", help="Path to YAML config file"),
+    sample_fps: float | None = typer.Option(None, "--sample-fps", help="Frame sampling rate"),
+    decoder_backend: str | None = typer.Option(None, "--decoder-backend", help="Decoder backend"),
+    slide_roi: str | None = typer.Option(None, "--slide-roi", help="ROI: auto, full, or x1,y1,x2,y2"),
+    ignore_roi: list[str] | None = typer.Option(None, "--ignore-roi", help="Region to ignore"),
+    threshold: str | None = typer.Option(None, "--threshold", help="Diff threshold or auto"),
+    min_slide_duration: float | None = typer.Option(None, "--min-slide-duration", help="Min slide seconds"),
+    min_stable_duration: float | None = typer.Option(None, "--min-stable-duration", help="Min stable seconds"),
     dedupe: bool = typer.Option(True, "--dedupe/--no-dedupe", help="Enable neighbor deduplication"),
     export_md: bool = typer.Option(False, "--export-md", help="Export deck.md after detection"),
     export_pptx: bool = typer.Option(False, "--export-pptx", help="Export .pptx after detection"),
@@ -209,14 +204,14 @@ def detect(
 def detect_slides(
     video: str = typer.Argument(..., help="Path to video file"),
     out: str = typer.Option("./out", "--out", help="Output directory"),
-    config: Optional[str] = typer.Option(None, "--config", "-c", help="Path to YAML config file"),
-    sample_fps: Optional[float] = typer.Option(None, "--sample-fps", help="Frame sampling rate"),
-    decoder_backend: Optional[str] = typer.Option(None, "--decoder-backend", help="Decoder backend"),
-    slide_roi: Optional[str] = typer.Option(None, "--slide-roi", help="ROI: auto, full, or x1,y1,x2,y2"),
-    ignore_roi: Optional[list[str]] = typer.Option(None, "--ignore-roi", help="Region to ignore"),
-    threshold: Optional[str] = typer.Option(None, "--threshold", help="Diff threshold or auto"),
-    min_slide_duration: Optional[float] = typer.Option(None, "--min-slide-duration", help="Min slide seconds"),
-    min_stable_duration: Optional[float] = typer.Option(None, "--min-stable-duration", help="Min stable seconds"),
+    config: str | None = typer.Option(None, "--config", "-c", help="Path to YAML config file"),
+    sample_fps: float | None = typer.Option(None, "--sample-fps", help="Frame sampling rate"),
+    decoder_backend: str | None = typer.Option(None, "--decoder-backend", help="Decoder backend"),
+    slide_roi: str | None = typer.Option(None, "--slide-roi", help="ROI: auto, full, or x1,y1,x2,y2"),
+    ignore_roi: list[str] | None = typer.Option(None, "--ignore-roi", help="Region to ignore"),
+    threshold: str | None = typer.Option(None, "--threshold", help="Diff threshold or auto"),
+    min_slide_duration: float | None = typer.Option(None, "--min-slide-duration", help="Min slide seconds"),
+    min_stable_duration: float | None = typer.Option(None, "--min-stable-duration", help="Min stable seconds"),
     dedupe: bool = typer.Option(True, "--dedupe/--no-dedupe", help="Enable neighbor deduplication"),
     debug: bool = typer.Option(False, "--debug", help="Enable debug artifacts"),
 ):
@@ -265,8 +260,8 @@ def detect_slides(
 @app.command(name="notes")
 def notes_cmd(
     slides_json: str = typer.Argument(..., help="Path to slides.json from detect-slides"),
-    subtitles: Optional[str] = typer.Option(None, "--subtitles", help="Path to SRT/VTT file"),
-    slides_dir: Optional[str] = typer.Option(None, "--slides-dir", help="Directory with slide images for vision context"),
+    subtitles: str | None = typer.Option(None, "--subtitles", help="Path to SRT/VTT file"),
+    slides_dir: str | None = typer.Option(None, "--slides-dir", help="Directory with slide images for vision context"),
     notes_mode: str = typer.Option("basic", "--notes-mode", help="Notes mode: basic or llm"),
 ):
     # START_CONTRACT: notes_cmd
@@ -314,7 +309,7 @@ def notes_cmd(
 @app.command(name="roi-tool")
 def roi_tool_cmd(
     video: str = typer.Argument(..., help="Path to video file"),
-    frame_ts: Optional[float] = typer.Option(None, "--frame-ts", help="Frame timestamp to display"),
+    frame_ts: float | None = typer.Option(None, "--frame-ts", help="Frame timestamp to display"),
 ):
     # START_CONTRACT: roi_tool_cmd
     #   PURPOSE: Open video frame in GUI, user drags rectangle, prints ignore-roi coordinates
@@ -340,7 +335,7 @@ def roi_tool_cmd(
 @app.command()
 def export_md(
     slides_json: str = typer.Argument(..., help="Path to slides.json"),
-    out: Optional[str] = typer.Option(None, "--out", "-o", help="Output path (default: next to slides.json)"),
+    out: str | None = typer.Option(None, "--out", "-o", help="Output path (default: next to slides.json)"),
     image_as_background: bool = typer.Option(True, "--image-as-bg/--no-image-bg", help="Image as background"),
     transcript_location: str = typer.Option("body", "--transcript-location", help="Notes/body/comment"),
     include_timecodes: bool = typer.Option(True, "--timecodes/--no-timecodes", help="Include timecodes"),
@@ -376,7 +371,7 @@ def export_md(
 @app.command()
 def export_pptx(
     slides_json: str = typer.Argument(..., help="Path to slides.json"),
-    out: Optional[str] = typer.Option(None, "--out", "-o", help="Output path (default: next to slides.json)"),
+    out: str | None = typer.Option(None, "--out", "-o", help="Output path (default: next to slides.json)"),
     notes_mode: str = typer.Option("basic", "--notes-mode", help="Notes processing mode: basic or llm"),
 ):
     # START_CONTRACT: export_pptx
@@ -406,7 +401,7 @@ def export_pptx(
 @app.command(name="debug")
 def debug_cmd(
     slides_json: str = typer.Argument(..., help="Path to slides.json"),
-    out: Optional[str] = typer.Option(None, "--out", "-o", help="Output directory"),
+    out: str | None = typer.Option(None, "--out", "-o", help="Output directory"),
 ):
     # START_CONTRACT: debug_cmd
     #   PURPOSE: Generate debug artifacts from slides.json
@@ -423,8 +418,8 @@ def debug_cmd(
 
     logger.info(f"[CLI][debug] Generating debug for {slides_json}")
 
-    from video2pptx.models import SlidesDocument
     from video2pptx.debug_export import export_debug_report
+    from video2pptx.models import SlidesDocument
 
     doc = SlidesDocument.model_validate_json(json_path.read_text(encoding="utf-8"))
     out_dir = Path(out) if out else json_path.parent / "debug"
@@ -437,11 +432,11 @@ def debug_cmd(
 @app.command(name="llm-process")
 def llm_process(
     slides_json: str = typer.Argument(..., help="Path to slides.json from detect"),
-    out: Optional[str] = typer.Option(None, "--out", "-o", help="Output path for enriched slides.json"),
-    slides_dir: Optional[str] = typer.Option(None, "--slides-dir", help="Directory with slide images"),
-    config: Optional[str] = typer.Option(None, "--config", "-c", help="Path to YAML config file"),
-    model: Optional[str] = typer.Option(None, "--model", help="LLM model name override"),
-    base_url: Optional[str] = typer.Option(None, "--base-url", help="LM Studio API base URL override"),
+    out: str | None = typer.Option(None, "--out", "-o", help="Output path for enriched slides.json"),
+    slides_dir: str | None = typer.Option(None, "--slides-dir", help="Directory with slide images"),
+    config: str | None = typer.Option(None, "--config", "-c", help="Path to YAML config file"),
+    model: str | None = typer.Option(None, "--model", help="LLM model name override"),
+    base_url: str | None = typer.Option(None, "--base-url", help="LM Studio API base URL override"),
 ):
     # START_CONTRACT: llm_process
     #   PURPOSE: LLM process command — enrich slides.json with vision analysis and corrected transcript
@@ -492,8 +487,8 @@ def llm_process(
 def project_create(
     video: str = typer.Argument(..., help="Path to video file"),
     project_dir: str = typer.Argument(..., help="Output project directory"),
-    subtitles: Optional[str] = typer.Option(None, "--subtitles", help="Path to SRT/VTT file"),
-    name: Optional[str] = typer.Option(None, "--name", "-n", help="Project name"),
+    subtitles: str | None = typer.Option(None, "--subtitles", help="Path to SRT/VTT file"),
+    name: str | None = typer.Option(None, "--name", "-n", help="Project name"),
 ):
     # START_CONTRACT: project_create
     #   PURPOSE: Create a new project with video and optional subtitles
@@ -597,7 +592,9 @@ def project_info_cmd(
 def gui() -> None:
     """Launch the desktop GUI application."""
     import sys
+
     from PySide6.QtWidgets import QApplication
+
     from video2pptx.gui import MainWindow
 
     qt_app = QApplication(sys.argv)

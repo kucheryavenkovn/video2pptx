@@ -11,7 +11,7 @@
 
 from pathlib import Path
 
-from video2pptx.paths import resolve_artifact_path, resolve_markdown_image_path, format_time
+from video2pptx.paths import format_time, resolve_artifact_path, resolve_markdown_image_path
 
 
 class TestResolveArtifactPath:

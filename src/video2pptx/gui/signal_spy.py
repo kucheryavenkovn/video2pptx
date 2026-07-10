@@ -39,7 +39,6 @@ class SignalSpy:
 
     @staticmethod
     def watch_all(obj: QObject) -> None:
-        import inspect
         cls = type(obj)
         cls_name = cls.__name__
         seen: set[str] = set()

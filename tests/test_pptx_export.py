@@ -14,9 +14,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 from video2pptx.models import SlidesDocument, SlideSegment, SubtitleCue, VideoInfo
-from video2pptx.pptx_export import export_to_pptx, _format_slide_notes, _group_cues
+from video2pptx.pptx_export import _format_slide_notes, _group_cues, export_to_pptx
 
 
 class TestGroupCues:

@@ -9,9 +9,8 @@
 
 from __future__ import annotations
 
-import pytest
 from video2pptx.project_model import ProjectModel
-from video2pptx.timeline_model import SlideClip, Timeline
+from video2pptx.timeline_model import Timeline
 
 
 class TestProjectModel:

@@ -45,11 +45,11 @@ from PySide6.QtWidgets import (
 )
 
 from video2pptx.backends import BACKENDS
+from video2pptx.debug.action_registry import mcp_action
 from video2pptx.gui.app_config import add_recent_project, load_app_config, save_app_config
 from video2pptx.gui.status_manager import StatusBarManager
 from video2pptx.project_manager import Project
 from video2pptx.project_model import ProjectModel
-from video2pptx.debug.action_registry import mcp_action
 
 
 class MainWindow(QMainWindow):
@@ -273,7 +273,6 @@ class MainWindow(QMainWindow):
         try:
             from video2pptx.gui.debug_dock import DebugDock
             from video2pptx.gui.log_bridge import LogBridge
-            from video2pptx.gui.signal_spy import SignalSpy
 
             lb = LogBridge.instance()
             self._debug_dock = DebugDock()
@@ -291,8 +290,8 @@ class MainWindow(QMainWindow):
         self._mcp = None
         self._mcp_timer = None
         try:
-            from video2pptx.debug.mcp_server import McpServer, mcp_process_queue
             from video2pptx.debug.action_registry import ActionRegistry
+            from video2pptx.debug.mcp_server import McpServer
 
             registry = ActionRegistry(self)
             self._mcp = McpServer(self._model, self._model.timeline, port=9812, action_registry=registry)
@@ -304,7 +303,7 @@ class MainWindow(QMainWindow):
             logger.warning(f"[GUI-Main][_setup_mcp_server] MCP server not available: {e}")
 
     def _process_mcp_queue(self) -> None:
-        from video2pptx.debug.mcp_server import mcp_process_queue, _CMD_QUEUE, _ACTION_QUEUE
+        from video2pptx.debug.mcp_server import _ACTION_QUEUE, _CMD_QUEUE, mcp_process_queue
         qc = _CMD_QUEUE.qsize()
         qa = _ACTION_QUEUE.qsize()
         if qc or qa:
@@ -605,6 +604,7 @@ class MainWindow(QMainWindow):
         logger.info("[GUI-Main][_on_detect] Detect triggered")
 
         from PySide6.QtCore import QThread
+
         from video2pptx.gui.workers import DetectWorker
 
         self._detect_thread = QThread(self)
@@ -652,6 +652,7 @@ class MainWindow(QMainWindow):
         logger.info("[GUI-Main][_on_quick_detect] Quick detect triggered")
 
         from PySide6.QtCore import QThread
+
         from video2pptx.gui.workers import QuickDetectWorker
 
         self._quick_detect_thread = QThread(self)
@@ -697,8 +698,8 @@ class MainWindow(QMainWindow):
         if not proj or not proj.slides_json:
             return
         try:
-            from video2pptx.pptx_export import export_to_pptx
             from video2pptx.models import SlidesDocument
+            from video2pptx.pptx_export import export_to_pptx
             json_path = Path(proj.output_dir) / proj.slides_json
             out_path = Path(proj.output_dir) / "deck.pptx"
             if out_path.exists():
@@ -740,6 +741,7 @@ class MainWindow(QMainWindow):
         self._notes_btn.setEnabled(False)
 
         from PySide6.QtCore import QThread
+
         from video2pptx.gui.workers import NotesWorker
 
         self._notes_thread = QThread(self)
@@ -827,8 +829,9 @@ class MainWindow(QMainWindow):
         slide = proj.slides[pos]
         pos_sec = self._video_player._player.position() / 1000.0
         try:
-            from video2pptx.video_decode import VideoDecoder
             import cv2
+
+            from video2pptx.video_decode import VideoDecoder
             decoder = VideoDecoder(proj.video, sample_fps=1.0)
             for vf in decoder.iter_frames():
                 if vf.timestamp >= pos_sec:

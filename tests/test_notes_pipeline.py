@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 from video2pptx.models import SlidesDocument, SlideSegment, VideoInfo
 from video2pptx.notes_pipeline import run_notes
 

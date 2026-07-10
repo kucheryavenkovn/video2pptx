@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 import re
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 from loguru import logger

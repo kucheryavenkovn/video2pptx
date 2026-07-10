@@ -17,8 +17,8 @@ import pytest
 
 pyside_available = False
 try:
-    from PySide6.QtWidgets import QApplication, QWidget, QTextEdit
     from PySide6.QtCore import QSignalSpy
+    from PySide6.QtWidgets import QApplication, QTextEdit, QWidget
     pyside_available = True
 except ImportError:
     pass
@@ -35,8 +35,8 @@ def _ensure_app():
 class TestTimelineWidget:
     def test_render_slides(self):
         """Timeline renders correct number of slide blocks matching input."""
-        from video2pptx.models import SlideSegment
         from video2pptx.gui.timeline_widget import TimelineWidget
+        from video2pptx.models import SlideSegment
 
         _ensure_app()
         slides = [
@@ -51,8 +51,8 @@ class TestTimelineWidget:
 
     def test_select_emits_signal(self):
         """select_slide emits selected_slide_changed signal with correct index."""
-        from video2pptx.models import SlideSegment
         from video2pptx.gui.timeline_widget import TimelineWidget
+        from video2pptx.models import SlideSegment
 
         _ensure_app()
         slides = [
@@ -68,8 +68,8 @@ class TestTimelineWidget:
 
     def test_subtitle_panel_shows_text(self):
         """Subtitle panel displays correct text for selected segment."""
-        from video2pptx.models import SlideSegment
         from video2pptx.gui.timeline_widget import TimelineWidget
+        from video2pptx.models import SlideSegment
 
         _ensure_app()
         slides = [

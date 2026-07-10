@@ -24,22 +24,19 @@ from PySide6.QtCore import QObject, Signal
 from video2pptx.project_manager import (
     Project,
     create_project,
+    import_subtitles_to_project,
+    import_video_to_project,
+    load_slides_into_project,
     open_project,
     save_project,
-    import_video_to_project,
-    import_subtitles_to_project,
-    load_slides_into_project,
     update_project_state,
 )
 from video2pptx.timeline_model import (
-    Clip,
     MarkerClip,
     ScoreClip,
-    ScoreTrack,
     SlideClip,
     SubtitleClip,
     Timeline,
-    Track,
 )
 
 

@@ -16,7 +16,6 @@
 
 from __future__ import annotations
 
-
 from loguru import logger
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import (

@@ -17,8 +17,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from loguru import logger
 
@@ -57,6 +58,7 @@ _AUTO_ORDER = ["pynv", "decord", "pyav", "opencv"]
 # START_BLOCK_DETECT_PYAV
 try:
     import av  # noqa: F401
+
     from video2pptx.backends.pyav_backend import pyav_iter_frames, pyav_video_info
     BACKENDS["pyav"] = {
         "available": True,

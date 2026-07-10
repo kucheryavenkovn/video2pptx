@@ -16,8 +16,8 @@ import cv2
 import numpy as np
 import pytest
 
-from video2pptx.video_decode import VideoDecoder, select_backend
 from video2pptx.models import VideoInfo
+from video2pptx.video_decode import VideoDecoder, select_backend
 
 logger = logging.getLogger(__name__)
 

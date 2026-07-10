@@ -9,8 +9,6 @@
 
 from __future__ import annotations
 
-import pytest
-from PySide6.QtCore import Qt
 from video2pptx.gui.debug_dock import DebugDock, LogPanel, StatePanel
 from video2pptx.timeline_model import SlideClip, Timeline
 

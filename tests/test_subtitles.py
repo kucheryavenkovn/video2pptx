@@ -16,7 +16,6 @@ from video2pptx.subtitles import (
     parse_subtitles,
 )
 
-
 # ---------- Fixtures ----------
 
 SRT_CONTENT = """1

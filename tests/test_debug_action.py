@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import pytest
+
 from video2pptx.debug.action_registry import ActionRegistry, mcp_action
 
 

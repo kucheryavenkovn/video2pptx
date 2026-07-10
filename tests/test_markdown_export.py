@@ -11,9 +11,9 @@
 
 
 
-from video2pptx.markdown_export import export_to_markdown, render_slide, _fmt_time
+from video2pptx.markdown_export import export_to_markdown, render_slide
+from video2pptx.models import SlidesDocument, SlideSegment, VideoInfo
 from video2pptx.paths import format_time
-from video2pptx.models import SlideSegment, SlidesDocument, VideoInfo
 
 
 def make_seg(index: int, start: float, end: float, image: str = "", transcript: str = "") -> SlideSegment:
@@ -97,7 +97,7 @@ class TestRenderSlide:
     def test_double_path_bug_fixed(self):
         seg = make_seg(1, 0.0, 10.0, image="slides/slide_001.png")
         lines = render_slide(seg, base_dir="out", image_as_background=True)
-        img_line = [l for l in lines if "slide_001.png" in l][0]
+        img_line = [ln for ln in lines if "slide_001.png" in ln][0]
         assert "slides/slides/slide_001.png" not in img_line
         assert "slides/slide_001.png" in img_line
 

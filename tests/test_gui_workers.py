@@ -18,8 +18,8 @@ import pytest
 
 pyside_available = False
 try:
+    from PySide6.QtCore import QObject, QSignalSpy, QThread, Signal  # noqa: F401
     from PySide6.QtWidgets import QApplication
-    from PySide6.QtCore import QObject, Signal, QThread, QSignalSpy  # noqa: F401
     pyside_available = True
 except ImportError:
     pass
@@ -71,8 +71,8 @@ class TestWorkers:
 
     def test_worker_error_on_missing_video(self, tmp_path, qtbot):
         """Worker emits error signal when video is missing."""
-        from video2pptx.project_manager import create_project
         from video2pptx.gui.workers import DetectWorker
+        from video2pptx.project_manager import create_project
 
         _ensure_app()
         bogus = tmp_path / "no_video.mp4"

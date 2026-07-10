@@ -18,8 +18,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from video2pptx.config import LlmConfig
-from video2pptx.models import SlidesDocument, SlideSegment, SubtitleCue, VideoInfo
 from video2pptx.llm_orchestrator import run_llm_pipeline
+from video2pptx.models import SlidesDocument, SlideSegment, SubtitleCue, VideoInfo
 
 
 @pytest.fixture

@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Iterator
+from collections.abc import Callable, Iterator
 
 import numpy as np
 from loguru import logger

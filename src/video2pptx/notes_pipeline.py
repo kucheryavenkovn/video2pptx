@@ -22,7 +22,7 @@ from loguru import logger
 from video2pptx.config import LlmConfig
 from video2pptx.models import SlidesDocument
 from video2pptx.notes_processor import process_notes
-from video2pptx.subtitles import parse_subtitles, align_cues_to_segments
+from video2pptx.subtitles import align_cues_to_segments, parse_subtitles
 
 
 def run_notes(

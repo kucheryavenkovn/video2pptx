@@ -53,6 +53,7 @@ class TestAppSettingsDialog:
     def test_has_four_tabs(self, app_config) -> None:
         _ensure_app()
         from PySide6.QtWidgets import QTabWidget
+
         from video2pptx.gui.settings_app import AppSettingsDialog
         dlg = AppSettingsDialog(app_config)
         tab_widget = dlg.findChild(QTabWidget)

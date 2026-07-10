@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 from loguru import logger
+
 from video2pptx.gui.log_bridge import LogBridge
 
 

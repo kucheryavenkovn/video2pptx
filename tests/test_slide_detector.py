@@ -11,9 +11,9 @@
 
 import numpy as np
 
+from video2pptx.models import FrameFeatures
 from video2pptx.roi import SlideRegion
 from video2pptx.slide_detector import ChangeEvent, detect_changes
-from video2pptx.models import FrameFeatures
 
 
 class TestDetectChanges:

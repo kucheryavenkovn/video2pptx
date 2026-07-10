@@ -32,8 +32,8 @@ from PySide6.QtWidgets import (
 )
 
 from video2pptx.backends import BACKENDS
-from video2pptx.project_manager import Project, save_project
 from video2pptx.notes_processor import SYSTEM_PROMPT_REPHRASE
+from video2pptx.project_manager import Project, save_project
 
 
 class SettingsDialog(QDialog):

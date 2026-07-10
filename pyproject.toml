@@ -96,3 +96,34 @@ markers = [
     "gui: tests that require a display or offscreen Qt platform",
     "slow: tests that take more than 10 seconds",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/video2pptx/gui/timeline_v2.py" = ["B905"]
+"src/video2pptx/gui/timeline3/view.py" = ["B905"]
+"src/video2pptx/gui/smart_snap.py" = ["B905"]
+"src/video2pptx/project_model.py" = ["B905"]
+"src/video2pptx/timeline_model.py" = ["B024", "E741"]
+"src/video2pptx/debug_export.py" = ["B028", "B905"]
+"src/video2pptx/config.py" = ["B028"]
+"src/video2pptx/cli.py" = ["B904"]
+"src/video2pptx/frame_features.py" = ["B905"]
+"tests/*" = ["B017", "B007", "F841"]
+"tests/fixtures/*" = ["B007"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["video2pptx"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = false
+warn_unused_configs = true
+ignore_missing_imports = true

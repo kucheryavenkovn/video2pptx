@@ -22,9 +22,9 @@ from video2pptx.models import SlideSegment
 from video2pptx.slide_analyzer import (
     VISION_SYSTEM_PROMPT,
     SlideAnalysis,
-    analyze_slide,
-    _parse_vision_response,
     _fmt_ts,
+    _parse_vision_response,
+    analyze_slide,
 )
 
 

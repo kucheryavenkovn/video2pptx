@@ -17,7 +17,7 @@ import pytest
 
 pyside_available = False
 try:
-    from PySide6.QtWidgets import QApplication, QDialog, QTabWidget, QPlainTextEdit
+    from PySide6.QtWidgets import QApplication, QDialog, QPlainTextEdit, QTabWidget
     pyside_available = True
 except ImportError:
     pass

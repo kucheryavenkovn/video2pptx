@@ -10,7 +10,7 @@
 from __future__ import annotations
 
 from video2pptx.gui.signal_spy import SignalSpy
-from video2pptx.timeline_model import SlideClip, Timeline
+from video2pptx.timeline_model import Timeline
 
 
 class TestSignalSpy:

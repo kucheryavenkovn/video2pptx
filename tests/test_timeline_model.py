@@ -9,10 +9,11 @@
 
 from __future__ import annotations
 
-import pytest
 from video2pptx.timeline_model import (
-    Clip, SlideClip, SubtitleClip, MarkerClip, ScoreClip,
-    Track, ScoreTrack, Timeline,
+    Clip,
+    SlideClip,
+    Timeline,
+    Track,
 )
 
 

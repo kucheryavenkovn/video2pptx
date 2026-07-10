@@ -18,8 +18,9 @@
 
 from video2pptx.gui.main_window import MainWindow
 from video2pptx.gui.settings_dialog import SettingsDialog
-from video2pptx.gui.timeline_widget import TimelineWidget as TimelineWidgetV1, TimelinePanel, SubtitlePanel
-from video2pptx.gui.workers import DetectWorker, NotesWorker, LlmWorker
+from video2pptx.gui.timeline_widget import SubtitlePanel, TimelinePanel
+from video2pptx.gui.timeline_widget import TimelineWidget as TimelineWidgetV1
+from video2pptx.gui.workers import DetectWorker, LlmWorker, NotesWorker
 
 __all__ = [
     "MainWindow",

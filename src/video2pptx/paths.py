@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path, PurePosixPath, PureWindowsPath
+from pathlib import Path, PurePosixPath
 
 
 def resolve_artifact_path(

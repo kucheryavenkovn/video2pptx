@@ -23,11 +23,10 @@
 from __future__ import annotations
 
 import uuid
-from abc import ABC, abstractmethod
-from typing import Any
+from abc import ABC
 
-from loguru import logger
 from PySide6.QtCore import QObject, Signal
+
 from video2pptx.models import SlideSegment
 
 
@@ -134,7 +133,7 @@ class ScoreClip(Clip):
 
 class Track(QObject):
     """Named container for clips with signal emission on changes."""
-    
+
     clipAdded = Signal(str)     # clip uid
     clipRemoved = Signal(str)   # clip uid
     clipChanged = Signal(str)   # clip uid
@@ -224,7 +223,7 @@ _TRACK_CONFIG = {
 
 class Timeline(QObject):
     """Root container holding multiple named tracks."""
-    
+
     trackAdded = Signal(str)
     trackRemoved = Signal(str)
     durationChanged = Signal(float)

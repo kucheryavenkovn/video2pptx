@@ -26,14 +26,13 @@ import uuid
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from queue import Queue
-from socketserver import ThreadingMixIn, TCPServer
+from socketserver import TCPServer, ThreadingMixIn
 from threading import Thread
 from typing import Any
 
-from video2pptx.debug.action_registry import ActionRegistry
-
 from loguru import logger
 
+from video2pptx.debug.action_registry import ActionRegistry
 from video2pptx.gui.log_bridge import LogBridge
 from video2pptx.timeline_model import (
     MarkerClip,
@@ -42,7 +41,6 @@ from video2pptx.timeline_model import (
     SlideClip,
     SubtitleClip,
     Timeline,
-    Track,
 )
 
 

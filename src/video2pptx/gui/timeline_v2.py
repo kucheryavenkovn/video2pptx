@@ -19,8 +19,7 @@ from math import isnan
 from pathlib import Path
 
 from loguru import logger
-from PySide6.QtCore import Qt, Signal, QRectF
-from PySide6.QtCore import QUrl
+from PySide6.QtCore import QRectF, Qt, QUrl, Signal
 from PySide6.QtGui import QBrush, QColor, QDesktopServices, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QMenu, QWidget
 
