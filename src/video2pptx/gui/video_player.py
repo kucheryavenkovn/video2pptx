@@ -201,7 +201,11 @@ class VideoPlayerWidget(QWidget):
         self.durationChanged.emit(ms / 1000.0)
 
     def _on_media_status_changed(self, status: QMediaPlayer.MediaStatus) -> None:
-        if status == QMediaPlayer.MediaStatus.EndOfMedia:
+        if status == QMediaPlayer.MediaStatus.LoadedMedia:
+            from PySide6.QtCore import QTimer
+            self._player.play()
+            QTimer.singleShot(150, self._player.pause)
+        elif status == QMediaPlayer.MediaStatus.EndOfMedia:
             self._is_playing = False
             self._play_btn.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
             self.stateChanged.emit("stopped")

@@ -106,7 +106,7 @@ class ProjectModel(QObject):
         return list(self._score_values)
 
     def create(self, path: str, name: str = "Untitled") -> None:
-        out_dir = Path(path) / name
+        out_dir = Path(path)
         self._project = create_project(str(out_dir), name)
         self._subs = None
         self._timeline.clear()
@@ -123,6 +123,11 @@ class ProjectModel(QObject):
             load_slides_into_project(self._project)
             self._sync_slides_to_timeline()
             self._sync_subtitles_to_timeline()
+            if self._project.score_timestamps and self._project.score_values:
+                self._score_timestamps = list(self._project.score_timestamps)
+                self._score_values = list(self._project.score_values)
+                self._sync_scores_to_timeline()
+                self.scoresChanged.emit()
             if self._project.video:
                 self.videoChanged.emit(self._project.video)
         logger.info(f"[ProjectModel][open] Opened | path={path} name={self._project.name if self._project else '?'}")
@@ -213,6 +218,7 @@ class ProjectModel(QObject):
             if text:
                 clip = SubtitleClip(start_sec=start, end_sec=end, plaintext=text)
                 track.add_clip(clip)
+        self.subtitlesChanged.emit()
 
     def clear_subtitles(self) -> None:
         self._subs = None
@@ -268,6 +274,7 @@ class ProjectModel(QObject):
             clip.image_path = str(Path(self._project.output_dir) / seg.image) if seg.image else ""
             track.add_clip(clip)
         track.reindex()
+        self.slidesChanged.emit()
 
     def _sync_scores_to_timeline(self) -> None:
         track = self._timeline.create_track("scores")

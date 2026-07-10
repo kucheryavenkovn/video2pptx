@@ -298,10 +298,22 @@ class MainWindow(QMainWindow):
             self._mcp = McpServer(self._model, self._model.timeline, port=9812, action_registry=registry)
             self._mcp.start()
             self._mcp_timer = QTimer(self)
-            self._mcp_timer.timeout.connect(lambda: [setattr(self, "_mcp_active", True), mcp_process_queue(self._model), setattr(self, "_mcp_active", False)])
+            self._mcp_timer.timeout.connect(self._process_mcp_queue)
             self._mcp_timer.start(50)
         except Exception as e:
             logger.warning(f"[GUI-Main][_setup_mcp_server] MCP server not available: {e}")
+
+    def _process_mcp_queue(self) -> None:
+        from video2pptx.debug.mcp_server import mcp_process_queue, _CMD_QUEUE, _ACTION_QUEUE
+        qc = _CMD_QUEUE.qsize()
+        qa = _ACTION_QUEUE.qsize()
+        if qc or qa:
+            logger.debug(f"[GUI-Main][_process_mcp_queue] Processing | cmd_queue={qc} action_queue={qa}")
+        self._mcp_active = True
+        try:
+            mcp_process_queue(self._model)
+        finally:
+            self._mcp_active = False
 
     def _confirm(self, title: str, text: str) -> bool:
         if self._mcp_active:
@@ -391,6 +403,7 @@ class MainWindow(QMainWindow):
         parent_dir = str(Path(proj_dir).parent)
 
         try:
+            self._model.close()
             self._model.create(parent_dir, folder_name)
             self._on_project_opened()
             self.statusBar().showMessage(f"Project created: {folder_name}")
@@ -403,6 +416,7 @@ class MainWindow(QMainWindow):
             return
 
         try:
+            self._model.close()
             self._model.open(proj_dir)
             self._on_project_opened()
             self.statusBar().showMessage(f"Project opened: {self._model.project_data.name}")
@@ -948,10 +962,8 @@ class MainWindow(QMainWindow):
     @mcp_action(name='seek', desc='Seek video to position')
     def _on_seek_to_marker(self, ts: float) -> None:
         player = self._video_player._player
+        player.pause()
         player.setPosition(int(ts * 1000))
-        from PySide6.QtCore import QTimer
-        player.play()
-        QTimer.singleShot(10, player.pause)
         self.statusBar().showMessage(f"Seeked to {ts:.1f}s")
 
     @mcp_action(name='slide_show_image', desc='Show slide image overlay in video player')
