@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/project_model.py
-# VERSION: 0.1.0
+# VERSION: 0.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: QObject-based project model — bridges CLI project manager with GUI signals
 #   SCOPE: create/open/save/close lifecycle, slide CRUD, subtitle/marker management, score waveform
@@ -12,6 +12,10 @@
 # START_MODULE_MAP
 #   ProjectModel - QObject wrapping project state with Qt signals for GUI binding
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.2.0 - Persist UID-based slide CRUD consistently to project, slides document, and timeline
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -21,6 +25,7 @@ import pysubs2
 from loguru import logger
 from PySide6.QtCore import QObject, Signal
 
+from video2pptx.models import SlidesDocument, SlideSegment
 from video2pptx.project_manager import (
     Project,
     create_project,
@@ -184,6 +189,53 @@ class ProjectModel(QObject):
         self._project_path = None
 
     def add_slide(self, ts: float) -> str:
+        if self._project:
+            if ts < 0:
+                raise ValueError("Slide timestamp must be non-negative")
+            containing = next(
+                (
+                    slide
+                    for slide in self._project.slides
+                    if slide.start < ts < slide.end
+                ),
+                None,
+            )
+            if containing is not None:
+                old_end = containing.end
+                containing.end = ts
+                containing.duration = containing.end - containing.start
+                slide = SlideSegment(
+                    index=len(self._project.slides) + 1,
+                    start=ts,
+                    end=old_end,
+                    duration=old_end - ts,
+                    representative_timestamp=(ts + old_end) / 2,
+                    manual=True,
+                )
+            else:
+                next_start = min(
+                    (
+                        item.start
+                        for item in self._project.slides
+                        if item.start > ts
+                    ),
+                    default=ts + 5.0,
+                )
+                if next_start <= ts:
+                    raise ValueError("No interval available for manual slide")
+                slide = SlideSegment(
+                    index=len(self._project.slides) + 1,
+                    start=ts,
+                    end=next_start,
+                    duration=next_start - ts,
+                    representative_timestamp=(ts + next_start) / 2,
+                    manual=True,
+                )
+                self._validate_slide_interval(slide.uid, slide.start, slide.end)
+            self._project.slides.append(slide)
+            self._commit_slide_changes()
+            return slide.uid
+
         track = self._timeline.create_track("slides")
         slide = SlideClip(start_sec=ts, end_sec=ts + 5.0)
         slide.index = len(self.slides) + 1
@@ -194,12 +246,20 @@ class ProjectModel(QObject):
             self._sync_slides_to_timeline()
         return slide.uid
 
-    def delete_slide(self, index: int) -> None:
+    def delete_slide(self, uid_or_index: str | int) -> None:
+        if self._project:
+            slide = self._resolve_slide(uid_or_index)
+            if slide is None:
+                raise KeyError(f"Slide not found: {uid_or_index}")
+            self._project.slides.remove(slide)
+            self._commit_slide_changes()
+            return
+
         track = self._timeline.track("slides")
         if track is None:
             return
         for c in track.clips():
-            if isinstance(c, SlideClip) and c.index == index:
+            if isinstance(c, SlideClip) and c.index == uid_or_index:
                 track.remove_clip(c.uid)
                 track.reindex()
                 self.slidesChanged.emit()
@@ -208,6 +268,9 @@ class ProjectModel(QObject):
                 return
 
     def delete_slide_by_uid(self, uid: str) -> None:
+        if self._project:
+            self.delete_slide(uid)
+            return
         track = self._timeline.track("slides")
         if track is None:
             return
@@ -220,24 +283,76 @@ class ProjectModel(QObject):
                     self._sync_slides_to_timeline()
                 return
 
-    def move_slide(self, index: int, start: float, end: float) -> None:
+    def move_slide(self, uid_or_index: str | int, start: float, end: float) -> None:
+        if self._project:
+            slide = self._resolve_slide(uid_or_index)
+            if slide is None:
+                raise KeyError(f"Slide not found: {uid_or_index}")
+            self._validate_slide_interval(slide.uid, start, end)
+            slide.start = start
+            slide.end = end
+            slide.duration = end - start
+            if not start <= slide.representative_timestamp <= end:
+                slide.representative_timestamp = (start + end) / 2
+            self._commit_slide_changes()
+            return
+
         track = self._timeline.track("slides")
         if track is None:
             return
         for c in track.clips():
-            if isinstance(c, SlideClip) and c.index == index:
+            if isinstance(c, SlideClip) and c.index == uid_or_index:
                 c.start_sec = start
                 c.end_sec = end
                 self.slidesChanged.emit()
                 return
 
-    def resize_slide(self, index: int, start: float, end: float) -> None:
-        self.move_slide(index, start, end)
+    def resize_slide(self, uid_or_index: str | int, end: float) -> None:
+        slide = self._resolve_slide(uid_or_index) if self._project else None
+        if slide is not None:
+            self.move_slide(uid_or_index, slide.start, end)
+            return
+        raise KeyError(f"Slide not found: {uid_or_index}")
 
     def set_slide_frame(self, uid_or_index: str | int) -> None:
-        pass  # Frame capture is done at GUI level via cv2
+        if not self._project or not self._project.video:
+            raise RuntimeError("Project video is required")
+        slide = self._resolve_slide(uid_or_index)
+        if slide is None:
+            raise KeyError(f"Slide not found: {uid_or_index}")
+
+        import cv2
+
+        timestamp = slide.representative_timestamp or (
+            slide.start + slide.end
+        ) / 2
+        capture = cv2.VideoCapture(self._project.video)
+        try:
+            capture.set(cv2.CAP_PROP_POS_MSEC, timestamp * 1000)
+            ok, frame = capture.read()
+        finally:
+            capture.release()
+        if not ok:
+            raise RuntimeError(f"Could not decode frame at {timestamp:.3f}s")
+
+        slides_dir = Path(self._project.output_dir) / "slides"
+        slides_dir.mkdir(parents=True, exist_ok=True)
+        image_path = slides_dir / f"slide_{slide.index:03d}.png"
+        if not cv2.imwrite(str(image_path), frame):
+            raise RuntimeError(f"Could not write slide image: {image_path}")
+        slide.image = f"slides/{image_path.name}"
+        slide.representative_timestamp = timestamp
+        self._commit_slide_changes()
 
     def clear_slide_image(self, uid_or_index: str | int) -> None:
+        if self._project:
+            slide = self._resolve_slide(uid_or_index)
+            if slide is None:
+                raise KeyError(f"Slide not found: {uid_or_index}")
+            slide.image = ""
+            self._commit_slide_changes()
+            return
+
         track = self._timeline.track("slides")
         if track is None:
             return
@@ -249,6 +364,66 @@ class ProjectModel(QObject):
                 c.image_path = ""
                 self.slidesChanged.emit()
                 return
+
+    def _resolve_slide(self, uid_or_index: str | int) -> SlideSegment | None:
+        if not self._project:
+            return None
+        if isinstance(uid_or_index, str):
+            return next(
+                (
+                    slide
+                    for slide in self._project.slides
+                    if slide.uid == uid_or_index
+                ),
+                None,
+            )
+        if 1 <= uid_or_index <= len(self._project.slides):
+            return self._project.slides[uid_or_index - 1]
+        return None
+
+    def _validate_slide_interval(
+        self,
+        uid: str,
+        start: float,
+        end: float,
+    ) -> None:
+        if start < 0 or end <= start:
+            raise ValueError("Slide interval must satisfy 0 <= start < end")
+        if not self._project:
+            return
+        for slide in self._project.slides:
+            if slide.uid == uid:
+                continue
+            if start < slide.end and slide.start < end:
+                raise ValueError(f"Slide interval overlaps slide {slide.uid}")
+
+    def _commit_slide_changes(self) -> None:
+        if not self._project:
+            return
+        self._project.slides.sort(key=lambda slide: (slide.start, slide.end))
+        for index, slide in enumerate(self._project.slides, start=1):
+            slide.index = index
+            slide.duration = slide.end - slide.start
+        self._project.state.mark_stale_downstream("detect")
+
+        if self._project.slides_json:
+            slides_path = (
+                Path(self._project.output_dir) / self._project.slides_json
+            )
+            if slides_path.is_file():
+                from video2pptx.utils.json_io import write_json_atomic
+
+                document = SlidesDocument.model_validate_json(
+                    slides_path.read_text(encoding="utf-8")
+                )
+                document.slides = list(self._project.slides)
+                write_json_atomic(
+                    slides_path,
+                    document.model_dump(mode="json"),
+                    indent=2,
+                )
+        save_project(self._project)
+        self._sync_slides_to_timeline()
 
     def load_subtitles(self, path: str) -> None:
         if not self._project:

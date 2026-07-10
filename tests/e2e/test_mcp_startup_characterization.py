@@ -302,3 +302,121 @@ def test_real_gui_mcp_auto_align_dry_run_apply_and_idempotency(
         assert slides_json.read_bytes() == aligned_once
     finally:
         harness.stop()
+
+
+def test_real_gui_mcp_slide_crud_keeps_four_views_consistent(
+    repo_dir,
+    tmp_path,
+    synthetic_video_path,
+):
+    harness = GuiProcessHarness(
+        repo=repo_dir,
+        run_dir=tmp_path / "run",
+        startup_timeout=30.0,
+        qt_platform="offscreen",
+    )
+    try:
+        client = harness.start()
+        project_parent = tmp_path / "projects"
+        project_dir = project_parent / "crud_characterized"
+        _call_and_wait(
+            client,
+            "project_create",
+            {"path": str(project_parent), "name": "crud_characterized"},
+        )
+        _call_and_wait(
+            client,
+            "video_import",
+            {"path": str(synthetic_video_path)},
+        )
+        _call_and_wait(client, "detect", {"confirm": True}, timeout=120)
+
+        timeline = McpClient.result_data(client.tool_call("get_timeline"))
+        original = timeline["tracks"]["slides"]["clips"]
+        original_count = len(original)
+        first = original[0]
+        split_at = (first["start_sec"] + first["end_sec"]) / 2
+
+        added = _call_and_wait(client, "slide_add", {"ts": split_at})
+        uid = added["result"]["uid"]
+        created = McpClient.result_data(
+            client.tool_call("get_slide", {"uid": uid})
+        )
+        assert created["uid"] == uid
+        assert created["manual"] is True
+
+        project = McpClient.result_data(client.tool_call("get_project"))
+        timeline = McpClient.result_data(client.tool_call("get_timeline"))
+        document = json.loads((project_dir / "slides.json").read_text("utf-8"))
+        project_doc = json.loads((project_dir / "project.json").read_text("utf-8"))
+        assert project["slides_count"] == original_count + 1
+        assert timeline["tracks"]["slides"]["clip_count"] == original_count + 1
+        assert len(document["slides"]) == original_count + 1
+        assert len(project_doc["slides"]) == original_count + 1
+
+        resized_end = first["start_sec"] + (
+            split_at - first["start_sec"]
+        ) * 0.8
+        _call_and_wait(
+            client,
+            "slide_resize",
+            {"index": 1, "end": resized_end, "confirm": True},
+        )
+        _call_and_wait(
+            client,
+            "slide_move",
+            {
+                "uid": uid,
+                "start": resized_end,
+                "end": first["end_sec"],
+                "confirm": True,
+            },
+        )
+        moved = McpClient.result_data(
+            client.tool_call("get_slide", {"uid": uid})
+        )
+        assert moved["start_sec"] == resized_end
+        assert moved["end_sec"] == first["end_sec"]
+        persisted = next(
+            slide
+            for slide in json.loads(
+                (project_dir / "slides.json").read_text("utf-8")
+            )["slides"]
+            if slide["uid"] == uid
+        )
+        assert persisted["start"] == resized_end
+        assert persisted["end"] == first["end_sec"]
+
+        _call_and_wait(client, "slide_set_frame", {"uid": uid})
+        with_frame = McpClient.result_data(
+            client.tool_call("get_slide", {"uid": uid})
+        )
+        assert with_frame["image_path"]
+        assert (project_dir / "slides" / f"slide_{with_frame['index']:03d}.png").is_file()
+
+        _call_and_wait(
+            client,
+            "slide_clear_image",
+            {"uid": uid, "confirm": True},
+        )
+        cleared = McpClient.result_data(
+            client.tool_call("get_slide", {"uid": uid})
+        )
+        assert cleared["image_path"] == ""
+
+        _call_and_wait(
+            client,
+            "slide_delete",
+            {"uid": uid, "confirm": True},
+        )
+        project = McpClient.result_data(client.tool_call("get_project"))
+        timeline = McpClient.result_data(client.tool_call("get_timeline"))
+        document = json.loads((project_dir / "slides.json").read_text("utf-8"))
+        project_doc = json.loads((project_dir / "project.json").read_text("utf-8"))
+        assert project["slides_count"] == original_count
+        assert timeline["tracks"]["slides"]["clip_count"] == original_count
+        assert len(document["slides"]) == original_count
+        assert len(project_doc["slides"]) == original_count
+        assert all(slide["uid"] != uid for slide in document["slides"])
+    finally:
+        harness.stop()

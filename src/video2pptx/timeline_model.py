@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/timeline_model.py
-# VERSION: 0.1.0
+# VERSION: 0.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: QObject-based timeline model — Clip hierarchy, Track, Timeline container
 #   SCOPE: Clip (base), SlideClip, SubtitleClip, MarkerClip, ScoreClip, Track(QObject), ScoreTrack, Timeline(QObject)
@@ -19,6 +19,10 @@
 #   ScoreTrack - Track with score range + waveform
 #   Timeline - Root container: multiple tracks with duration
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.2.0 - Preserve SlideSegment UID across timeline conversions
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -65,6 +69,7 @@ class SlideClip(Clip):
 
     def to_segment(self) -> SlideSegment:
         return SlideSegment(
+            uid=self.uid,
             index=self.index,
             start=self.start_sec,
             end=self.end_sec,
@@ -79,6 +84,7 @@ class SlideClip(Clip):
     @classmethod
     def from_segment(cls, seg: SlideSegment) -> SlideClip:
         clip = cls(start_sec=seg.start, end_sec=seg.end)
+        clip.uid = seg.uid
         clip.index = seg.index
         clip.image_path = seg.image or ""
         clip.transcript = seg.transcript or ""

@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/command_router.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Unify slide CRUD into one canonical path. Public 1-based slide_index, internal 0-based, uid preferred.
 #            GUI/MCP/CLI → router → ProjectModel. Fixes off-by-one.
@@ -19,6 +19,10 @@
 #   slide_clear_image - remove slide image
 #   resolve_uid - helper: uid or index → actual uid
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Route move and resize by stable UID without index conversion
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -79,10 +83,7 @@ def slide_move(project_model, start: float, end: float, uid: str | None = None, 
     if target_uid is None:
         return {"success": False, "error": f"slide not found: uid={uid} index={index}"}
     try:
-        slide_index = next((i for i, s in enumerate(slides) if getattr(s, "uid", None) == target_uid), None)
-        if slide_index is None:
-            return {"success": False, "error": "uid resolved but not found in list"}
-        project_model.move_slide(slide_index, start, end)
+        project_model.move_slide(target_uid, start, end)
         return {"success": True, "uid": target_uid}
     except Exception as e:
         return {"success": False, "error": str(e)}
@@ -97,11 +98,7 @@ def slide_resize(project_model, end: float, uid: str | None = None, index: int |
     if target_uid is None:
         return {"success": False, "error": f"slide not found: uid={uid} index={index}"}
     try:
-        slide_idx = next((i for i, s in enumerate(slides) if getattr(s, "uid", None) == target_uid), None)
-        if slide_idx is None:
-            return {"success": False, "error": "uid resolved but not found in list"}
-        current_start = slides[slide_idx].start
-        project_model.move_slide(slide_idx, current_start, end)
+        project_model.resize_slide(target_uid, end)
         return {"success": True, "uid": target_uid}
     except Exception as e:
         return {"success": False, "error": str(e)}

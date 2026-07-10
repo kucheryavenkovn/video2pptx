@@ -18,7 +18,7 @@ The existing scenario file is a catalog, not a trusted characterization suite. K
 | E2E-008 Align Dry Run | executable and passing | Real GUI+MCP test verifies no confirmation requirement, byte-identical project/slides files, unchanged timeline/state, and no report artifact. |
 | E2E-009 Align Apply | executable and passing | Real GUI+MCP test verifies terminal synchronization, interval invariants, count/order preservation, report creation, pipeline state, and idempotent second apply. |
 | E2E-010 Process Notes | incomplete | Not implemented through MCP. |
-| E2E-011 Slide CRUD | incomplete | No UID-based add/move/resize/frame/clear/delete sequence or persistence round-trip. |
+| E2E-011 Slide CRUD | executable and passing | Real GUI+MCP test covers UID-based add/get/resize/move/set-frame/clear/delete and compares project, timeline, `project.json`, and `slides.json`. |
 | E2E-012 Markdown | executable but failing | Does not compare slide count or validate all image references; runner observations do not affect pass/fail. |
 | E2E-013 PPTX | environment-dependent | Only ZIP signature checked; `python-pptx` reopen, slide count, media and relationships are not verified. |
 | E2E-014 Save/Close/Open | executable but failing | Fixed sleep and incomplete restored-state assertions. |

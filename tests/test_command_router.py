@@ -9,13 +9,29 @@
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
 
-from video2pptx.command_router import resolve_uid
+from video2pptx.command_router import resolve_uid, slide_move, slide_resize
 
 
 class FakeSlide:
     def __init__(self, uid: str, index: int = 0):
         self.uid = uid
         self.index = index
+
+
+class FakeProjectModel:
+    def __init__(self):
+        self.project_data = type(
+            "Project",
+            (),
+            {"slides": [FakeSlide("abc", 1), FakeSlide("def", 2)]},
+        )()
+        self.calls = []
+
+    def move_slide(self, uid, start, end):
+        self.calls.append(("move", uid, start, end))
+
+    def resize_slide(self, uid, end):
+        self.calls.append(("resize", uid, end))
 
 
 class TestResolveUid:
@@ -42,3 +58,17 @@ class TestResolveUid:
 
     def test_no_args(self):
         assert resolve_uid([]) is None
+
+
+def test_move_routes_public_index_as_stable_uid():
+    model = FakeProjectModel()
+    result = slide_move(model, start=1.0, end=2.0, index=2)
+    assert result == {"success": True, "uid": "def"}
+    assert model.calls == [("move", "def", 1.0, 2.0)]
+
+
+def test_resize_routes_uid_without_zero_based_conversion():
+    model = FakeProjectModel()
+    result = slide_resize(model, end=3.0, uid="abc")
+    assert result == {"success": True, "uid": "abc"}
+    assert model.calls == [("resize", "abc", 3.0)]

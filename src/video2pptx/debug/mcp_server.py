@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/debug/mcp_server.py
-# VERSION: 0.4.0
+# VERSION: 0.5.0
 # START_MODULE_CONTRACT
 #   PURPOSE: MCP HTTP server with SSE transport on 9812..9816 — exposes full app state, operation lifecycle, read/write tools
 #   SCOPE: SSE at /sse, JSON-RPC at /messages. Operation lifecycle via M-OPERATION-REGISTRY + M-MCP-OPERATIONS.
@@ -17,7 +17,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.4.0 - Added owned JSON port records and synchronized Qt-affine operation lifecycle
+#   LAST_CHANGE: v0.5.0 - Route all slide CRUD through persistent Qt-affine ProjectModel operations
+#   v0.4.0 - Added owned JSON port records and synchronized Qt-affine operation lifecycle
 #   v0.3.0 - Wire OperationRegistry, full read/write tools, lifecycle tools, port hardening
 #   v0.2.0 - Added SSE transport for OpenCode compatibility
 #   v0.1.0 - Initial implementation
@@ -125,6 +126,9 @@ _QT_WRITE_CMDS: dict[str, tuple] = {
     "slide_add": ("add_slide", "ts", 0.0),
     "slide_delete": ("delete_slide", "index", 1),
     "slide_move": ("move_slide", None, None),
+    "slide_resize": ("resize_slide", None, None),
+    "slide_set_frame": ("set_slide_frame", None, None),
+    "slide_clear_image": ("clear_slide_image", None, None),
     "video_seek": ("seek", "position", 0.0),
     "video_play": ("play", None, None),
     "video_pause": ("pause", None, None),
@@ -233,12 +237,24 @@ def _handle_rpc(method: str, params: dict, model, timeline: Timeline, main_windo
             if tool == "project_create":
                 cargs = (args.get("path", ""),)
                 ckwargs = {"name": args.get("name", "Untitled")}
-            elif tool == "slide_move":
-                cargs = (
-                    args.get("index", 1),
-                    args.get("start", 0.0),
-                    args.get("end", 5.0),
-                )
+            elif tool in {
+                "slide_delete",
+                "slide_move",
+                "slide_resize",
+                "slide_set_frame",
+                "slide_clear_image",
+            }:
+                target = args.get("uid", args.get("index", 1))
+                if tool == "slide_move":
+                    cargs = (
+                        target,
+                        args.get("start", 0.0),
+                        args.get("end", 5.0),
+                    )
+                elif tool == "slide_resize":
+                    cargs = (target, args.get("end", 5.0))
+                else:
+                    cargs = (target,)
                 ckwargs = {}
             elif arg_name is not None and arg_name in args:
                 cargs = (args[arg_name],)
@@ -507,15 +523,20 @@ def mcp_process_queue(model) -> None:
                 raise AttributeError(
                     f"ProjectModel command not found: {cmd_name}"
                 )
-            fn(*args, **kwargs)
+            command_result = fn(*args, **kwargs)
             require_completion_sync(operation_id)
             record_completed(operation_id)
+            result = {"tool": tool_name}
+            if isinstance(command_result, dict):
+                result.update(command_result)
+            elif isinstance(command_result, str):
+                result["uid"] = command_result
             registry.update(
                 operation_id,
                 status="succeeded",
                 progress=100,
                 stage="complete",
-                result={"tool": tool_name},
+                result=result,
             )
             logger.debug(
                 f"[McpServer] Qt command processed | "

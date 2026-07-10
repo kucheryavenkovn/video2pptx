@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/models.py
-# VERSION: 0.1.0
+# VERSION: 0.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Pydantic data models for slides document
 #   SCOPE: All data structures: VideoInfo, Roi, SubtitleCue, FrameFeatures, SlideSegment, SlidesDocument
@@ -17,9 +17,14 @@
 #   SlideSegment - one detected slide interval with transcript and metadata
 #   SlidesDocument - root document containing all slide segments, video info, config, debug
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.2.0 - Added persisted slide UID for characterization and adapter parity
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass
 from typing import Any
 
@@ -120,6 +125,10 @@ class SlideSegment(BaseModel):
     #   SIDE_EFFECTS: none
     #   LINKS: M-MODELS
     # END_CONTRACT: SlideSegment
+    uid: str = Field(
+        default_factory=lambda: uuid.uuid4().hex[:12],
+        description="Stable persisted slide identifier",
+    )
     index: int = Field(ge=1, description="Slide number (1-based)")
     start: float = Field(ge=0, description="Interval start in seconds")
     end: float = Field(ge=0, description="Interval end in seconds")

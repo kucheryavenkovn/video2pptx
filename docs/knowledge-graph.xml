@@ -11,7 +11,7 @@
       <verification-ref>V-M-MODELS</verification-ref>
       <annotations>
         <type-SlidesDocument PURPOSE="Root document containing all slide segments" />
-        <type-SlideSegment PURPOSE="Single slide interval with transcript and metadata" />
+        <type-SlideSegment PURPOSE="Single slide interval with stable persisted uid, transcript, image, and metadata" />
         <type-VideoInfo PURPOSE="Source video metadata" />
         <type-SubtitleCue PURPOSE="Single subtitle entry with time and text" />
       </annotations>
@@ -476,9 +476,12 @@
         <fn-open PURPOSE="Load project, sync slides/subtitles to timeline, emit videoChanged" />
         <fn-save PURPOSE="Save project to disk" />
         <fn-close PURPOSE="Clear internal state, emit projectClosed" />
-        <fn-add_slide PURPOSE="Create manual SlideClip, add to track, emit slidesChanged" />
-        <fn-delete_slide PURPOSE="Remove slide by index, reindex, emit slidesChanged" />
-        <fn-move_slide PURPOSE="Update start/end for slide, emit slidesChanged" />
+        <fn-add_slide PURPOSE="Split interval or create manual slide, persist project/slides, and return stable uid" />
+        <fn-delete_slide PURPOSE="Remove slide by uid or 1-based index and persist all views" />
+        <fn-move_slide PURPOSE="Validate and persist slide interval by uid or 1-based index" />
+        <fn-resize_slide PURPOSE="Validate and persist a changed end boundary" />
+        <fn-set_slide_frame PURPOSE="Decode and persist a representative frame for a slide" />
+        <fn-clear_slide_image PURPOSE="Clear image metadata consistently across project, slides JSON, and timeline" />
         <fn-load_subtitles PURPOSE="Import subtitles, sync to timeline track, emit subtitlesChanged" />
         <fn-set_scores PURPOSE="Store score timestamps+values, sync ScoreTrack, emit scoresChanged" />
         <signal-slidesChanged PURPOSE="emitted on any slide mutation" />

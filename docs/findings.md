@@ -494,3 +494,12 @@
 - Impact: E2E-008 could not provide a trustworthy preview of alignment changes.
 - Resolution/Status: Fixed. Dry-run bypasses destructive confirmation, project persistence, and completion refresh. Apply writes both alignment JSON artifacts atomically.
 - LINKS: M-APP-SERVICE, M-MCP-OPERATIONS, M-MCP-WRITE-TOOLS, V-REF-CHAR-TESTS
+
+### F-0055 — Advertised slide CRUD did not mutate the persisted project
+- Date: 2026-07-10
+- Area: mcp, gui, persistence
+- Finding: add/delete rebuilt the timeline from unchanged `Project.slides`, move was timeline-only, three CRUD tools routed to unknown application commands, and timeline UIDs changed on every reload.
+- Symptom/Reproduction: MCP add returned queued but the slide disappeared after completion refresh; UID lookup failed after reopen.
+- Impact: E2E-011 and adapter parity were impossible; Save/Open could not preserve edits.
+- Resolution/Status: Fixed for characterization with persisted string UIDs, atomic `slides.json` updates, project/timeline synchronization, UID-preferred MCP routing, interval validation, and frame capture. Phase 2 will replace the string field with the `SlideId` value object.
+- LINKS: M-MODELS, M-PROJECT-MODEL, M-CANONICAL-COMMANDS, M-DEBUG-MCP, V-REF-CHAR-TESTS
