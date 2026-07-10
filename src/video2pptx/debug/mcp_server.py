@@ -459,6 +459,15 @@ def mcp_process_queue(model) -> None:
         if name == "__action__" and ACTION_REGISTRY is not None:
             ACTION_REGISTRY.call(args[0], args[1] if len(args) > 1 else None)
 
+    # Drain completed app_service operations and refresh GUI (F-0043 fix)
+    from video2pptx.debug.mcp_operations import drain_completed_ops
+    completed = drain_completed_ops()
+    if completed and model is not None and model.project_path:
+        try:
+            model.refresh_from_disk()
+        except Exception as e:
+            logger.error(f"[McpServer] refresh_from_disk failed: {e}")
+
 
 class McpServer:
     def __init__(

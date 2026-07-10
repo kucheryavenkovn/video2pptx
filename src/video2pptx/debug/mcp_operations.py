@@ -25,7 +25,7 @@ from __future__ import annotations
 import time
 from pathlib import Path
 from queue import Queue
-from threading import Event, Thread
+from threading import Event, Lock, Thread
 from typing import Any
 
 from loguru import logger
@@ -38,6 +38,20 @@ from video2pptx.debug.operation_registry import OperationRegistry, TERMINAL_STAT
 _OP_QUEUE: Queue[tuple[str, dict[str, Any], str]] = Queue()
 _CANCEL_EVENT = Event()
 _REGISTRY = OperationRegistry()
+_COMPLETED_OPS: list[str] = []
+_COMPLETED_OPS_LOCK = Lock()
+
+
+def record_completed(operation_id: str) -> None:
+    with _COMPLETED_OPS_LOCK:
+        _COMPLETED_OPS.append(operation_id)
+
+
+def drain_completed_ops() -> list[str]:
+    with _COMPLETED_OPS_LOCK:
+        result = list(_COMPLETED_OPS)
+        _COMPLETED_OPS.clear()
+    return result
 
 
 def get_registry() -> OperationRegistry:
@@ -139,6 +153,8 @@ class OperationRunner:
         except Exception as exc:
             err = OperationError.from_exception(exc, stage=tool, trace_id=operation_id)
             _REGISTRY.update(operation_id, status="failed", error=err.to_dict())
+        finally:
+            record_completed(operation_id)
 
     def _dispatch(self, tool: str, args: dict[str, Any]) -> dict[str, Any]:
         raise NotImplementedError("Subclass must implement _dispatch")

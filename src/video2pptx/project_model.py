@@ -58,6 +58,11 @@ class ProjectModel(QObject):
         self._timeline: Timeline = Timeline()
         self._score_timestamps: list[float] = []
         self._score_values: list[float] = []
+        self._project_path: str | None = None
+
+    @property
+    def project_path(self) -> str | None:
+        return self._project_path
 
     @property
     def timeline(self) -> Timeline:
@@ -105,6 +110,7 @@ class ProjectModel(QObject):
     def create(self, path: str, name: str = "Untitled") -> None:
         out_dir = Path(path) / name
         self._project = create_project(str(out_dir), name=name)
+        self._project_path = str(out_dir)
         self._subs = None
         self._timeline.clear()
         self._sync_subtitles_to_timeline() if self._subs else None
@@ -112,6 +118,7 @@ class ProjectModel(QObject):
 
     def open(self, path: str) -> None:
         self._project = open_project(path)
+        self._project_path = path
         self._subs = self._load_subs_if_needed()
         self._timeline.clear()
         if self._project:
@@ -137,12 +144,40 @@ class ProjectModel(QObject):
         self._close_internal()
         self.projectClosed.emit()
 
+    def refresh_from_disk(self) -> None:
+        """Re-read project.json and slides.json from disk, sync timeline, emit signals.
+        Must be called from Qt main thread. Used after MCP operations complete.
+        """
+        if not self._project or not self._project_path:
+            return
+        try:
+            from video2pptx.project_manager import open_project, load_slides_into_project
+            self._project = open_project(self._project_path)
+            self._subs = self._load_subs_if_needed()
+            self._timeline.clear()
+            if self._project:
+                dur = getattr(self._project, "video_duration", 0) or 0
+                self._timeline.duration = dur
+                load_slides_into_project(self._project)
+                self._sync_slides_to_timeline()
+                self._sync_subtitles_to_timeline()
+                if self._project.score_timestamps and self._project.score_values:
+                    self._score_timestamps = list(self._project.score_timestamps)
+                    self._score_values = list(self._project.score_values)
+                    self._sync_scores_to_timeline()
+                    self.scoresChanged.emit()
+                self.slidesChanged.emit()
+            logger.info(f"[ProjectModel][refresh_from_disk] Refreshed from disk")
+        except Exception as e:
+            logger.error(f"[ProjectModel][refresh_from_disk] Failed: {e}")
+
     def _close_internal(self) -> None:
         self._project = None
         self._subs = None
         self._timeline.clear()
         self._score_timestamps.clear()
         self._score_values.clear()
+        self._project_path = None
 
     def add_slide(self, ts: float) -> str:
         track = self._timeline.create_track("slides")
