@@ -855,6 +855,7 @@
       <scenario-CHAR-004 kind="success">Save/Close/Open round-trip preserves all fields.</scenario-CHAR-004>
       <scenario-CHAR-005 kind="success">Quick Preview is idempotent and creates no slide/export artifacts.</scenario-CHAR-005>
       <scenario-CHAR-006 kind="success">MCP terminal success implies project, timeline, disk, and UI synchronization.</scenario-CHAR-006>
+      <scenario-CHAR-007 kind="success">Auto Align dry-run is side-effect free; apply preserves invariants and is idempotent.</scenario-CHAR-007>
     </scenarios>
   </V-REF-CHAR-TESTS>
 

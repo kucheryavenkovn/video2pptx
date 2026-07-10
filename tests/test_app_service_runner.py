@@ -65,3 +65,21 @@ def test_persist_preview_scores_without_creating_slides(tmp_path):
     assert persisted.score_timestamps == [1.0, 2.0]
     assert persisted.score_values == [0.1, 0.2]
     assert persisted.slides == []
+
+
+def test_persist_auto_align_dry_run_does_not_mutate_project(tmp_path):
+    create_project(tmp_path, name="characterized")
+    project_json = tmp_path / "project.json"
+    before = project_json.read_bytes()
+
+    AppServiceRunner._persist_project_result(
+        tmp_path,
+        "auto_align",
+        {"success": True, "dry_run": True},
+        {"dry_run": True},
+    )
+
+    assert project_json.read_bytes() == before
+    persisted = open_project(tmp_path)
+    assert persisted.state.align_done is False
+    assert persisted.state.align_stale is True

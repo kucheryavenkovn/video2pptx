@@ -485,3 +485,12 @@
 - Impact: The documented terminal lifecycle did not guarantee safe state inspection.
 - Resolution/Status: Fixed with explicit completion synchronization tracking. `wait_operation` holds successful operations until their Qt refresh has completed.
 - LINKS: M-MCP-OPERATIONS, M-DEBUG-MCP, V-REF-CHAR-TESTS
+
+### F-0054 — Auto Align dry-run mutated project state and refreshed timeline
+- Date: 2026-07-10
+- Area: mcp, architecture
+- Finding: `run_auto_align(dry_run=True)` preserved `slides.json`, but the MCP compatibility bridge still set `align_done`, wrote `project.json`, and triggered a Qt refresh that regenerated timeline UIDs. Confirmation was also required despite no intended mutation.
+- Symptom/Reproduction: real MCP dry-run changed project/timeline snapshots while returning `dry_run=true`.
+- Impact: E2E-008 could not provide a trustworthy preview of alignment changes.
+- Resolution/Status: Fixed. Dry-run bypasses destructive confirmation, project persistence, and completion refresh. Apply writes both alignment JSON artifacts atomically.
+- LINKS: M-APP-SERVICE, M-MCP-OPERATIONS, M-MCP-WRITE-TOOLS, V-REF-CHAR-TESTS

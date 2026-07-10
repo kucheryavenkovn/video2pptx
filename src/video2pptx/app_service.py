@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/app_service.py
-# VERSION: 0.1.0
+# VERSION: 0.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Centralized application service — single entry point for detect, preview, align, notes, export, auto
 #   SCOPE: Command handlers that GUI slots, MCP tools, and CLI all delegate to. No Qt, no HTTP.
@@ -10,15 +10,19 @@
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
+#   CommandResult - typed success/failure result returned by all application commands
 #   execute_command - dispatch a named command with kwargs, returns result dict
 #   run_detect - canonical slide detection: video → slides.json + screenshots
 #   run_preview - quick score computation without creating slides
 #   run_auto_align - align visual boundaries to subtitle anchors
-#   run_notes - post-process subtitles into cleaned transcript
 #   run_export_md - slides.json → deck.md
 #   run_export_pptx - slides.json → deck.pptx
 #   run_auto - full pipeline: detect → align → notes → export
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.2.0 - Auto Align apply writes report and slides atomically
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -192,9 +196,10 @@ def run_auto_align(
 
         if not dry_run:
             report_path = slides_json.parent / "alignment_report.json"
-            import json
-            report_path.write_text(json.dumps(report.to_dict(), indent=2, ensure_ascii=False), encoding="utf-8")
-            slides_json.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
+            from video2pptx.utils.json_io import write_json_atomic
+
+            write_json_atomic(report_path, report.to_dict(), indent=2)
+            write_json_atomic(slides_json, doc.model_dump(mode="json"), indent=2)
 
         return CommandResult(
             success=True,

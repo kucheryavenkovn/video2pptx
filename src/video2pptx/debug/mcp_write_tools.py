@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/debug/mcp_write_tools.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Full MCP write tool set — project/video/subtitle/preview/detect/align/notes/llm/export/auto/
 #            slide-CRUD/video-transport/settings/app_shutdown. Each delegates to app_service via operation
@@ -12,10 +12,14 @@
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   WRITE_TOOLS - canonical list of {name, description, inputSchema} for MCP tools/list
 #   dispatch_write - submit write tool to operation lifecycle
+#   get_write_tool_defs - return canonical write tool metadata for tools/list
 #   is_sync_tool - classify tool as synchronous (no op lifecycle)
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Treat Auto Align dry-run as non-destructive
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -264,7 +268,8 @@ def dispatch_write(tool: str, args: dict[str, Any] | None = None, trace_id: str 
     Returns {operation_id, tool, status:'queued'} or error dict.
     """
     args = args or {}
-    require_confirm(tool, args)
+    if not (tool == "auto_align" and args.get("dry_run") is True):
+        require_confirm(tool, args)
     return submit(tool, args, trace_id=trace_id)
 
 

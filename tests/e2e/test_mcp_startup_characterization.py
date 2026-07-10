@@ -11,7 +11,17 @@
 
 from __future__ import annotations
 
+import json
+
 from tools.mcp_e2e_runner import GuiProcessHarness, McpClient
+
+
+def _call_and_wait(client, tool, arguments, timeout=30):
+    queued = McpClient.result_data(client.tool_call(tool, arguments))
+    assert queued["status"] == "queued"
+    completed = client.wait_operation(queued["operation_id"], timeout=timeout)
+    assert completed["status"] == "succeeded", completed
+    return completed
 
 
 def test_real_gui_mcp_startup(repo_dir, tmp_path):
@@ -202,5 +212,93 @@ def test_real_gui_mcp_quick_preview_is_idempotent_and_side_effect_free(
         assert not (project_dir / "slides").exists()
         assert not (project_dir / "deck.md").exists()
         assert not (project_dir / "deck.pptx").exists()
+    finally:
+        harness.stop()
+
+
+def test_real_gui_mcp_auto_align_dry_run_apply_and_idempotency(
+    repo_dir,
+    tmp_path,
+    synthetic_video_path,
+    synthetic_subtitle_path,
+):
+    harness = GuiProcessHarness(
+        repo=repo_dir,
+        run_dir=tmp_path / "run",
+        startup_timeout=30.0,
+        qt_platform="offscreen",
+    )
+    try:
+        client = harness.start()
+        project_parent = tmp_path / "projects"
+        project_dir = project_parent / "align_characterized"
+        _call_and_wait(
+            client,
+            "project_create",
+            {"path": str(project_parent), "name": "align_characterized"},
+        )
+        _call_and_wait(
+            client,
+            "video_import",
+            {"path": str(synthetic_video_path)},
+        )
+        _call_and_wait(
+            client,
+            "subtitle_import",
+            {"path": str(synthetic_subtitle_path)},
+        )
+        _call_and_wait(client, "detect", {"confirm": True}, timeout=120)
+
+        project_json = project_dir / "project.json"
+        slides_json = project_dir / "slides.json"
+        project_before = project_json.read_bytes()
+        slides_before = slides_json.read_bytes()
+        timeline_before = McpClient.result_data(
+            client.tool_call("get_timeline")
+        )
+
+        dry_run = _call_and_wait(
+            client,
+            "auto_align",
+            {"dry_run": True, "max_shift_sec": 3.0},
+        )
+        assert dry_run["result"]["dry_run"] is True
+        assert project_json.read_bytes() == project_before
+        assert slides_json.read_bytes() == slides_before
+        assert not (project_dir / "alignment_report.json").exists()
+        assert McpClient.result_data(
+            client.tool_call("get_timeline")
+        ) == timeline_before
+        project = McpClient.result_data(client.tool_call("get_project"))
+        assert project["pipeline_state"]["align_done"] is False
+
+        _call_and_wait(
+            client,
+            "auto_align",
+            {"dry_run": False, "max_shift_sec": 3.0, "confirm": True},
+        )
+        aligned_once = slides_json.read_bytes()
+        document = json.loads(aligned_once)
+        slides = document["slides"]
+        assert slides
+        assert [slide["index"] for slide in slides] == list(
+            range(1, len(slides) + 1)
+        )
+        assert all(slide["start"] < slide["end"] for slide in slides)
+        assert all(
+            left["end"] <= right["start"]
+            for left, right in zip(slides, slides[1:], strict=False)
+        )
+        assert (project_dir / "alignment_report.json").is_file()
+        project = McpClient.result_data(client.tool_call("get_project"))
+        assert project["pipeline_state"]["align_done"] is True
+        assert project["slides_count"] == len(slides)
+
+        _call_and_wait(
+            client,
+            "auto_align",
+            {"dry_run": False, "max_shift_sec": 3.0, "confirm": True},
+        )
+        assert slides_json.read_bytes() == aligned_once
     finally:
         harness.stop()

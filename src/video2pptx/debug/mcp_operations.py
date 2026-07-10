@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/debug/mcp_operations.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Wire OperationRegistry into MCP — write tools create op, run app_service in OpRunnerThread, return operation_id.
 #            Lifecycle tools: health, get_capabilities, get_operation, wait_operation, cancel_operation, list_operations.
@@ -30,7 +30,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.1.0 - Added adapter mapping, compatibility persistence, and Qt completion synchronization
+#   LAST_CHANGE: v1.2.0 - Skip project persistence and Qt refresh for pure Auto Align dry-runs
+#   v1.1.0 - Added adapter mapping, compatibility persistence, and Qt completion synchronization
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -180,10 +181,12 @@ class OperationRunner:
         self._app_service = app_service_module
 
     def run(self, operation_id: str, tool: str, args: dict[str, Any]) -> None:
+        requires_sync = False
         try:
             _REGISTRY.update(operation_id, status="running", progress=0)
             result = self._dispatch(tool, args)
-            if self._requires_completion_sync():
+            requires_sync = self._requires_completion_sync(tool, args, result)
+            if requires_sync:
                 require_completion_sync(operation_id)
                 record_completed(operation_id)
             _REGISTRY.update(operation_id, status="succeeded", progress=100, result=result)
@@ -192,14 +195,16 @@ class OperationRunner:
         except Exception as exc:
             err = OperationError.from_exception(exc, stage=tool, trace_id=operation_id)
             _REGISTRY.update(operation_id, status="failed", error=err.to_dict())
-        finally:
-            if not self._requires_completion_sync():
-                record_completed(operation_id)
 
     def _dispatch(self, tool: str, args: dict[str, Any]) -> dict[str, Any]:
         raise NotImplementedError("Subclass must implement _dispatch")
 
-    def _requires_completion_sync(self) -> bool:
+    def _requires_completion_sync(
+        self,
+        tool: str,
+        arguments: dict[str, Any],
+        result: dict[str, Any],
+    ) -> bool:
         return False
 
 
@@ -210,7 +215,14 @@ class AppServiceRunner(OperationRunner):
         super().__init__()
         self._project_model = project_model
 
-    def _requires_completion_sync(self) -> bool:
+    def _requires_completion_sync(
+        self,
+        tool: str,
+        arguments: dict[str, Any],
+        result: dict[str, Any],
+    ) -> bool:
+        if tool == "auto_align" and arguments.get("dry_run") is True:
+            return False
         return self._project_model is not None
 
     def _dispatch(self, tool: str, args: dict[str, Any]) -> dict[str, Any]:
@@ -256,7 +268,7 @@ class AppServiceRunner(OperationRunner):
                 stage=result.get("stage", command),
                 recoverable=True,
             )
-        self._persist_project_result(project_path, tool, result)
+        self._persist_project_result(project_path, tool, result, args)
         return result
 
     @staticmethod
@@ -264,9 +276,12 @@ class AppServiceRunner(OperationRunner):
         project_path: Path | None,
         tool: str,
         result: dict[str, Any],
+        arguments: dict[str, Any] | None = None,
     ) -> None:
         """Compatibility bridge until Phase-16 repository services own persistence."""
         if project_path is None:
+            return
+        if tool == "auto_align" and (arguments or {}).get("dry_run") is True:
             return
         from video2pptx.project_manager import (
             load_slides_into_project,

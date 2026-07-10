@@ -50,6 +50,10 @@ class TestMcpWriteTools:
         result = dispatch_write("detect", {"confirm": True, "video": "test.mp4"})
         assert result["status"] == "queued"
 
+    def test_auto_align_dry_run_does_not_require_confirm(self):
+        result = dispatch_write("auto_align", {"dry_run": True})
+        assert result["status"] == "queued"
+
     def test_is_sync_tool_classification(self):
         assert is_sync_tool("get_project") is True
         assert is_sync_tool("health") is True

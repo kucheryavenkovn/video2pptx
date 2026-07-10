@@ -15,8 +15,8 @@ The existing scenario file is a catalog, not a trusted characterization suite. K
 | E2E-005 Playback | environment-dependent | No scenario implementation. Requires multimedia capability in an interactive session. |
 | E2E-006 Quick Preview | executable and passing | Real GUI+MCP test runs twice, verifies waveform replacement and absence of slide/export artifacts. CLI adapter remains missing (F-0046). |
 | E2E-007 Detect | executable and passing | Real GUI+MCP test verifies terminal status and synchronized project/timeline/disk/UI views without reopen. |
-| E2E-008 Align Dry Run | incomplete | Direct service call only; no before/after project and file comparison. |
-| E2E-009 Align Apply | incomplete | No count/order preservation, idempotency, cue metrics, or GUI refresh assertion. |
+| E2E-008 Align Dry Run | executable and passing | Real GUI+MCP test verifies no confirmation requirement, byte-identical project/slides files, unchanged timeline/state, and no report artifact. |
+| E2E-009 Align Apply | executable and passing | Real GUI+MCP test verifies terminal synchronization, interval invariants, count/order preservation, report creation, pipeline state, and idempotent second apply. |
 | E2E-010 Process Notes | incomplete | Not implemented through MCP. |
 | E2E-011 Slide CRUD | incomplete | No UID-based add/move/resize/frame/clear/delete sequence or persistence round-trip. |
 | E2E-012 Markdown | executable but failing | Does not compare slide count or validate all image references; runner observations do not affect pass/fail. |
