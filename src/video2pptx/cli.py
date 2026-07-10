@@ -220,13 +220,20 @@ def detect(
             llm_config=cfg.llm,
             slides_dir=slides_dir,
         )
+        # Reload enriched document so subsequent exports use LLM-enriched data
+        doc = SlidesDocument.model_validate_json(json_path.read_text(encoding="utf-8"))
         console.print(f"[green]✓[/green] LLM enriched: {json_path.resolve()}")
     # END_BLOCK_LLM_PROCESSING
 
     # START_BLOCK_OPTIONAL_EXPORT
     if export_md:
         md_path = out_dir / "deck.md"
-        export_to_markdown(doc, md_path, slides_dir="slides", title=video_path.stem)
+        export_to_markdown(
+            doc,
+            md_path,
+            slides_dir=str(out_dir),
+            title=video_path.stem,
+        )
         console.print(f"[green]✓[/green] Deck: {md_path.resolve()}")
 
     if export_pptx:
@@ -408,12 +415,16 @@ def export_md(
 
     logger.info(f"[CLI][export_md] Exporting slides from {slides_json}")
 
-    from video2pptx.models import SlidesDocument
-    from video2pptx.markdown_export import export_to_markdown
-
     doc = SlidesDocument.model_validate_json(json_path.read_text(encoding="utf-8"))
     out_path = Path(out) if out else json_path.parent / "deck.md"
-    export_to_markdown(doc, out_path)
+    export_to_markdown(
+        doc,
+        out_path,
+        slides_dir=str(json_path.parent),
+        image_as_background=image_as_background,
+        transcript_location=transcript_location,
+        include_timecodes=include_timecodes,
+    )
     console.print(f"[green]✓[/green] Deck: {out_path.resolve()}")
 
 

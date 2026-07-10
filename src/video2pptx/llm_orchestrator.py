@@ -23,6 +23,7 @@ from video2pptx.config import LlmConfig
 from video2pptx.llm_client import LlmClient
 from video2pptx.models import SlidesDocument
 from video2pptx.notes_processor import process_notes
+from video2pptx.paths import resolve_artifact_path
 from video2pptx.slide_analyzer import analyze_slide
 
 
@@ -73,82 +74,101 @@ def run_llm_pipeline(
     client = LlmClient(llm_config)
     # END_BLOCK_INIT_CLIENT
 
-    # START_BLOCK_LOAD_MODEL
-    logger.info("[LlmOrchestrator][run_llm_pipeline] Loading model...")
-    client.load_model()
-    logger.info("[LlmOrchestrator][run_llm_pipeline] Model ready")
-    # END_BLOCK_LOAD_MODEL
+    try:
+        # START_BLOCK_LOAD_MODEL
+        logger.info("[LlmOrchestrator][run_llm_pipeline] Loading model...")
+        client.load_model()
+        logger.info("[LlmOrchestrator][run_llm_pipeline] Model ready")
+        # END_BLOCK_LOAD_MODEL
 
-    # START_BLOCK_PROCESS_SLIDES
-    total = len(doc.slides)
-    for i, seg in enumerate(doc.slides):
-        logger.info(
-            f"[LlmOrchestrator][run_llm_pipeline] Processing slide | "
-            f"index={i + 1}/{total} slide=#{seg.index}"
-        )
-
-        # START_BLOCK_ANALYZE_SLIDE
-        image_path = Path(seg.image) if Path(seg.image).is_absolute() else slides_dir / Path(seg.image).name
-        if not image_path.is_file():
-            logger.warning(
-                f"[LlmOrchestrator][run_llm_pipeline] Slide image not found, skipping vision | "
-                f"slide=#{seg.index} path={image_path}"
+        # START_BLOCK_PROCESS_SLIDES
+        total = len(doc.slides)
+        for i, seg in enumerate(doc.slides):
+            logger.info(
+                f"[LlmOrchestrator][run_llm_pipeline] Processing slide | "
+                f"index={i + 1}/{total} slide=#{seg.index}"
             )
-            seg.llm_description = None
-            seg.slide_context = None
-        else:
-            try:
-                analysis = analyze_slide(
-                    seg=seg,
-                    image_path=image_path,
-                    llm_client=client,
-                    slides_dir=slides_dir,
-                )
-                seg.llm_description = analysis.description
-                seg.slide_context = ", ".join(analysis.key_terms) if analysis.key_terms else None
-                logger.info(
-                    f"[LlmOrchestrator][run_llm_pipeline] Vision analysis done | "
-                    f"slide=#{seg.index} terms={len(analysis.key_terms)}"
-                )
-            except Exception as e:
-                logger.error(
-                    f"[LlmOrchestrator][run_llm_pipeline] Vision analysis failed | "
-                    f"slide=#{seg.index} error={e}"
+
+            # START_BLOCK_ANALYZE_SLIDE
+            image_path = resolve_artifact_path(slides_dir, seg.image) if seg.image else None
+            if not image_path or not image_path.is_file():
+                logger.warning(
+                    f"[LlmOrchestrator][run_llm_pipeline] Slide image not found, skipping vision | "
+                    f"slide=#{seg.index} path={image_path}"
                 )
                 seg.llm_description = None
                 seg.slide_context = None
-        # END_BLOCK_ANALYZE_SLIDE
+            else:
+                try:
+                    analysis = analyze_slide(
+                        seg=seg,
+                        image_path=image_path,
+                        llm_client=client,
+                        slides_dir=slides_dir,
+                    )
+                    seg.llm_description = analysis.description
+                    seg.slide_context = ", ".join(analysis.key_terms) if analysis.key_terms else None
+                    logger.info(
+                        f"[LlmOrchestrator][run_llm_pipeline] Vision analysis done | "
+                        f"slide=#{seg.index} terms={len(analysis.key_terms)}"
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"[LlmOrchestrator][run_llm_pipeline] Vision analysis failed | "
+                        f"slide=#{seg.index} error={e}"
+                    )
+                    seg.llm_description = None
+                    seg.slide_context = None
+            # END_BLOCK_ANALYZE_SLIDE
 
-        # START_BLOCK_REPHRASE_TRANSCRIPT
-        if seg.transcript or seg.subtitle_cues:
+            # START_BLOCK_REPHRASE_TRANSCRIPT
+            if seg.transcript or seg.subtitle_cues:
+                try:
+                    corrected = process_notes(
+                        seg,
+                        mode="llm",
+                        llm_client=client,
+                        slide_description=seg.llm_description,
+                        slide_context=seg.slide_context,
+                    )
+                    seg.transcript = corrected
+                    logger.info(
+                        f"[LlmOrchestrator][run_llm_pipeline] Transcript corrected | "
+                        f"slide=#{seg.index} chars={len(corrected)}"
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"[LlmOrchestrator][run_llm_pipeline] Transcript correction failed | "
+                        f"slide=#{seg.index} error={e}"
+                    )
+            # END_BLOCK_REPHRASE_TRANSCRIPT
+
+        # END_BLOCK_PROCESS_SLIDES
+
+        # START_BLOCK_SAVE_RESULT
+        out_path.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
+        logger.info(
+            f"[LlmOrchestrator][run_llm_pipeline] Enriched document saved | "
+            f"path={out_path}"
+        )
+        # END_BLOCK_SAVE_RESULT
+    finally:
+        # START_BLOCK_CLEANUP
+        if llm_config.unload_when_done:
             try:
-                corrected = process_notes(
-                    seg,
-                    mode="llm",
-                    llm_client=client,
-                    slide_description=seg.llm_description,
-                    slide_context=seg.slide_context,
-                )
-                seg.transcript = corrected
-                logger.info(
-                    f"[LlmOrchestrator][run_llm_pipeline] Transcript corrected | "
-                    f"slide=#{seg.index} chars={len(corrected)}"
-                )
+                client.unload_model()
+                logger.info("[LlmOrchestrator][run_llm_pipeline] Model unloaded")
             except Exception as e:
-                logger.error(
-                    f"[LlmOrchestrator][run_llm_pipeline] Transcript correction failed | "
-                    f"slide=#{seg.index} error={e}"
+                logger.warning(
+                    f"[LlmOrchestrator][run_llm_pipeline] Model unload failed | error={e}"
                 )
-        # END_BLOCK_REPHRASE_TRANSCRIPT
-
-    # END_BLOCK_PROCESS_SLIDES
-
-    # START_BLOCK_SAVE_RESULT
-    out_path.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
-    logger.info(
-        f"[LlmOrchestrator][run_llm_pipeline] Enriched document saved | "
-        f"path={out_path}"
-    )
-    # END_BLOCK_SAVE_RESULT
+        try:
+            client.close()
+            logger.info("[LlmOrchestrator][run_llm_pipeline] HTTP client closed")
+        except Exception as e:
+            logger.warning(
+                f"[LlmOrchestrator][run_llm_pipeline] Client close failed | error={e}"
+            )
+        # END_BLOCK_CLEANUP
 
     return out_path
