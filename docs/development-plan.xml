@@ -577,7 +577,7 @@
       <verification-ref>V-ARCH-OVERVIEW</verification-ref>
       <depends>none</depends>
     </M-ARCH-OVERVIEW>
-    <M-DOMAIN-VALUE NAME="ValueObjects" TYPE="UTILITY" LAYER="0" ORDER="69" STATUS="planned">
+    <M-DOMAIN-VALUE NAME="ValueObjects" TYPE="UTILITY" LAYER="0" ORDER="69" STATUS="implemented">
       <contract><purpose>Frozen value objects: SlideId, TimeInterval (validated), ArtifactRef (normalized relative path), PipelineState enum</purpose></contract>
       <target><source>src/video2pptx/domain/value_objects.py</source><tests>tests/domain/test_value_objects.py</tests></target>
       <verification-ref>V-DOMAIN-VALUE</verification-ref>
@@ -940,7 +940,7 @@
         exercising equivalent operations through all paths (application service, CLI, MCP, GUI).
         Use synthetic fixture for deterministic baselines. Freeze valid behavior, record known bugs in findings.
       </step-1>
-      <step-2 name="ValueObjects" status="planned" verification="V-REF-VALUE-OBJECTS">
+      <step-2 name="ValueObjects" status="done" verification="V-REF-VALUE-OBJECTS">
         Create domain/value_objects.py: SlideId, TimeInterval (frozen, validated), ArtifactRef, PipelineState enum.
         Replace raw float tuples in critical paths. No behavioral change.
       </step-2>

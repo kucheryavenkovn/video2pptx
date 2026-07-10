@@ -902,7 +902,7 @@
         <type-AdapterLayer PURPOSE="GUI (thin MainWindow + controllers), MCP (explicit handler registry), CLI (Typer → commands)" />
       </annotations>
     </M-ARCH-OVERVIEW>
-    <M-DOMAIN-VALUE NAME="ValueObjects" TYPE="UTILITY" STATUS="planned">
+    <M-DOMAIN-VALUE NAME="ValueObjects" TYPE="UTILITY" STATUS="implemented">
       <purpose>Frozen value objects: SlideId, TimeInterval (validated), ArtifactRef (normalized relative path), PipelineState enum</purpose>
       <path>src/video2pptx/domain/value_objects.py</path>
       <verification-ref>V-DOMAIN-VALUE</verification-ref>
