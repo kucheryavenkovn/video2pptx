@@ -907,19 +907,19 @@
       <path>src/video2pptx/domain/value_objects.py</path>
       <verification-ref>V-DOMAIN-VALUE</verification-ref>
     </M-DOMAIN-VALUE>
-    <M-DOMAIN-PROJECT NAME="ProjectAggregate" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-DOMAIN-PROJECT NAME="ProjectAggregate" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Project aggregate root controlling slide invariants, downstream invalidation, state transitions. Canonical source of truth.</purpose>
       <path>src/video2pptx/domain/project.py</path>
       <depends>M-DOMAIN-VALUE</depends>
       <verification-ref>V-DOMAIN-PROJECT</verification-ref>
     </M-DOMAIN-PROJECT>
-    <M-DOMAIN-SLIDE NAME="SlideEntity" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-DOMAIN-SLIDE NAME="SlideEntity" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Slide entity with stable SlideId, visual/aligned TimeInterval, image ArtifactRef, transcript, confidence, manual flag</purpose>
       <path>src/video2pptx/domain/slide.py</path>
       <depends>M-DOMAIN-VALUE</depends>
       <verification-ref>V-DOMAIN-SLIDE</verification-ref>
     </M-DOMAIN-SLIDE>
-    <M-DOMAIN-STATE NAME="PipelineState" TYPE="UTILITY" STATUS="planned">
+    <M-DOMAIN-STATE NAME="PipelineState" TYPE="UTILITY" STATUS="implemented">
       <purpose>Pipeline stage state machine: NOT_STARTED→RUNNING→SUCCEEDED/FAILED/CANCELLED/STALE/SKIPPED</purpose>
       <path>src/video2pptx/domain/pipeline_state.py</path>
       <depends>none</depends>

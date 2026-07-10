@@ -944,7 +944,7 @@
         Create domain/value_objects.py: SlideId, TimeInterval (frozen, validated), ArtifactRef, PipelineState enum.
         Replace raw float tuples in critical paths. No behavioral change.
       </step-2>
-      <step-3 name="ProjectAggregate" status="planned" verification="V-REF-PROJECT-AGGREGATE">
+      <step-3 name="ProjectAggregate" status="done" verification="V-REF-PROJECT-AGGREGATE">
         Create domain/project.py: Project as aggregate root with add_slide(), remove_slide(),
         replace_detected_slides(), invalidate_downstream_from(). Internal Pydantic model delegates.
       </step-3>

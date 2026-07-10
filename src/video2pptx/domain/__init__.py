@@ -1,10 +1,10 @@
 # FILE: src/video2pptx/domain/__init__.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
-#   PURPOSE: Domain layer package — PySide6-free value objects and pipeline state.
-#   SCOPE: SlideId, TimeInterval, ArtifactRef, PipelineState, StageStatus, domain errors
+#   PURPOSE: Domain layer package — PySide6-free value objects, entities, and aggregate root.
+#   SCOPE: SlideId, TimeInterval, ArtifactRef, PipelineState, Slide, Project, domain errors
 #   DEPENDS: none (pure Python)
-#   LINKS: M-DOMAIN-VALUE
+#   LINKS: M-DOMAIN-VALUE, M-DOMAIN-SLIDE, M-DOMAIN-PROJECT
 #   ROLE: BARREL
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
@@ -13,6 +13,8 @@
 #   SlideId - stable slide identifier
 #   TimeInterval - validated immutable time interval
 #   ArtifactRef - portable relative artifact path
+#   Slide - domain slide entity
+#   Project - aggregate root controlling slide lifecycle and pipeline state
 #   PipelineState - pipeline stage state machine
 #   StageStatus - enum of stage statuses
 #   ValidationError - invalid value object construction
@@ -34,6 +36,8 @@ from video2pptx.domain.pipeline_state import (
     StageState,
     StageStatus,
 )
+from video2pptx.domain.project import Project
+from video2pptx.domain.slide import Slide
 from video2pptx.domain.time import TIME_EPSILON, TimeInterval
 
 __all__ = [
@@ -44,6 +48,8 @@ __all__ = [
     "migrate_legacy_artifact",
     "PIPELINE_STAGES",
     "PipelineState",
+    "Project",
+    "Slide",
     "SlideId",
     "StageState",
     "StageStatus",
