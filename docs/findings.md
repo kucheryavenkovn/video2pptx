@@ -395,3 +395,21 @@
 - Impact: After MCP-driven detect/align, the GUI timeline may not refresh automatically. A project_save → project_close → project_open cycle is needed for now.
 - Resolution: Documented as known limitation. Phase 2 wiring (app_service → ProjectModel signals) is the planned fix — but app_service must remain Qt-free.
 - LINKS: M-MCP-OPERATIONS, M-APP-SERVICE
+
+### F-0044 — F-0043 resolved: completion bridge via drain_completed_ops + mcp_process_queue timer
+- Date: 2026-07-10
+- Area: mcp, architecture
+- Finding: F-0043 fixed by adding `record_completed`/`drain_completed_ops` bridge from OpRunnerThread to Qt main thread. After any MCP operation completes, `OpRunner` records the operation_id. The existing `mcp_process_queue` QTimer (50ms in Qt main thread) drains completed ops and calls `model.refresh_from_disk()`, which re-reads project.json + slides.json, syncs timeline, and emits `slidesChanged`/`scoresChanged`/`videoChanged` signals. No Close/Open needed.
+- Symptom/Reproduction: MCP `detect` followed by `get_timeline` now returns updated data without Close/Open.
+- Impact: All MCP write commands now trigger automatic GUI refresh.
+- Resolution: Implemented in commit 858a8e1. Also added missing `project_path` property to ProjectModel.
+- LINKS: M-MCP-OPERATIONS, M-PROJECT-MODEL
+
+### F-0045 — ProjectModel lacked `project_path` property; MCP read tools referenced undefined attribute
+- Date: 2026-07-10
+- Area: architecture
+- Finding: `mcp_read_tools.py` and `mcp_server.py` referenced `model.project_path` but `ProjectModel` had no such property. `create()` and `open()` didn't store the project directory. The property was implicitly None, causing MCP read tools to miss project path context.
+- Symptom/Reproduction: `model.project_path` always returned None, breaking `list_artifacts` and `get_project(project_dir)`.
+- Impact: MCP read tools returned incomplete project data.
+- Resolution: Added `_project_path` attribute, `project_path` property, stored path in `create()` and `open()`, cleared in `close()`.
+- LINKS: M-PROJECT-MODEL, M-MCP-READ-TOOLS
