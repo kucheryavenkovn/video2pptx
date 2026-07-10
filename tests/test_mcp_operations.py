@@ -1,0 +1,125 @@
+# FILE: tests/test_mcp_operations.py
+# VERSION: 1.0.0
+# START_MODULE_CONTRACT
+#   PURPOSE: Tests for MCP operation lifecycle — submit, wait, cancel, health, runner
+#   SCOPE: submit, get_operation, wait_operation, cancel_operation, list_operations, health, runner thread
+#   DEPENDS: pytest, video2pptx.debug.mcp_operations
+#   LINKS: V-M-MCP-OPERATIONS
+#   ROLE: TEST
+#   MAP_MODE: LOCALS
+# END_MODULE_CONTRACT
+
+import time
+
+import pytest
+
+from video2pptx.debug.mcp_operations import (
+    OpRunnerThread,
+    OperationRunner,
+    cancel_operation,
+    clear_registry,
+    get_operation,
+    get_registry,
+    health,
+    list_operations,
+    submit,
+    wait_operation,
+)
+from video2pptx.debug.operation_registry import TERMINAL_STATUSES
+
+
+@pytest.fixture(autouse=True)
+def _reset_registry():
+    clear_registry()
+    yield
+
+
+class TestMcpOperations:
+    def test_submit_returns_queued(self):
+        result = submit("detect", {"video": "test.mp4"})
+        assert "operation_id" in result
+        assert result["tool"] == "detect"
+        assert result["status"] == "queued"
+
+    def test_get_operation_returns_op(self):
+        result = submit("detect")
+        op = get_operation(result["operation_id"])
+        assert op is not None
+        assert op["status"] == "queued"
+        assert op["tool"] == "detect"
+
+    def test_get_operation_missing(self):
+        assert get_operation("nonexistent") is None
+
+    def test_wait_operation_immediate(self):
+        result = submit("detect")
+        op_id = result["operation_id"]
+        # Mark as succeeded immediately
+        reg = get_registry()
+        reg.update(op_id, status="succeeded", result={"slides": 3})
+        final = wait_operation(op_id, timeout=5)
+        assert final is not None
+        assert final["status"] == "succeeded"
+
+    def test_wait_operation_timeout(self):
+        result = submit("detect")
+        # Don't update, should time out
+        final = wait_operation(result["operation_id"], timeout=0.5)
+        assert final is not None
+        assert final["status"] == "queued"
+
+    def test_cancel_operation(self):
+        result = submit("detect")
+        op_id = result["operation_id"]
+        cancelled = cancel_operation(op_id, confirm=True)
+        assert cancelled["status"] == "cancelled"
+
+    def test_cancel_operation_requires_confirm(self):
+        result = submit("detect")
+        with pytest.raises(Exception):
+            cancel_operation(result["operation_id"], confirm=False)
+
+    def test_list_operations_ordered(self):
+        submit("detect")
+        submit("preview")
+        submit("align")
+        ops = list_operations(limit=2)
+        assert len(ops) == 2
+        assert ops[0]["tool"] == "align"  # most recent first
+
+    def test_health(self):
+        h = health(version="0.6.0")
+        assert h["status"] == "ok"
+        assert h["version"] == "0.6.0"
+
+    def test_op_runner_dispatch(self):
+        class TestRunner(OperationRunner):
+            def _dispatch(self, tool, args):
+                return {"ran": tool, "args": args}
+
+        result = submit("test_cmd", {"key": "val"})
+        op_id = result["operation_id"]
+        runner = TestRunner()
+        runner.run(op_id, "test_cmd", {"key": "val"})
+        final = get_operation(op_id)
+        assert final["status"] == "succeeded"
+        assert final["result"]["ran"] == "test_cmd"
+
+    def test_op_runner_failure(self):
+        class BrokenRunner(OperationRunner):
+            def _dispatch(self, tool, args):
+                raise ValueError("broken")
+
+        result = submit("broken_cmd")
+        op_id = result["operation_id"]
+        runner = BrokenRunner()
+        runner.run(op_id, "broken_cmd", {})
+        final = get_operation(op_id)
+        assert final["status"] == "failed"
+        assert "ValueError" in final["error"]["type"]
+
+    def test_clear_registry(self):
+        submit("detect")
+        submit("preview")
+        clear_registry()
+        assert len(list_operations(limit=100)) == 0

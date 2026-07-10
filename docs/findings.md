@@ -369,3 +369,21 @@
 - Impact: Quick Preview pipeline non-functional.
 - Resolution: Created `QuickFrame` dataclass with `thumb` and `timestamp`. Updated `quick_extract` and `quick_visual_distance`.
 - LINKS: M-FRAME-FEATURES
+
+### F-0041 — GRACE XML malformed: unescaped `<` in attribute values and element text
+- Date: 2026-07-10
+- Area: tooling, docs
+- Finding: Several GRACE XML files contained unescaped `<` characters in attribute values (e.g., `val="&lt;=5%"`) and element text (`max-min < snap_flat_threshold`), causing `xml.parsers.expat` to fail. `grace lint` tolerates these (lenient parser) but strict XML tools reject them.
+- Symptom/Reproduction: `python -c "import xml.dom.minidom as m; m.parse('docs/verification-plan.xml')"` fails with "not well-formed (invalid token)".
+- Impact: Strict XML validation tools cannot process GRACE docs.
+- Resolution: Fixed `&lt;=` in attribute values and unescaped `<` in element text.
+- LINKS: docs/development-plan.xml, docs/verification-plan.xml
+
+### F-0042 — app_service.py is dead code: never called from GUI, CLI, or MCP
+- Date: 2026-07-10
+- Area: architecture
+- Finding: `src/video2pptx/app_service.py` implements `run_detect`, `run_preview`, `run_auto_align`, `run_export_md`, `run_export_pptx`, `run_auto` — but neither GUI, CLI, nor MCP calls them. All paths call `run_detect_slides` directly.
+- Symptom/Reproduction: grep for `app_service` imports across src/ returns zero (only the defining file).
+- Impact: Canonical command architecture requires retrofitting app_service as single entry point.
+- Resolution: Phase 2 wires app_service into GUI/MCP/CLI.
+- LINKS: M-APP-SERVICE, src/video2pptx/app_service.py

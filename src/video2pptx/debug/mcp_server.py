@@ -1,20 +1,24 @@
 # FILE: src/video2pptx/debug/mcp_server.py
-# VERSION: 0.2.0
+# VERSION: 0.3.0
 # START_MODULE_CONTRACT
-#   PURPOSE: MCP HTTP server with SSE transport on :9812 — exposes app state for AI debugging
-#   SCOPE: SSE at /sse, JSON-RPC at /messages. Tools: get_state, get_project, get_logs, get_clip
-#   DEPENDS: M-PROJECT-MODEL, M-TIMELINE-MODEL, M-GUI-LOG-BRIDGE
-#   LINKS: M-DEBUG-MCP
+#   PURPOSE: MCP HTTP server with SSE transport on 9812..9816 — exposes full app state, operation lifecycle, read/write tools
+#   SCOPE: SSE at /sse, JSON-RPC at /messages. Operation lifecycle via M-OPERATION-REGISTRY + M-MCP-OPERATIONS.
+#          Read tools via M-MCP-READ-TOOLS. Write tools via M-MCP-WRITE-TOOLS (Qt-affine via _CMD_QUEUE,
+#          app_service ops via OpRunnerThread). Port fallback, stale file cleanup, versioned serverInfo.
+#   DEPENDS: M-PROJECT-MODEL, M-TIMELINE-MODEL, M-GUI-LOG-BRIDGE, M-MCP-OPERATIONS, M-MCP-READ-TOOLS, M-MCP-WRITE-TOOLS
+#   LINKS: M-DEBUG-MCP, M-MCP-RELIABILITY
 #   ROLE: RUNTIME
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   McpServer -
+#   McpServer - lifecycle (start/stop), port fallback, stale .mcp_port cleanup, SSE transport
+#   mcp_process_queue - Qt main-thread drain for Qt-affine commands
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.2.0 - Added SSE transport for OpenCode compatibility
+#   LAST_CHANGE: v0.3.0 - Wire OperationRegistry, full read/write tools, lifecycle tools, port hardening
+#   v0.2.0 - Added SSE transport for OpenCode compatibility
 #   v0.1.0 - Initial implementation
 # END_CHANGE_SUMMARY
 
@@ -33,6 +37,22 @@ from typing import Any
 from loguru import logger
 
 from video2pptx.debug.action_registry import ActionRegistry
+from video2pptx.debug.confirm import require_confirm
+from video2pptx.debug.mcp_operations import (
+    OpRunnerThread,
+    clear_registry,
+    get_operation,
+    get_registry,
+    health,
+    list_operations,
+    submit,
+    wait_operation,
+)
+from video2pptx.debug.mcp_write_tools import (
+    dispatch_write,
+    get_write_tool_defs,
+    is_sync_tool,
+)
 from video2pptx.gui.log_bridge import LogBridge
 from video2pptx.timeline_model import (
     MarkerClip,
@@ -43,8 +63,12 @@ from video2pptx.timeline_model import (
     Timeline,
 )
 
+_PACKAGE_VERSION = "0.6.0"
+
 
 def _serialize_timeline(timeline: Timeline) -> dict:
+    if timeline is None:
+        return {"duration": 0, "tracks": {}}
     tracks = {}
     for name in timeline.track_names():
         track = timeline.track(name)
@@ -84,115 +108,236 @@ def _serialize_timeline(timeline: Timeline) -> dict:
     return {"duration": timeline.duration, "px_per_sec": timeline.px_per_sec, "tracks": tracks}
 
 
-def _serialize_project(project) -> dict:
-    if project is None:
-        return {"error": "no project"}
-    return {
-        "name": project.name, "video": project.video,
-        "has_subtitles": bool(project.subtitles),
-        "slides_count": len(project.slides),
-        "markers_count": len(project.markers),
-        "state": {"detect_done": project.state.detect_done,
-                   "notes_done": project.state.notes_done,
-                   "llm_done": project.state.llm_done},
-    }
+_QT_WRITE_CMDS: dict[str, tuple] = {
+    "project_open": ("open", "path", ""),
+    "project_close": ("close", None, None),
+    "project_create": ("create", "path", ""),
+    "project_save": ("save", None, None),
+    "video_import": ("import_video", "path", ""),
+    "subtitle_load": ("load_subtitles", "path", ""),
+    "subtitle_import": ("load_subtitles", "path", ""),
+    "slide_add": ("add_slide", "ts", 0.0),
+    "slide_delete": ("delete_slide", "index", 1),
+    "slide_move": ("move_slide", None, None),
+    "video_seek": ("seek", "position", 0.0),
+    "video_play": ("play", None, None),
+    "video_pause": ("pause", None, None),
+}
+
+_QT_DESTRUCTIVE = {"project_close", "slide_delete", "slide_move"}
 
 
-def _handle_rpc(method: str, params: dict, model, timeline: Timeline) -> Any:
-    global _SEQ
-    if method == "tools/list":
-        tools = [
-            {"name": "get_state", "description": "Full timeline dump: tracks, clips, counts", "inputSchema": {"type": "object"}},
-            {"name": "get_project", "description": "Project metadata and state", "inputSchema": {"type": "object"}},
-            {"name": "get_logs", "description": "Recent N log entries (default 50)", "inputSchema": {"type": "object", "properties": {"n": {"type": "integer"}}}},
-            {"name": "get_clip", "description": "Details of one clip by track+index or track+uid", "inputSchema": {"type": "object", "properties": {"track": {"type": "string"}, "index": {"type": "integer"}, "uid": {"type": "string"}}}},
-            {"name": "project_open", "description": "Open existing project by directory path", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}}},
-            {"name": "project_close", "description": "Close current project", "inputSchema": {"type": "object"}},
-            {"name": "project_create", "description": "Create new project at directory", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}, "name": {"type": "string"}}}},
-            {"name": "project_save", "description": "Save current project to disk", "inputSchema": {"type": "object"}},
-            {"name": "slide_add", "description": "Add manual slide at timestamp", "inputSchema": {"type": "object", "properties": {"ts": {"type": "number"}}}},
-            {"name": "slide_delete", "description": "Delete slide by 1-based index", "inputSchema": {"type": "object", "properties": {"index": {"type": "integer"}}}},
-            {"name": "slide_move", "description": "Move slide to new start/end times", "inputSchema": {"type": "object", "properties": {"index": {"type": "integer"}, "start": {"type": "number"}, "end": {"type": "number"}}}},
-            {"name": "video_import", "description": "Import video file into current project", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}}},
-            {"name": "subtitle_load", "description": "Load subtitle file into current project", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}}},
-        ]
-        if ACTION_REGISTRY is not None:
-            tools.extend(ACTION_REGISTRY.tools())
-        return {"tools": tools}
-    if method == "tools/call":
-        tool = params.get("name", "")
-        args = params.get("arguments", {})
-        if tool == "get_state":
-            data = _serialize_timeline(timeline)
-            return {"content": [{"type": "text", "text": json.dumps(data, ensure_ascii=False, default=str, indent=2)}]}
-        if tool == "get_project":
-            data = _serialize_project(model.project_data if model else None)
-            return {"content": [{"type": "text", "text": json.dumps(data, ensure_ascii=False, default=str, indent=2)}]}
-        if tool == "get_logs":
-            data = LogBridge.instance().recent(args.get("n", 50))
-            return {"content": [{"type": "text", "text": json.dumps(data, ensure_ascii=False, default=str, indent=2)}]}
-        if tool == "get_clip":
-            track_name = args.get("track", "slides")
-            index = args.get("index")
-            uid = args.get("uid")
-            track = timeline.track(track_name) if timeline else None
-            if track is None:
-                return {"content": [{"type": "text", "text": json.dumps({"error": f"track '{track_name}' not found"})}]}
-            clips = track.clips()
-            clip = None
-            if uid is not None:
-                clip = next((c for c in clips if c.uid == uid), None)
-            elif index is not None and 0 <= index < len(clips):
-                clip = clips[index]
-            if clip is None:
-                return {"content": [{"type": "text", "text": json.dumps({"error": "clip not found"})}]}
-            data = {"uid": clip.uid, "type": type(clip).__name__, "start_sec": clip.start_sec, "end_sec": clip.end_sec}
-            return {"content": [{"type": "text", "text": json.dumps(data, ensure_ascii=False, default=str, indent=2)}]}
-        # -- write tools (via command queue) --
-        write_cmds = {
-            "project_open": ("open", (args.get("path", ""),), {}),
-            "project_close": ("close", (), {}),
-            "project_create": ("create", (args.get("path", ""),), {"name": args.get("name", "Untitled")}),
-            "project_save": ("save", (), {}),
-            "slide_add": ("add_slide", (args.get("ts", 0.0),), {}),
-            "slide_delete": ("delete_slide", (args.get("index", 1),), {}),
-            "slide_move": ("move_slide", (args.get("index", 1), args.get("start", 0.0), args.get("end", 5.0)), {}),
-            "video_import": ("import_video", (args.get("path", ""),), {}),
-            "subtitle_load": ("load_subtitles", (args.get("path", ""),), {}),
-        }
-        if tool in write_cmds:
-            cmd, cargs, ckwargs = write_cmds[tool]
-            _CMD_QUEUE.put((cmd, cargs, ckwargs))
-            _SEQ += 1
-            return {"content": [{"type": "text", "text": json.dumps({"status": "queued", "seq": _SEQ, "tool": tool})}]}
-        if ACTION_REGISTRY is not None and ACTION_REGISTRY.has(tool):
-            _ACTION_QUEUE.put(("__action__", (tool, args), {}))
-            _SEQ += 1
-            return {"content": [{"type": "text", "text": json.dumps({"status": "queued", "seq": _SEQ, "tool": tool})}]}
+def _is_qt_affine(tool: str) -> bool:
+    return tool in _QT_WRITE_CMDS
 
-        return {"content": [{"type": "text", "text": json.dumps({"error": f"unknown tool: {tool}"})}]}
+
+def _is_action_registry_tool(tool: str) -> bool:
+    global ACTION_REGISTRY
+    return ACTION_REGISTRY is not None and ACTION_REGISTRY.has(tool)
+
+
+def _handle_rpc(method: str, params: dict, model, timeline: Timeline, main_window=None) -> Any:
     if method == "initialize":
         return {
             "protocolVersion": "2024-11-05",
             "capabilities": {"tools": {}},
-            "serverInfo": {"name": "video2pptx", "version": "0.1.0"},
+            "serverInfo": {"name": "video2pptx", "version": _PACKAGE_VERSION},
         }
-
     if method == "notifications/initialized":
         return None
 
+    if method == "tools/list":
+        tools = [
+            # -- legacy read tools --
+            {"name": "get_state", "description": "Full timeline dump: tracks, clips, counts", "inputSchema": {"type": "object"}},
+            {"name": "get_project", "description": "Project metadata and state", "inputSchema": {"type": "object"}},
+            {"name": "get_logs", "description": "Recent N log entries (default 50)", "inputSchema": {"type": "object", "properties": {"n": {"type": "integer"}}}},
+            {"name": "get_clip", "description": "Details of one clip by track+index or track+uid", "inputSchema": {"type": "object", "properties": {"track": {"type": "string"}, "index": {"type": "integer"}, "uid": {"type": "string"}}}},
+            # -- lifecycle tools --
+            {"name": "health", "description": "MCP server health check", "inputSchema": {"type": "object"}},
+            {"name": "get_capabilities", "description": "MCP protocol capabilities", "inputSchema": {"type": "object"}},
+            {"name": "get_operation", "description": "Get operation status by ID", "inputSchema": {"type": "object", "properties": {"operation_id": {"type": "string"}}}},
+            {"name": "wait_operation", "description": "Wait for operation to reach terminal status", "inputSchema": {"type": "object", "properties": {"operation_id": {"type": "string"}, "timeout": {"type": "number"}}}},
+            {"name": "cancel_operation", "description": "Cancel a running operation", "inputSchema": {"type": "object", "properties": {"operation_id": {"type": "string"}, "confirm": {"type": "boolean"}}}},
+            {"name": "list_operations", "description": "List recent operations", "inputSchema": {"type": "object", "properties": {"limit": {"type": "integer"}}}},
+            # -- modern read tools --
+            {"name": "get_app_state", "description": "Application state: version, backend, project", "inputSchema": {"type": "object"}},
+            {"name": "get_ui_state", "description": "UI state: buttons, title, status, busy", "inputSchema": {"type": "object"}},
+            {"name": "get_timeline", "description": "Full timeline with slide/subtitle/score tracks", "inputSchema": {"type": "object"}},
+            {"name": "get_slide", "description": "Single slide by UID or 1-based index", "inputSchema": {"type": "object", "properties": {"uid": {"type": "string"}, "index": {"type": "integer"}}}},
+            {"name": "get_subtitle_clip", "description": "Single subtitle clip by UID or index", "inputSchema": {"type": "object", "properties": {"uid": {"type": "string"}, "index": {"type": "integer"}}}},
+            {"name": "list_artifacts", "description": "List project directory artifacts", "inputSchema": {"type": "object"}},
+            {"name": "capture_screenshot", "description": "Capture MainWindow screenshot as base64 PNG", "inputSchema": {"type": "object"}},
+        ]
+        # Add modern write tools
+        tools.extend(get_write_tool_defs())
+        # Add legacy Qt-affine write tools (to keep backward compat)
+        for name in _QT_WRITE_CMDS:
+            if name not in {d["name"] for d in tools}:
+                tools.append({
+                    "name": name,
+                    "description": f"(legacy) {name}",
+                    "inputSchema": {"type": "object"},
+                })
+        # Add action registry tools
+        if ACTION_REGISTRY is not None:
+            tools.extend(ACTION_REGISTRY.tools())
+        return {"tools": tools}
+
+    if method == "tools/call":
+        tool = params.get("name", "")
+        args = params.get("arguments", {}) or {}
+
+        # -- synchronous read tools --
+        sync_handlers = {
+            "get_state": lambda: _serialize_timeline(timeline),
+            "get_project": lambda: _serialize_project(model),
+            "get_logs": lambda: LogBridge.instance().recent(args.get("n", 50)),
+            "get_clip": lambda: _handle_get_clip(args, timeline),
+            "health": lambda: health(version=_PACKAGE_VERSION),
+            "get_capabilities": lambda: _handle_get_capabilities(),
+            "get_operation": lambda: get_operation(args.get("operation_id", "")),
+            "wait_operation": lambda: wait_operation(args.get("operation_id", ""), args.get("timeout", 120.0)),
+            "list_operations": lambda: list_operations(limit=args.get("limit", 20)),
+            "get_app_state": lambda: _read_app_state(model, timeline),
+            "get_ui_state": lambda: _read_ui_state(main_window),
+            "get_timeline": lambda: _read_timeline(timeline),
+            "list_artifacts": lambda: _read_artifacts(model),
+        }
+
+        if tool in sync_handlers:
+            data = sync_handlers[tool]()
+            return {"content": [{"type": "text", "text": json.dumps(data, ensure_ascii=False, default=str, indent=2)}]}
+
+        if tool in {"get_slide", "get_subtitle_clip", "capture_screenshot"}:
+            return _handle_special_read(tool, args, timeline, main_window)
+
+        # -- write tools (Qt-affine) --
+        if _is_qt_affine(tool):
+            require_confirm(tool, args)  # check confirm for destructive Qt ops
+            info = _QT_WRITE_CMDS[tool]
+            cmd_name = info[0]
+            arg_name = info[1]
+            default_val = info[2]
+            if arg_name is not None and arg_name in args:
+                cargs = (args[arg_name],)
+            elif arg_name is not None and default_val is not None:
+                cargs = (default_val,)
+            else:
+                cargs = ()
+            _CMD_QUEUE.put((tool, cmd_name, cargs, {}))
+            return {"content": [{"type": "text", "text": json.dumps({"status": "queued", "tool": tool, "op_type": "qt"})}]}
+
+        # -- write tools (app_service via OpRunnerThread) --
+        if not is_sync_tool(tool) and tool not in _QT_WRITE_CMDS:
+            result = dispatch_write(tool, args, trace_id="")
+            return {"content": [{"type": "text", "text": json.dumps(result, ensure_ascii=False, default=str)}]}
+
+        # -- action registry --
+        if _is_action_registry_tool(tool):
+            _ACTION_QUEUE.put(("__action__", (tool, args), {}))
+            return {"content": [{"type": "text", "text": json.dumps({"status": "queued", "tool": tool, "op_type": "action"})}]}
+
+        return {"content": [{"type": "text", "text": json.dumps({"error": f"unknown tool: {tool}"})}]}
+
     return {"error": f"unknown method: {method}"}
+
+
+def _serialize_project(model) -> dict:
+    if model is None or model.project_data is None:
+        return {"error": "no project"}
+    try:
+        from video2pptx.debug.mcp_read_tools import get_project
+        return get_project(model)
+    except Exception as e:
+        logger.warning(f"[McpServer] get_project fallback: {e}")
+        proj = model.project_data
+        return {
+            "name": getattr(proj, "name", ""),
+            "video": getattr(proj, "video", None),
+            "has_subtitles": bool(getattr(proj, "subtitles", None)),
+            "slides_count": len(getattr(proj, "slides", [])),
+            "state": dict(getattr(getattr(proj, "state", None), "__dict__", {})),
+        }
+
+
+def _handle_get_clip(args: dict, timeline) -> dict:
+    track_name = args.get("track", "slides")
+    uid = args.get("uid")
+    index = args.get("index")
+    track = timeline.track(track_name) if timeline else None
+    if track is None:
+        return {"error": f"track '{track_name}' not found"}
+    clips = track.clips()
+    clip = None
+    if uid is not None:
+        clip = next((c for c in clips if c.uid == uid), None)
+    elif index is not None and 0 <= index < len(clips):
+        clip = clips[index]
+    if clip is None:
+        return {"error": "clip not found"}
+    return {"uid": clip.uid, "type": type(clip).__name__, "start_sec": clip.start_sec, "end_sec": clip.end_sec}
+
+
+def _handle_get_capabilities() -> dict:
+    return {
+        "protocol_version": "2024-11-05",
+        "server_info": {"name": "video2pptx", "version": _PACKAGE_VERSION},
+        "features": {
+            "operation_lifecycle": True,
+            "confirm_policy": True,
+            "structured_errors": True,
+            "atomic_writes": True,
+        },
+    }
+
+
+def _read_app_state(model, timeline) -> dict:
+    state = {"version": _PACKAGE_VERSION, "has_project": False, "project_path": None}
+    if model and model.project_path:
+        state["has_project"] = True
+        state["project_path"] = str(model.project_path)
+    return state
+
+
+def _read_ui_state(main_window) -> dict:
+    from video2pptx.gui.ui_state import read_ui_state
+    return read_ui_state(main_window)
+
+
+def _read_timeline(timeline) -> dict:
+    from video2pptx.debug.mcp_read_tools import get_timeline as read_tl
+    return read_tl(timeline)
+
+
+def _read_artifacts(model) -> list:
+    if model is None or model.project_path is None:
+        return []
+    from video2pptx.debug.mcp_read_tools import list_artifacts
+    return list_artifacts(model.project_path)
+
+
+def _handle_special_read(tool: str, args: dict, timeline, main_window) -> dict:
+    from video2pptx.debug.mcp_read_tools import get_slide, get_subtitle_clip, capture_screenshot
+    if tool == "get_slide":
+        return {"content": [{"type": "text", "text": json.dumps(get_slide(timeline, uid=args.get("uid"), index=args.get("index")), ensure_ascii=False, default=str, indent=2)}]}
+    if tool == "get_subtitle_clip":
+        return {"content": [{"type": "text", "text": json.dumps(get_subtitle_clip(timeline, uid=args.get("uid"), index=args.get("index")), ensure_ascii=False, default=str, indent=2)}]}
+    if tool == "capture_screenshot":
+        return {"content": [{"type": "text", "text": json.dumps(capture_screenshot(main_window), ensure_ascii=False, default=str, indent=2)}]}
+    return {"content": [{"type": "text", "text": json.dumps({"error": f"unknown read tool: {tool}"})}]}
 
 
 class _Handler(BaseHTTPRequestHandler):
     model = None
     timeline = None
+    main_window = None
     _sse_clients: dict[str, Any] = {}
     _running = True
 
     def do_GET(self) -> None:
         if self.path == "/health":
-            self._send_json({"status": "ok", "port": self.server.server_address[1]})
+            self._send_json(health(version=_PACKAGE_VERSION))
             return
         self._handle_sse()
 
@@ -242,7 +387,7 @@ class _Handler(BaseHTTPRequestHandler):
         params = req.get("params", {})
         req_id = req.get("id", 1)
         try:
-            result = _handle_rpc(method, params, self.model, self.timeline)
+            result = _handle_rpc(method, params, self.model, self.timeline, self.main_window)
             resp = {"jsonrpc": "2.0", "id": req_id, "result": result}
         except Exception as e:
             resp = {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32603, "message": str(e)}}
@@ -255,7 +400,6 @@ class _Handler(BaseHTTPRequestHandler):
                 w.flush()
             except Exception:
                 self.__class__._sse_clients.pop(session_id, None)
-        # Return ack to HTTP request
         self._send_json({"jsonrpc": "2.0", "id": req_id, "result": None})
 
     def _handle_rpc_direct(self) -> None:
@@ -270,7 +414,7 @@ class _Handler(BaseHTTPRequestHandler):
         params = req.get("params", {})
         req_id = req.get("id", 1)
         try:
-            result = _handle_rpc(method, params, self.model, self.timeline)
+            result = _handle_rpc(method, params, self.model, self.timeline, self.main_window)
             self._send_json({"jsonrpc": "2.0", "id": req_id, "result": result})
         except Exception as e:
             self._send_json({"jsonrpc": "2.0", "id": req_id, "error": {"code": -32603, "message": str(e)}})
@@ -296,18 +440,19 @@ class _ThreadedServer(ThreadingMixIn, TCPServer):
     daemon_threads = True
 
 
-_CMD_QUEUE: Queue[tuple[str, tuple, dict]] = Queue()
+_CMD_QUEUE: Queue[tuple[str, str, tuple, dict]] = Queue()
 _ACTION_QUEUE: Queue[tuple[str, tuple, dict]] = Queue()
-_SEQ = 0
 ACTION_REGISTRY: ActionRegistry | None = None
+_OP_RUNNER_THREAD: OpRunnerThread | None = None
 
 
 def mcp_process_queue(model) -> None:
     while not _CMD_QUEUE.empty():
-        cmd, args, kwargs = _CMD_QUEUE.get_nowait()
-        fn = getattr(model, cmd, None)
+        tool_name, cmd_name, args, kwargs = _CMD_QUEUE.get_nowait()
+        fn = getattr(model, cmd_name, None)
         if fn:
             fn(*args, **kwargs)
+            logger.debug(f"[McpServer] Qt command processed | tool={tool_name} cmd={cmd_name}")
     while not _ACTION_QUEUE.empty():
         name, args, kwargs = _ACTION_QUEUE.get_nowait()
         if name == "__action__" and ACTION_REGISTRY is not None:
@@ -315,18 +460,36 @@ def mcp_process_queue(model) -> None:
 
 
 class McpServer:
-    def __init__(self, model, timeline: Timeline, port: int = 9812, action_registry: ActionRegistry | None = None) -> None:
+    def __init__(
+        self,
+        model,
+        timeline: Timeline,
+        port: int = 9812,
+        action_registry: ActionRegistry | None = None,
+        main_window=None,
+    ) -> None:
         self._model = model
         self._timeline = timeline
         self._port = port
         self._server: _ThreadedServer | None = None
         self._thread: Thread | None = None
+        self._main_window = main_window
         global ACTION_REGISTRY
         ACTION_REGISTRY = action_registry
 
     def start(self) -> None:
+        # Clean stale .mcp_port
+        self._clean_stale_port_file()
+
+        # Clear registry from any previous session
+        clear_registry()
+
         _Handler.model = self._model
         _Handler.timeline = self._timeline
+        _Handler.main_window = self._main_window
+        _Handler._running = True
+        _Handler._sse_clients.clear()
+
         port = self._port
         for attempt in range(5):
             try:
@@ -338,10 +501,26 @@ class McpServer:
         if self._server is None:
             logger.warning("[McpServer] Failed to start — no free port in range 9812-9816")
             return
+
         self._thread = Thread(target=self._server.serve_forever, daemon=True)
         self._thread.start()
+
+        # Start OpRunnerThread
+        global _OP_RUNNER_THREAD
+        _OP_RUNNER_THREAD = OpRunnerThread()
+        _OP_RUNNER_THREAD.start()
+
         self._write_port_file()
-        logger.info(f"[McpServer] Started on http://127.0.0.1:{self._port} — state is LIVE (each tool call reads current model/timeline)")
+        logger.info(f"[McpServer] Started on http://127.0.0.1:{self._port} | v{_PACKAGE_VERSION}")
+
+    def _clean_stale_port_file(self) -> None:
+        try:
+            port_path = Path(os.getcwd()) / ".mcp_port"
+            if port_path.is_file():
+                port_path.unlink()
+                logger.info("[McpServer] Removed stale .mcp_port")
+        except Exception as e:
+            logger.warning(f"[McpServer] Failed to clean stale port file: {e}")
 
     def _write_port_file(self) -> None:
         try:
@@ -353,8 +532,24 @@ class McpServer:
 
     def stop(self) -> None:
         _Handler._running = False
+
+        global _OP_RUNNER_THREAD
+        if _OP_RUNNER_THREAD is not None:
+            _OP_RUNNER_THREAD.stop()
+            _OP_RUNNER_THREAD = None
+
         if self._server:
             self._server.shutdown()
             self._server.server_close()
             self._server = None
-            logger.info("[McpServer] Stopped")
+
+        # Clean port file
+        try:
+            port_path = Path(os.getcwd()) / ".mcp_port"
+            if port_path.is_file():
+                port_path.unlink()
+        except Exception:
+            pass
+
+        clear_registry()
+        logger.info("[McpServer] Stopped")

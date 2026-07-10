@@ -294,7 +294,7 @@ class MainWindow(QMainWindow):
             from video2pptx.debug.mcp_server import McpServer
 
             registry = ActionRegistry(self)
-            self._mcp = McpServer(self._model, self._model.timeline, port=9812, action_registry=registry)
+            self._mcp = McpServer(self._model, self._model.timeline, port=9812, action_registry=registry, main_window=self)
             self._mcp.start()
             self._mcp_timer = QTimer(self)
             self._mcp_timer.timeout.connect(self._process_mcp_queue)

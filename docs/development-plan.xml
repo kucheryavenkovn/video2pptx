@@ -880,13 +880,13 @@
       <step-43 module="M-OPERATION-REGISTRY" status="done" verification="V-M-OPERATION-REGISTRY">
         Register in graph. Already implemented + tested. Add clear() on restart.
       </step-43>
-      <step-44 module="M-STRUCTURED-ERRORS/M-CONFIRM-POLICY/M-ATOMIC-JSON" status="planned" verification="V-M-STRUCTURED-ERRORS">
-        Commit 1 foundation: OperationError, ConfirmPolicy, write_json_atomic.
+      <step-44 module="M-STRUCTURED-ERRORS/M-CONFIRM-POLICY/M-ATOMIC-JSON" status="done" verification="V-M-STRUCTURED-ERRORS">
+        Commit 1 foundation: OperationError, ConfirmPolicy, write_json_atomic. 17/17 tests.
       </step-44>
-      <step-45 module="M-MCP-OPERATIONS/M-MCP-READ-TOOLS/M-MCP-WRITE-TOOLS/M-MCP-RELIABILITY/M-UI-STATE-READER" status="planned" verification="V-M-MCP-OPERATIONS">
-        Commit 1: wire operations into MCP, extended read tools, full write tools, port/restart hardening.
+      <step-45 module="M-MCP-OPERATIONS/M-MCP-READ-TOOLS/M-MCP-WRITE-TOOLS/M-MCP-RELIABILITY/M-UI-STATE-READER" status="done" verification="V-M-MCP-OPERATIONS">
+        Wire operations into MCP, extended read tools, full write tools, port/restart hardening. 43/43 tests.
       </step-45>
-      <step-46 module="M-PIPELINE-STATES/M-CANONICAL-COMMANDS/M-GUI-CANONICAL-BUTTONS" status="planned" verification="V-M-PIPELINE-STATES">
+      <step-46 module="M-PIPELINE-STATES/M-CANONICAL-COMMANDS/M-GUI-CANONICAL-BUTTONS" status="in_progress" verification="V-M-PIPELINE-STATES">
         Commit 2: separate 5 stages, wire app_service into GUI/CLI/MCP, unify slide CRUD, fix off-by-one.
       </step-46>
       <step-47 module="M-AUTO-ALIGN" status="planned" verification="V-M-AUTO-ALIGN">
