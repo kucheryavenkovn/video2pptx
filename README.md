@@ -28,7 +28,12 @@
 pip install video2pptx
 
 # Установка с GUI
-pip install video2pptx[gui]
+pip install "video2pptx[gui]"
+
+# Установка со всеми опциями (GUI + PPTX + LLM)
+pip install "video2pptx[all]"
+
+# Доступные extras: [gui] [pptx] [llm] [gpu] [dev] [all]
 
 # Базовый запуск (CLI)
 video2pptx detect lesson.mp4 \
@@ -54,7 +59,7 @@ video2pptx detect lesson.mp4 \
 ## Установка (локальная разработка)
 
 ```bash
-git clone https://github.com/tvoi-username/video2pptx.git
+git clone https://github.com/kucheryavenkovn/video2pptx.git
 cd video2pptx
 pip install -e .
 # Или через hatch
@@ -67,10 +72,14 @@ hatch shell
 | Команда | Описание |
 |---------|----------|
 | `detect <video>` | Основная: детекция слайдов + субтитры → slides.json, картинки, опционально экспорт |
+| `detect-slides <video>` | Только детекция (без субтитров) → slides.json + скриншоты |
+| `notes <json>` | Пост-обработка заметок: slides.json + субтитры → enriched notes |
 | `export-md <json>` | slides.json → deck.md (Marp) |
 | `export-pptx <json>` | slides.json → deck.pptx (PPTX) |
 | `llm-process <json>` | slides.json → enriched slides.json (LLM vision анализ + коррекция транскрипта) |
 | `debug <json>` | slides.json → отладочные артефакты |
+| `roi-tool <video>` | Визуальный выбор ignore-roi |
+| `project create/open/info` | Управление проектами |
 | `gui` | Запуск десктопного GUI (PySide6) |
 
 ## Десктопный GUI
@@ -80,7 +89,7 @@ hatch shell
 pip install video2pptx[gui]
 
 # Если extras не подхватились — установить вручную:
-pip install PySide6 pysubs2
+pip install PySide6
 
 # Запуск
 video2pptx gui

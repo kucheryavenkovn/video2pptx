@@ -139,6 +139,145 @@
 - Resolution: Moved overlay management into `VideoPlayerWidget` via `set_overlay_widget(w)` + `resizeEvent` override that calls `_position_overlay()`, which sets overlay geometry to match `_video_widget.geometry()` on every resize.
 - LINKS: M-GUI-VIDEOPLAYER, M-GUI-SUBTITLE-OVERLAY
 
+---
+
+<!-- Release hardening findings (F-0022+) -->
+
+### F-0022 — Markdown export produces double path prefix "slides/slides/slide_001.png"
+- Date: 2026-07-10
+- Area: export
+- Finding: `markdown_export.render_slide()` computed `Path(slides_dir) / seg.image` where `seg.image` was already `"slides/slide_001.png"`, producing `"slides/slides/slide_001.png"`. The image link in deck.md was broken.
+- Symptom/Reproduction: Run `export-md slides.json`, inspect deck.md → image links contain double `slides/slides/` prefix.
+- Impact: Marp renders broken image links in generated presentations.
+- Resolution: Created `paths.resolve_markdown_image_path()` that checks if the stored path already has a `slides/` prefix before prepending. All image paths in markdown now route through this resolver.
+- LINKS: M-MD-EXPORT, M-PATHS, src/video2pptx/markdown_export.py, src/video2pptx/paths.py
+
+### F-0023 — `export-md` CLI params silently ignored (--image-as-bg, --transcript-location, --timecodes)
+- Date: 2026-07-10
+- Area: cli
+- Finding: The `export_md` command declared `image_as_background`, `transcript_location`, and `include_timecodes` parameters but never passed them to `export_to_markdown()`. The function signature didn't even accept them.
+- Symptom/Reproduction: `video2pptx export-md slides.json --no-image-bg` → output still uses background image.
+- Impact: Users cannot configure Markdown export formatting despite documented parameters.
+- Resolution: Extended `export_to_markdown()` and `render_slide()` to accept and honor all three parameters. CLI now passes them through.
+- LINKS: M-CLI, M-MD-EXPORT
+
+### F-0024 — Circular dependency smell: `notes_processor` imports `_fmt_time` from `pptx_export`
+- Date: 2026-07-10
+- Area: export
+- Finding: `notes_processor._llm_rephrase()` imported `_fmt_time` from `pptx_export.py`, creating a coupling between two independent export modules. This made `notes_processor` depend on `python-pptx` being importable.
+- Symptom/Reproduction: Import chain: notes_processor → pptx_export → pptx (python-pptx). If python-pptx not installed, notes processing in LLM mode fails at import time.
+- Impact: Notes processing unnecessarily coupled to PPTX export.
+- Resolution: Created `paths.format_time()` as the single source for time formatting. Both `pptx_export` and `notes_processor` now use it.
+- LINKS: M-NOTES-PROCESSOR, M-PPTX-EXPORT, M-PATHS
+
+### F-0025 — `run_llm_pipeline` leaks httpx.Client and never calls unload_model
+- Date: 2026-07-10
+- Area: llm
+- Finding: `run_llm_pipeline()` created `LlmClient`, called `load_model()`, processed slides, but never called `close()` or `unload_model()`. The contract and README promised model unload after processing. The httpx.Client TCP connections and the LM Studio model in VRAM were left leaked.
+- Symptom/Reproduction: Run `detect --llm`, check LM Studio → model still loaded in VRAM. Check process → open TCP connections to localhost:1234 not closed.
+- Impact: VRAM not freed; TCP connection leak on repeated runs.
+- Resolution: Wrapped pipeline body in `try/finally`. Finally block calls `unload_model()` if `unload_when_done=true`, then `close()` unconditionally.
+- LINKS: M-LLM-ORCHESTRATOR, M-LLM-CLIENT
+
+### F-0026 — `detect --llm --export-md/--export-pptx` exports stale pre-LLM document
+- Date: 2026-07-10
+- Area: cli
+- Finding: `cli.detect` built an in-memory `doc` object, then ran LLM enrichment (which writes enriched data to slides.json on disk), but subsequent `export_md`/`export_pptx` calls used the stale in-memory `doc` — not the enriched version.
+- Symptom/Reproduction: Run `detect video.mp4 --llm --export-pptx` → PPTX notes contain pre-LLM transcript, not corrected/enriched text.
+- Impact: LLM enrichment silently lost on export.
+- Resolution: Added `doc = SlidesDocument.model_validate_json(json_path.read_text(...))` after LLM pipeline to reload enriched document before exports.
+- LINKS: M-CLI, M-LLM-ORCHESTRATOR
+
+### F-0027 — Missing `gui` extra in pyproject.toml; README documents `pip install video2pptx[gui]`
+- Date: 2026-07-10
+- Area: tooling
+- Finding: README instructed users to `pip install video2pptx[gui]` but the `gui` extra did not exist in `pyproject.toml [project.optional-dependencies]`. Installation failed with "No matching distribution" or silently installed without GUI.
+- Symptom/Reproduction: `pip install "video2pptx[gui]"` → PySide6 not installed.
+- Impact: GUI installation path broken as documented.
+- Resolution: Added proper extras: `gui` (PySide6), `pptx` (python-pptx), `llm` (httpx), `gpu` (av), `dev` (pytest+ruff+mypy), `all`.
+- LINKS: pyproject.toml, README.md
+
+### F-0028 — `httpx` required by llm_client but absent from dependencies
+- Date: 2026-07-10
+- Area: tooling
+- Finding: `llm_client.py` imports `httpx` but it was not listed in `pyproject.toml` dependencies (neither base nor optional). Users running `llm-process` or `notes --notes-mode llm` got `ModuleNotFoundError`.
+- Symptom/Reproduction: `pip install video2pptx && video2pptx llm-process slides.json` → ModuleNotFoundError: httpx.
+- Impact: LLM features completely broken after clean install.
+- Resolution: Added `httpx>=0.27` to `[llm]` extra and `[all]` extra.
+- LINKS: pyproject.toml, M-LLM-CLIENT
+
+### F-0029 — Version mismatch: `__version__` 0.1.0 vs pyproject 0.5.0
+- Date: 2026-07-10
+- Area: tooling
+- Finding: `pyproject.toml` declared `version = "0.5.0"` while `__init__.py` had `__version__ = "0.1.0"`. Package metadata and runtime version disagreed.
+- Symptom/Reproduction: `pip show video2pptx` → Version: 0.5.0; `python -c "import video2pptx; print(video2pptx.__version__)"` → 0.1.0.
+- Impact: Version-dependent logic and debugging confused.
+- Resolution: Switched to hatch dynamic version from `__init__.py` as single source of truth. Updated `__version__` to 0.5.0.
+- LINKS: pyproject.toml, src/video2pptx/__init__.py
+
+### F-0030 — `Private :: Do Not Upload` classifier conflicts with public install instructions
+- Date: 2026-07-10
+- Area: tooling
+- Finding: `pyproject.toml` classifiers included `"Private :: Do Not Upload"` (PyPI safety flag) while README documented `pip install video2pptx` (implying PyPI publication). The classifier prevents accidental PyPI upload.
+- Symptom/Reproduction: `python -m twine upload` would warn or refuse due to this classifier.
+- Impact: Conflicting intent signals.
+- Resolution: Removed the classifier. Added `"Development Status :: 4 - Beta"` and `"License :: OSI Approved :: MIT License"`.
+- LINKS: pyproject.toml
+
+### F-0031 — Placeholder documentation URL `github.com/user/video2pptx`
+- Date: 2026-07-10
+- Area: tooling
+- Finding: `[project.urls] Documentation` pointed to `https://github.com/user/video2pptx` — a placeholder that doesn't resolve.
+- Symptom/Reproduction: `pip show video2pptx` → URL leads to 404.
+- Impact: Users can't find documentation from package metadata.
+- Resolution: Updated all URLs to `https://github.com/kucheryavenkovn/video2pptx`.
+- LINKS: pyproject.toml
+
+### F-0032 — `notes --notes-mode llm` does not pass LlmConfig to run_notes
+- Date: 2026-07-10
+- Area: cli
+- Finding: `cli.notes_cmd` called `run_notes(notes_mode="llm")` without passing `llm_config`. Since `run_notes` checks `if notes_mode == "llm" and llm_config is not None`, the LLM path was never taken — it silently fell back to basic.
+- Symptom/Reproduction: `video2pptx notes slides.json --subtitles subs.srt --notes-mode llm` → output identical to basic mode, no LLM call made.
+- Impact: LLM notes mode silently non-functional from CLI.
+- Resolution: `notes_cmd` now loads config and passes `llm_config` when `notes_mode == "llm"`.
+- LINKS: M-CLI, M-NOTES
+
+### F-0033 — PPTX export `notes_mode=llm` silently executes basic mode (no LLM client)
+- Date: 2026-07-10
+- Area: export
+- Finding: `pptx_export._format_slide_notes()` called `process_notes(seg, mode="llm")` without an `llm_client`. Inside `process_notes`, `mode == "llm" and llm_client is None` falls through to `_basic_cleanup()`. Users got basic output despite requesting LLM mode.
+- Symptom/Reproduction: `export-pptx slides.json --notes-mode llm` → PPTX notes identical to `--notes-mode basic`.
+- Impact: Silent mode mismatch; users believe LLM processing was done.
+- Resolution: `_format_slide_notes` now uses pre-enriched `seg.transcript` (processed by pipeline before export) with `seg.llm_description` as header. Mode is effectively `basic` cleanup of already-enriched text.
+- LINKS: M-PPTX-EXPORT
+
+### F-0034 — Two independent detection pipeline implementations (cli.detect vs run_detect_slides)
+- Date: 2026-07-10
+- Area: detection
+- Finding: `cli.detect()` reimplemented the entire detection pipeline (open video, detect changes, build segments, dedupe, save screenshots, build document) — ~100 lines duplicated from `run_detect_slides()`. The two implementations could diverge, leading to inconsistent behavior between `detect` and `detect-slides` commands.
+- Symptom/Reproduction: Bug fixes in `run_detect_slides` (e.g., quick_mode support, progress callback) were not reflected in `cli.detect`.
+- Impact: Maintenance burden; behavioral divergence risk.
+- Resolution: `cli.detect` now delegates to `run_detect_slides()` for core detection, then adds subtitles/LLM/export as post-processing.
+- LINKS: M-CLI, M-DETECT-SLIDES, M-PIPELINE
+
+### F-0035 — Committed output artifacts, input files, and session logs in git
+- Date: 2026-07-10
+- Area: tooling
+- Finding: The repository tracked output directories (out2/ through out7/ with slides.json, deck.md, deck.pptx), an input subtitle file (in/*.srt), session log files (session-ses_*.md, opencode_today.md), root project.json, and .mcp_port — all of which are local runtime artifacts that should not be in version control.
+- Symptom/Reproduction: `git ls-files` shows 13 output artifacts + session files.
+- Impact: Repository bloat; merge conflicts; accidental exposure of local paths.
+- Resolution: Removed all from git tracking via `git rm --cached`. Updated `.gitignore` to prevent re-adding.
+- LINKS: .gitignore
+
+### F-0036 — One-time migration script `add_decorators.py` tracked as project file
+- Date: 2026-07-10
+- Area: tooling
+- Finding: `.opencode/scripts/add_decorators.py` was a one-time code modification script that injected `@mcp_action` decorators into `main_window.py`. It was committed and remained tracked despite being a single-use migration tool.
+- Symptom/Reproduction: File present in `git ls-files`, confusing for new contributors.
+- Impact: Misleading project structure.
+- Resolution: Deleted from disk and git tracking.
+- LINKS: .opencode/scripts/
+
 ### F-0017 — `httpx` module-level import in `llm_client.py` crashes `ModelListCombo.showPopup()` and `Test Connection`
 - Date: 2026-07-09
 - Area: llm
