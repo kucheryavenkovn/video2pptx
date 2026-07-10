@@ -13,10 +13,11 @@ import os
 import subprocess
 import sys
 import time
-import urllib.request
 import urllib.error
+import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any, BinaryIO
 
 
 @dataclass
@@ -67,12 +68,155 @@ class McpClient:
     def tool_call(self, name: str, arguments: dict | None = None) -> dict:
         return self.call("tools/call", {"name": name, "arguments": arguments or {}})
 
+    @staticmethod
+    def result_data(response: dict) -> Any:
+        result = response.get("result", response)
+        content = result.get("content", []) if isinstance(result, dict) else []
+        if not content:
+            return result
+        text = content[0].get("text", "{}")
+        return json.loads(text) if isinstance(text, str) else text
+
     def health(self) -> dict:
         try:
-            with urllib.request.urlopen(f"{self.base_url}/", timeout=5) as resp:
+            with urllib.request.urlopen(f"{self.base_url}/health", timeout=5) as resp:
                 return json.loads(resp.read().decode("utf-8"))
         except Exception:
-            return self.tool_call("health")
+            return self.result_data(self.tool_call("health"))
+
+
+@dataclass(frozen=True)
+class PortRecord:
+    port: int
+    pid: int | None = None
+    started_at: str | None = None
+    instance_id: str | None = None
+
+    @classmethod
+    def parse(cls, text: str) -> PortRecord:
+        stripped = text.strip()
+        if stripped.startswith("{"):
+            data = json.loads(stripped)
+            return cls(
+                port=int(data["port"]),
+                pid=int(data["pid"]) if data.get("pid") is not None else None,
+                started_at=data.get("started_at"),
+                instance_id=data.get("instance_id"),
+            )
+        return cls(port=int(stripped))
+
+
+class GuiProcessHarness:
+    """Own a real GUI subprocess and its MCP endpoint."""
+
+    def __init__(
+        self,
+        repo: Path,
+        run_dir: Path,
+        startup_timeout: float = 30.0,
+        shutdown_timeout: float = 10.0,
+        qt_platform: str | None = "offscreen",
+    ) -> None:
+        self.repo = repo.resolve()
+        self.run_dir = run_dir.resolve()
+        self.startup_timeout = startup_timeout
+        self.shutdown_timeout = shutdown_timeout
+        self.qt_platform = qt_platform
+        self.port_file = self.repo / ".mcp_port"
+        self.process: subprocess.Popen | None = None
+        self.client: McpClient | None = None
+        self.port_record: PortRecord | None = None
+        self._stdout: BinaryIO | None = None
+        self._stderr: BinaryIO | None = None
+        self._started_ns = 0
+
+    def start(self) -> McpClient:
+        process_dir = self.run_dir / "process"
+        process_dir.mkdir(parents=True, exist_ok=True)
+        if self.port_file.exists():
+            self.port_file.unlink()
+
+        self._stdout = (process_dir / "stdout.log").open("wb")
+        self._stderr = (process_dir / "stderr.log").open("wb")
+        env = os.environ.copy()
+        env["VIDEO2PPTX_TEST_MODE"] = "1"
+        env["PYTHONUNBUFFERED"] = "1"
+        env["PYTHONPATH"] = os.pathsep.join(
+            [str(self.repo / "src"), env.get("PYTHONPATH", "")]
+        ).rstrip(os.pathsep)
+        if self.qt_platform:
+            env["QT_QPA_PLATFORM"] = self.qt_platform
+
+        command = [
+            sys.executable,
+            "-c",
+            (
+                "import sys; from video2pptx.cli import run; "
+                "sys.argv=['video2pptx','gui']; run()"
+            ),
+        ]
+        self._started_ns = time.time_ns()
+        self.process = subprocess.Popen(
+            command,
+            cwd=self.repo,
+            env=env,
+            stdout=self._stdout,
+            stderr=self._stderr,
+        )
+
+        deadline = time.monotonic() + self.startup_timeout
+        last_error = "port file not created"
+        while time.monotonic() < deadline:
+            if self.process.poll() is not None:
+                raise RuntimeError(
+                    f"GUI exited during startup with code {self.process.returncode}; "
+                    f"see {process_dir / 'stderr.log'}"
+                )
+            if self.port_file.is_file():
+                try:
+                    stat = self.port_file.stat()
+                    if stat.st_mtime_ns < self._started_ns:
+                        last_error = "stale port file timestamp"
+                    else:
+                        record = PortRecord.parse(
+                            self.port_file.read_text(encoding="utf-8")
+                        )
+                        client = McpClient(record.port)
+                        health_data = client.health()
+                        if health_data.get("status") == "ok":
+                            self.port_record = record
+                            self.client = client
+                            return client
+                        last_error = f"health response: {health_data}"
+                except (OSError, ValueError, json.JSONDecodeError) as exc:
+                    last_error = str(exc)
+            time.sleep(0.1)
+
+        raise TimeoutError(
+            f"MCP startup timeout after {self.startup_timeout}s: {last_error}"
+        )
+
+    def stop(self) -> None:
+        if self.process is not None and self.process.poll() is None:
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=self.shutdown_timeout)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.process.wait(timeout=5)
+        if self.port_file.exists():
+            self.port_file.unlink()
+        if self._stdout is not None:
+            self._stdout.close()
+        if self._stderr is not None:
+            self._stderr.close()
+
+    def __enter__(self) -> GuiProcessHarness:
+        self.start()
+        return self
+
+    def __exit__(self, exc_type, exc, traceback) -> None:
+        self.stop()
 
 
 def find_mcp_port(repo_dir: Path, timeout: float = 30.0) -> int | None:
@@ -123,12 +267,15 @@ def run_e2e(
     sys.path.insert(0, str(repo / "src"))
 
     from video2pptx.app_service import (
-        run_detect, run_preview, run_auto_align,
-        run_export_md, run_export_pptx, run_auto,
+        run_auto_align,
+        run_detect,
+        run_export_md,
+        run_export_pptx,
+        run_preview,
     )
     from video2pptx.config import load_config
-    from video2pptx.project_manager import create_project, open_project
     from video2pptx.models import SlidesDocument
+    from video2pptx.project_manager import create_project
 
     # Step 1: Create project
     t0 = time.time()
