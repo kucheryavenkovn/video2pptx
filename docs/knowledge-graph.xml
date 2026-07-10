@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<KnowledgeGraph VERSION="0.4.0">
+<KnowledgeGraph VERSION="0.5.0">
   <Project NAME="video2pptx" VERSION="0.6.0">
     <keywords>video, slides, markdown, presentation, open-cv, computer-vision, slide-detection, subtitle-alignment, srt, vtt, marp, llm, lm-studio, vision, gui, pyside6, project, timeline, video-player, subtitle-overlay, smart-snap</keywords>
     <annotation>Automatically extract slide intervals from educational videos, link to SRT/VTT subtitles, enhance with LLM vision analysis, export presentations, manage projects via GUI/CLI, with video player, subtitle overlay, interactive timeline, and smart manual marker snapping.</annotation>
@@ -556,6 +556,195 @@
       <verification-ref>V-M-COLAB</verification-ref>
     </M-COLAB>
 
+    <!-- ===== MCP E2E HARDENING (test/mcp-e2e-hardening) ===== -->
+    <M-APP-SERVICE NAME="AppService" TYPE="CORE_LOGIC" STATUS="partial">
+      <purpose>Canonical application service — single entry point for GUI slots, MCP tools, and CLI. No Qt, no HTTP.</purpose>
+      <path>src/video2pptx/app_service.py</path>
+      <depends>M-DETECT-SLIDES, M-AUTO-ALIGN, M-NOTES, M-MD-EXPORT, M-PPTX-EXPORT, M-PROJECT-VALIDATOR</depends>
+      <verification-ref>V-M-APP-SERVICE</verification-ref>
+      <annotations>
+        <type-CommandResult PURPOSE="Structured result: success/data/error/stage" />
+        <fn-run_detect PURPOSE="Canonical slide detection: video → slides.json + screenshots. Marks downstream stale." />
+        <fn-run_preview PURPOSE="Quick preview: diff scores only, no slides, no side-effects." />
+        <fn-run_auto_align PURPOSE="Delegate to M-AUTO-ALIGN, write alignment_report.json." />
+        <fn-run_export_md PURPOSE="slides.json → deck.md." />
+        <fn-run_export_pptx PURPOSE="slides.json → deck.pptx." />
+        <fn-run_auto PURPOSE="Full pipeline: detect → align(if subs) → notes → export → save → validate. mode=full|resume|force." />
+      </annotations>
+    </M-APP-SERVICE>
+
+    <M-AUTO-ALIGN NAME="AutoAlign" TYPE="CORE_LOGIC" STATUS="partial">
+      <purpose>Align visual slide boundaries to subtitle anchors via coordinated global choice (DP/sequential with neighbor check), idempotent, with rollback and metrics.</purpose>
+      <path>src/video2pptx/auto_align.py</path>
+      <depends>M-SUBTITLES, M-MODELS, pysubs2</depends>
+      <verification-ref>V-M-AUTO-ALIGN</verification-ref>
+      <annotations>
+        <type-AlignmentBoundary PURPOSE="Per-boundary result: visual/aligned/delta/source/subtitle_uid/confidence" />
+        <type-AlignmentReport PURPOSE="Aggregate: boundaries_total/moved, avg/max shift, fallback/failed counts, details" />
+        <type-AlignmentAnchorProvider PURPOSE="Protocol: anchors(video_duration) → list[float]. Extensible to AudioVAD/Hybrid." />
+        <type-SubtitleAnchorProvider PURPOSE="Extract candidate anchor times from subtitle cues." />
+        <fn-align_slides_to_subtitles PURPOSE="Main entry: slides + subtitles → aligned slides + AlignmentReport. dry_run/include_manual." />
+        <fn-rollback_alignment PURPOSE="Restore visual boundaries from last alignment_report.json." />
+      </annotations>
+    </M-AUTO-ALIGN>
+
+    <M-OPERATION-REGISTRY NAME="OperationRegistry" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Operation lifecycle registry for MCP async ops — tracks queued/running/succeeded/failed/cancelled with timestamps, progress, trace_id.</purpose>
+      <path>src/video2pptx/debug/operation_registry.py</path>
+      <depends>threading, uuid, time</depends>
+      <verification-ref>V-M-OPERATION-REGISTRY</verification-ref>
+      <annotations>
+        <type-Operation PURPOSE="Dataclass: operation_id/tool/arguments/status/timestamps/progress/stage/result/error/trace_id" />
+        <fn-create PURPOSE="Register new op, status=queued, return Operation" />
+        <fn-update PURPOSE="Transition status/progress/stage/result; sets started_at/finished_at" />
+        <fn-wait PURPOSE="Poll until terminal or timeout" />
+        <fn-cancel PURPOSE="Mark non-terminal op as cancelled" />
+        <fn-clear PURPOSE="Reset registry on server restart" />
+      </annotations>
+    </M-OPERATION-REGISTRY>
+
+    <M-STRUCTURED-ERRORS NAME="StructuredErrors" TYPE="UTILITY" STATUS="planned">
+      <purpose>Typed operation error: type/message/stage/recoverable/trace_id/details. Full traceback to log; never swallow exceptions.</purpose>
+      <path>src/video2pptx/debug/errors.py</path>
+      <depends>none</depends>
+      <verification-ref>V-M-STRUCTURED-ERRORS</verification-ref>
+      <annotations>
+        <type-OperationError PURPOSE="Typed error envelope returned in failed operation result" />
+        <fn-to_dict PURPOSE="Serialize for MCP JSON response" />
+      </annotations>
+    </M-STRUCTURED-ERRORS>
+
+    <M-CONFIRM-POLICY NAME="ConfirmPolicy" TYPE="UTILITY" STATUS="planned">
+      <purpose>Destructive-op confirmation: require explicit confirm=true. VIDEO2PPTX_TEST_MODE=1 still needs explicit args. No global auto-confirm.</purpose>
+      <path>src/video2pptx/debug/confirm.py</path>
+      <depends>M-STRUCTURED-ERRORS</depends>
+      <verification-ref>V-M-CONFIRM-POLICY</verification-ref>
+      <annotations>
+        <fn-require_confirm PURPOSE="Raise ConfirmRequiredError if destructive op lacks confirm=true" />
+        <fn-is_destructive PURPOSE="Classify tool as destructive (delete/re-detect/overwrite/shutdown)" />
+      </annotations>
+    </M-CONFIRM-POLICY>
+
+    <M-ATOMIC-JSON NAME="AtomicJson" TYPE="UTILITY" STATUS="planned">
+      <purpose>Atomic JSON writer: temp file + os.replace. Used for all project/slides/alignment writes to prevent partial-file corruption.</purpose>
+      <path>src/video2pptx/utils/json_io.py</path>
+      <depends>none</depends>
+      <verification-ref>V-M-ATOMIC-JSON</verification-ref>
+      <annotations>
+        <fn-write_json_atomic PURPOSE="Write obj as JSON to temp in same dir, then os.replace to target" />
+      </annotations>
+    </M-ATOMIC-JSON>
+
+    <M-MCP-OPERATIONS NAME="McpOperations" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Wire OperationRegistry into MCP: write tools create op → run app_service in dedicated OpRunnerThread → return operation_id. Lifecycle tools: health/get_capabilities/get_operation/wait_operation/cancel_operation/list_operations.</purpose>
+      <path>src/video2pptx/debug/mcp_operations.py</path>
+      <depends>M-OPERATION-REGISTRY, M-APP-SERVICE, M-STRUCTURED-ERRORS, M-CONFIRM-POLICY</depends>
+      <verification-ref>V-M-MCP-OPERATIONS</verification-ref>
+      <annotations>
+        <type-OpRunnerThread PURPOSE="Dedicated thread draining operation queue; calls app_service; updates op status" />
+        <fn-submit PURPOSE="Create op + enqueue; return operation_id" />
+        <fn-health PURPOSE="MCP health + version + capabilities" />
+      </annotations>
+    </M-MCP-OPERATIONS>
+
+    <M-MCP-READ-TOOLS NAME="McpReadTools" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Extended read tools: get_app_state/get_ui_state/get_project(extended)/get_timeline/get_slide/get_subtitle_clip/get_logs/list_artifacts/capture_screenshot.</purpose>
+      <path>src/video2pptx/debug/mcp_read_tools.py</path>
+      <depends>M-PROJECT-MODEL, M-TIMELINE-MODEL, M-UI-STATE-READER</depends>
+      <verification-ref>V-M-MCP-READ-TOOLS</verification-ref>
+      <annotations>
+        <fn-get_app_state PURPOSE="Backend, version, config summary" />
+        <fn-get_ui_state PURPOSE="Window title, status, busy, button visibility/enabled/text map" />
+        <fn-get_timeline PURPOSE="Slide/subtitle/score tracks with UID, intervals, manual, image_path" />
+        <fn-list_artifacts PURPOSE="Enumerate project files with sizes/mtimes" />
+        <fn-capture_screenshot PURPOSE="Grab MainWindow pixmap → base64 PNG" />
+      </annotations>
+    </M-MCP-READ-TOOLS>
+
+    <M-MCP-WRITE-TOOLS NAME="McpWriteTools" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Full write tool set: project/video/subtitle/preview/detect/align/notes/llm/export/auto/slide-CRUD/video-transport/settings/app_shutdown. Each delegates to app_service; enforces confirm for destructive.</purpose>
+      <path>src/video2pptx/debug/mcp_write_tools.py</path>
+      <depends>M-MCP-OPERATIONS, M-APP-SERVICE, M-CANONICAL-COMMANDS</depends>
+      <verification-ref>V-M-MCP-WRITE-TOOLS</verification-ref>
+    </M-MCP-WRITE-TOOLS>
+
+    <M-UI-STATE-READER NAME="UiStateReader" TYPE="UTILITY" STATUS="planned">
+      <purpose>Read-only snapshot of MainWindow: buttons (visible/enabled/text), window title, status text, busy flag, current_operation. No business logic.</purpose>
+      <path>src/video2pptx/gui/ui_state.py</path>
+      <depends>M-GUI-MAIN</depends>
+      <verification-ref>V-M-UI-STATE-READER</verification-ref>
+      <annotations>
+        <fn-read_ui_state PURPOSE="Return dict of button states + window metadata" />
+      </annotations>
+    </M-UI-STATE-READER>
+
+    <M-PROJECT-VALIDATOR NAME="ProjectValidator" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>validate_project: schema, file existence, interval invariants, no double paths, slide-count consistency, export freshness, MD/PPTX integrity, pipeline state, alignment report. Returns {valid, errors, warnings, statistics}.</purpose>
+      <path>src/video2pptx/validators/project_validator.py</path>
+      <depends>M-PROJECT, M-MD-EXPORT, M-PPTX-EXPORT</depends>
+      <verification-ref>V-M-PROJECT-VALIDATOR</verification-ref>
+      <annotations>
+        <fn-validate_project PURPOSE="Run all checks, return ValidationResult" />
+        <type-ValidationResult PURPOSE="{valid: bool, errors: list, warnings: list, statistics: dict}" />
+      </annotations>
+    </M-PROJECT-VALIDATOR>
+
+    <M-PIPELINE-STATES NAME="PipelineStates" TYPE="DATA_LAYER" STATUS="partial">
+      <purpose>Extend ProjectState flags: preview_done/detect_done/align_done/notes_done/md_exported/pptx_exported/auto_done + per-stage stale booleans for downstream invalidation.</purpose>
+      <path>src/video2pptx/project_manager.py</path>
+      <depends>M-PROJECT</depends>
+      <verification-ref>V-M-PIPELINE-STATES</verification-ref>
+    </M-PIPELINE-STATES>
+
+    <M-CANONICAL-COMMANDS NAME="CommandRouter" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Unify slide_add/slide_add_ui/slide_move/slide_moved into one canonical path. Public 1-based slide_index, internal 0-based, uid preferred. GUI/MCP/CLI → router → ProjectModel.</purpose>
+      <path>src/video2pptx/command_router.py</path>
+      <depends>M-PROJECT-MODEL, M-APP-SERVICE</depends>
+      <verification-ref>V-M-CANONICAL-COMMANDS</verification-ref>
+      <annotations>
+        <fn-slide_add PURPOSE="Canonical add slide (manual) at ts" />
+        <fn-slide_delete PURPOSE="Canonical delete by uid or 1-based index" />
+        <fn-slide_move PURPOSE="Canonical set start/end by uid/index" />
+        <fn-slide_resize PURPOSE="Canonical resize boundary" />
+        <fn-slide_set_frame PURPOSE="Capture current video frame as slide image" />
+      </annotations>
+    </M-CANONICAL-COMMANDS>
+
+    <M-GUI-CANONICAL-BUTTONS NAME="CanonicalButtons" TYPE="UI_COMPONENT" STATUS="planned">
+      <purpose>Rename/wire 5 distinct stages: Quick Preview / Detect / Auto Align / Process Notes / Auto. Each button slot delegates to app_service — no business logic in slots.</purpose>
+      <path>src/video2pptx/gui/main_window.py</path>
+      <depends>M-GUI-MAIN, M-APP-SERVICE</depends>
+      <verification-ref>V-M-GUI-CANONICAL-BUTTONS</verification-ref>
+    </M-GUI-CANONICAL-BUTTONS>
+
+    <M-MCP-RELIABILITY NAME="McpReliability" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Harden McpServer: port 9812–9816 fallback, stale .mcp_port cleanup, registry clear on restart, SSE client stop, localhost-only bind, live serverInfo version, graceful shutdown.</purpose>
+      <path>src/video2pptx/debug/mcp_server.py</path>
+      <depends>M-DEBUG-MCP, M-OPERATION-REGISTRY</depends>
+      <verification-ref>V-M-MCP-RELIABILITY</verification-ref>
+    </M-MCP-RELIABILITY>
+
+    <M-E2E-RUNNER NAME="McpE2eRunner" TYPE="ENTRY_POINT" STATUS="partial">
+      <purpose>Headless E2E runner: launch GUI subprocess, find port, initialize, run scenarios with before/after snapshots + wait_operation, emit HTML/JSON/junit report. No fixed sleeps.</purpose>
+      <path>tools/mcp_e2e_runner.py</path>
+      <depends>M-MCP-OPERATIONS, M-MCP-READ-TOOLS, M-E2E-SNAPSHOT</depends>
+      <verification-ref>V-M-E2E-RUNNER</verification-ref>
+    </M-E2E-RUNNER>
+
+    <M-E2E-SNAPSHOT NAME="Snapshot" TYPE="UTILITY" STATUS="planned">
+      <purpose>Capture full state snapshot: get_app_state/get_ui_state/get_project/get_timeline/list_artifacts/logs/screenshot + copy project.json/slides.json for diff.</purpose>
+      <path>tools/e2e_snapshot.py</path>
+      <depends>M-MCP-READ-TOOLS</depends>
+      <verification-ref>V-M-E2E-SNAPSHOT</verification-ref>
+    </M-E2E-SNAPSHOT>
+
+    <M-E2E-SCENARIOS NAME="E2eScenarios" TYPE="TEST" STATUS="planned">
+      <purpose>pytest E2E-001..015 happy + E2E-101..119 negative, each with before/after snapshot, postcondition assertions, 4-view consistency check.</purpose>
+      <path>tests/e2e/test_mcp_gui_workflow.py</path>
+      <depends>M-E2E-RUNNER, M-E2E-SNAPSHOT</depends>
+      <verification-ref>V-M-E2E-SCENARIOS</verification-ref>
+    </M-E2E-SCENARIOS>
+
     <CrossLink from="M-CLI" to="M-CONFIG" relation="reads config, passes to pipeline" />
     <CrossLink from="M-CLI" to="M-VIDEO-DECODE" relation="orchestrates" />
     <CrossLink from="M-CLI" to="M-SLIDE-DETECTOR" relation="orchestrates" />
@@ -670,5 +859,31 @@
     <CrossLink from="M-DEBUG-MCP" to="M-TIMELINE-MODEL" relation="serializes Timeline for get_state" />
     <CrossLink from="M-DEBUG-MCP" to="M-DEBUG-ACTION" relation="delegates action tools to ActionRegistry" />
     <CrossLink from="M-DEBUG-ACTION" to="M-GUI-MAIN" relation="scanned for @mcp_action decorated methods" />
+    <!-- ===== MCP E2E HARDENING edges ===== -->
+    <CrossLink from="M-APP-SERVICE" to="M-DETECT-SLIDES" relation="run_detect delegates to run_detect_slides" />
+    <CrossLink from="M-APP-SERVICE" to="M-AUTO-ALIGN" relation="run_auto_align delegates" />
+    <CrossLink from="M-APP-SERVICE" to="M-PROJECT-VALIDATOR" relation="run_auto validates artifacts" />
+    <CrossLink from="M-AUTO-ALIGN" to="M-SUBTITLES" relation="parses cues for anchor candidates" />
+    <CrossLink from="M-MCP-OPERATIONS" to="M-OPERATION-REGISTRY" relation="creates/updates ops" />
+    <CrossLink from="M-MCP-OPERATIONS" to="M-APP-SERVICE" relation="runs commands in OpRunnerThread" />
+    <CrossLink from="M-MCP-OPERATIONS" to="M-STRUCTURED-ERRORS" relation="wraps failures" />
+    <CrossLink from="M-MCP-OPERATIONS" to="M-CONFIRM-POLICY" relation="gates destructive ops" />
+    <CrossLink from="M-MCP-READ-TOOLS" to="M-UI-STATE-READER" relation="get_ui_state reads button map" />
+    <CrossLink from="M-MCP-WRITE-TOOLS" to="M-MCP-OPERATIONS" relation="submit via lifecycle" />
+    <CrossLink from="M-MCP-WRITE-TOOLS" to="M-CANONICAL-COMMANDS" relation="slide CRUD via router" />
+    <CrossLink from="M-UI-STATE-READER" to="M-GUI-MAIN" relation="reads button widgets" />
+    <CrossLink from="M-PROJECT-VALIDATOR" to="M-PROJECT" relation="reads project.json schema" />
+    <CrossLink from="M-CANONICAL-COMMANDS" to="M-PROJECT-MODEL" relation="mutates slides" />
+    <CrossLink from="M-CANONICAL-COMMANDS" to="M-APP-SERVICE" relation="shares command semantics" />
+    <CrossLink from="M-GUI-CANONICAL-BUTTONS" to="M-APP-SERVICE" relation="button slots delegate to service" />
+    <CrossLink from="M-GUI-MAIN" to="M-APP-SERVICE" relation="Detect/Preview/Auto/Align buttons call service" />
+    <CrossLink from="M-DEBUG-MCP" to="M-MCP-OPERATIONS" relation="write tools routed via operations" />
+    <CrossLink from="M-DEBUG-MCP" to="M-MCP-READ-TOOLS" relation="read tools delegated" />
+    <CrossLink from="M-MCP-RELIABILITY" to="M-OPERATION-REGISTRY" relation="clear on restart" />
+    <CrossLink from="M-E2E-RUNNER" to="M-MCP-OPERATIONS" relation="submit + wait_operation" />
+    <CrossLink from="M-E2E-RUNNER" to="M-E2E-SNAPSHOT" relation="before/after snapshots" />
+    <CrossLink from="M-E2E-SCENARIOS" to="M-E2E-RUNNER" relation="drives runner per scenario" />
+    <CrossLink from="M-APP-SERVICE" to="M-ATOMIC-JSON" relation="all writes atomic" />
+    <CrossLink from="M-PIPELINE-STATES" to="M-ATOMIC-JSON" relation="project.json written atomically" />
   </Project>
 </KnowledgeGraph>

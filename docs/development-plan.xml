@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DevelopmentPlan VERSION="0.4.0">
+<DevelopmentPlan VERSION="0.5.0">
   <ArchitectureNotes>
     <objective>Stage-based pipeline: video → slide intervals (standalone) → notes + visual context → export. Projects tie all stages together. Desktop GUI provides menu bar, video player with subtitle overlay, enhanced timeline with green/blue markers, project/app settings, and smart manual marker snapping. Core pipeline remains CLI-first with GUI as optional overlay.</objective>
     <non-goal>No ASR, no cloud processing, no web UI, no drag-to-reorder slides in MVP, no real-time streaming from network URLs.</non-goal>
@@ -347,7 +347,7 @@
 
     <M-GUI-SMART-SNAP NAME="SmartSnap" TYPE="CORE_LOGIC" LAYER="6" ORDER="33" STATUS="pending">
       <contract>
-        <purpose>Three smart snap strategies for snapping a manual marker to the nearest scene boundary. diff_only: uses existing diff_scores from slides.json (window ±5s, find local max). fallback_analyze: tries diff_scores first, if none available decodes ±3s window at sample_fps=5 and computes fresh frame differences. hybrid: uses diff_scores, if window is flat (max-min < snap_flat_threshold) falls back to high-res analysis (±2s, sample_fps=10).</purpose>
+        <purpose>Three smart snap strategies for snapping a manual marker to the nearest scene boundary. diff_only: uses existing diff_scores from slides.json (window ±5s, find local max). fallback_analyze: tries diff_scores first, if none available decodes ±3s window at sample_fps=5 and computes fresh frame differences. hybrid: uses diff_scores, if window is flat (max-min &lt; snap_flat_threshold) falls back to high-res analysis (±2s, sample_fps=10).</purpose>
         <inputs><param name="timestamp" type="float" /><param name="project" type="Project" /><param name="snap_mode" type="str — 'diff_only' | 'fallback_analyze' | 'hybrid'" /><param name="snap_flat_threshold" type="float — default 0.05" /></inputs>
         <outputs><param name="snapped_timestamp" type="float" /></outputs>
       </contract>
@@ -392,6 +392,181 @@
       <verification-ref>V-M-GUI-APPCONFIG</verification-ref>
       <depends>PyYAML</depends>
     </M-GUI-APPCONFIG>
+
+    <!-- ===== MCP E2E HARDENING (test/mcp-e2e-hardening) ===== -->
+    <M-APP-SERVICE NAME="AppService" TYPE="CORE_LOGIC" LAYER="5" ORDER="50" STATUS="partial">
+      <contract>
+        <purpose>Canonical application service — single entry point for GUI slots, MCP tools, and CLI. No Qt, no HTTP.</purpose>
+        <inputs><param name="command + kwargs" type="str + dict" /></inputs>
+        <outputs><param name="CommandResult" type="CommandResult{success,data,error,stage}" /></outputs>
+      </contract>
+      <target><source>src/video2pptx/app_service.py</source><tests>tests/test_app_service.py</tests></target>
+      <observability><log-prefix>[AppService]</log-prefix></observability>
+      <verification-ref>V-M-APP-SERVICE</verification-ref>
+      <depends>M-DETECT-SLIDES, M-AUTO-ALIGN, M-NOTES, M-MD-EXPORT, M-PPTX-EXPORT, M-PROJECT-VALIDATOR</depends>
+    </M-APP-SERVICE>
+
+    <M-AUTO-ALIGN NAME="AutoAlign" TYPE="CORE_LOGIC" LAYER="5" ORDER="51" STATUS="partial">
+      <contract>
+        <purpose>Align visual slide boundaries to subtitle anchors via coordinated global choice, idempotent, with rollback and metrics.</purpose>
+        <inputs><param name="slides" type="list[SlideSegment]" /><param name="subtitles_path" type="Path" /><param name="max_shift_sec" type="float" /><param name="dry_run" type="bool" /><param name="include_manual" type="bool" /></inputs>
+        <outputs><param name="AlignmentReport" type="AlignmentReport" /></outputs>
+      </contract>
+      <target><source>src/video2pptx/auto_align.py</source><tests>tests/test_auto_align.py</tests></target>
+      <observability><log-prefix>[AutoAlign]</log-prefix></observability>
+      <verification-ref>V-M-AUTO-ALIGN</verification-ref>
+      <depends>M-SUBTITLES, M-MODELS</depends>
+    </M-AUTO-ALIGN>
+
+    <M-OPERATION-REGISTRY NAME="OperationRegistry" TYPE="UTILITY" LAYER="0" ORDER="52" STATUS="implemented">
+      <contract>
+        <purpose>Operation lifecycle registry for MCP async ops — queued/running/succeeded/failed/cancelled with timestamps, progress, trace_id.</purpose>
+      </contract>
+      <target><source>src/video2pptx/debug/operation_registry.py</source><tests>tests/test_operation_registry.py</tests></target>
+      <observability><log-prefix>[OperationRegistry]</log-prefix></observability>
+      <verification-ref>V-M-OPERATION-REGISTRY</verification-ref>
+      <depends>none</depends>
+    </M-OPERATION-REGISTRY>
+
+    <M-STRUCTURED-ERRORS NAME="StructuredErrors" TYPE="UTILITY" LAYER="0" ORDER="53" STATUS="planned">
+      <contract>
+        <purpose>Typed operation error: type/message/stage/recoverable/trace_id/details. Full traceback to log; never swallow.</purpose>
+      </contract>
+      <target><source>src/video2pptx/debug/errors.py</source><tests>tests/test_structured_errors.py</tests></target>
+      <verification-ref>V-M-STRUCTURED-ERRORS</verification-ref>
+      <depends>none</depends>
+    </M-STRUCTURED-ERRORS>
+
+    <M-CONFIRM-POLICY NAME="ConfirmPolicy" TYPE="UTILITY" LAYER="0" ORDER="54" STATUS="planned">
+      <contract>
+        <purpose>Destructive-op confirmation: explicit confirm=true required. VIDEO2PPTX_TEST_MODE=1 still needs explicit args. No global auto-confirm.</purpose>
+      </contract>
+      <target><source>src/video2pptx/debug/confirm.py</source><tests>tests/test_confirm_policy.py</tests></target>
+      <verification-ref>V-M-CONFIRM-POLICY</verification-ref>
+      <depends>M-STRUCTURED-ERRORS</depends>
+    </M-CONFIRM-POLICY>
+
+    <M-ATOMIC-JSON NAME="AtomicJson" TYPE="UTILITY" LAYER="0" ORDER="55" STATUS="planned">
+      <contract>
+        <purpose>Atomic JSON writer: temp file + os.replace. Prevents partial-file corruption.</purpose>
+      </contract>
+      <target><source>src/video2pptx/utils/json_io.py</source><tests>tests/test_atomic_json.py</tests></target>
+      <verification-ref>V-M-ATOMIC-JSON</verification-ref>
+      <depends>none</depends>
+    </M-ATOMIC-JSON>
+
+    <M-MCP-OPERATIONS NAME="McpOperations" TYPE="INTEGRATION" LAYER="6" ORDER="56" STATUS="planned">
+      <contract>
+        <purpose>Wire OperationRegistry into MCP. Write tools create op → run app_service in OpRunnerThread → return operation_id. Lifecycle tools.</purpose>
+      </contract>
+      <target><source>src/video2pptx/debug/mcp_operations.py</source><tests>tests/test_mcp_operations.py</tests></target>
+      <observability><log-prefix>[McpOps]</log-prefix></observability>
+      <verification-ref>V-M-MCP-OPERATIONS</verification-ref>
+      <depends>M-OPERATION-REGISTRY, M-APP-SERVICE, M-STRUCTURED-ERRORS, M-CONFIRM-POLICY</depends>
+    </M-MCP-OPERATIONS>
+
+    <M-MCP-READ-TOOLS NAME="McpReadTools" TYPE="INTEGRATION" LAYER="6" ORDER="57" STATUS="planned">
+      <contract>
+        <purpose>Extended read tools: get_app_state/get_ui_state/get_project/get_timeline/get_slide/get_subtitle_clip/get_logs/list_artifacts/capture_screenshot.</purpose>
+      </contract>
+      <target><source>src/video2pptx/debug/mcp_read_tools.py</source><tests>tests/test_mcp_read_tools.py</tests></target>
+      <verification-ref>V-M-MCP-READ-TOOLS</verification-ref>
+      <depends>M-PROJECT-MODEL, M-TIMELINE-MODEL, M-UI-STATE-READER</depends>
+    </M-MCP-READ-TOOLS>
+
+    <M-MCP-WRITE-TOOLS NAME="McpWriteTools" TYPE="INTEGRATION" LAYER="6" ORDER="58" STATUS="planned">
+      <contract>
+        <purpose>Full write tool set delegating to app_service; enforces confirm for destructive ops.</purpose>
+      </contract>
+      <target><source>src/video2pptx/debug/mcp_write_tools.py</source><tests>tests/test_mcp_write_tools.py</tests></target>
+      <verification-ref>V-M-MCP-WRITE-TOOLS</verification-ref>
+      <depends>M-MCP-OPERATIONS, M-APP-SERVICE, M-CANONICAL-COMMANDS</depends>
+    </M-MCP-WRITE-TOOLS>
+
+    <M-UI-STATE-READER NAME="UiStateReader" TYPE="UTILITY" LAYER="6" ORDER="59" STATUS="planned">
+      <contract>
+        <purpose>Read-only snapshot of MainWindow buttons (visible/enabled/text), title, status, busy, current_operation.</purpose>
+      </contract>
+      <target><source>src/video2pptx/gui/ui_state.py</source><tests>tests/test_ui_state.py</tests></target>
+      <verification-ref>V-M-UI-STATE-READER</verification-ref>
+      <depends>M-GUI-MAIN</depends>
+    </M-UI-STATE-READER>
+
+    <M-PROJECT-VALIDATOR NAME="ProjectValidator" TYPE="CORE_LOGIC" LAYER="5" ORDER="60" STATUS="planned">
+      <contract>
+        <purpose>validate_project: schema, file existence, interval invariants, no double paths, slide-count consistency, export freshness, MD/PPTX integrity, pipeline state, alignment report.</purpose>
+        <outputs><param name="ValidationResult" type="{valid, errors, warnings, statistics}" /></outputs>
+      </contract>
+      <target><source>src/video2pptx/validators/project_validator.py</source><tests>tests/test_project_validator.py</tests></target>
+      <observability><log-prefix>[Validator]</log-prefix></observability>
+      <verification-ref>V-M-PROJECT-VALIDATOR</verification-ref>
+      <depends>M-PROJECT, M-MD-EXPORT, M-PPTX-EXPORT</depends>
+    </M-PROJECT-VALIDATOR>
+
+    <M-PIPELINE-STATES NAME="PipelineStates" TYPE="DATA_LAYER" LAYER="0" ORDER="61" STATUS="partial">
+      <contract>
+        <purpose>Extend ProjectState flags: preview_done/detect_done/align_done/notes_done/md_exported/pptx_exported/auto_done + per-stage stale booleans.</purpose>
+      </contract>
+      <target><source>src/video2pptx/project_manager.py</source><tests>tests/test_pipeline_states.py</tests></target>
+      <verification-ref>V-M-PIPELINE-STATES</verification-ref>
+      <depends>M-PROJECT</depends>
+    </M-PIPELINE-STATES>
+
+    <M-CANONICAL-COMMANDS NAME="CommandRouter" TYPE="CORE_LOGIC" LAYER="5" ORDER="62" STATUS="planned">
+      <contract>
+        <purpose>Unify slide CRUD into one canonical path. Public 1-based index, internal 0-based, uid preferred. Fixes off-by-one.</purpose>
+      </contract>
+      <target><source>src/video2pptx/command_router.py</source><tests>tests/test_command_router.py</tests></target>
+      <observability><log-prefix>[CmdRouter]</log-prefix></observability>
+      <verification-ref>V-M-CANONICAL-COMMANDS</verification-ref>
+      <depends>M-PROJECT-MODEL, M-APP-SERVICE</depends>
+    </M-CANONICAL-COMMANDS>
+
+    <M-GUI-CANONICAL-BUTTONS NAME="CanonicalButtons" TYPE="UI_COMPONENT" LAYER="6" ORDER="63" STATUS="planned">
+      <contract>
+        <purpose>Five distinct stage buttons (Quick Preview/Detect/Auto Align/Process Notes/Auto) whose slots delegate to app_service — no business logic in slots.</purpose>
+      </contract>
+      <target><source>src/video2pptx/gui/main_window.py</source><tests>tests/test_gui_canonical_buttons.py</tests></target>
+      <verification-ref>V-M-GUI-CANONICAL-BUTTONS</verification-ref>
+      <depends>M-GUI-MAIN, M-APP-SERVICE</depends>
+    </M-GUI-CANONICAL-BUTTONS>
+
+    <M-MCP-RELIABILITY NAME="McpReliability" TYPE="INTEGRATION" LAYER="6" ORDER="64" STATUS="planned">
+      <contract>
+        <purpose>Harden McpServer: port 9812–9816 fallback, stale .mcp_port cleanup, registry clear on restart, SSE stop, localhost-only bind, live serverInfo, graceful shutdown.</purpose>
+      </contract>
+      <target><source>src/video2pptx/debug/mcp_server.py</source><tests>tests/test_mcp_reliability.py</tests></target>
+      <verification-ref>V-M-MCP-RELIABILITY</verification-ref>
+      <depends>M-DEBUG-MCP, M-OPERATION-REGISTRY</depends>
+    </M-MCP-RELIABILITY>
+
+    <M-E2E-RUNNER NAME="McpE2eRunner" TYPE="ENTRY_POINT" LAYER="7" ORDER="65" STATUS="partial">
+      <contract>
+        <purpose>Headless E2E runner: launch GUI subprocess, find port, initialize, run scenarios with before/after snapshots + wait_operation, emit HTML/JSON/junit report. No fixed sleeps.</purpose>
+      </contract>
+      <target><source>tools/mcp_e2e_runner.py</source><tests>tests/e2e/test_mcp_gui_workflow.py</tests></target>
+      <observability><log-prefix>[E2E]</log-prefix></observability>
+      <verification-ref>V-M-E2E-RUNNER</verification-ref>
+      <depends>M-MCP-OPERATIONS, M-MCP-READ-TOOLS, M-E2E-SNAPSHOT</depends>
+    </M-E2E-RUNNER>
+
+    <M-E2E-SNAPSHOT NAME="Snapshot" TYPE="UTILITY" LAYER="7" ORDER="66" STATUS="planned">
+      <contract>
+        <purpose>Capture full state snapshot: app/ui/project/timeline/artifacts/logs/screenshot + copy project.json/slides.json for diff.</purpose>
+      </contract>
+      <target><source>tools/e2e_snapshot.py</source><tests>tests/e2e/test_snapshot.py</tests></target>
+      <verification-ref>V-M-E2E-SNAPSHOT</verification-ref>
+      <depends>M-MCP-READ-TOOLS</depends>
+    </M-E2E-SNAPSHOT>
+
+    <M-E2E-SCENARIOS NAME="E2eScenarios" TYPE="TEST" LAYER="7" ORDER="67" STATUS="planned">
+      <contract>
+        <purpose>pytest E2E-001..015 happy + E2E-101..119 negative, each with before/after snapshot, postcondition assertions, 4-view consistency.</purpose>
+      </contract>
+      <target><source>tests/e2e/test_mcp_gui_workflow.py</source></target>
+      <verification-ref>V-M-E2E-SCENARIOS</verification-ref>
+      <depends>M-E2E-RUNNER, M-E2E-SNAPSHOT</depends>
+    </M-E2E-SCENARIOS>
   </Modules>
 
   <DataFlow>
@@ -515,6 +690,55 @@
       <step-6>Context menu also: "Delete marker", "Snap again" (re-runs snap with current settings)</step-6>
       <evidence>Blue marker appears on timeline. Snap adjusts position if scene boundary nearby. Marker persisted and restored on project reopen. Re-snap changes position if settings changed.</evidence>
     </DF-015>
+
+    <!-- ===== MCP E2E HARDENING flows ===== -->
+    <DF-E2E-01 NAME="McpWriteOperationLifecycle" TRIGGER="MCP write tool call">
+      <step-1>ConfirmPolicy.check(args) — reject destructive without confirm=true with ConfirmRequiredError</step-1>
+      <step-2>OperationRegistry.create(tool, args) → op{queued}, trace_id</step-2>
+      <step-3>Enqueue on OpRunnerThread; MCP returns {operation_id, status:queued}</step-3>
+      <step-4>OpRunnerThread: op→running, call app_service.&lt;cmd&gt;(progress→op.update)</step-4>
+      <step-5>On success op→succeeded(result); on failure op→failed(StructuredError); on cancel op→cancelled</step-5>
+      <step-6>Qt signals from ProjectModel refresh GUI</step-6>
+      <evidence>operation_id traceable end-to-end; wait_operation returns terminal status; no modal blocks MCP</evidence>
+    </DF-E2E-01>
+
+    <DF-E2E-02 NAME="CanonicalDetectStage" TRIGGER="GUI Detect / MCP detect / CLI / auto stage 1">
+      <step-1>app_service.run_detect(video, out_dir, cfg) → run_detect_slides → slides.json + screenshots</step-1>
+      <step-2>ProjectState{detect_done=true; align/notes/md/pptx/auto/stale=true}</step-2>
+      <step-3>NO align, NO notes, NO export, NO LLM</step-3>
+      <evidence>slides.json valid, deck.md/deck.pptx absent, Auto Align becomes enabled</evidence>
+    </DF-E2E-02>
+
+    <DF-E2E-03 NAME="AutoPipelineModes" TRIGGER="GUI Auto / MCP auto(mode)">
+      <step-1>mode=full: detect → align(if subs, else skipped) → notes → export_md → export_pptx → save → validate</step-1>
+      <step-2>mode=resume: skip stages whose state flag is true and not stale</step-2>
+      <step-3>mode=force: re-run all stages, overwrite artifacts</step-3>
+      <step-4>On stage failure: halt, keep good artifacts, op→failed, state records failing stage</step-4>
+      <step-5>validate_project must return valid=true for auto_done=true</step-5>
+      <evidence>all stages recorded in op result; progress monotonic; auto_done=true only if valid</evidence>
+    </DF-E2E-03>
+
+    <DF-E2E-04 NAME="AutoAlignCoordinated" TRIGGER="GUI Auto Align / MCP auto_align">
+      <step-1>Build candidate anchors for ALL internal boundaries from subtitle cues + visual fallback</step-1>
+      <step-2>Coordinated global choice (DP/sequential with neighbor min_duration check) — not fully independent</step-2>
+      <step-3>Invariant validate: monotonic, no overlap/gap, count/order preserved, min_duration respected</step-3>
+      <step-3a>dry_run=true: return plan only, no mutation</step-3a>
+      <step-4>apply: write alignment_report.json, redistribute cues by max-overlap, invalidate cleaned/llm transcript</step-4>
+      <step-5>Idempotent: re-run does not drift. Rollback restores visual boundaries.</step-5>
+      <evidence>alignment_report.json with metrics; cue-split count non-increasing; transcripts invalidated</evidence>
+    </DF-E2E-04>
+
+    <DF-E2E-05 NAME="VerificationStepProtocol" TRIGGER="Every E2E action">
+      <step-1>before-snapshot (app/ui/project/timeline/artifacts/logs/screenshot)</step-1>
+      <step-2>MCP tool call → operation_id</step-2>
+      <step-3>wait_operation → terminal status</step-3>
+      <step-4>after-snapshot</step-4>
+      <step-5>Fetch new logs by trace_id</step-5>
+      <step-6>Postcondition assertions + disk file checks</step-6>
+      <step-7>4-view consistency: ProjectModel ≡ Timeline ≡ project.json ≡ slides.json</step-7>
+      <step-8>Record step result in report</step-8>
+      <evidence>per-step snapshot dirs; junit.xml; defects.json on failure</evidence>
+    </DF-E2E-05>
   </DataFlow>
 
   <ImplementationOrder>
@@ -650,6 +874,35 @@
       </step-42>
       <stop-condition>Ctrl+D toggles dock. LogBridge captures loguru messages. StatePanel shows correct clip count. MCP tools/list returns expected tools. All 26 debug tests pass.</stop-condition>
     </Phase-14>
+
+    <Phase-15 name="McpE2eHardening" status="in_progress">
+      <goal>Turn MCP server into a reliable E2E test harness: operation lifecycle, structured errors, confirm policy, full read/write tools, canonical 5-stage pipeline (Quick Preview/Detect/Auto Align/Process Notes/Auto), Auto Align completion, project validator, headless E2E runner + scenarios + reports. 6 atomic commits on test/mcp-e2e-hardening.</goal>
+      <step-43 module="M-OPERATION-REGISTRY" status="done" verification="V-M-OPERATION-REGISTRY">
+        Register in graph. Already implemented + tested. Add clear() on restart.
+      </step-43>
+      <step-44 module="M-STRUCTURED-ERRORS/M-CONFIRM-POLICY/M-ATOMIC-JSON" status="planned" verification="V-M-STRUCTURED-ERRORS">
+        Commit 1 foundation: OperationError, ConfirmPolicy, write_json_atomic.
+      </step-44>
+      <step-45 module="M-MCP-OPERATIONS/M-MCP-READ-TOOLS/M-MCP-WRITE-TOOLS/M-MCP-RELIABILITY/M-UI-STATE-READER" status="planned" verification="V-M-MCP-OPERATIONS">
+        Commit 1: wire operations into MCP, extended read tools, full write tools, port/restart hardening.
+      </step-45>
+      <step-46 module="M-PIPELINE-STATES/M-CANONICAL-COMMANDS/M-GUI-CANONICAL-BUTTONS" status="planned" verification="V-M-PIPELINE-STATES">
+        Commit 2: separate 5 stages, wire app_service into GUI/CLI/MCP, unify slide CRUD, fix off-by-one.
+      </step-46>
+      <step-47 module="M-AUTO-ALIGN" status="planned" verification="V-M-AUTO-ALIGN">
+        Commit 3: global coordinated choice, idempotency, rollback, metrics, dry_run, cue redistribution.
+      </step-47>
+      <step-48 module="M-PROJECT-VALIDATOR/M-E2E-RUNNER/M-E2E-SNAPSHOT/M-E2E-SCENARIOS" status="planned" verification="V-M-E2E-RUNNER">
+        Commit 4: validator, finish runner, snapshots, report, happy-path E2E-001..015.
+      </step-48>
+      <step-49 status="planned" verification="V-M-E2E-SCENARIOS">
+        Commit 5: negative scenarios E2E-101..119, regression tests, targeted fixes, findings F-0041+.
+      </step-49>
+      <step-50 status="planned">
+        Commit 6: refresh docs/findings/CONTRIBUTING, headless CI smoke, PR to master.
+      </step-50>
+      <stop-condition>Every write tool returns operation_id with lifecycle; no modal blocks; Quick Preview is side-effect-free; Detect does CV only; Auto Align idempotent + non-worsening; Auto produces valid MD+PPTX; 4-view consistent; save/close/open round-trips; cancel does not corrupt; app_shutdown clean. All E2E happy-path scenarios pass against synthetic fixtures.</stop-condition>
+    </Phase-15>
   </ImplementationOrder>
 
   <DeploymentScenarios>

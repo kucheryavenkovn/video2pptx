@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<VerificationPlan VERSION="0.4.0">
+<VerificationPlan VERSION="0.5.0">
   <GlobalPolicy>
     <log-format>[ModuleName][function_name][BLOCK_NAME] message | key=value</log-format>
     <deterministic-first>true</deterministic-first>
@@ -8,9 +8,9 @@
     <phase-level-focus>Synthetic video end-to-end tests with metric assertions.</phase-level-focus>
     <gui-testing-focus>Headless-compatible smoke tests (QT_QPA_PLATFORM=offscreen). Worker signal tests with QSignalSpy. Widget rendering tests limited by CI constraints.</gui-testing-focus>
     <mvp-metrics>
-      <missed_slide_rate val="<=5%" source="synthetic dataset" />
-      <false_split_rate val="<=10%" source="synthetic dataset" />
-      <timestamp_error_seconds val="<=1.5" source="at sample_fps=2" />
+      <missed_slide_rate val="&lt;=5%" source="synthetic dataset" />
+      <false_split_rate val="&lt;=10%" source="synthetic dataset" />
+      <timestamp_error_seconds val="&lt;=1.5" source="at sample_fps=2" />
     </mvp-metrics>
     <redaction>Never log secrets, credentials, or raw high-risk payloads.</redaction>
   </GlobalPolicy>
@@ -601,5 +601,202 @@
       <scenario-1 kind="success">Colab notebook loads and imports all required modules.</scenario-1>
     </scenarios>
   </V-M-COLAB>
+
+  <!-- ===== MCP E2E HARDENING verification ===== -->
+  <V-M-OPERATION-REGISTRY MODULE="M-OPERATION-REGISTRY" PRIORITY="high" STATUS="passed">
+    <test-files><file>tests/test_operation_registry.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">create → status=queued, trace_id set.</scenario-1>
+      <scenario-2 kind="success">update running sets started_at; terminal sets finished_at.</scenario-2>
+      <scenario-3 kind="success">wait polls until terminal or timeout.</scenario-3>
+      <scenario-4 kind="success">cancel marks non-terminal op cancelled; terminal op unchanged.</scenario-4>
+      <scenario-5 kind="success">clear empties registry.</scenario-5>
+    </scenarios>
+  </V-M-OPERATION-REGISTRY>
+
+  <V-M-STRUCTURED-ERRORS MODULE="M-STRUCTURED-ERRORS" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/test_structured_errors.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">OperationError carries type/message/stage/recoverable/trace_id/details.</scenario-1>
+      <scenario-2 kind="success">to_dict() excludes None fields.</scenario-2>
+      <scenario-3 kind="success">full traceback logged but not in JSON response.</scenario-3>
+    </scenarios>
+  </V-M-STRUCTURED-ERRORS>
+
+  <V-M-CONFIRM-POLICY MODULE="M-CONFIRM-POLICY" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/test_confirm_policy.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="failure">Destructive op without confirm=true raises ConfirmRequiredError.</scenario-1>
+      <scenario-2 kind="success">Non-destructive op proceeds without confirm.</scenario-2>
+      <scenario-3 kind="success">VIDEO2PPTX_TEST_MODE=1 still requires explicit confirm for delete/overwrite.</scenario-3>
+    </scenarios>
+  </V-M-CONFIRM-POLICY>
+
+  <V-M-ATOMIC-JSON MODULE="M-ATOMIC-JSON" PRIORITY="medium" STATUS="planned">
+    <test-files><file>tests/test_atomic_json.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">write_json_atomic writes valid JSON; old file replaced.</scenario-1>
+      <scenario-2 kind="success">No temp file left behind on success.</scenario-2>
+      <scenario-3 kind="failure">Partial write on exception leaves target intact.</scenario-3>
+    </scenarios>
+  </V-M-ATOMIC-JSON>
+
+  <V-M-MCP-OPERATIONS MODULE="M-MCP-OPERATIONS" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/test_mcp_operations.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Write tool returns {operation_id, status:queued}.</scenario-1>
+      <scenario-2 kind="success">OpRunnerThread runs app_service, op→succeeded with result.</scenario-2>
+      <scenario-3 kind="failure">app_service failure → op→failed with StructuredError, trace_id preserved.</scenario-3>
+      <scenario-4 kind="success">wait_operation returns terminal status without fixed sleep.</scenario-4>
+      <scenario-5 kind="success">cancel_operation transitions running op→cancelled, worker stops.</scenario-5>
+      <scenario-6 kind="success">Concurrent conflicting ops serialized; no concurrent slides.json write.</scenario-6>
+    </scenarios>
+  </V-M-MCP-OPERATIONS>
+
+  <V-M-MCP-READ-TOOLS MODULE="M-MCP-READ-TOOLS" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/test_mcp_read_tools.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">get_ui_state returns button map with visible/enabled/text per spec.</scenario-1>
+      <scenario-2 kind="success">get_project includes video/subtitle paths, duration, cue count, slide count, pipeline states, artifact paths, stale flags.</scenario-2>
+      <scenario-3 kind="success">get_timeline returns slide/subtitle/score tracks with UID/intervals/manual/image_path.</scenario-3>
+      <scenario-4 kind="success">list_artifacts enumerates project files with sizes.</scenario-4>
+    </scenarios>
+  </V-M-MCP-READ-TOOLS>
+
+  <V-M-MCP-WRITE-TOOLS MODULE="M-MCP-WRITE-TOOLS" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/test_mcp_write_tools.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Each write tool validates args via JSON schema; int published as integer.</scenario-1>
+      <scenario-2 kind="success">slide_index is 1-based in public API; uid preferred.</scenario-2>
+      <scenario-3 kind="failure">Missing required arg returns schema error, not silent default.</scenario-3>
+      <scenario-4 kind="success">app_shutdown(confirm=true) stops workers+MCP+Qt, frees port, exits 0.</scenario-4>
+    </scenarios>
+  </V-M-MCP-WRITE-TOOLS>
+
+  <V-M-UI-STATE-READER MODULE="M-UI-STATE-READER" PRIORITY="medium" STATUS="planned">
+    <test-files><file>tests/test_ui_state.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">read_ui_state returns all 7 buttons with visible/enabled/text.</scenario-1>
+      <scenario-2 kind="success">busy flag reflects active operation; current_operation set.</scenario-2>
+    </scenarios>
+  </V-M-UI-STATE-READER>
+
+  <V-M-PROJECT-VALIDATOR MODULE="M-PROJECT-VALIDATOR" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/test_project_validator.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Valid project → valid=true, empty errors.</scenario-1>
+      <scenario-2 kind="failure">Interval overlap/gap/negative → error.</scenario-2>
+      <scenario-3 kind="failure">Double image path prefix (slides/slides/) → error.</scenario-3>
+      <scenario-4 kind="failure">Slide count mismatch project.json vs slides.json → error.</scenario-4>
+      <scenario-5 kind="success">PPTX re-opens via python-pptx; MD has correct Marp slide count.</scenario-5>
+    </scenarios>
+  </V-M-PROJECT-VALIDATOR>
+
+  <V-M-PIPELINE-STATES MODULE="M-PIPELINE-STATES" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/test_pipeline_states.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">After detect: detect_done=true, align/notes/md/pptx/auto + stale flags set.</scenario-1>
+      <scenario-2 kind="success">Re-detect invalidates downstream (stale=true).</scenario-2>
+      <scenario-3 kind="success">Auto with no subs: align/notes status=skipped, not succeeded.</scenario-3>
+    </scenarios>
+  </V-M-PIPELINE-STATES>
+
+  <V-M-CANONICAL-COMMANDS MODULE="M-CANONICAL-COMMANDS" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/test_command_router.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">slide_delete by uid removes correct slide; UIDs of others preserved.</scenario-1>
+      <scenario-2 kind="success">slide_index 1-based in public API; off-by-one fixed across paths.</scenario-2>
+      <scenario-3 kind="success">GUI/MCP/CLI invoke same canonical command.</scenario-3>
+    </scenarios>
+  </V-M-CANONICAL-COMMANDS>
+
+  <V-M-GUI-CANONICAL-BUTTONS MODULE="M-GUI-CANONICAL-BUTTONS" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/test_gui_canonical_buttons.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">5 buttons present: Quick Preview, Detect, Auto Align, Process Notes, Auto.</scenario-1>
+      <scenario-2 kind="success">Quick Preview side-effect-free: no slides.json/deck created; scores present.</scenario-2>
+      <scenario-3 kind="success">Button enablement reflects project state (no project→disabled; subs+detect→Auto Align enabled).</scenario-3>
+    </scenarios>
+  </V-M-GUI-CANONICAL-BUTTONS>
+
+  <V-M-AUTO-ALIGN MODULE="M-AUTO-ALIGN" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/test_auto_align.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Coordinated choice honors min_duration (no short neighbor created).</scenario-1>
+      <scenario-2 kind="success">Idempotent: 2nd run does not drift boundaries further.</scenario-2>
+      <scenario-3 kind="success">dry_run returns plan without mutating slides.</scenario-3>
+      <scenario-4 kind="success">include_manual=false leaves manual boundaries unchanged.</scenario-4>
+      <scenario-5 kind="success">cue-split count after ≤ before; max-overlap assignment.</scenario-5>
+      <scenario-6 kind="success">rollback restores visual boundaries from report.</scenario-6>
+    </scenarios>
+  </V-M-AUTO-ALIGN>
+
+  <V-M-APP-SERVICE MODULE="M-APP-SERVICE" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/test_app_service.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">run_detect marks downstream stale; no export side-effects.</scenario-1>
+      <scenario-2 kind="success">run_auto(full) produces slides.json+deck.md+deck.pptx; auto_done=true only if valid.</scenario-2>
+      <scenario-3 kind="success">run_auto(resume) skips non-stale completed stages.</scenario-3>
+      <scenario-4 kind="failure">Stage failure halts pipeline, keeps good artifacts, returns failing stage.</scenario-4>
+    </scenarios>
+  </V-M-APP-SERVICE>
+
+  <V-M-MCP-RELIABILITY MODULE="M-MCP-RELIABILITY" PRIORITY="medium" STATUS="planned">
+    <test-files><file>tests/test_mcp_reliability.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Port 9812 busy → falls back to 9813..9816; .mcp_port updated.</scenario-1>
+      <scenario-2 kind="success">Stale .mcp_port detected and replaced.</scenario-2>
+      <scenario-3 kind="success">Restart in same process clears registry + stale _running.</scenario-3>
+      <scenario-4 kind="success">Bind to 127.0.0.1 only (not 0.0.0.0).</scenario-4>
+      <scenario-5 kind="success">serverInfo.version matches package version.</scenario-5>
+    </scenarios>
+  </V-M-MCP-RELIABILITY>
+
+  <V-M-E2E-SNAPSHOT MODULE="M-E2E-SNAPSHOT" PRIORITY="medium" STATUS="planned">
+    <test-files><file>tests/e2e/test_snapshot.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Snapshot captures app/ui/project/timeline/artifacts/logs keys.</scenario-1>
+      <scenario-2 kind="success">project.json + slides.json copied into snapshot dir when present.</scenario-2>
+      <scenario-3 kind="success">before/after snapshots diffable (stable key order).</scenario-3>
+    </scenarios>
+  </V-M-E2E-SNAPSHOT>
+
+  <V-M-E2E-RUNNER MODULE="M-E2E-RUNNER" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/e2e/test_mcp_gui_workflow.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Launches GUI, finds port via .mcp_port (no guessing), initialize+tools/list pass.</scenario-1>
+      <scenario-2 kind="success">Before/after snapshots captured per step; project.json/slides.json copied.</scenario-2>
+      <scenario-3 kind="success">Synchronization via wait_operation (no arbitrary sleep).</scenario-3>
+      <scenario-4 kind="success">HTML+JSON+junit report emitted; defects.json on failure.</scenario-4>
+    </scenarios>
+  </V-M-E2E-RUNNER>
+
+  <V-M-E2E-SCENARIOS MODULE="M-E2E-SCENARIOS" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/e2e/test_mcp_gui_workflow.py</file></test-files>
+    <scenarios>
+      <scenario-E2E-001 kind="success">App launch: health, initialize, tools/list, idle UI, no startup errors.</scenario-E2E-001>
+      <scenario-E2E-002 kind="success">project_create: dir+project.json, title updated, Save enabled.</scenario-E2E-002>
+      <scenario-E2E-003 kind="success">video_import: path recorded, duration&gt;0, Detect/Preview/Auto enabled.</scenario-E2E-003>
+      <scenario-E2E-004 kind="success">subtitle_import: cue count matches, monotonic, Auto Align disabled until detect.</scenario-E2E-004>
+      <scenario-E2E-005 kind="success">playback seek/play/pause; subtitle overlay matches cue.</scenario-E2E-005>
+      <scenario-E2E-006 kind="success">Quick Preview: scores present, no slides.json, idempotent 2nd run.</scenario-E2E-006>
+      <scenario-E2E-007 kind="success">Detect: slides.json valid, images exist, no exports, Auto Align enabled.</scenario-E2E-007>
+      <scenario-E2E-008 kind="success">Auto Align dry_run: plan only, project unchanged.</scenario-E2E-008>
+      <scenario-E2E-009 kind="success">Auto Align apply: count/order preserved, report created, cue-split non-increasing, idempotent.</scenario-E2E-009>
+      <scenario-E2E-010 kind="success">Process Notes basic: notes_done, cleaned transcript, no exports.</scenario-E2E-010>
+      <scenario-E2E-011 kind="success">Slide CRUD round-trip via uid; off-by-one fixed; save/open preserves.</scenario-E2E-011>
+      <scenario-E2E-012 kind="success">Export MD: Marp slide count matches, no slides/slides path, images exist.</scenario-E2E-012>
+      <scenario-E2E-013 kind="success">Export PPTX: valid zip, re-opens, notes present, unicode preserved.</scenario-E2E-013>
+      <scenario-E2E-014 kind="success">Save/Close/Open round-trip restores all state.</scenario-E2E-014>
+      <scenario-E2E-015 kind="success">Auto full on clean project: all stages, auto_done=true, resume no-op, force recompute.</scenario-E2E-015>
+      <scenario-E2E-101 kind="success">No-subtitle project: Auto skips align/notes (status=skipped), exports created.</scenario-E2E-101>
+      <scenario-E2E-102 kind="failure">Nonexistent video → failed, not hang, not crash.</scenario-E2E-102>
+      <scenario-E2E-103 kind="failure">Invalid subtitles (empty/corrupt/bad-encoding/end&lt;start/overlap/out-of-range) diagnosable.</scenario-E2E-103>
+      <scenario-E2E-104 kind="success">Re-detect replaces intervals, invalidates downstream, no modal block.</scenario-E2E-104>
+      <scenario-E2E-106 kind="success">Cancel long op: worker stops, op=cancelled, no partial slides.json as ready.</scenario-E2E-106>
+      <scenario-E2E-108 kind="success">app_shutdown(confirm=true): clean exit, port freed, code 0.</scenario-E2E-108>
+      <scenario-E2E-109 kind="success">Busy port 9812 → fallback discovered by runner.</scenario-E2E-109>
+    </scenarios>
+  </V-M-E2E-SCENARIOS>
 
 </VerificationPlan>
