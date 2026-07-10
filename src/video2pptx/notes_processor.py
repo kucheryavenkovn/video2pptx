@@ -176,10 +176,10 @@ def _llm_rephrase(
     #   LINKS: M-NOTES-PROCESSOR
     # END_CONTRACT: _llm_rephrase
 
-    from video2pptx.pptx_export import _fmt_time
+    from video2pptx.paths import format_time
 
-    start_str = _fmt_time(seg.start)
-    end_str = _fmt_time(seg.end)
+    start_str = format_time(seg.start)
+    end_str = format_time(seg.end)
 
     # START_BLOCK_BUILD_PROMPT
     if slide_description or slide_context:

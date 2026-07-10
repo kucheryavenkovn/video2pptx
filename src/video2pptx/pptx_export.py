@@ -22,6 +22,7 @@ from pathlib import Path
 from loguru import logger
 
 from video2pptx.models import SlideSegment, SlidesDocument, SubtitleCue
+from video2pptx.paths import format_time, resolve_artifact_path
 
 
 def export_to_pptx(
@@ -61,8 +62,17 @@ def export_to_pptx(
         slide = prs.slides.add_slide(slide_layout)
 
         # START_BLOCK_ADD_IMAGE
-        img_path = slides_root / seg.image if seg.image else None
-        if img_path and img_path.is_file():
+        if seg.image:
+            img_path = resolve_artifact_path(slides_root, seg.image)
+            if not img_path.is_file():
+                logger.warning(
+                    f"[PptxExport][export_to_pptx] Slide image not found | "
+                    f"slide=#{seg.index} path={img_path}"
+                )
+                img_path = None
+        else:
+            img_path = None
+        if img_path:
             slide.shapes.add_picture(
                 str(img_path),
                 Emu(0), Emu(0),
@@ -137,9 +147,4 @@ def _group_cues(
 
 
 def _fmt_time(seconds: float) -> str:
-    h = int(seconds // 3600)
-    m = int((seconds % 3600) // 60)
-    s = int(seconds % 60)
-    if h > 0:
-        return f"{h}:{m:02d}:{s:02d}"
-    return f"{m}:{s:02d}"
+    return format_time(seconds)
