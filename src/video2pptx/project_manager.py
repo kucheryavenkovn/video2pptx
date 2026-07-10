@@ -42,14 +42,54 @@ SUBTITLE_EXTS = {".srt", ".vtt", ".ass", ".ssa", ".sub"}
 class ProjectState(BaseModel):
     # START_CONTRACT: ProjectState
     #   PURPOSE: Pipeline progress flags indicating which stages have been completed
-    #   INPUTS: { detect_done: bool, notes_done: bool, llm_done: bool }
+    #   INPUTS: { detect_done: bool, notes_done: bool, llm_done: bool,
+    #             preview_done: bool, align_done: bool, md_exported: bool,
+    #             pptx_exported: bool, auto_done: bool,
+    #             stale flags for downstream invalidation }
     #   OUTPUTS: { ProjectState }
     #   SIDE_EFFECTS: none
-    #   LINKS: M-PROJECT
+    #   LINKS: M-PROJECT, M-PIPELINE-STATES
     # END_CONTRACT: ProjectState
     detect_done: bool = Field(default=False, description="Slide detection completed")
     notes_done: bool = Field(default=False, description="Notes processing completed")
     llm_done: bool = Field(default=False, description="LLM enrichment completed")
+    preview_done: bool = Field(default=False, description="Quick Preview completed (scores exist)")
+    align_done: bool = Field(default=False, description="Auto Align completed (boundaries adjusted)")
+    md_exported: bool = Field(default=False, description="Markdown export completed")
+    pptx_exported: bool = Field(default=False, description="PPTX export completed")
+    auto_done: bool = Field(default=False, description="Full Auto pipeline completed (all stages, validated)")
+    detect_stale: bool = Field(default=True, description="Detection results stale (needs re-run)")
+    align_stale: bool = Field(default=True, description="Alignment results stale (needs re-run)")
+    notes_stale: bool = Field(default=True, description="Notes results stale (needs re-run)")
+    md_stale: bool = Field(default=True, description="MD export stale (needs re-export)")
+    pptx_stale: bool = Field(default=True, description="PPTX export stale (needs re-export)")
+
+    def mark_stale_downstream(self, stage: str) -> None:
+        stage_order = ["detect", "align", "notes", "md", "pptx"]
+        try:
+            idx = stage_order.index(stage)
+        except ValueError:
+            return
+        for s in stage_order[idx + 1:]:
+            setattr(self, f"{s}_stale", True)
+        if stage == "detect":
+            self.align_done = False
+            self.notes_done = False
+            self.md_exported = False
+            self.pptx_exported = False
+            self.auto_done = False
+        elif stage == "align":
+            self.notes_done = False
+            self.md_exported = False
+            self.pptx_exported = False
+            self.auto_done = False
+        elif stage == "notes":
+            self.md_exported = False
+            self.pptx_exported = False
+            self.auto_done = False
+        elif stage == "md":
+            self.pptx_exported = False
+            self.auto_done = False
 
 
 class Project(BaseModel):
@@ -249,27 +289,32 @@ def _find_sibling_subtitle(video_path: Path) -> Path | None:
 
 def update_project_state(project: Project, **state_kwargs: Any) -> Project:
     # START_CONTRACT: update_project_state
-    #   PURPOSE: Update one or more state flags on a Project and persist
-    #   INPUTS: { project: Project, **state_kwargs: detect_done|notes_done|llm_done=bool, slides_json=str|None }
+    #   PURPOSE: Update one or more state flags on a Project and persist. Supports stale downstream marking.
+    #   INPUTS: { project: Project, **state_kwargs: state_flag=bool, slides_json=str|None }
     #   OUTPUTS: Project — updated in-place and saved
     #   SIDE_EFFECTS: writes project.json
-    #   LINKS: M-PROJECT
+    #   LINKS: M-PROJECT, M-PIPELINE-STATES
     # END_CONTRACT: update_project_state
 
+    state_flag_keys = {
+        "preview_done", "detect_done", "align_done", "notes_done", "llm_done",
+        "md_exported", "pptx_exported", "auto_done",
+        "detect_stale", "align_stale", "notes_stale", "md_stale", "pptx_stale",
+    }
+
     for key, value in state_kwargs.items():
-        if key in ("detect_done", "notes_done", "llm_done"):
+        if key in state_flag_keys:
             setattr(project.state, key, value)
         elif key == "slides_json":
             project.slides_json = value
 
+    project.state.mark_stale_downstream(state_kwargs.get("_stage", ""))
     save_project(project)
     logger.info(
         f"[ProjectManager][update_project_state] State updated | "
-        f"detect_done={project.state.detect_done} "
-        f"notes_done={project.state.notes_done} "
-        f"llm_done={project.state.llm_done}"
+        f"detect={project.state.detect_done} notes={project.state.notes_done} "
+        f"align={project.state.align_done} auto={project.state.auto_done}"
     )
-
     return project
 
 

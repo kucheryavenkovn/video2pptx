@@ -93,9 +93,9 @@ class MainWindow(QMainWindow):
             self._timeline.set_video_duration(dur)
             self._timeline.set_project(proj)
             self._timeline.zoom_fit()
-        self._export_btn.setEnabled(bool(proj and proj.slides))
+        self._btn_export.setEnabled(bool(proj and proj.slides))
         has_subs = bool(proj and proj.subtitles)
-        self._notes_btn.setEnabled(bool(proj and proj.slides) and has_subs)
+        self._btn_process_notes.setEnabled(bool(proj and proj.slides) and has_subs)
 
     def _on_model_subtitles_changed(self) -> None:
         self._load_subs_from_model()
@@ -109,8 +109,8 @@ class MainWindow(QMainWindow):
         if path:
             self._video_label.setText(f"Video: {Path(path).name}")
             self._video_player.load_video(path)
-            self._detect_btn.setEnabled(True)
-            self._quick_detect_btn.setEnabled(True)
+            self._btn_detect.setEnabled(True)
+            self._btn_quick_preview.setEnabled(True)
         else:
             self._video_label.setText("Video: —")
 
@@ -124,11 +124,11 @@ class MainWindow(QMainWindow):
         self._timeline.clear_scores()
         self._video_label.setText("Video: —")
         self._subs_label.setText("Subtitles: —")
-        self._detect_btn.setEnabled(False)
-        self._quick_detect_btn.setEnabled(False)
-        self._export_btn.setEnabled(False)
-        self._notes_btn.setEnabled(False)
-        self._save_btn.setEnabled(False)
+        self._btn_detect.setEnabled(False)
+        self._btn_quick_preview.setEnabled(False)
+        self._btn_export.setEnabled(False)
+        self._btn_process_notes.setEnabled(False)
+        self._btn_save.setEnabled(False)
         self.setWindowTitle("video2pptx")
         self.statusBar().showMessage("Project closed")
 
@@ -180,44 +180,56 @@ class MainWindow(QMainWindow):
         self._video_label = QLabel("Video: —")
         self._subs_label = QLabel("Subtitles: —")
         self._backend_label = QLabel("Backend: auto")
-        self._detect_btn = QPushButton("Detect")
-        self._detect_btn.setToolTip("Full detection — pHash + histograms, 3 passes")
-        self._detect_btn.setEnabled(False)
-        self._detect_btn.clicked.connect(self._on_detect)
+        self._btn_detect = QPushButton("Detect")
+        self._btn_detect.setToolTip("Detect slides via computer vision — CV only, no align/notes/export")
+        self._btn_detect.setEnabled(False)
+        self._btn_detect.clicked.connect(self._on_detect)
 
-        self._quick_detect_btn = QPushButton("Quick Detect")
-        self._quick_detect_btn.setToolTip("Fast detection — keyframes only, pixel MAE + screenshots")
-        self._quick_detect_btn.setEnabled(False)
-        self._quick_detect_btn.clicked.connect(self._on_quick_detect)
+        self._btn_quick_preview = QPushButton("Quick Preview")
+        self._btn_quick_preview.setToolTip("Quick preview: compute diff scores only, no slides created")
+        self._btn_quick_preview.setEnabled(False)
+        self._btn_quick_preview.clicked.connect(self._on_quick_detect)
 
-        self._export_btn = QPushButton("Export")
-        self._export_btn.setToolTip("Export to Markdown or PPTX")
-        self._export_btn.setEnabled(False)
+        self._btn_auto_align = QPushButton("Auto Align")
+        self._btn_auto_align.setToolTip("Align visual boundaries to subtitle anchors")
+        self._btn_auto_align.setEnabled(False)
+        self._btn_auto_align.clicked.connect(self._on_auto_align)
+
+        self._btn_auto = QPushButton("Auto")
+        self._btn_auto.setToolTip("Full pipeline: Detect → Align → Notes → Export → Save")
+        self._btn_auto.setEnabled(False)
+        self._btn_auto.clicked.connect(self._on_auto)
+
+        self._btn_process_notes = QPushButton("Process Notes")
+        self._btn_process_notes.setToolTip("Process subtitles into cleaned speaker notes")
+        self._btn_process_notes.setEnabled(False)
+        self._btn_process_notes.clicked.connect(self._on_process_notes)
+
+        self._btn_export = QPushButton("Export")
+        self._btn_export.setToolTip("Export to Markdown or PPTX")
+        self._btn_export.setEnabled(False)
         self._export_menu = QMenu(self)
         self._export_menu.addAction("Export &Markdown (Marp)...", self._on_export_md)
         self._export_menu.addAction("Export &PPTX...", self._on_export_pptx)
-        self._export_btn.setMenu(self._export_menu)
+        self._btn_export.setMenu(self._export_menu)
 
-        self._notes_btn = QPushButton("Process Notes")
-        self._notes_btn.setToolTip("Align subtitles + process speaker notes")
-        self._notes_btn.setEnabled(False)
-        self._notes_btn.clicked.connect(self._on_process_notes)
-
-        self._save_btn = QPushButton("Save")
-        self._save_btn.setToolTip("Save project changes")
-        self._save_btn.setEnabled(False)
-        self._save_btn.clicked.connect(self._on_save_project)
+        self._btn_save = QPushButton("Save")
+        self._btn_save.setToolTip("Save project changes")
+        self._btn_save.setEnabled(False)
+        self._btn_save.clicked.connect(self._on_save_project)
 
         info_row.addWidget(self._video_label)
         info_row.addWidget(self._subs_label)
         info_row.addWidget(self._backend_label)
         info_row.addStretch()
-        info_row.addWidget(self._quick_detect_btn)
-        info_row.addWidget(self._detect_btn)
+        info_row.addWidget(self._btn_quick_preview)
+        info_row.addWidget(self._btn_detect)
+        info_row.addWidget(self._btn_auto_align)
         info_row.addWidget(QLabel("  "))
-        info_row.addWidget(self._notes_btn)
-        info_row.addWidget(self._export_btn)
-        info_row.addWidget(self._save_btn)
+        info_row.addWidget(self._btn_process_notes)
+        info_row.addWidget(self._btn_auto)
+        info_row.addWidget(self._btn_export)
+        info_row.addWidget(self._btn_save)
         main_layout.addLayout(info_row)
 
         # Splitter: top = video + overlay, bottom = timeline
@@ -456,13 +468,16 @@ class MainWindow(QMainWindow):
         else:
             self._subs_label.setText("Subtitles: —")
 
-        self._detect_btn.setEnabled(bool(proj.video))
-        self._quick_detect_btn.setEnabled(bool(proj.video))
+        self._btn_detect.setEnabled(bool(proj.video))
+        self._btn_quick_preview.setEnabled(bool(proj.video))
+        self._btn_auto.setEnabled(bool(proj.video))
         has_slides = bool(proj.slides)
-        self._export_btn.setEnabled(has_slides)
         has_subs = bool(proj.subtitles)
-        self._notes_btn.setEnabled(has_slides and has_subs)
-        self._save_btn.setEnabled(True)
+        align_allowed = has_slides and has_subs and getattr(proj.state, 'detect_done', False)
+        self._btn_auto_align.setEnabled(align_allowed)
+        self._btn_export.setEnabled(has_slides)
+        self._btn_process_notes.setEnabled(has_slides and has_subs)
+        self._btn_save.setEnabled(True)
         self.setWindowTitle(f"video2pptx — {proj.name}")
 
         dur = getattr(proj, "video_duration", 0) or 0
@@ -624,6 +639,9 @@ class MainWindow(QMainWindow):
                 self._model.score_timestamps,
                 self._model.score_values,
             )
+        proj = self._model.project_data
+        if proj:
+            self._btn_auto_align.setEnabled(bool(proj.subtitles))
         self._detect_thread.quit()
 
     def _on_detect_error(self, msg: str) -> None:
@@ -647,8 +665,8 @@ class MainWindow(QMainWindow):
                 return
 
         self._status.start("Quick Detect")
-        self._quick_detect_btn.setEnabled(False)
-        self._detect_btn.setEnabled(False)
+        self._btn_quick_preview.setEnabled(False)
+        self._btn_detect.setEnabled(False)
         logger.info("[GUI-Main][_on_quick_detect] Quick detect triggered")
 
         from PySide6.QtCore import QThread
@@ -667,6 +685,52 @@ class MainWindow(QMainWindow):
     def _on_preview_finished(self, ts: list[float], scores: list[float], duration: float) -> None:
         self._quick_detect_thread.quit()
     # END_BLOCK_QUICK_DETECT
+
+    # START_BLOCK_AUTO_ALIGN
+    def _on_auto_align(self) -> None:
+        proj = self._model.project_data
+        if not proj or not proj.slides_json:
+            return
+        logger.info("[GUI-Main][_on_auto_align] Auto Align triggered")
+        try:
+            from video2pptx.app_service import run_auto_align
+            slides_json = Path(proj.output_dir) / "slides.json"
+            subs_path = Path(proj.subtitles) if proj.subtitles else None
+            result = run_auto_align(slides_json=slides_json, subtitles_path=subs_path)
+            if result.success:
+                self.statusBar().showMessage(f"Auto Align: {result.data.get('boundaries_moved', 0)} boundaries moved")
+                self._model.slidesChanged.emit()
+            else:
+                QMessageBox.warning(self, "Auto Align", f"Alignment failed: {result.error}")
+        except Exception as e:
+            QMessageBox.critical(self, "Auto Align Error", str(e))
+    # END_BLOCK_AUTO_ALIGN
+
+    # START_BLOCK_AUTO
+    def _on_auto(self) -> None:
+        proj = self._model.project_data
+        if not proj or not proj.video:
+            return
+        logger.info("[GUI-Main][_on_auto] Auto pipeline triggered")
+        try:
+            from video2pptx.app_service import run_auto
+            from video2pptx.config import AppConfig
+            out_dir = Path(proj.output_dir) if proj.output_dir else Path.cwd()
+            cfg = AppConfig(detection=proj.detection, llm=proj.llm, video=proj.video_config)
+            result = run_auto(
+                video_path=Path(proj.video),
+                out_dir=out_dir,
+                subtitles_path=Path(proj.subtitles) if proj.subtitles else None,
+                cfg=cfg,
+            )
+            if result.success:
+                self.statusBar().showMessage("Auto pipeline complete")
+                self._on_detect_finished(None)
+            else:
+                QMessageBox.warning(self, "Auto", f"Pipeline failed at stage '{result.stage}': {result.error}")
+        except Exception as e:
+            QMessageBox.critical(self, "Auto Error", str(e))
+    # END_BLOCK_AUTO
 
     # START_BLOCK_EXPORT
     @mcp_action(name='export_md', desc='Export to Markdown')
@@ -738,7 +802,7 @@ class MainWindow(QMainWindow):
                 return
 
         self._status.start("Notes")
-        self._notes_btn.setEnabled(False)
+        self._btn_process_notes.setEnabled(False)
 
         from PySide6.QtCore import QThread
 
@@ -756,12 +820,12 @@ class MainWindow(QMainWindow):
     def _on_notes_finished(self, path: str) -> None:
         self._model.load_slides_from_json(path)
         self._status.finish(f"Notes processed: {len(self._model.slides)} slides")
-        self._notes_btn.setEnabled(True)
+        self._btn_process_notes.setEnabled(True)
         self._notes_thread.quit()
 
     def _on_notes_error(self, msg: str) -> None:
         self._status.finish(f"Notes failed: {msg}")
-        self._notes_btn.setEnabled(True)
+        self._btn_process_notes.setEnabled(True)
         self._notes_thread.quit()
     # END_BLOCK_EXPORT
 

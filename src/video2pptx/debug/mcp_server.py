@@ -39,6 +39,7 @@ from loguru import logger
 from video2pptx.debug.action_registry import ActionRegistry
 from video2pptx.debug.confirm import require_confirm
 from video2pptx.debug.mcp_operations import (
+    AppServiceRunner,
     OpRunnerThread,
     clear_registry,
     get_operation,
@@ -507,7 +508,8 @@ class McpServer:
 
         # Start OpRunnerThread
         global _OP_RUNNER_THREAD
-        _OP_RUNNER_THREAD = OpRunnerThread()
+        runner = AppServiceRunner(project_model=self._model)
+        _OP_RUNNER_THREAD = OpRunnerThread(runner=runner)
         _OP_RUNNER_THREAD.start()
 
         self._write_port_file()

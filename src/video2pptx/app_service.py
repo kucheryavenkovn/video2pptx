@@ -356,3 +356,62 @@ def run_auto(
         data={"stages": stages, "slides_json": str(slides_json)},
         stage="auto",
     )
+
+
+def execute_command(command: str, **kwargs: Any) -> dict[str, Any]:
+    # START_CONTRACT: execute_command
+    #   PURPOSE: Dispatch a named command with kwargs to the appropriate app_service function. Returns dict.
+    #   INPUTS: { command: str, **kwargs }
+    #   OUTPUTS: dict with success, data, error, stage
+    #   SIDE_EFFECTS: depends on command
+    #   LINKS: M-APP-SERVICE
+    # END_CONTRACT: execute_command
+
+    logger.info(f"[AppService][execute_command] Dispatching | command={command}")
+
+    if command == "detect":
+        result = run_detect(
+            video_path=Path(kwargs["video_path"]),
+            out_dir=Path(kwargs["out_dir"]),
+            cfg=kwargs.get("cfg"),
+            progress_callback=kwargs.get("progress_callback"),
+        )
+    elif command == "preview":
+        result = run_preview(
+            video_path=Path(kwargs["video_path"]),
+            out_dir=Path(kwargs["out_dir"]),
+            cfg=kwargs.get("cfg"),
+            progress_callback=kwargs.get("progress_callback"),
+        )
+    elif command == "auto_align":
+        result = run_auto_align(
+            slides_json=Path(kwargs["slides_json"]),
+            subtitles_path=Path(kwargs["subtitles_path"]) if kwargs.get("subtitles_path") else None,
+            max_shift_sec=float(kwargs.get("max_shift_sec", 3.0)),
+            dry_run=bool(kwargs.get("dry_run", False)),
+            include_manual=bool(kwargs.get("include_manual", False)),
+        )
+    elif command == "export_md":
+        result = run_export_md(
+            slides_json=Path(kwargs["slides_json"]),
+            out_path=Path(kwargs["out_path"]) if kwargs.get("out_path") else None,
+        )
+    elif command == "export_pptx":
+        result = run_export_pptx(
+            slides_json=Path(kwargs["slides_json"]),
+            out_path=Path(kwargs["out_path"]) if kwargs.get("out_path") else None,
+            notes_mode=str(kwargs.get("notes_mode", "basic")),
+        )
+    elif command == "auto":
+        result = run_auto(
+            video_path=Path(kwargs["video_path"]),
+            out_dir=Path(kwargs["out_dir"]),
+            subtitles_path=Path(kwargs["subtitles_path"]) if kwargs.get("subtitles_path") else None,
+            cfg=kwargs.get("cfg"),
+            mode=str(kwargs.get("mode", "full")),
+            progress_callback=kwargs.get("progress_callback"),
+        )
+    else:
+        return CommandResult(success=False, error=f"unknown command: {command}").to_dict()
+
+    return result.to_dict()

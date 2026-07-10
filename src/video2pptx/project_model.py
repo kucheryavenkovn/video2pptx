@@ -144,7 +144,7 @@ class ProjectModel(QObject):
         self._score_timestamps.clear()
         self._score_values.clear()
 
-    def add_slide(self, ts: float) -> None:
+    def add_slide(self, ts: float) -> str:
         track = self._timeline.create_track("slides")
         slide = SlideClip(start_sec=ts, end_sec=ts + 5.0)
         slide.index = len(self.slides) + 1
@@ -153,6 +153,7 @@ class ProjectModel(QObject):
         self.slidesChanged.emit()
         if self._project:
             self._sync_slides_to_timeline()
+        return slide.uid
 
     def delete_slide(self, index: int) -> None:
         track = self._timeline.track("slides")
@@ -160,6 +161,19 @@ class ProjectModel(QObject):
             return
         for c in track.clips():
             if isinstance(c, SlideClip) and c.index == index:
+                track.remove_clip(c.uid)
+                track.reindex()
+                self.slidesChanged.emit()
+                if self._project:
+                    self._sync_slides_to_timeline()
+                return
+
+    def delete_slide_by_uid(self, uid: str) -> None:
+        track = self._timeline.track("slides")
+        if track is None:
+            return
+        for c in track.clips():
+            if isinstance(c, SlideClip) and c.uid == uid:
                 track.remove_clip(c.uid)
                 track.reindex()
                 self.slidesChanged.emit()
@@ -181,15 +195,18 @@ class ProjectModel(QObject):
     def resize_slide(self, index: int, start: float, end: float) -> None:
         self.move_slide(index, start, end)
 
-    def set_slide_frame(self, index: int) -> None:
+    def set_slide_frame(self, uid_or_index: str | int) -> None:
         pass  # Frame capture is done at GUI level via cv2
 
-    def clear_slide_image(self, index: int) -> None:
+    def clear_slide_image(self, uid_or_index: str | int) -> None:
         track = self._timeline.track("slides")
         if track is None:
             return
         for c in track.clips():
-            if isinstance(c, SlideClip) and c.index == index:
+            if not isinstance(c, SlideClip):
+                continue
+            if (isinstance(uid_or_index, str) and c.uid == uid_or_index) or \
+               (isinstance(uid_or_index, int) and c.index == uid_or_index):
                 c.image_path = ""
                 self.slidesChanged.emit()
                 return

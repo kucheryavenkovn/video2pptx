@@ -144,6 +144,46 @@ class OperationRunner:
         raise NotImplementedError("Subclass must implement _dispatch")
 
 
+class AppServiceRunner(OperationRunner):
+    """Concrete runner that delegates to app_service.execute_command with project context."""
+
+    def __init__(self, project_model=None) -> None:
+        super().__init__()
+        self._project_model = project_model
+
+    def _dispatch(self, tool: str, args: dict[str, Any]) -> dict[str, Any]:
+        from video2pptx.app_service import execute_command
+
+        project = getattr(self._project_model, "project_data", None) if self._project_model else None
+        project_path = getattr(self._project_model, "project_path", None) if self._project_model else None
+
+        if project is None:
+            raise RuntimeError(f"No open project for tool: {tool}")
+
+        video_path = getattr(project, "video", None)
+        out_dir = project_path if project_path else Path.cwd()
+        cfg = getattr(project, "detection", None)
+
+        base_kwargs = {
+            "video_path": str(video_path) if video_path else "",
+            "out_dir": str(out_dir),
+            "slides_json": str(out_dir / "slides.json") if out_dir else "",
+            "subtitles_path": getattr(project, "subtitles", None),
+        }
+
+        if cfg:
+            from video2pptx.config import AppConfig
+            base_kwargs["cfg"] = AppConfig(
+                detection=cfg,
+                llm=getattr(project, "llm", None),
+                video=getattr(project, "video_config", None),
+            )
+
+        full_kwargs = {**base_kwargs, **args}
+        result = execute_command(tool, **full_kwargs)
+        return result
+
+
 class OpRunnerThread(Thread):
     """Background thread that drains the operation queue and runs them via OperationRunner."""
 
