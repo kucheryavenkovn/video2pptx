@@ -8,13 +8,13 @@ The existing scenario file is a catalog, not a trusted characterization suite. K
 
 | Scenario | Current classification | Evidence / missing behavior |
 | --- | --- | --- |
-| E2E-001 Startup | executable but failing | Requires externally started GUI/MCP and previously lacked `repo_dir`; does not validate initial button states or startup logs. |
-| E2E-002 Create Project | executable but failing | Shared mutable session project; project-name assertion was bypassed; no terminal operation wait or GUI title assertion. |
+| E2E-001 Startup | executable and passing | Dedicated subprocess harness verifies owned PID/instance, health, initialize, tools/list, initial UI state, logs, and cleanup. |
+| E2E-002 Create Project | executable and passing | Real MCP operation is awaited; project name/path, model state, window title, save button, and disk artifact are asserted. |
 | E2E-003 Import Video | executable but failing | Fixed sleep instead of operation lifecycle; duration, timeline, and button assertions missing. |
 | E2E-004 Import Subtitles | incomplete | Performs the call but has no substantive postcondition assertions. |
 | E2E-005 Playback | environment-dependent | No scenario implementation. Requires multimedia capability in an interactive session. |
-| E2E-006 Quick Preview | incomplete | Runner calls the service directly; no MCP/GUI route, idempotency, or no-slide side-effect assertions. |
-| E2E-007 Detect | executable but failing | Existing test does not require successful terminal status and only weakly compares state views. |
+| E2E-006 Quick Preview | executable and passing | Real GUI+MCP test runs twice, verifies waveform replacement and absence of slide/export artifacts. CLI adapter remains missing (F-0046). |
+| E2E-007 Detect | executable and passing | Real GUI+MCP test verifies terminal status and synchronized project/timeline/disk/UI views without reopen. |
 | E2E-008 Align Dry Run | incomplete | Direct service call only; no before/after project and file comparison. |
 | E2E-009 Align Apply | incomplete | No count/order preservation, idempotency, cue metrics, or GUI refresh assertion. |
 | E2E-010 Process Notes | incomplete | Not implemented through MCP. |

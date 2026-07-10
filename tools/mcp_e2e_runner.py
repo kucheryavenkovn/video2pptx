@@ -153,6 +153,10 @@ class GuiProcessHarness:
         env = os.environ.copy()
         env["VIDEO2PPTX_TEST_MODE"] = "1"
         env["PYTHONUNBUFFERED"] = "1"
+        isolated_home = self.run_dir / "home"
+        isolated_home.mkdir(parents=True, exist_ok=True)
+        env["HOME"] = str(isolated_home)
+        env["USERPROFILE"] = str(isolated_home)
         env["PYTHONPATH"] = os.pathsep.join(
             [str(self.repo / "src"), env.get("PYTHONPATH", "")]
         ).rstrip(os.pathsep)
@@ -193,13 +197,25 @@ class GuiProcessHarness:
                         record = PortRecord.parse(
                             self.port_file.read_text(encoding="utf-8")
                         )
+                        if record.pid != self.process.pid:
+                            last_error = (
+                                f"port owner pid={record.pid}, "
+                                f"expected={self.process.pid}"
+                            )
+                            time.sleep(0.1)
+                            continue
                         client = McpClient(record.port)
                         health_data = client.health()
-                        if health_data.get("status") == "ok":
+                        owned_endpoint = (
+                            health_data.get("pid") == record.pid
+                            and health_data.get("instance_id")
+                            == record.instance_id
+                        )
+                        if health_data.get("status") == "ok" and owned_endpoint:
                             self.port_record = record
                             self.client = client
                             return client
-                        last_error = f"health response: {health_data}"
+                        last_error = f"unowned health response: {health_data}"
                 except (OSError, ValueError, json.JSONDecodeError) as exc:
                     last_error = str(exc)
             time.sleep(0.1)
@@ -217,7 +233,17 @@ class GuiProcessHarness:
                 self.process.kill()
                 self.process.wait(timeout=5)
         if self.port_file.exists():
-            self.port_file.unlink()
+            try:
+                record = PortRecord.parse(
+                    self.port_file.read_text(encoding="utf-8")
+                )
+                if (
+                    self.port_record is not None
+                    and record.instance_id == self.port_record.instance_id
+                ):
+                    self.port_file.unlink()
+            except (OSError, ValueError, json.JSONDecodeError):
+                pass
         if self._stdout is not None:
             self._stdout.close()
         if self._stderr is not None:
@@ -237,9 +263,10 @@ def find_mcp_port(repo_dir: Path, timeout: float = 30.0) -> int | None:
     while time.time() < deadline:
         if port_file.is_file():
             try:
-                port = int(port_file.read_text().strip())
-                return port
-            except ValueError:
+                return PortRecord.parse(
+                    port_file.read_text(encoding="utf-8")
+                ).port
+            except (ValueError, json.JSONDecodeError):
                 pass
         time.sleep(0.5)
     return None

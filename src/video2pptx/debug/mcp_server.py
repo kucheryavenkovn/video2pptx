@@ -27,6 +27,7 @@ from __future__ import annotations
 import json
 import os
 import uuid
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from queue import Queue
@@ -47,7 +48,9 @@ from video2pptx.debug.mcp_operations import (
     get_registry,
     health,
     list_operations,
+    mark_completion_synchronized,
     record_completed,
+    require_completion_sync,
     wait_operation,
 )
 from video2pptx.debug.mcp_write_tools import (
@@ -196,7 +199,12 @@ def _handle_rpc(method: str, params: dict, model, timeline: Timeline, main_windo
             "get_project": lambda: _serialize_project(model),
             "get_logs": lambda: LogBridge.instance().recent(args.get("n", 50)),
             "get_clip": lambda: _handle_get_clip(args, timeline),
-            "health": lambda: health(version=_PACKAGE_VERSION),
+            "health": lambda: {
+                **health(version=_PACKAGE_VERSION),
+                "pid": os.getpid(),
+                "instance_id": _INSTANCE_ID,
+                "started_at": _INSTANCE_STARTED_AT,
+            },
             "get_capabilities": lambda: _handle_get_capabilities(),
             "get_operation": lambda: get_operation(args.get("operation_id", "")),
             "wait_operation": lambda: wait_operation(args.get("operation_id", ""), args.get("timeout", 120.0)),
@@ -369,7 +377,14 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         if self.path == "/health":
-            self._send_json(health(version=_PACKAGE_VERSION))
+            self._send_json(
+                {
+                    **health(version=_PACKAGE_VERSION),
+                    "pid": os.getpid(),
+                    "instance_id": _INSTANCE_ID,
+                    "started_at": _INSTANCE_STARTED_AT,
+                }
+            )
             return
         self._handle_sse()
 
@@ -468,7 +483,7 @@ class _Handler(BaseHTTPRequestHandler):
 
 
 class _ThreadedServer(ThreadingMixIn, TCPServer):
-    allow_reuse_address = True
+    allow_reuse_address = False
     daemon_threads = True
 
 
@@ -476,6 +491,8 @@ _CMD_QUEUE: Queue[tuple[str, str, str, tuple, dict]] = Queue()
 _ACTION_QUEUE: Queue[tuple[str, tuple, dict]] = Queue()
 ACTION_REGISTRY: ActionRegistry | None = None
 _OP_RUNNER_THREAD: OpRunnerThread | None = None
+_INSTANCE_ID = ""
+_INSTANCE_STARTED_AT = ""
 
 
 def mcp_process_queue(model) -> None:
@@ -490,6 +507,8 @@ def mcp_process_queue(model) -> None:
                     f"ProjectModel command not found: {cmd_name}"
                 )
             fn(*args, **kwargs)
+            require_completion_sync(operation_id)
+            record_completed(operation_id)
             registry.update(
                 operation_id,
                 status="succeeded",
@@ -514,7 +533,9 @@ def mcp_process_queue(model) -> None:
                 error=error.to_dict(),
             )
         finally:
-            record_completed(operation_id)
+            operation = registry.get(operation_id)
+            if operation is not None and operation.status != "succeeded":
+                record_completed(operation_id)
     while not _ACTION_QUEUE.empty():
         name, args, kwargs = _ACTION_QUEUE.get_nowait()
         if name == "__action__" and ACTION_REGISTRY is not None:
@@ -523,11 +544,14 @@ def mcp_process_queue(model) -> None:
     # Drain completed app_service operations and refresh GUI (F-0043 fix)
     from video2pptx.debug.mcp_operations import drain_completed_ops
     completed = drain_completed_ops()
-    if completed and model is not None and model.project_path:
-        try:
-            model.refresh_from_disk()
-        except Exception as e:
-            logger.error(f"[McpServer] refresh_from_disk failed: {e}")
+    if completed:
+        if model is not None and model.project_path:
+            try:
+                model.refresh_from_disk()
+            except Exception as e:
+                logger.error(f"[McpServer] refresh_from_disk failed: {e}")
+        for operation_id in completed:
+            mark_completion_synchronized(operation_id)
 
 
 class McpServer:
@@ -549,6 +573,10 @@ class McpServer:
         ACTION_REGISTRY = action_registry
 
     def start(self) -> None:
+        global _INSTANCE_ID, _INSTANCE_STARTED_AT
+        _INSTANCE_ID = uuid.uuid4().hex
+        _INSTANCE_STARTED_AT = datetime.now(timezone.utc).isoformat()
+
         # Clean stale .mcp_port
         self._clean_stale_port_file()
 
@@ -597,7 +625,17 @@ class McpServer:
     def _write_port_file(self) -> None:
         try:
             port_path = Path(os.getcwd()) / ".mcp_port"
-            port_path.write_text(str(self._port), encoding="utf-8")
+            port_path.write_text(
+                json.dumps(
+                    {
+                        "port": self._port,
+                        "pid": os.getpid(),
+                        "started_at": _INSTANCE_STARTED_AT,
+                        "instance_id": _INSTANCE_ID,
+                    }
+                ),
+                encoding="utf-8",
+            )
             logger.info(f"[McpServer] Port file written: {port_path}")
         except Exception as e:
             logger.warning(f"[McpServer] Failed to write port file: {e}")
@@ -619,7 +657,9 @@ class McpServer:
         try:
             port_path = Path(os.getcwd()) / ".mcp_port"
             if port_path.is_file():
-                port_path.unlink()
+                record = json.loads(port_path.read_text(encoding="utf-8"))
+                if record.get("instance_id") == _INSTANCE_ID:
+                    port_path.unlink()
         except Exception:
             pass
 

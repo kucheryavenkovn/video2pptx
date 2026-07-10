@@ -458,3 +458,30 @@
 - Impact: F-0043 remained partially unresolved for project lifecycle commands.
 - Resolution/Status: Fixed with `ProjectModel.projectOpened` signal. MainWindow subscribes as a GUI adapter; manual lifecycle slot calls were removed.
 - LINKS: M-PROJECT-MODEL, M-GUI-MAIN, V-REF-CHAR-TESTS
+
+### F-0051 — AppServiceRunner could not execute project operations or persist their results
+- Date: 2026-07-10
+- Area: mcp, architecture
+- Finding: `AppServiceRunner` treated `ProjectModel.project_path` as `Path`, did not map `quick_preview` to the application command `preview`, marked `{success:false}` results as successful operations, and did not persist Detect/Preview/Align/Export results into project state.
+- Symptom/Reproduction: real MCP Detect failed with `unsupported operand type(s) for /: 'str' and 'str'`; after correcting the path, successful filesystem output would still be absent from `ProjectModel` after refresh.
+- Impact: E2E-006 and E2E-007 could not be characterized through real GUI+MCP.
+- Resolution/Status: Fixed with a temporary compatibility persistence bridge in `AppServiceRunner`. It maps adapter command names, propagates application failures, updates project pipeline state and artifacts, and is explicitly scheduled for removal in Phase-16 Step 5 when repository-backed application services own persistence.
+- LINKS: M-MCP-OPERATIONS, M-APP-SERVICE, M-PROJECT, V-REF-CHAR-TESTS
+
+### F-0052 — Windows allowed multiple MCP instances to share port 9812
+- Date: 2026-07-10
+- Area: mcp, os, tooling
+- Finding: `_ThreadedServer.allow_reuse_address=True` allowed a new Windows process to bind `127.0.0.1:9812` while an orphan GUI process still listened on the same port. Requests were routed to either instance. The plain integer `.mcp_port` and anonymous health response could not prove ownership.
+- Symptom/Reproduction: repeated real startup tests intermittently observed another project's enabled buttons and stale pipeline state; `Get-NetTCPConnection` showed an older Python owner while the new server also logged port 9812.
+- Impact: E2E results were nondeterministic and cleanup could target the wrong port file.
+- Resolution/Status: Fixed. Address reuse is disabled; occupied ports increment. `.mcp_port` and `/health` expose matching `port`, `pid`, `started_at`, and `instance_id`; the harness accepts only its subprocess-owned endpoint and isolates the GUI home directory.
+- LINKS: M-DEBUG-MCP, M-E2E-RUNNER, V-REF-CHAR-TESTS
+
+### F-0053 — Terminal operation status preceded Qt model synchronization
+- Date: 2026-07-10
+- Area: mcp, gui
+- Finding: application operations were marked `succeeded` before the Qt timer consumed the completion queue and called `ProjectModel.refresh_from_disk()`.
+- Symptom/Reproduction: `wait_operation` returned `succeeded`, followed immediately by `get_project.detect_done=false`; isolated runs sometimes passed because the timer won the race.
+- Impact: The documented terminal lifecycle did not guarantee safe state inspection.
+- Resolution/Status: Fixed with explicit completion synchronization tracking. `wait_operation` holds successful operations until their Qt refresh has completed.
+- LINKS: M-MCP-OPERATIONS, M-DEBUG-MCP, V-REF-CHAR-TESTS

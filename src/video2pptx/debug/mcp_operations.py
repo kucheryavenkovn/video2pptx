@@ -32,14 +32,15 @@ from loguru import logger
 
 from video2pptx.debug.confirm import require_confirm
 from video2pptx.debug.errors import OperationError
-from video2pptx.debug.operation_registry import OperationRegistry, TERMINAL_STATUSES
-
+from video2pptx.debug.operation_registry import TERMINAL_STATUSES, OperationRegistry
 
 _OP_QUEUE: Queue[tuple[str, dict[str, Any], str]] = Queue()
 _CANCEL_EVENT = Event()
 _REGISTRY = OperationRegistry()
 _COMPLETED_OPS: list[str] = []
 _COMPLETED_OPS_LOCK = Lock()
+_SYNC_REQUIRED: set[str] = set()
+_SYNCHRONIZED_OPS: set[str] = set()
 
 
 def record_completed(operation_id: str) -> None:
@@ -54,12 +55,26 @@ def drain_completed_ops() -> list[str]:
     return result
 
 
+def require_completion_sync(operation_id: str) -> None:
+    with _COMPLETED_OPS_LOCK:
+        _SYNC_REQUIRED.add(operation_id)
+
+
+def mark_completion_synchronized(operation_id: str) -> None:
+    with _COMPLETED_OPS_LOCK:
+        _SYNCHRONIZED_OPS.add(operation_id)
+
+
 def get_registry() -> OperationRegistry:
     return _REGISTRY
 
 
 def clear_registry() -> None:
     _REGISTRY.clear()
+    with _COMPLETED_OPS_LOCK:
+        _COMPLETED_OPS.clear()
+        _SYNC_REQUIRED.clear()
+        _SYNCHRONIZED_OPS.clear()
     while not _OP_QUEUE.empty():
         try:
             _OP_QUEUE.get_nowait()
@@ -121,6 +136,14 @@ def wait_operation(operation_id: str, timeout: float = 120.0, poll_interval: flo
         if op is None:
             return None
         if op.status in TERMINAL_STATUSES:
+            with _COMPLETED_OPS_LOCK:
+                awaiting_sync = (
+                    operation_id in _SYNC_REQUIRED
+                    and operation_id not in _SYNCHRONIZED_OPS
+                )
+            if awaiting_sync:
+                time.sleep(poll_interval)
+                continue
             return op.to_dict()
         time.sleep(poll_interval)
     op = _REGISTRY.get(operation_id)
@@ -147,6 +170,9 @@ class OperationRunner:
         try:
             _REGISTRY.update(operation_id, status="running", progress=0)
             result = self._dispatch(tool, args)
+            if self._requires_completion_sync():
+                require_completion_sync(operation_id)
+                record_completed(operation_id)
             _REGISTRY.update(operation_id, status="succeeded", progress=100, result=result)
         except OperationError as oe:
             _REGISTRY.update(operation_id, status="failed", error=oe.to_dict())
@@ -154,10 +180,14 @@ class OperationRunner:
             err = OperationError.from_exception(exc, stage=tool, trace_id=operation_id)
             _REGISTRY.update(operation_id, status="failed", error=err.to_dict())
         finally:
-            record_completed(operation_id)
+            if not self._requires_completion_sync():
+                record_completed(operation_id)
 
     def _dispatch(self, tool: str, args: dict[str, Any]) -> dict[str, Any]:
         raise NotImplementedError("Subclass must implement _dispatch")
+
+    def _requires_completion_sync(self) -> bool:
+        return False
 
 
 class AppServiceRunner(OperationRunner):
@@ -167,11 +197,19 @@ class AppServiceRunner(OperationRunner):
         super().__init__()
         self._project_model = project_model
 
+    def _requires_completion_sync(self) -> bool:
+        return self._project_model is not None
+
     def _dispatch(self, tool: str, args: dict[str, Any]) -> dict[str, Any]:
         from video2pptx.app_service import execute_command
 
         project = getattr(self._project_model, "project_data", None) if self._project_model else None
-        project_path = getattr(self._project_model, "project_path", None) if self._project_model else None
+        raw_project_path = (
+            getattr(self._project_model, "project_path", None)
+            if self._project_model
+            else None
+        )
+        project_path = Path(raw_project_path) if raw_project_path else None
 
         if project is None:
             raise RuntimeError(f"No open project for tool: {tool}")
@@ -196,8 +234,56 @@ class AppServiceRunner(OperationRunner):
             )
 
         full_kwargs = {**base_kwargs, **args}
-        result = execute_command(tool, **full_kwargs)
+        command = {"quick_preview": "preview"}.get(tool, tool)
+        result = execute_command(command, **full_kwargs)
+        if result.get("success") is False:
+            raise OperationError(
+                type="ApplicationCommandError",
+                message=result.get("error", f"Command failed: {command}"),
+                stage=result.get("stage", command),
+                recoverable=True,
+            )
+        self._persist_project_result(project_path, tool, result)
         return result
+
+    @staticmethod
+    def _persist_project_result(
+        project_path: Path | None,
+        tool: str,
+        result: dict[str, Any],
+    ) -> None:
+        """Compatibility bridge until Phase-16 repository services own persistence."""
+        if project_path is None:
+            return
+        from video2pptx.project_manager import (
+            load_slides_into_project,
+            open_project,
+            save_project,
+        )
+
+        project = open_project(project_path)
+        if tool == "quick_preview":
+            project.score_timestamps = list(result.get("score_timestamps", []))
+            project.score_values = list(result.get("score_values", []))
+            project.state.preview_done = True
+        elif tool == "detect":
+            project.slides_json = "slides.json"
+            load_slides_into_project(project, force=True)
+            project.state.detect_done = True
+            project.state.detect_stale = False
+            project.state.mark_stale_downstream("detect")
+        elif tool == "auto_align":
+            load_slides_into_project(project, force=True)
+            project.state.align_done = True
+            project.state.align_stale = False
+            project.state.mark_stale_downstream("align")
+        elif tool == "export_md":
+            project.state.md_exported = True
+            project.state.md_stale = False
+        elif tool == "export_pptx":
+            project.state.pptx_exported = True
+            project.state.pptx_stale = False
+        save_project(project, project_path)
 
 
 class OpRunnerThread(Thread):

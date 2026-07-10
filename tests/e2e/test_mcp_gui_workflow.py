@@ -13,20 +13,13 @@ Each scenario:
 from __future__ import annotations
 
 import json
-import os
-import shutil
-import subprocess
-import sys
 import time
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import pytest
-
-from video2pptx.debug.operation_registry import TERMINAL_STATUSES
-
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -37,9 +30,10 @@ def _find_mcp_port(repo_dir: Path, timeout: float = 30.0) -> int:
     while time.time() < deadline:
         if port_file.is_file():
             try:
-                port = int(port_file.read_text().strip())
-                return port
-            except ValueError:
+                raw = port_file.read_text(encoding="utf-8").strip()
+                port = json.loads(raw)["port"] if raw.startswith("{") else int(raw)
+                return int(port)
+            except (ValueError, json.JSONDecodeError, KeyError):
                 pass
         time.sleep(0.5)
     raise TimeoutError(f"MCP port file not found within {timeout}s in {repo_dir}")
@@ -229,7 +223,8 @@ class TestE2EGuiWorkflow:
         resp = mcp_client.tool_call("video_import", {"path": str(video_path)})
         data = tool_result(resp)
         assert data.get("status") == "queued"
-        import time; time.sleep(2)  # brief wait for import
+        final = tool_result(mcp_client.wait_operation(data["operation_id"]))
+        assert final.get("status") == "succeeded"
 
         proj = mcp_client.tool_call("get_project", {})
         proj_data = tool_result(proj)
@@ -240,8 +235,10 @@ class TestE2EGuiWorkflow:
     def test_e2e_004_import_subtitles(self, mcp_client, test_project_dir, subtitle_path):
         """E2E-004: Import subtitles — cues loaded."""
         resp = mcp_client.tool_call("subtitle_import", {"path": str(subtitle_path)})
-        assert tool_result(resp).get("status") == "queued"
-        import time; time.sleep(1)
+        queued = tool_result(resp)
+        assert queued.get("status") == "queued"
+        final = tool_result(mcp_client.wait_operation(queued["operation_id"]))
+        assert final.get("status") == "succeeded"
 
         proj = mcp_client.tool_call("get_project", {})
         proj_data = tool_result(proj)
@@ -321,7 +318,8 @@ class TestE2EGuiWorkflow:
 
         resp = mcp_client.tool_call("project_close", {"confirm": True})
         data = tool_result(resp)
-        import time; time.sleep(1)
+        final = tool_result(mcp_client.wait_operation(data["operation_id"]))
+        assert final.get("status") == "succeeded"
 
         resp = mcp_client.tool_call("project_open", {"path": str(test_project_dir)})
         data = tool_result(resp)
