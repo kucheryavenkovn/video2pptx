@@ -52,7 +52,7 @@ class TestMainWindow:
         assert w._video_player is not None
         assert w._subs is None
         assert w._timeline is not None
-        assert w._detect_btn is not None
+        assert w._btn_detect is not None
         w.deleteLater()
 
     def test_window_title_default(self) -> None:
@@ -74,7 +74,7 @@ class TestMainWindow:
         _ensure_app()
         from video2pptx.gui.main_window import MainWindow
         w = MainWindow()
-        assert w._detect_btn.isEnabled() is False
+        assert w._btn_detect.isEnabled() is False
         w.deleteLater()
 
     def test_set_project_updates_ui(self, tmp_path: Path) -> None:
@@ -98,7 +98,7 @@ class TestMainWindow:
 
         assert w._model.is_open
         assert w._model.project_data.name == "test"
-        assert w._detect_btn.isEnabled()
+        assert w._btn_detect.isEnabled()
         assert "test" in w.windowTitle()
         assert "test.mp4" in w._video_label.text()
         w.deleteLater()
