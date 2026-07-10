@@ -320,6 +320,8 @@ def align_slides_to_subtitles(
     metrics = _build_cue_crossings_report(pre_slides, slides, cues)
     report.cue_crossings_before = metrics["cue_crossings_before"]
     report.cue_crossings_after = metrics["cue_crossings_after"]
+    report.multi_slide_cues_before = metrics["multi_slide_cues_before"]
+    report.multi_slide_cues_after = metrics["multi_slide_cues_after"]
 
     if not dry_run and video_duration:
         errors = _validate_boundaries(slides, video_duration)
