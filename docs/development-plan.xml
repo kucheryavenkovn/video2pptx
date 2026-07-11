@@ -595,7 +595,7 @@
       <verification-ref>V-PORT-REPO</verification-ref>
       <depends>M-DOMAIN-PROJECT</depends>
     </M-PORT-REPO>
-    <M-PERSIST-DTO NAME="PersistenceDtoV2" TYPE="DATA_LAYER" LAYER="4" ORDER="72" STATUS="planned">
+    <M-PERSIST-DTO NAME="PersistenceDtoV2" TYPE="DATA_LAYER" LAYER="4" ORDER="72" STATUS="implemented">
       <contract><purpose>Strict schema 2.0 DTO containing full pipeline, portable artifacts, extensions, and canonical revision.</purpose></contract>
       <target><source>src/video2pptx/infrastructure/persistence/dto.py</source><tests>tests/infra/test_persistence_dto.py</tests></target>
       <verification-ref>V-PERSIST-DTO</verification-ref>
@@ -1061,7 +1061,10 @@
       <step-4.7 name="PersistenceContractStabilization" status="planned" verification="V-REF-PERSISTENCE-STABILIZATION">
         Introduce strict ProjectDocumentV2, full PipelineState round-trip, side-effect-free rehydration,
         LoadedProject revision unit, portable root handling, revisioned slides.json, and strict storage validation.
-        Checkpoints: 5.0A DTO; 5.0B migration/rehydration; 5.0C LoadedProject/repository; 5.0D derived consistency.
+        <checkpoint-5.0A status="done">Strict ProjectDocumentV2, complete pipeline DTO, portable artifacts, and full UUID SlideId.</checkpoint-5.0A>
+        <checkpoint-5.0B status="planned">Migration and side-effect-free rehydration.</checkpoint-5.0B>
+        <checkpoint-5.0C status="planned">LoadedProject and revision-aware repository.</checkpoint-5.0C>
+        <checkpoint-5.0D status="planned">Derived revision consistency and strict storage validation.</checkpoint-5.0D>
       </step-4.7>
       <step-5 name="ApplicationServices" status="planned" verification="V-REF-APP-SERVICES">
         Checkpoints: 5.1 common DTO/errors/observer/cancellation; 5.2 Preview/Detect; 5.3 Align;

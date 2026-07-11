@@ -539,3 +539,21 @@
 - Impact: Application services cannot safely depend on the repository until the contract is stabilized.
 - Resolution/Status: Open. Step 4.7 PersistenceContractStabilization will introduce ProjectDocumentV2, full PipelineState round-trip, side-effect-free rehydration, LoadedProject, portable root, revisioned derived artifact, strict validation, and 128-bit SlideId.
 - LINKS: M-PORT-REPO, M-FILE-REPO, M-PERSIST-DTO, V-REF-PERSISTENCE-STABILIZATION
+
+### F-0060 — Active Python environment lacks optional mypy dependency
+- Date: 2026-07-11
+- Area: tooling
+- Finding: The active Python 3.14 interpreter does not have the optional `mypy` development dependency installed.
+- Symptom/Reproduction: `python -m mypy src/video2pptx/infrastructure/persistence/dto.py src/video2pptx/domain/identifiers.py` returns `No module named mypy`.
+- Impact: Checkpoint 5.0A could not produce static type-check evidence; pytest and Ruff evidence remain available.
+- Resolution/Status: Open. Install the project `dev` extra in the verification environment before requiring mypy as a gate.
+- LINKS: M-PERSIST-DTO, V-PERSIST-DTO, pyproject.toml
+
+### F-0061 — grace module show does not resolve non-V-M verification IDs
+- Date: 2026-07-11
+- Area: tooling
+- Finding: `grace module show M-PERSIST-DTO --with verification` reports `Verification: none` even though both plan and graph link the module to the existing `V-PERSIST-DTO` entry.
+- Symptom/Reproduction: Run the command after Checkpoint 5.0A meta sync; XML parsing and direct reference checks pass, but the CLI omits the verification excerpt.
+- Impact: CLI-generated execution packets cannot be trusted as the sole source for verification entries using the project's established `V-PERSIST-*` or `V-DOMAIN-*` naming.
+- Resolution/Status: Open. Continue reading `docs/verification-plan.xml` directly or standardize IDs in a dedicated GRACE artifact migration.
+- LINKS: M-PERSIST-DTO, V-PERSIST-DTO, docs/verification-plan.xml

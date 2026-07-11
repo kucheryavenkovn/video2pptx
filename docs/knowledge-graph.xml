@@ -979,11 +979,19 @@
       <depends>M-DOMAIN-PROJECT</depends>
       <verification-ref>V-PORT-REPO</verification-ref>
     </M-PORT-REPO>
-    <M-PERSIST-DTO NAME="PersistenceDtoV2" TYPE="DATA_LAYER" STATUS="planned">
+    <M-PERSIST-DTO NAME="PersistenceDtoV2" TYPE="DATA_LAYER" STATUS="implemented">
       <purpose>Strict schema 2.0 DTO with full pipeline, portable artifacts, extensions, and revision.</purpose>
       <path>src/video2pptx/infrastructure/persistence/dto.py</path>
       <depends>M-DOMAIN-VALUE</depends>
       <verification-ref>V-PERSIST-DTO</verification-ref>
+      <annotations>
+        <type-ProjectDocumentV2 PURPOSE="Canonical project document; rejects output_dir and unknown fields outside extensions" />
+        <type-PipelineDocument PURPOSE="Exact complete state for all canonical pipeline stages" />
+        <type-StageStateDocument PURPOSE="Status, operation ID, timestamps, and structured error for one stage" />
+        <type-SlideDocument PURPOSE="Strict slide entity data with portable image reference" />
+        <type-ScoreDocument PURPOSE="Paired finite monotonic waveform timestamps and values" />
+        <type-ArtifactDocument PURPOSE="Named portable generated artifact references" />
+      </annotations>
     </M-PERSIST-DTO>
     <M-PERSIST-MIGRATIONS NAME="PersistenceMigrations" TYPE="DATA_LAYER" STATUS="planned">
       <purpose>Deterministic schema 1.0 → 2.0 migration preserving unknown legacy fields and stable UIDs.</purpose>

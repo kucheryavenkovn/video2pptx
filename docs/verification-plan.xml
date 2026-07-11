@@ -842,9 +842,11 @@
     </scenarios>
   </V-PORT-REPO>
 
-  <V-PERSIST-DTO MODULE="M-PERSIST-DTO" PRIORITY="high" STATUS="planned">
-    <test-files><file>tests/infra/test_persistence_dto.py</file></test-files>
-    <module-checks><check-1>pytest tests/infra/test_persistence_dto.py -q</check-1></module-checks>
+  <V-PERSIST-DTO MODULE="M-PERSIST-DTO" PRIORITY="high" STATUS="passed">
+    <test-files><file>tests/infra/test_persistence_dto.py</file><file>tests/domain/test_value_objects.py</file></test-files>
+    <module-checks><check-1>python -m pytest tests/infra/test_persistence_dto.py tests/domain/test_value_objects.py -q</check-1></module-checks>
+    <wave-checks><check-1>python -m pytest tests/domain tests/infra -q</check-1></wave-checks>
+    <evidence><result>46 module tests passed; 104 domain+infra tests passed; Ruff passed. mypy unavailable, see F-0060.</result></evidence>
     <scenarios>
       <scenario-1 kind="success">ProjectDocumentV2 strictly round-trips every canonical aggregate field.</scenario-1>
       <scenario-2 kind="failure">Unknown canonical fields are rejected outside extensions.</scenario-2>
