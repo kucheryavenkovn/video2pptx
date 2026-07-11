@@ -944,7 +944,7 @@
       <depends>M-DOMAIN-PROJECT, M-PORT-REPO, M-PORT-DETECTOR</depends>
       <verification-ref>V-APP-DETECT</verification-ref>
     </M-APP-DETECT>
-    <M-APP-ALIGN name="AlignmentService" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-APP-ALIGN name="AlignmentService" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Align visual boundaries to subtitle anchors via strategy + anchor provider.</purpose>
       <path>src/video2pptx/application/services/alignment_service.py</path>
       <depends>M-DOMAIN-PROJECT, M-PORT-REPO, M-PORT-ALIGNMENT</depends>
@@ -1048,7 +1048,7 @@
       <depends>M-DOMAIN-VALUE</depends>
       <verification-ref>V-REF-APP-SERVICES</verification-ref>
     </M-PORT-DETECTOR>
-    <M-PORT-ALIGNMENT NAME="AlignmentPort" TYPE="INTEGRATION" STATUS="planned">
+    <M-PORT-ALIGNMENT NAME="AlignmentPort" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Compute immutable alignment plans and metrics without aggregate mutation.</purpose>
       <path>src/video2pptx/application/ports/alignment.py</path>
       <depends>M-DOMAIN-PROJECT</depends>

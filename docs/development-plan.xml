@@ -625,7 +625,7 @@
       <verification-ref>V-REF-APP-SERVICES</verification-ref>
       <depends>M-DOMAIN-VALUE</depends>
     </M-PORT-DETECTOR>
-    <M-PORT-ALIGNMENT NAME="AlignmentPort" TYPE="INTEGRATION" LAYER="3" ORDER="77" STATUS="planned">
+    <M-PORT-ALIGNMENT NAME="AlignmentPort" TYPE="INTEGRATION" LAYER="3" ORDER="77" STATUS="implemented">
       <contract><purpose>Compute an immutable alignment plan and metrics without applying aggregate mutations.</purpose></contract>
       <target><source>src/video2pptx/application/ports/alignment.py</source><tests>tests/application/test_alignment_service.py</tests></target>
       <verification-ref>V-REF-APP-SERVICES</verification-ref>
@@ -661,7 +661,7 @@
       <verification-ref>V-APP-DETECT</verification-ref>
       <depends>M-PORT-REPO, M-PORT-DETECTOR, M-DOMAIN-PROJECT</depends>
     </M-APP-DETECT>
-    <M-APP-ALIGN NAME="AlignmentService" TYPE="CORE_LOGIC" LAYER="2" ORDER="82" STATUS="planned">
+    <M-APP-ALIGN NAME="AlignmentService" TYPE="CORE_LOGIC" LAYER="2" ORDER="82" STATUS="implemented">
       <contract><purpose>Canonical dry-run/apply alignment use case using full-plan validation and atomic aggregate application.</purpose></contract>
       <target><source>src/video2pptx/application/services/alignment_service.py</source><tests>tests/application/test_alignment_service.py</tests></target>
       <verification-ref>V-APP-ALIGN</verification-ref>
@@ -1075,7 +1075,7 @@
       <step-5 name="ApplicationServices" status="planned" verification="V-REF-APP-SERVICES">
         <checkpoint-5.1 status="done">Common DTOs, errors, cancellation, observer, and service context.</checkpoint-5.1>
         <checkpoint-5.2 status="done">Preview and Detection services with revision-safe ports.</checkpoint-5.2>
-        <checkpoint-5.3 status="planned">Alignment service.</checkpoint-5.3>
+        <checkpoint-5.3 status="done">Alignment service with dry-run/apply.</checkpoint-5.3>
         <checkpoint-5.4 status="planned">Notes and LLM service.</checkpoint-5.4>
         <checkpoint-5.5 status="planned">Export and Validation services.</checkpoint-5.5>
         <checkpoint-5.6 status="planned">Auto orchestration service.</checkpoint-5.6>
