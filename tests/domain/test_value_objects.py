@@ -28,7 +28,8 @@ class TestSlideId:
     def test_new_generates_non_empty(self):
         sid = SlideId.new()
         assert sid.value
-        assert len(sid.value) == 12
+        assert len(sid.value) == 32
+        assert int(sid.value, 16) >= 0
 
     def test_parse_round_trip(self):
         sid = SlideId.parse("abc123def456")

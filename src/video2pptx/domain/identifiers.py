@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/domain/identifiers.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Stable slide identifier that survives reordering, reopen, and CRUD.
 #   SCOPE: SlideId value object with creation, parsing, and invariant enforcement.
@@ -14,7 +14,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Initial SlideId implementation
+#   LAST_CHANGE: v1.1.0 - Generate full 128-bit UUID4 values while preserving parsed legacy IDs
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ class SlideId:
     @classmethod
     def new(cls) -> SlideId:
         """Generate a new random SlideId."""
-        return cls(uuid.uuid4().hex[:12])
+        return cls(uuid.uuid4().hex)
 
     @classmethod
     def parse(cls, value: str) -> SlideId:
