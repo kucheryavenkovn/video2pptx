@@ -613,13 +613,13 @@
       <verification-ref>V-FILE-REPO</verification-ref>
       <depends>M-PORT-REPO, M-PERSIST-DTO, M-PERSIST-MIGRATIONS, M-DOMAIN-PROJECT</depends>
     </M-FILE-REPO>
-    <M-PORT-PREVIEW NAME="PreviewAnalyzerPort" TYPE="INTEGRATION" LAYER="3" ORDER="75" STATUS="planned">
+    <M-PORT-PREVIEW NAME="PreviewAnalyzerPort" TYPE="INTEGRATION" LAYER="3" ORDER="75" STATUS="implemented">
       <contract><purpose>Produce immutable preview score data without mutating project or persistence.</purpose></contract>
       <target><source>src/video2pptx/application/ports/preview_analyzer.py</source><tests>tests/application/test_preview_service.py</tests></target>
       <verification-ref>V-REF-APP-SERVICES</verification-ref>
       <depends>M-DOMAIN-VALUE</depends>
     </M-PORT-PREVIEW>
-    <M-PORT-DETECTOR NAME="SlideDetectorPort" TYPE="INTEGRATION" LAYER="3" ORDER="76" STATUS="planned">
+    <M-PORT-DETECTOR NAME="SlideDetectorPort" TYPE="INTEGRATION" LAYER="3" ORDER="76" STATUS="implemented">
       <contract><purpose>Return a complete immutable candidate slide set from video input and detection options.</purpose></contract>
       <target><source>src/video2pptx/application/ports/slide_detector.py</source><tests>tests/application/test_detection_service.py</tests></target>
       <verification-ref>V-REF-APP-SERVICES</verification-ref>
@@ -649,13 +649,13 @@
       <verification-ref>V-REF-APP-SERVICES</verification-ref>
       <depends>none</depends>
     </M-APP-COMMON>
-    <M-APP-PREVIEW NAME="PreviewService" TYPE="CORE_LOGIC" LAYER="2" ORDER="80" STATUS="planned">
+    <M-APP-PREVIEW NAME="PreviewService" TYPE="CORE_LOGIC" LAYER="2" ORDER="80" STATUS="implemented">
       <contract><purpose>Canonical waveform-only preview use case with revision-safe persistence and no slide invalidation.</purpose></contract>
       <target><source>src/video2pptx/application/services/preview_service.py</source><tests>tests/application/test_preview_service.py</tests></target>
       <verification-ref>V-APP-PREVIEW</verification-ref>
       <depends>M-PORT-REPO, M-PORT-PREVIEW, M-DOMAIN-PROJECT</depends>
     </M-APP-PREVIEW>
-    <M-APP-DETECT NAME="DetectionService" TYPE="CORE_LOGIC" LAYER="2" ORDER="81" STATUS="planned">
+    <M-APP-DETECT NAME="DetectionService" TYPE="CORE_LOGIC" LAYER="2" ORDER="81" STATUS="implemented">
       <contract><purpose>Canonical CV detection use case applying a complete validated candidate set through the aggregate.</purpose></contract>
       <target><source>src/video2pptx/application/services/detection_service.py</source><tests>tests/application/test_detection_service.py</tests></target>
       <verification-ref>V-APP-DETECT</verification-ref>
@@ -1074,7 +1074,7 @@
       </step-4.7>
       <step-5 name="ApplicationServices" status="planned" verification="V-REF-APP-SERVICES">
         <checkpoint-5.1 status="done">Common DTOs, errors, cancellation, observer, and service context.</checkpoint-5.1>
-        <checkpoint-5.2 status="planned">Preview and Detection services.</checkpoint-5.2>
+        <checkpoint-5.2 status="done">Preview and Detection services with revision-safe ports.</checkpoint-5.2>
         <checkpoint-5.3 status="planned">Alignment service.</checkpoint-5.3>
         <checkpoint-5.4 status="planned">Notes and LLM service.</checkpoint-5.4>
         <checkpoint-5.5 status="planned">Export and Validation services.</checkpoint-5.5>

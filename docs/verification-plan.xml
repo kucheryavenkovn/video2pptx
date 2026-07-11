@@ -899,7 +899,7 @@
     </scenarios>
   </V-REF-PERSISTENCE-STABILIZATION>
 
-  <V-APP-PREVIEW MODULE="M-APP-PREVIEW" PRIORITY="high" STATUS="planned">
+  <V-APP-PREVIEW MODULE="M-APP-PREVIEW" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_preview_service.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Preview succeeds, waveform updated, slides unchanged.</scenario-1>
@@ -909,7 +909,7 @@
     </scenarios>
   </V-APP-PREVIEW>
 
-  <V-APP-DETECT MODULE="M-APP-DETECT" PRIORITY="high" STATUS="planned">
+  <V-APP-DETECT MODULE="M-APP-DETECT" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_detection_service.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Detection replaces slides, invalidates downstream, saves with revision.</scenario-1>
@@ -971,7 +971,7 @@
     <module-checks><check-1>python -m pytest tests/application/ -q</check-1></module-checks>
     <wave-checks><check-1>python -m pytest tests/domain tests/application tests/infra -q</check-1></wave-checks>
     <phase-checks><check-1>python -m pytest --ignore=tests/e2e -q</check-1></phase-checks>
-    <evidence><result>Checkpoint 5.1: 19 common tests passed; 144 domain+application+infra wave passed; Ruff passed. Stage services remain in 5.2-5.7.</result></evidence>
+    <evidence><result>Checkpoint 5.2: 8 preview+detection tests passed; 152 domain+application+infra wave passed; Ruff passed. Alignment/notes/export/auto remain in 5.3-5.7.</result></evidence>
     <scenarios>
       <scenario-1 kind="success">Services depend only on domain and ports and use repository revisions on every mutation.</scenario-1>
       <scenario-2 kind="success">Cancellation and adapter failures leave aggregate invariants intact and record typed stage failures.</scenario-2>
