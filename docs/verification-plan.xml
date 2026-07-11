@@ -865,9 +865,12 @@
     </scenarios>
   </V-PERSIST-MIGRATIONS>
 
-  <V-FILE-REPO MODULE="M-FILE-REPO" PRIORITY="high" STATUS="planned">
+  <V-FILE-REPO MODULE="M-FILE-REPO" PRIORITY="high" STATUS="partial">
     <test-files><file>tests/infra/test_file_repository.py</file><file>tests/infra/test_mapper.py</file></test-files>
-    <module-checks><check-1>pytest tests/infra/test_file_repository.py tests/infra/test_mapper.py -q</check-1></module-checks>
+    <module-checks><check-1>python -m pytest tests/infra/test_file_repository.py tests/infra/test_mapper.py tests/infra/test_migrations.py tests/infra/test_persistence_dto.py -q</check-1></module-checks>
+    <wave-checks><check-1>python -m pytest tests/domain tests/infra -q</check-1></wave-checks>
+    <phase-checks><check-1>python -m pytest --ignore=tests/e2e -q</check-1></phase-checks>
+    <evidence><result>35 targeted tests passed; domain+infra and full non-E2E regression passed; Ruff passed. Derived source_revision remains 5.0D.</result></evidence>
     <scenarios>
       <scenario-1 kind="success">LoadedProject revision supports an optimistic load-edit-save cycle.</scenario-1>
       <scenario-2 kind="failure">Corrupt canonical storage and revision conflicts fail without overwrite.</scenario-2>

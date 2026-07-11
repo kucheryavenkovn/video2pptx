@@ -978,6 +978,12 @@
       <path>src/video2pptx/application/ports/project_repository.py</path>
       <depends>M-DOMAIN-PROJECT</depends>
       <verification-ref>V-PORT-REPO</verification-ref>
+      <annotations>
+        <type-LoadedProject PURPOSE="Aggregate plus runtime location, canonical revision, warnings, and migration flag" />
+        <type-SaveResult PURPOSE="New canonical revision and non-fatal save warnings" />
+        <fn-load PURPOSE="Return strict or migrated LoadedProject without persistence-side business mutation" />
+        <fn-save PURPOSE="Commit strict V2 state using optional expected revision" />
+      </annotations>
     </M-PORT-REPO>
     <M-PERSIST-DTO NAME="PersistenceDtoV2" TYPE="DATA_LAYER" STATUS="implemented">
       <purpose>Strict schema 2.0 DTO with full pipeline, portable artifacts, extensions, and revision.</purpose>
@@ -1009,6 +1015,11 @@
       <path>src/video2pptx/infrastructure/persistence/file_project_repository.py</path>
       <depends>M-PORT-REPO, M-PERSIST-DTO, M-PERSIST-MIGRATIONS, M-DOMAIN-PROJECT</depends>
       <verification-ref>V-FILE-REPO</verification-ref>
+      <annotations>
+        <fn-create PURPOSE="Create canonical storage and return first LoadedProject revision unit" />
+        <fn-load PURPOSE="Dispatch raw legacy migration or strict V2 parsing" />
+        <fn-save PURPOSE="Reject corrupt/conflicting state and atomically commit canonical V2 data" />
+      </annotations>
     </M-FILE-REPO>
     <M-PORT-PREVIEW NAME="PreviewAnalyzerPort" TYPE="INTEGRATION" STATUS="planned">
       <purpose>Produce immutable preview score data without project or persistence mutation.</purpose>

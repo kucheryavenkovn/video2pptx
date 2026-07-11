@@ -1063,7 +1063,7 @@
         LoadedProject revision unit, portable root handling, revisioned slides.json, and strict storage validation.
         <checkpoint-5.0A status="done">Strict ProjectDocumentV2, complete pipeline DTO, portable artifacts, and full UUID SlideId.</checkpoint-5.0A>
         <checkpoint-5.0B status="done">Deterministic migration, extension preservation, and side-effect-free complete-state rehydration.</checkpoint-5.0B>
-        <checkpoint-5.0C status="planned">LoadedProject and revision-aware repository.</checkpoint-5.0C>
+        <checkpoint-5.0C status="done">LoadedProject, raw schema dispatch, strict V2 commits, and optimistic load-edit-save cycle.</checkpoint-5.0C>
         <checkpoint-5.0D status="planned">Derived revision consistency and strict storage validation.</checkpoint-5.0D>
       </step-4.7>
       <step-5 name="ApplicationServices" status="planned" verification="V-REF-APP-SERVICES">
