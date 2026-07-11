@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/infrastructure/persistence/file_project_repository.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: File-based ProjectRepository implementation with atomic writes, migration, and revision tracking.
 #   SCOPE: create, load, save, exists, validate_storage
@@ -14,7 +14,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.1.0 - Return LoadedProject and commit strict canonical V2 documents
+#   LAST_CHANGE: v1.2.0 - Revision derived slides and validate canonical/domain/derived consistency
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -211,7 +211,7 @@ class FileProjectRepository:
                 path=str(project_json),
             ) from exc
 
-        slides_doc = ProjectMapper.to_slides_document(project)
+        slides_doc = ProjectMapper.to_slides_document(project, new_revision)
         slides_json = location / "slides.json"
         try:
             write_json_atomic(slides_json, slides_doc, indent=2)
@@ -231,34 +231,83 @@ class FileProjectRepository:
         """Check if a valid project.json exists at *location*."""
         return (Path(location) / "project.json").is_file()
 
+    # START_CONTRACT: validate_storage
+    #   PURPOSE: Validate canonical DTO/domain mapping and derived revision/content consistency.
+    #   INPUTS: { location: Path }
+    #   OUTPUTS: { StorageValidationResult }
+    #   SIDE_EFFECTS: reads project.json and slides.json; emits load logs
+    #   LINKS: M-FILE-REPO, V-FILE-REPO
+    # END_CONTRACT: validate_storage
     def validate_storage(self, location: Path) -> StorageValidationResult:
-        """Inspect storage without fully loading."""
+        """Validate canonical storage and its revisioned derived artifact."""
         location = Path(location)
-        project_json = location / "project.json"
-        if not project_json.is_file():
+        if not (location / "project.json").is_file():
             return StorageValidationResult(
                 valid=False,
                 recoverable=False,
                 errors=["project.json not found"],
             )
+
         try:
-            raw = project_json.read_text(encoding="utf-8")
-            data = json.loads(raw)
-            schema_version = data.get("schema_version", "1.0")
-            errors: list[str] = []
-            warnings: list[str] = []
-            if schema_version == "1.0":
-                warnings.append("Legacy schema; will be migrated on load")
+            loaded = self.load(location)
+        except (ProjectDocumentCorrupted, ProjectSchemaUnsupported, ProjectNotFound) as exc:
+            return StorageValidationResult(
+                valid=False,
+                recoverable=exc.recoverable,
+                errors=[str(exc)],
+            )
+
+        if loaded.migrated:
             return StorageValidationResult(
                 valid=True,
                 recoverable=True,
-                schema_version=schema_version,
-                errors=errors,
-                warnings=warnings,
+                schema_version="1.0",
+                warnings=list(loaded.warnings),
+                recovery_actions=["save project to commit schema 2.0 and regenerate slides.json"],
             )
-        except Exception as exc:
+
+        slides_json = location / "slides.json"
+        if not slides_json.is_file():
             return StorageValidationResult(
                 valid=False,
-                recoverable=False,
-                errors=[f"Cannot parse: {exc}"],
+                recoverable=True,
+                schema_version=self.SCHEMA_VERSION,
+                errors=["slides.json derived artifact not found"],
+                recovery_actions=["save project to regenerate slides.json"],
             )
+
+        try:
+            derived = json.loads(slides_json.read_text(encoding="utf-8"))
+            if not isinstance(derived, dict):
+                raise ValueError("slides.json root must be an object")
+            if derived.get("source_revision") != loaded.revision:
+                raise ValueError(
+                    "slides.json source_revision does not match canonical revision"
+                )
+            derived_slides = derived.get("slides")
+            if not isinstance(derived_slides, list) or not all(
+                isinstance(slide, dict) for slide in derived_slides
+            ):
+                raise ValueError("slides.json slides must be a list of objects")
+            canonical_ids = [view.slide_id.value for view in loaded.project.slides]
+            derived_ids = [str(slide.get("uid", "")) for slide in derived_slides]
+            if derived_ids != canonical_ids:
+                raise ValueError("slides.json slide IDs/count do not match canonical project")
+            if derived.get("score_timestamps", []) != loaded.project.score_timestamps:
+                raise ValueError("slides.json score timestamps do not match canonical project")
+            if derived.get("score_values", []) != loaded.project.score_values:
+                raise ValueError("slides.json score values do not match canonical project")
+        except (json.JSONDecodeError, UnicodeDecodeError, TypeError, ValueError) as exc:
+            return StorageValidationResult(
+                valid=False,
+                recoverable=True,
+                schema_version=self.SCHEMA_VERSION,
+                errors=[str(exc)],
+                recovery_actions=["save project to regenerate slides.json"],
+            )
+
+        return StorageValidationResult(
+            valid=True,
+            recoverable=True,
+            schema_version=self.SCHEMA_VERSION,
+        )

@@ -1,8 +1,8 @@
 # FILE: tests/infra/test_file_repository.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Unit tests for FileProjectRepository — create, load, save, migration, atomicity, revision.
-#   SCOPE: LoadedProject, V2 round-trip, legacy migration, UID stability, revision conflict, corruption.
+#   SCOPE: LoadedProject, V2/derived consistency, migration, atomicity, revision conflict, corruption.
 #   DEPENDS: pytest, video2pptx.infrastructure.persistence, video2pptx.domain
 #   LINKS: V-PORT-REPO
 #   ROLE: TEST
@@ -15,9 +15,11 @@ import json
 
 import pytest
 
+import video2pptx.infrastructure.persistence.file_project_repository as repository_module
 from video2pptx.domain import Project, Slide
 from video2pptx.infrastructure.persistence.errors import (
     ProjectAlreadyExists,
+    ProjectAtomicWriteError,
     ProjectDocumentCorrupted,
     ProjectNotFound,
     ProjectRevisionConflict,
@@ -149,6 +151,28 @@ class TestAtomicWrite:
         reloaded = repo.load(location)
         assert reloaded.project.slide_count == 3
 
+    def test_derived_failure_leaves_canonical_commit_valid(self, tmp_path, monkeypatch):
+        repo = FileProjectRepository()
+        project = _make_project_with_slides()
+        location = tmp_path / "derived-failure"
+        location.mkdir()
+        real_write = repository_module.write_json_atomic
+
+        def fail_derived(path, data, *, indent=2):
+            if path.name == "slides.json":
+                raise OSError("derived write failed")
+            return real_write(path, data, indent=indent)
+
+        monkeypatch.setattr(repository_module, "write_json_atomic", fail_derived)
+
+        with pytest.raises(ProjectAtomicWriteError, match="slides.json"):
+            repo.save(project, location)
+
+        canonical = json.loads((location / "project.json").read_text(encoding="utf-8"))
+        assert canonical["schema_version"] == "2.0"
+        assert canonical["revision"]
+        assert not (location / "slides.json").exists()
+
 
 class TestCanonicalDocument:
     def test_save_writes_strict_v2_without_output_dir(self, tmp_path):
@@ -177,6 +201,8 @@ class TestCanonicalDocument:
         assert data["pipeline"]["stages"]["notes"]["operation_id"] == "notes-op"
         assert data["pipeline"]["stages"]["markdown_export"]["status"] == "stale"
         assert data["pipeline"]["stages"]["pptx_export"]["status"] == "skipped"
+        derived = json.loads((location / "slides.json").read_text(encoding="utf-8"))
+        assert derived["source_revision"] == data["revision"]
 
     def test_standard_load_edit_save_uses_loaded_revision(self, tmp_path):
         repo = FileProjectRepository()
@@ -262,3 +288,45 @@ class TestValidateStorage:
         repo = FileProjectRepository()
         result = repo.validate_storage(tmp_path / "missing")
         assert result.valid is False
+
+    def test_stale_derived_revision_is_recoverable_error(self, tmp_path):
+        repo = FileProjectRepository()
+        location = tmp_path / "stale-derived"
+        repo.create(location, _make_project_with_slides())
+        slides_path = location / "slides.json"
+        derived = json.loads(slides_path.read_text(encoding="utf-8"))
+        derived["source_revision"] = "stale"
+        slides_path.write_text(json.dumps(derived), encoding="utf-8")
+
+        result = repo.validate_storage(location)
+
+        assert result.valid is False
+        assert result.recoverable is True
+        assert "source_revision" in result.errors[0]
+        assert result.recovery_actions == ["save project to regenerate slides.json"]
+
+    def test_derived_slide_mismatch_is_rejected(self, tmp_path):
+        repo = FileProjectRepository()
+        location = tmp_path / "slide-mismatch"
+        repo.create(location, _make_project_with_slides())
+        slides_path = location / "slides.json"
+        derived = json.loads(slides_path.read_text(encoding="utf-8"))
+        derived["slides"].pop()
+        slides_path.write_text(json.dumps(derived), encoding="utf-8")
+
+        result = repo.validate_storage(location)
+
+        assert result.valid is False
+        assert "IDs/count" in result.errors[0]
+
+    def test_missing_derived_artifact_is_recoverable_error(self, tmp_path):
+        repo = FileProjectRepository()
+        location = tmp_path / "missing-derived"
+        repo.create(location, _make_project_with_slides())
+        (location / "slides.json").unlink()
+
+        result = repo.validate_storage(location)
+
+        assert result.valid is False
+        assert result.recoverable is True
+        assert "not found" in result.errors[0]

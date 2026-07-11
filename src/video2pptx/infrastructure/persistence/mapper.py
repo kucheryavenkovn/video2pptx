@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/infrastructure/persistence/mapper.py
-# VERSION: 2.1.0
+# VERSION: 2.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Map strict ProjectDocumentV2 to and from the domain Project without business side effects.
 #   SCOPE: ProjectMapper with to_domain, to_document, and derived slides export
@@ -14,7 +14,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v2.1.0 - Remove legacy mapper bridge after repository adopted raw migration
+#   LAST_CHANGE: v2.2.0 - Stamp derived slides documents with canonical source revision
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -150,12 +150,23 @@ class ProjectMapper:
             extensions=dict(project.extensions),
         )
 
+    # START_CONTRACT: to_slides_document
+    #   PURPOSE: Generate revision-linked slides.json compatibility data from canonical aggregate state.
+    #   INPUTS: { project: Project, source_revision: str }
+    #   OUTPUTS: { dict[str, Any] - derived compatibility document }
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-FILE-REPO
+    # END_CONTRACT: to_slides_document
     @staticmethod
-    def to_slides_document(project: Project) -> dict[str, Any]:
+    def to_slides_document(
+        project: Project,
+        source_revision: str,
+    ) -> dict[str, Any]:
         """Export slides as a slides.json-compatible dict for derived artifact generation."""
         slides_data = project.to_slides_dict()
         return {
             "schema_version": "1.0",
+            "source_revision": source_revision,
             "video": {
                 "path": project.video_path,
                 "duration": 0,
