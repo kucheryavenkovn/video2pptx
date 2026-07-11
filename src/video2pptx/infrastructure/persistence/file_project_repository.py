@@ -196,6 +196,7 @@ class FileProjectRepository:
                     recoverable=True,
                 )
 
+        project.validate()
         new_revision = uuid.uuid4().hex
         document = ProjectMapper.to_document(project, new_revision)
 

@@ -1,10 +1,10 @@
 # FILE: src/video2pptx/domain/project.py
-# VERSION: 1.2.0
+# VERSION: 1.3.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Project aggregate root — owns slides, enforces invariants, manages pipeline state.
 #   SCOPE: add_slide, remove_slide, move_slide, resize_slide, replace_detected_slides,
 #          invalidate_downstream_from, clear_image, to_slides_dict, from_slides_dict,
-#          _validate_candidate_slides
+#          validate, _validate_candidate_slides
 #   DEPENDS: video2pptx.domain.slide, video2pptx.domain.identifiers, video2pptx.domain.time,
 #            video2pptx.domain.pipeline_state, video2pptx.domain.artifacts, video2pptx.domain.errors
 #   LINKS: M-DOMAIN-PROJECT
@@ -17,7 +17,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.2.0 - Preserve canonical artifact references and persistence extensions
+#   LAST_CHANGE: v1.3.0 - Add side-effect-free aggregate validation for persistence gates
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -218,6 +218,39 @@ class Project:
     def to_slides_dict(self) -> list[dict[str, Any]]:
         """Serialize slides to a list of dicts for persistence."""
         return [slide.to_dict() for slide in self._slides]
+
+    # START_CONTRACT: validate
+    #   PURPOSE: Check complete aggregate invariants without changing domain or pipeline state.
+    #   INPUTS: none
+    #   OUTPUTS: { None - returns only when all invariants hold }
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-DOMAIN-PROJECT, V-REF-PERSISTENCE-STABILIZATION
+    # END_CONTRACT: validate
+    def validate(self) -> None:
+        """Raise ValidationError or a specialized domain error on invalid state."""
+        if not self.name or not self.name.strip():
+            raise ValidationError("Project name must be non-empty")
+        self._validate_candidate_slides(self._slides)
+        if len(self.score_timestamps) != len(self.score_values):
+            raise ValidationError("Score timestamps and values must have equal lengths")
+        if not all(
+            math.isfinite(value)
+            for value in self.score_timestamps + self.score_values
+        ):
+            raise ValidationError("Score timestamps and values must be finite")
+        if any(value < 0 for value in self.score_timestamps):
+            raise ValidationError("Score timestamps must be non-negative")
+        if any(
+            current < previous
+            for previous, current in zip(
+                self.score_timestamps,
+                self.score_timestamps[1:],
+                strict=False,
+            )
+        ):
+            raise ValidationError("Score timestamps must be monotonic")
+        if not all(isinstance(ref, ArtifactRef) for ref in self.artifacts.values()):
+            raise ValidationError("Project artifacts must be ArtifactRef values")
 
     @classmethod
     def from_slides_dict(

@@ -1,8 +1,8 @@
 # FILE: tests/domain/test_project.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Unit tests for the Project aggregate root.
-#   SCOPE: add_slide, remove_slide, move_slide, replace_detected_slides, invalidate_downstream.
+#   SCOPE: CRUD, replacement, invalidation, serialization, immutable views, and aggregate validation.
 #   DEPENDS: pytest, video2pptx.domain
 #   LINKS: V-DOMAIN-PROJECT
 #   ROLE: TEST
@@ -240,3 +240,35 @@ class TestOverlapRejection:
         project = _make_project_with_two_slides()
         with pytest.raises(OverlappingSlides, match="overlap"):
             project.move_slide("bbb222", 3.0, 8.0)
+
+class TestProjectValidation:
+    def test_valid_aggregate_check_has_no_side_effects(self):
+        project = _make_project_with_two_slides()
+        project.score_timestamps = [0.0, 1.0]
+        project.score_values = [0.1, 0.2]
+        before_slides = project.to_slides_dict()
+        before_pipeline = project.pipeline.to_dict()
+
+        project.validate()
+
+        assert project.to_slides_dict() == before_slides
+        assert project.pipeline.to_dict() == before_pipeline
+        assert project.score_timestamps == [0.0, 1.0]
+        assert project.score_values == [0.1, 0.2]
+
+    def test_score_length_mismatch_rejected(self):
+        project = _make_project_with_two_slides()
+        project.score_timestamps = [0.0]
+        project.score_values = []
+
+        with pytest.raises(ValidationError, match="equal lengths"):
+            project.validate()
+
+    def test_duplicate_ids_in_rehydrated_state_rejected(self):
+        from video2pptx.domain.errors import DuplicateSlideId
+
+        project = _make_project_with_two_slides()
+        project._slides[1].slide_id = SlideId.parse("aaa111")
+
+        with pytest.raises(DuplicateSlideId):
+            project.validate()
