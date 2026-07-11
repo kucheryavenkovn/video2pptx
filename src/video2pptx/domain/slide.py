@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/domain/slide.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Slide entity and immutable SlideView projection.
 #   SCOPE: Slide (mutable internal), SlideView (frozen public), from_dict/to_dict
@@ -15,12 +15,14 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.1.0 - Add SlideView, validate representative_timestamp, enforce confidence range
+#   LAST_CHANGE: v1.2.0 - Preserve slide extension data in immutable SlideView projections
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
+from types import MappingProxyType
 from typing import Any
 
 from video2pptx.domain.artifacts import ArtifactRef
@@ -157,6 +159,7 @@ class SlideView:
     llm_description: str | None
     confidence: float
     manual: bool
+    extra: Mapping[str, Any]
 
     @property
     def start(self) -> float:
@@ -183,4 +186,5 @@ class SlideView:
             llm_description=slide.llm_description,
             confidence=slide.confidence,
             manual=slide.manual,
+            extra=MappingProxyType(dict(slide.extra)),
         )

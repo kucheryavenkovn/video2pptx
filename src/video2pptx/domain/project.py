@@ -1,12 +1,12 @@
 # FILE: src/video2pptx/domain/project.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Project aggregate root — owns slides, enforces invariants, manages pipeline state.
 #   SCOPE: add_slide, remove_slide, move_slide, resize_slide, replace_detected_slides,
 #          invalidate_downstream_from, clear_image, to_slides_dict, from_slides_dict,
 #          _validate_candidate_slides
 #   DEPENDS: video2pptx.domain.slide, video2pptx.domain.identifiers, video2pptx.domain.time,
-#            video2pptx.domain.pipeline_state, video2pptx.domain.errors
+#            video2pptx.domain.pipeline_state, video2pptx.domain.artifacts, video2pptx.domain.errors
 #   LINKS: M-DOMAIN-PROJECT
 #   ROLE: CORE_LOGIC
 #   MAP_MODE: EXPORTS
@@ -17,7 +17,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.1.0 - Harden aggregate: SlideView projection, candidate validation, specialized errors
+#   LAST_CHANGE: v1.2.0 - Preserve canonical artifact references and persistence extensions
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -26,6 +26,7 @@ import math
 from collections.abc import Sequence
 from typing import Any
 
+from video2pptx.domain.artifacts import ArtifactRef
 from video2pptx.domain.errors import (
     DomainError,
     DuplicateSlideId,
@@ -55,6 +56,8 @@ class Project:
         video_path: str = "",
         subtitle_path: str = "",
         output_dir: str = "",
+        artifacts: dict[str, ArtifactRef] | None = None,
+        extensions: dict[str, Any] | None = None,
     ) -> None:
         self.name: str = name
         self.video_path: str = video_path
@@ -64,6 +67,8 @@ class Project:
         self.pipeline: PipelineState = PipelineState()
         self.score_timestamps: list[float] = []
         self.score_values: list[float] = []
+        self.artifacts: dict[str, ArtifactRef] = dict(artifacts or {})
+        self.extensions: dict[str, Any] = dict(extensions or {})
 
     @property
     def slides(self) -> tuple[SlideView, ...]:

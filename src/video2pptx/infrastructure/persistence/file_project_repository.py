@@ -104,7 +104,7 @@ class FileProjectRepository:
                 path=str(project_json),
             ) from exc
 
-        project = ProjectMapper.to_domain(legacy_project, location)
+        project = ProjectMapper.from_legacy_project(legacy_project, location)
 
         if schema_version == "1.0":
             logger.info(
