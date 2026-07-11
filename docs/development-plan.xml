@@ -643,6 +643,12 @@
       <verification-ref>V-REF-APP-SERVICES</verification-ref>
       <depends>M-DOMAIN-PROJECT</depends>
     </M-PORT-EXPORT>
+    <M-APP-COMMON NAME="ApplicationCommon" TYPE="UTILITY" LAYER="2" ORDER="79" STATUS="implemented">
+      <contract><purpose>Shared DTOs, errors, cancellation, observer, and service context for all stage services.</purpose></contract>
+      <target><source>src/video2pptx/application/dto.py</source><source>src/video2pptx/application/errors.py</source><source>src/video2pptx/application/cancellation.py</source><source>src/video2pptx/application/observer.py</source><source>src/video2pptx/application/base.py</source><tests>tests/application/test_common.py</tests></target>
+      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+      <depends>none</depends>
+    </M-APP-COMMON>
     <M-APP-PREVIEW NAME="PreviewService" TYPE="CORE_LOGIC" LAYER="2" ORDER="80" STATUS="planned">
       <contract><purpose>Canonical waveform-only preview use case with revision-safe persistence and no slide invalidation.</purpose></contract>
       <target><source>src/video2pptx/application/services/preview_service.py</source><tests>tests/application/test_preview_service.py</tests></target>
@@ -1067,8 +1073,13 @@
         <checkpoint-5.0D status="done">Revisioned derived artifact, strict canonical/domain/derived validation, and aggregate validate gate.</checkpoint-5.0D>
       </step-4.7>
       <step-5 name="ApplicationServices" status="planned" verification="V-REF-APP-SERVICES">
-        Checkpoints: 5.1 common DTO/errors/observer/cancellation; 5.2 Preview/Detect; 5.3 Align;
-        5.4 Notes/LLM; 5.5 Export/Validation; 5.6 Auto; 5.7 adapters/bootstrap/characterization.
+        <checkpoint-5.1 status="done">Common DTOs, errors, cancellation, observer, and service context.</checkpoint-5.1>
+        <checkpoint-5.2 status="planned">Preview and Detection services.</checkpoint-5.2>
+        <checkpoint-5.3 status="planned">Alignment service.</checkpoint-5.3>
+        <checkpoint-5.4 status="planned">Notes and LLM service.</checkpoint-5.4>
+        <checkpoint-5.5 status="planned">Export and Validation services.</checkpoint-5.5>
+        <checkpoint-5.6 status="planned">Auto orchestration service.</checkpoint-5.6>
+        <checkpoint-5.7 status="planned">Adapters, bootstrap, characterization.</checkpoint-5.7>
         Services depend only on domain and ports, never GUI, MCP, CLI, or concrete infrastructure.
       </step-5>
       <step-6 name="MCPtoApplication" status="planned" verification="V-REF-MCP-ADAPTER">

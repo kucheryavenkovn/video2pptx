@@ -1023,6 +1023,19 @@
         <fn-validate_storage PURPOSE="Validate strict DTO, domain mapping, source revision, slide IDs/count, and score consistency" />
       </annotations>
     </M-FILE-REPO>
+    <M-APP-COMMON NAME="ApplicationCommon" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Shared DTOs, errors, cancellation, observer, and service context for all stage services.</purpose>
+      <path>src/video2pptx/application/</path>
+      <depends>none</depends>
+      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+      <annotations>
+        <type-ServiceResult PURPOSE="Typed success/failure result with stage, data, revision, and warnings" />
+        <type-ProgressUpdate PURPOSE="Validated percent and message for progress reporting" />
+        <type-CancellationToken PURPOSE="Thread-safe cooperative cancellation flag" />
+        <type-ProgressObserver PURPOSE="Protocol for receiving progress updates" />
+        <type-ServiceContext PURPOSE="Bundles repository, observer, and cancellation for stage services" />
+      </annotations>
+    </M-APP-COMMON>
     <M-PORT-PREVIEW NAME="PreviewAnalyzerPort" TYPE="INTEGRATION" STATUS="planned">
       <purpose>Produce immutable preview score data without project or persistence mutation.</purpose>
       <path>src/video2pptx/application/ports/preview_analyzer.py</path>

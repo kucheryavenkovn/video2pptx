@@ -966,11 +966,12 @@
     </scenarios>
   </V-APP-AUTO>
 
-  <V-REF-APP-SERVICES MODULE="Phase-16/Step-5" DATA_FLOW="DF-APP-01" PRIORITY="high" STATUS="planned">
-    <test-files><file>tests/application/</file></test-files>
-    <module-checks><check-1>pytest tests/application/ -q</check-1></module-checks>
-    <wave-checks><check-1>pytest tests/domain/ tests/application/ tests/infra/ -q</check-1></wave-checks>
-    <phase-checks><check-1>pytest --ignore=tests/e2e -q</check-1></phase-checks>
+  <V-REF-APP-SERVICES MODULE="Phase-16/Step-5" DATA_FLOW="DF-APP-01" PRIORITY="high" STATUS="partial">
+    <test-files><file>tests/application/test_common.py</file></test-files>
+    <module-checks><check-1>python -m pytest tests/application/ -q</check-1></module-checks>
+    <wave-checks><check-1>python -m pytest tests/domain tests/application tests/infra -q</check-1></wave-checks>
+    <phase-checks><check-1>python -m pytest --ignore=tests/e2e -q</check-1></phase-checks>
+    <evidence><result>Checkpoint 5.1: 19 common tests passed; 144 domain+application+infra wave passed; Ruff passed. Stage services remain in 5.2-5.7.</result></evidence>
     <scenarios>
       <scenario-1 kind="success">Services depend only on domain and ports and use repository revisions on every mutation.</scenario-1>
       <scenario-2 kind="success">Cancellation and adapter failures leave aggregate invariants intact and record typed stage failures.</scenario-2>
