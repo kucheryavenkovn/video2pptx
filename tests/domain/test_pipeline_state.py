@@ -79,12 +79,12 @@ class TestPipelineTransitions:
         with pytest.raises(IllegalStateTransition):
             ps.succeed("detect")
 
-    def test_illegal_succeeded_to_running(self):
+    def test_succeeded_to_running_is_valid_for_rerun(self):
         ps = PipelineState()
         ps.start("detect")
         ps.succeed("detect")
-        with pytest.raises(IllegalStateTransition):
-            ps.start("detect")
+        ps.start("detect")
+        assert ps.status("detect") is StageStatus.RUNNING
 
     def test_illegal_failed_to_succeeded(self):
         ps = PipelineState()

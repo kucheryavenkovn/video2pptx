@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/domain/pipeline_state.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Pipeline stage state machine with transitions, invalidation, and legacy compatibility.
 #   SCOPE: StageStatus, StageState, PipelineState, transition validation, downstream invalidation
@@ -19,7 +19,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Initial PipelineState implementation
+#   LAST_CHANGE: v1.1.0 - Allow SUCCEEDED to RUNNING transition for stage re-runs
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -71,6 +71,7 @@ VALID_TRANSITIONS: dict[tuple[StageStatus, StageStatus], bool] = {
     (StageStatus.RUNNING, StageStatus.FAILED): True,
     (StageStatus.RUNNING, StageStatus.CANCELLED): True,
     (StageStatus.SUCCEEDED, StageStatus.STALE): True,
+    (StageStatus.SUCCEEDED, StageStatus.RUNNING): True,
     (StageStatus.FAILED, StageStatus.RUNNING): True,
     (StageStatus.STALE, StageStatus.RUNNING): True,
     (StageStatus.CANCELLED, StageStatus.RUNNING): True,
