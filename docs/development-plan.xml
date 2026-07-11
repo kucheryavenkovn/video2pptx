@@ -631,7 +631,7 @@
       <verification-ref>V-REF-APP-SERVICES</verification-ref>
       <depends>M-DOMAIN-PROJECT</depends>
     </M-PORT-ALIGNMENT>
-    <M-PORT-NOTES NAME="NotesProcessorPort" TYPE="INTEGRATION" LAYER="3" ORDER="78" STATUS="planned">
+    <M-PORT-NOTES NAME="NotesProcessorPort" TYPE="INTEGRATION" LAYER="3" ORDER="78" STATUS="implemented">
       <contract><purpose>Produce basic or LLM note results while preserving raw subtitle cues.</purpose></contract>
       <target><source>src/video2pptx/application/ports/notes_processor.py</source><tests>tests/application/test_notes_service.py</tests></target>
       <verification-ref>V-REF-APP-SERVICES</verification-ref>
@@ -667,7 +667,7 @@
       <verification-ref>V-APP-ALIGN</verification-ref>
       <depends>M-PORT-REPO, M-PORT-ALIGNMENT, M-DOMAIN-PROJECT</depends>
     </M-APP-ALIGN>
-    <M-APP-NOTES NAME="NotesService" TYPE="CORE_LOGIC" LAYER="2" ORDER="83" STATUS="planned">
+    <M-APP-NOTES NAME="NotesService" TYPE="CORE_LOGIC" LAYER="2" ORDER="83" STATUS="implemented">
       <contract><purpose>Canonical basic/LLM notes use case preserving raw cues and forbidding silent LLM fallback.</purpose></contract>
       <target><source>src/video2pptx/application/services/notes_service.py</source><tests>tests/application/test_notes_service.py</tests></target>
       <verification-ref>V-APP-NOTES</verification-ref>
@@ -1076,7 +1076,7 @@
         <checkpoint-5.1 status="done">Common DTOs, errors, cancellation, observer, and service context.</checkpoint-5.1>
         <checkpoint-5.2 status="done">Preview and Detection services with revision-safe ports.</checkpoint-5.2>
         <checkpoint-5.3 status="done">Alignment service with dry-run/apply.</checkpoint-5.3>
-        <checkpoint-5.4 status="planned">Notes and LLM service.</checkpoint-5.4>
+        <checkpoint-5.4 status="done">Notes service with basic/LLM modes.</checkpoint-5.4>
         <checkpoint-5.5 status="planned">Export and Validation services.</checkpoint-5.5>
         <checkpoint-5.6 status="planned">Auto orchestration service.</checkpoint-5.6>
         <checkpoint-5.7 status="planned">Adapters, bootstrap, characterization.</checkpoint-5.7>

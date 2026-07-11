@@ -929,7 +929,7 @@
     </scenarios>
   </V-APP-ALIGN>
 
-  <V-APP-NOTES MODULE="M-APP-NOTES" PRIORITY="high" STATUS="planned">
+  <V-APP-NOTES MODULE="M-APP-NOTES" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_notes_service.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Basic mode enriches transcript from subtitle cues.</scenario-1>
@@ -971,7 +971,7 @@
     <module-checks><check-1>python -m pytest tests/application/ -q</check-1></module-checks>
     <wave-checks><check-1>python -m pytest tests/domain tests/application tests/infra -q</check-1></wave-checks>
     <phase-checks><check-1>python -m pytest --ignore=tests/e2e -q</check-1></phase-checks>
-    <evidence><result>Checkpoint 5.3: 5 alignment tests passed; 157 domain+application+infra wave passed; Ruff passed. Notes/export/auto remain in 5.4-5.7.</result></evidence>
+    <evidence><result>Checkpoint 5.4: 5 notes tests passed; 162 domain+application+infra wave passed; Ruff passed. Export/auto remain in 5.5-5.7.</result></evidence>
     <scenarios>
       <scenario-1 kind="success">Services depend only on domain and ports and use repository revisions on every mutation.</scenario-1>
       <scenario-2 kind="success">Cancellation and adapter failures leave aggregate invariants intact and record typed stage failures.</scenario-2>

@@ -956,7 +956,7 @@
       <depends>M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-VALIDATE</depends>
       <verification-ref>V-APP-AUTO</verification-ref>
     </M-APP-AUTO>
-    <M-APP-NOTES NAME="NotesService" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-APP-NOTES NAME="NotesService" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Canonical basic/LLM notes use case preserving raw cues and forbidding silent LLM fallback.</purpose>
       <path>src/video2pptx/application/services/notes_service.py</path>
       <depends>M-PORT-REPO, M-PORT-NOTES, M-DOMAIN-PROJECT</depends>
@@ -1054,7 +1054,7 @@
       <depends>M-DOMAIN-PROJECT</depends>
       <verification-ref>V-REF-APP-SERVICES</verification-ref>
     </M-PORT-ALIGNMENT>
-    <M-PORT-NOTES NAME="NotesProcessorPort" TYPE="INTEGRATION" STATUS="planned">
+    <M-PORT-NOTES NAME="NotesProcessorPort" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Produce basic or LLM notes while preserving raw subtitle cues.</purpose>
       <path>src/video2pptx/application/ports/notes_processor.py</path>
       <depends>M-DOMAIN-PROJECT</depends>
