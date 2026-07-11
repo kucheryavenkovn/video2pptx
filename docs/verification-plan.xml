@@ -645,7 +645,7 @@
     <test-files><file>tests/test_mcp_operations.py</file><file>tests/test_app_service_runner.py</file><file>tests/test_mcp_qt_operations.py</file></test-files>
     <module-checks><check-1>pytest tests/test_mcp_operations.py tests/test_app_service_runner.py tests/test_mcp_qt_operations.py -q</check-1></module-checks>
     <wave-checks><check-1>pytest tests/test_mcp_*.py tests/test_app_service_runner.py -q</check-1></wave-checks>
-    <phase-checks><check-1>pytest --ignore=tests/e2e -q</check-1></phase-checks>
+    <phase-checks><check-1>python -m pytest --ignore=tests/e2e -q</check-1></phase-checks>
     <scenarios>
       <scenario-1 kind="success">Write tool returns {operation_id, status:queued}.</scenario-1>
       <scenario-2 kind="success">OpRunnerThread runs app_service, op→succeeded with result.</scenario-2>
@@ -865,12 +865,12 @@
     </scenarios>
   </V-PERSIST-MIGRATIONS>
 
-  <V-FILE-REPO MODULE="M-FILE-REPO" PRIORITY="high" STATUS="partial">
+  <V-FILE-REPO MODULE="M-FILE-REPO" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/infra/test_file_repository.py</file><file>tests/infra/test_mapper.py</file></test-files>
     <module-checks><check-1>python -m pytest tests/infra/test_file_repository.py tests/infra/test_mapper.py tests/infra/test_migrations.py tests/infra/test_persistence_dto.py -q</check-1></module-checks>
     <wave-checks><check-1>python -m pytest tests/domain tests/infra -q</check-1></wave-checks>
     <phase-checks><check-1>python -m pytest --ignore=tests/e2e -q</check-1></phase-checks>
-    <evidence><result>35 targeted tests passed; domain+infra and full non-E2E regression passed; Ruff passed. Derived source_revision remains 5.0D.</result></evidence>
+    <evidence><result>Repository/mapper tests, domain+infra, and full non-E2E regression passed; Ruff passed. source_revision, derived mismatch recovery, and canonical-on-derived-failure are covered.</result></evidence>
     <scenarios>
       <scenario-1 kind="success">LoadedProject revision supports an optimistic load-edit-save cycle.</scenario-1>
       <scenario-2 kind="failure">Corrupt canonical storage and revision conflicts fail without overwrite.</scenario-2>
@@ -878,11 +878,12 @@
     </scenarios>
   </V-FILE-REPO>
 
-  <V-REF-PERSISTENCE-STABILIZATION MODULE="Phase-16/Step-4.7" DATA_FLOW="DF-PERSIST-01" PRIORITY="high" STATUS="planned">
+  <V-REF-PERSISTENCE-STABILIZATION MODULE="Phase-16/Step-4.7" DATA_FLOW="DF-PERSIST-01" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/infra/test_persistence_dto.py</file><file>tests/infra/test_migrations.py</file><file>tests/infra/test_mapper.py</file><file>tests/infra/test_file_repository.py</file></test-files>
-    <module-checks><check-1>pytest tests/infra/ -q</check-1></module-checks>
-    <wave-checks><check-1>pytest tests/domain/ tests/infra/ -q</check-1></wave-checks>
-    <phase-checks><check-1>pytest --ignore=tests/e2e -q</check-1></phase-checks>
+    <module-checks><check-1>python -m pytest tests/infra/ -q</check-1></module-checks>
+    <wave-checks><check-1>python -m pytest tests/domain tests/infra -q</check-1></wave-checks>
+    <phase-checks><check-1>python -m pytest --ignore=tests/e2e -q</check-1></phase-checks>
+    <evidence><result>All 5.0A–5.0D module, wave, and full non-E2E gates passed; Ruff passed. mypy remains unavailable per F-0060.</result></evidence>
     <scenarios>
       <scenario-PERSIST-1 kind="success">Schema 2.0 is parsed through ProjectDocumentV2, not LegacyProject.</scenario-PERSIST-1>
       <scenario-PERSIST-2 kind="success">Full PipelineState round-trip preserves FAILED, STALE, CANCELLED, SKIPPED, operation_id, error, timestamps.</scenario-PERSIST-2>

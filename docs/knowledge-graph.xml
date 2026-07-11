@@ -908,10 +908,11 @@
       <verification-ref>V-DOMAIN-VALUE</verification-ref>
     </M-DOMAIN-VALUE>
     <M-DOMAIN-PROJECT NAME="ProjectAggregate" TYPE="CORE_LOGIC" STATUS="implemented">
-      <purpose>Project aggregate root controlling slide invariants, downstream invalidation, state transitions. Canonical source of truth.</purpose>
+      <purpose>Project aggregate root controlling slide invariants, downstream invalidation, state transitions, and side-effect-free validation. Canonical source of truth.</purpose>
       <path>src/video2pptx/domain/project.py</path>
       <depends>M-DOMAIN-VALUE</depends>
       <verification-ref>V-DOMAIN-PROJECT</verification-ref>
+      <annotations><fn-validate PURPOSE="Check complete aggregate invariants without mutation" /></annotations>
     </M-DOMAIN-PROJECT>
     <M-DOMAIN-SLIDE NAME="SlideEntity" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Slide entity with stable SlideId, visual/aligned TimeInterval, image ArtifactRef, transcript, confidence, manual flag</purpose>
@@ -1010,7 +1011,7 @@
         <fn-ProjectMapper-to_document PURPOSE="Project aggregate, artifacts, extensions, and full pipeline into strict V2 data" />
       </annotations>
     </M-PERSIST-MIGRATIONS>
-    <M-FILE-REPO NAME="FileProjectRepository" TYPE="DATA_LAYER" STATUS="partial">
+    <M-FILE-REPO NAME="FileProjectRepository" TYPE="DATA_LAYER" STATUS="implemented">
       <purpose>Canonical atomic commit with revisioned derived slides artifact, strict validation, optimistic concurrency.</purpose>
       <path>src/video2pptx/infrastructure/persistence/file_project_repository.py</path>
       <depends>M-PORT-REPO, M-PERSIST-DTO, M-PERSIST-MIGRATIONS, M-DOMAIN-PROJECT</depends>
@@ -1018,7 +1019,8 @@
       <annotations>
         <fn-create PURPOSE="Create canonical storage and return first LoadedProject revision unit" />
         <fn-load PURPOSE="Dispatch raw legacy migration or strict V2 parsing" />
-        <fn-save PURPOSE="Reject corrupt/conflicting state and atomically commit canonical V2 data" />
+        <fn-save PURPOSE="Validate aggregate, reject corrupt/conflicting state, commit canonical V2, then revisioned derived data" />
+        <fn-validate_storage PURPOSE="Validate strict DTO, domain mapping, source revision, slide IDs/count, and score consistency" />
       </annotations>
     </M-FILE-REPO>
     <M-PORT-PREVIEW NAME="PreviewAnalyzerPort" TYPE="INTEGRATION" STATUS="planned">
