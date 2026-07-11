@@ -940,27 +940,99 @@
     <M-APP-DETECT name="DetectionService" TYPE="CORE_LOGIC" STATUS="planned">
       <purpose>Run full or preview detection via strategy. Project invariant enforcement. Single canonical detect path.</purpose>
       <path>src/video2pptx/application/services/detection_service.py</path>
-      <depends>M-DOMAIN-PROJECT, M-PORT-VIDEO, M-PORT-DETECTOR</depends>
+      <depends>M-DOMAIN-PROJECT, M-PORT-REPO, M-PORT-DETECTOR</depends>
       <verification-ref>V-APP-DETECT</verification-ref>
     </M-APP-DETECT>
     <M-APP-ALIGN name="AlignmentService" TYPE="CORE_LOGIC" STATUS="planned">
       <purpose>Align visual boundaries to subtitle anchors via strategy + anchor provider.</purpose>
       <path>src/video2pptx/application/services/alignment_service.py</path>
-      <depends>M-DOMAIN-PROJECT, M-PORT-ALIGN</depends>
+      <depends>M-DOMAIN-PROJECT, M-PORT-REPO, M-PORT-ALIGNMENT</depends>
       <verification-ref>V-APP-ALIGN</verification-ref>
     </M-APP-ALIGN>
     <M-APP-AUTO name="AutoService" TYPE="CORE_LOGIC" STATUS="planned">
-      <purpose>Orchestrate detect→align→notes→export→validate. Not a copy of pipeline, uses services.</purpose>
+      <purpose>Coordinate full/resume/force by composing stage services without duplicating stage algorithms.</purpose>
       <path>src/video2pptx/application/services/auto_service.py</path>
       <depends>M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-VALIDATE</depends>
       <verification-ref>V-APP-AUTO</verification-ref>
     </M-APP-AUTO>
+    <M-APP-NOTES NAME="NotesService" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Canonical basic/LLM notes use case preserving raw cues and forbidding silent LLM fallback.</purpose>
+      <path>src/video2pptx/application/services/notes_service.py</path>
+      <depends>M-PORT-REPO, M-PORT-NOTES, M-DOMAIN-PROJECT</depends>
+      <verification-ref>V-APP-NOTES</verification-ref>
+    </M-APP-NOTES>
+    <M-APP-EXPORT NAME="ExportService" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Canonical staged Markdown/PPTX exports from immutable aggregate snapshots with output validation.</purpose>
+      <path>src/video2pptx/application/services/export_service.py</path>
+      <depends>M-PORT-REPO, M-PORT-EXPORT, M-DOMAIN-PROJECT</depends>
+      <verification-ref>V-APP-EXPORT</verification-ref>
+    </M-APP-EXPORT>
+    <M-APP-VALIDATE NAME="ValidationService" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Validate storage, aggregate, media, artifacts, exports, and derived revision consistency.</purpose>
+      <path>src/video2pptx/application/services/validation_service.py</path>
+      <depends>M-PORT-REPO, M-DOMAIN-PROJECT</depends>
+      <verification-ref>V-APP-VALIDATE</verification-ref>
+    </M-APP-VALIDATE>
     <M-PORT-REPO name="ProjectRepository" TYPE="CORE_LOGIC" STATUS="implemented">
-      <purpose>Protocol for loading/saving Project aggregate. Implementations: FileProjectRepository.</purpose>
+      <purpose>Revision-aware port for loading/saving Project aggregate through LoadedProject and SaveResult.</purpose>
       <path>src/video2pptx/application/ports/project_repository.py</path>
       <depends>M-DOMAIN-PROJECT</depends>
       <verification-ref>V-PORT-REPO</verification-ref>
     </M-PORT-REPO>
+    <M-PERSIST-DTO NAME="PersistenceDtoV2" TYPE="DATA_LAYER" STATUS="planned">
+      <purpose>Strict schema 2.0 DTO with full pipeline, portable artifacts, extensions, and revision.</purpose>
+      <path>src/video2pptx/infrastructure/persistence/dto.py</path>
+      <depends>M-DOMAIN-VALUE</depends>
+      <verification-ref>V-PERSIST-DTO</verification-ref>
+    </M-PERSIST-DTO>
+    <M-PERSIST-MIGRATIONS NAME="PersistenceMigrations" TYPE="DATA_LAYER" STATUS="planned">
+      <purpose>Deterministic schema 1.0 → 2.0 migration preserving unknown legacy fields and stable UIDs.</purpose>
+      <path>src/video2pptx/infrastructure/persistence/migrations.py</path>
+      <depends>M-PERSIST-DTO, M-DOMAIN-VALUE</depends>
+      <verification-ref>V-PERSIST-MIGRATIONS</verification-ref>
+    </M-PERSIST-MIGRATIONS>
+    <M-FILE-REPO NAME="FileProjectRepository" TYPE="DATA_LAYER" STATUS="partial">
+      <purpose>Canonical atomic commit with revisioned derived slides artifact, strict validation, optimistic concurrency.</purpose>
+      <path>src/video2pptx/infrastructure/persistence/file_project_repository.py</path>
+      <depends>M-PORT-REPO, M-PERSIST-DTO, M-PERSIST-MIGRATIONS, M-DOMAIN-PROJECT</depends>
+      <verification-ref>V-FILE-REPO</verification-ref>
+    </M-FILE-REPO>
+    <M-PORT-PREVIEW NAME="PreviewAnalyzerPort" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Produce immutable preview score data without project or persistence mutation.</purpose>
+      <path>src/video2pptx/application/ports/preview_analyzer.py</path>
+      <depends>M-DOMAIN-VALUE</depends>
+      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+    </M-PORT-PREVIEW>
+    <M-PORT-DETECTOR NAME="SlideDetectorPort" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Return a complete immutable candidate slide set from video input.</purpose>
+      <path>src/video2pptx/application/ports/slide_detector.py</path>
+      <depends>M-DOMAIN-VALUE</depends>
+      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+    </M-PORT-DETECTOR>
+    <M-PORT-ALIGNMENT NAME="AlignmentPort" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Compute immutable alignment plans and metrics without aggregate mutation.</purpose>
+      <path>src/video2pptx/application/ports/alignment.py</path>
+      <depends>M-DOMAIN-PROJECT</depends>
+      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+    </M-PORT-ALIGNMENT>
+    <M-PORT-NOTES NAME="NotesProcessorPort" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Produce basic or LLM notes while preserving raw subtitle cues.</purpose>
+      <path>src/video2pptx/application/ports/notes_processor.py</path>
+      <depends>M-DOMAIN-PROJECT</depends>
+      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+    </M-PORT-NOTES>
+    <M-PORT-EXPORT NAME="PresentationExporterPort" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Stage Markdown or PPTX output from immutable project snapshots.</purpose>
+      <path>src/video2pptx/application/ports/presentation_exporter.py</path>
+      <depends>M-DOMAIN-PROJECT</depends>
+      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+    </M-PORT-EXPORT>
+    <M-APP-PREVIEW NAME="PreviewService" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Canonical waveform-only preview use case with revision-safe persistence and no slide invalidation.</purpose>
+      <path>src/video2pptx/application/services/preview_service.py</path>
+      <depends>M-PORT-REPO, M-PORT-PREVIEW, M-DOMAIN-PROJECT</depends>
+      <verification-ref>V-APP-PREVIEW</verification-ref>
+    </M-APP-PREVIEW>
     <M-PORT-EVENTS name="EventBus" TYPE="UTILITY" STATUS="planned">
       <purpose>Synchronous event bus: publish domain events, notify subscribers. Adapter for Qt signals.</purpose>
       <path>src/video2pptx/application/ports/event_bus.py</path>
@@ -978,6 +1050,18 @@
     <CrossLink from="M-APP-AUTO" to="M-APP-DETECT" relation="orchestrates detection stage" />
     <CrossLink from="M-APP-AUTO" to="M-APP-ALIGN" relation="orchestrates alignment stage" />
     <CrossLink from="M-PORT-REPO" to="M-DOMAIN-PROJECT" relation="persists Project to project.json + slides.json" />
+    <CrossLink from="M-FILE-REPO" to="M-PORT-REPO" relation="implements port" />
+    <CrossLink from="M-FILE-REPO" to="M-PERSIST-DTO" relation="reads/writes ProjectDocumentV2" />
+    <CrossLink from="M-FILE-REPO" to="M-PERSIST-MIGRATIONS" relation="migrates legacy schema on load" />
+    <CrossLink from="M-PERSIST-MIGRATIONS" to="M-PERSIST-DTO" relation="produces V2 DTO from V1 data" />
+    <CrossLink from="M-APP-PREVIEW" to="M-PORT-REPO" relation="loads/saves project" />
+    <CrossLink from="M-APP-PREVIEW" to="M-PORT-PREVIEW" relation="requests immutable score data" />
+    <CrossLink from="M-APP-DETECT" to="M-PORT-DETECTOR" relation="requests complete slide candidates" />
+    <CrossLink from="M-APP-ALIGN" to="M-PORT-ALIGNMENT" relation="requests immutable alignment plan" />
+    <CrossLink from="M-APP-NOTES" to="M-PORT-NOTES" relation="requests processed notes" />
+    <CrossLink from="M-APP-EXPORT" to="M-PORT-EXPORT" relation="stages presentation artifacts" />
+    <CrossLink from="M-APP-DETECT" to="M-FILE-REPO" relation="loads and saves through repository" />
+    <CrossLink from="M-APP-AUTO" to="M-APP-PREVIEW" relation="may invoke preview in full mode" />
     <CrossLink from="M-PORT-EVENTS" to="M-DOMAIN-EVENTS" relation="distributes domain events to subscribers" />
   </Project>
 </KnowledgeGraph>

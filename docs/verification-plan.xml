@@ -842,6 +842,133 @@
     </scenarios>
   </V-PORT-REPO>
 
+  <V-PERSIST-DTO MODULE="M-PERSIST-DTO" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/infra/test_persistence_dto.py</file></test-files>
+    <module-checks><check-1>pytest tests/infra/test_persistence_dto.py -q</check-1></module-checks>
+    <scenarios>
+      <scenario-1 kind="success">ProjectDocumentV2 strictly round-trips every canonical aggregate field.</scenario-1>
+      <scenario-2 kind="failure">Unknown canonical fields are rejected outside extensions.</scenario-2>
+    </scenarios>
+  </V-PERSIST-DTO>
+
+  <V-PERSIST-MIGRATIONS MODULE="M-PERSIST-MIGRATIONS" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/infra/test_migrations.py</file></test-files>
+    <module-checks><check-1>pytest tests/infra/test_migrations.py -q</check-1></module-checks>
+    <scenarios>
+      <scenario-1 kind="success">Schema 1.0 migrates deterministically to schema 2.0 with stable slide IDs.</scenario-1>
+      <scenario-2 kind="success">Unknown legacy fields survive under extensions.legacy.</scenario-2>
+    </scenarios>
+  </V-PERSIST-MIGRATIONS>
+
+  <V-FILE-REPO MODULE="M-FILE-REPO" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/infra/test_file_repository.py</file><file>tests/infra/test_mapper.py</file></test-files>
+    <module-checks><check-1>pytest tests/infra/test_file_repository.py tests/infra/test_mapper.py -q</check-1></module-checks>
+    <scenarios>
+      <scenario-1 kind="success">LoadedProject revision supports an optimistic load-edit-save cycle.</scenario-1>
+      <scenario-2 kind="failure">Corrupt canonical storage and revision conflicts fail without overwrite.</scenario-2>
+      <scenario-3 kind="success">Derived slides artifact records and validates source_revision.</scenario-3>
+    </scenarios>
+  </V-FILE-REPO>
+
+  <V-REF-PERSISTENCE-STABILIZATION MODULE="Phase-16/Step-4.7" DATA_FLOW="DF-PERSIST-01" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/infra/test_persistence_dto.py</file><file>tests/infra/test_migrations.py</file><file>tests/infra/test_mapper.py</file><file>tests/infra/test_file_repository.py</file></test-files>
+    <module-checks><check-1>pytest tests/infra/ -q</check-1></module-checks>
+    <wave-checks><check-1>pytest tests/domain/ tests/infra/ -q</check-1></wave-checks>
+    <phase-checks><check-1>pytest --ignore=tests/e2e -q</check-1></phase-checks>
+    <scenarios>
+      <scenario-PERSIST-1 kind="success">Schema 2.0 is parsed through ProjectDocumentV2, not LegacyProject.</scenario-PERSIST-1>
+      <scenario-PERSIST-2 kind="success">Full PipelineState round-trip preserves FAILED, STALE, CANCELLED, SKIPPED, operation_id, error, timestamps.</scenario-PERSIST-2>
+      <scenario-PERSIST-3 kind="success">Load does not invalidate pipeline stages (rehydration has no business side effects).</scenario-PERSIST-3>
+      <scenario-PERSIST-4 kind="success">load() returns LoadedProject with revision; standard load→edit→save uses expected_revision.</scenario-PERSIST-4>
+      <scenario-PERSIST-5 kind="success">output_dir is not persisted in schema 2.0; project root is runtime context.</scenario-PERSIST-5>
+      <scenario-PERSIST-6 kind="success">slides.json contains source_revision matching project.json revision.</scenario-PERSIST-6>
+      <scenario-PERSIST-7 kind="failure">Corrupt existing project.json with expected_revision raises ProjectDocumentCorrupted, not silent overwrite.</scenario-PERSIST-7>
+      <scenario-PERSIST-8 kind="success">validate_storage performs DTO validation, domain mapping, and derived revision check.</scenario-PERSIST-8>
+      <scenario-PERSIST-9 kind="success">Unknown legacy fields are preserved in extensions.legacy.</scenario-PERSIST-9>
+      <scenario-PERSIST-10 kind="success">project.validate() checks aggregate invariants without mutating state.</scenario-PERSIST-10>
+      <scenario-PERSIST-11 kind="success">SlideId.new() generates 128-bit UUID; legacy IDs preserved as-is.</scenario-PERSIST-11>
+    </scenarios>
+  </V-REF-PERSISTENCE-STABILIZATION>
+
+  <V-APP-PREVIEW MODULE="M-APP-PREVIEW" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/application/test_preview_service.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Preview succeeds, waveform updated, slides unchanged.</scenario-1>
+      <scenario-2 kind="failure">Invalid analyzer output → preview=FAILED, aggregate unchanged.</scenario-2>
+      <scenario-3 kind="success">Cancellation raises before aggregate mutation.</scenario-3>
+      <scenario-4 kind="failure">Revision conflict → PersistenceConflictError.</scenario-4>
+    </scenarios>
+  </V-APP-PREVIEW>
+
+  <V-APP-DETECT MODULE="M-APP-DETECT" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/application/test_detection_service.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Detection replaces slides, invalidates downstream, saves with revision.</scenario-1>
+      <scenario-2 kind="failure">Adapter failure → detect=FAILED, old slides preserved.</scenario-2>
+      <scenario-3 kind="success">No notes/export/align side effects.</scenario-3>
+      <scenario-4 kind="failure">Overlapping candidates → rejection before aggregate mutation.</scenario-4>
+    </scenarios>
+  </V-APP-DETECT>
+
+  <V-APP-ALIGN MODULE="M-APP-ALIGN" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/application/test_alignment_service.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Dry-run returns metrics without saving or mutating pipeline.</scenario-1>
+      <scenario-2 kind="success">Apply updates intervals, saves, invalidates downstream.</scenario-2>
+      <scenario-3 kind="success">Idempotent second apply produces identical intervals.</scenario-3>
+      <scenario-4 kind="failure">Invalid plan → rejection before aggregate mutation.</scenario-4>
+    </scenarios>
+  </V-APP-ALIGN>
+
+  <V-APP-NOTES MODULE="M-APP-NOTES" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/application/test_notes_service.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Basic mode enriches transcript from subtitle cues.</scenario-1>
+      <scenario-2 kind="failure">LLM mode with unavailable gateway returns error, no silent fallback.</scenario-2>
+      <scenario-3 kind="success">Raw subtitle cues preserved after processing.</scenario-3>
+    </scenarios>
+  </V-APP-NOTES>
+
+  <V-APP-EXPORT MODULE="M-APP-EXPORT" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/application/test_export_service.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Markdown staged, validated, atomically replaced.</scenario-1>
+      <scenario-2 kind="success">PPTX reopened through python-pptx, slide/image counts match.</scenario-2>
+      <scenario-3 kind="failure">overwrite=false with existing file → controlled error.</scenario-3>
+    </scenarios>
+  </V-APP-EXPORT>
+
+  <V-APP-VALIDATE MODULE="M-APP-VALIDATE" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/application/test_validation_service.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Valid canonical storage, media, artifacts, and exports produce valid=true.</scenario-1>
+      <scenario-2 kind="failure">Domain invariant or derived revision mismatch produces a typed validation error.</scenario-2>
+      <scenario-3 kind="failure">Missing or structurally invalid export is reported without mutating project state.</scenario-3>
+    </scenarios>
+  </V-APP-VALIDATE>
+
+  <V-APP-AUTO MODULE="M-APP-AUTO" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/application/test_auto_service.py</file></test-files>
+    <scenarios>
+      <scenario-1 kind="success">Full mode runs all stages, validation passes.</scenario-1>
+      <scenario-2 kind="success">Resume skips SUCCEEDED stages, re-runs STALE/FAILED.</scenario-2>
+      <scenario-3 kind="success">Force re-runs all stages.</scenario-3>
+      <scenario-4 kind="failure">Stage failure halts pipeline, records which stage failed.</scenario-4>
+    </scenarios>
+  </V-APP-AUTO>
+
+  <V-REF-APP-SERVICES MODULE="Phase-16/Step-5" DATA_FLOW="DF-APP-01" PRIORITY="high" STATUS="planned">
+    <test-files><file>tests/application/</file></test-files>
+    <module-checks><check-1>pytest tests/application/ -q</check-1></module-checks>
+    <wave-checks><check-1>pytest tests/domain/ tests/application/ tests/infra/ -q</check-1></wave-checks>
+    <phase-checks><check-1>pytest --ignore=tests/e2e -q</check-1></phase-checks>
+    <scenarios>
+      <scenario-1 kind="success">Services depend only on domain and ports and use repository revisions on every mutation.</scenario-1>
+      <scenario-2 kind="success">Cancellation and adapter failures leave aggregate invariants intact and record typed stage failures.</scenario-2>
+      <scenario-3 kind="success">Auto composes stage services for full, resume, and force modes without duplicating algorithms.</scenario-3>
+    </scenarios>
+  </V-REF-APP-SERVICES>
+
   <V-REF-CHAR-TESTS MODULE="Phase-16/Step-1" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/e2e/test_mcp_gui_workflow.py</file><file>tests/e2e/test_mcp_startup_characterization.py</file><file>tests/test_characterization_adapters.py</file><file>tests/test_characterization_fixtures.py</file></test-files>
     <module-checks><check-1>pytest tests/test_characterization_adapters.py tests/test_characterization_fixtures.py -q</check-1></module-checks>

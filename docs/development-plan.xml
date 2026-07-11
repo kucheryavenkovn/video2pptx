@@ -583,18 +583,108 @@
       <verification-ref>V-DOMAIN-VALUE</verification-ref>
       <depends>none</depends>
     </M-DOMAIN-VALUE>
-    <M-DOMAIN-PROJECT NAME="ProjectAggregate" TYPE="CORE_LOGIC" LAYER="0" ORDER="70" STATUS="planned">
+    <M-DOMAIN-PROJECT NAME="ProjectAggregate" TYPE="CORE_LOGIC" LAYER="0" ORDER="70" STATUS="implemented">
       <contract><purpose>Project aggregate root with invariant control, slide CRUD, downstream invalidation, state transitions. Canonical source of truth.</purpose></contract>
       <target><source>src/video2pptx/domain/project.py</source><tests>tests/domain/test_project.py</tests></target>
       <verification-ref>V-DOMAIN-PROJECT</verification-ref>
       <depends>M-DOMAIN-VALUE</depends>
     </M-DOMAIN-PROJECT>
     <M-PORT-REPO NAME="ProjectRepository" TYPE="DATA_LAYER" LAYER="3" ORDER="71" STATUS="implemented">
-      <contract><purpose>Protocol for loading/saving Project aggregate. Atomic writes, schema migration.</purpose></contract>
+      <contract><purpose>Revision-aware port for loading/saving Project aggregate through LoadedProject and SaveResult.</purpose></contract>
       <target><source>src/video2pptx/application/ports/project_repository.py</source><tests>tests/infra/test_file_repository.py</tests></target>
       <verification-ref>V-PORT-REPO</verification-ref>
       <depends>M-DOMAIN-PROJECT</depends>
     </M-PORT-REPO>
+    <M-PERSIST-DTO NAME="PersistenceDtoV2" TYPE="DATA_LAYER" LAYER="4" ORDER="72" STATUS="planned">
+      <contract><purpose>Strict schema 2.0 DTO containing full pipeline, portable artifacts, extensions, and canonical revision.</purpose></contract>
+      <target><source>src/video2pptx/infrastructure/persistence/dto.py</source><tests>tests/infra/test_persistence_dto.py</tests></target>
+      <verification-ref>V-PERSIST-DTO</verification-ref>
+      <depends>M-DOMAIN-VALUE</depends>
+    </M-PERSIST-DTO>
+    <M-PERSIST-MIGRATIONS NAME="PersistenceMigrations" TYPE="DATA_LAYER" LAYER="4" ORDER="73" STATUS="planned">
+      <contract><purpose>Deterministic schema 1.0 to 2.0 migration preserving unknown legacy fields and stable UIDs.</purpose></contract>
+      <target><source>src/video2pptx/infrastructure/persistence/migrations.py</source><tests>tests/infra/test_migrations.py</tests></target>
+      <verification-ref>V-PERSIST-MIGRATIONS</verification-ref>
+      <depends>M-PERSIST-DTO, M-DOMAIN-VALUE</depends>
+    </M-PERSIST-MIGRATIONS>
+    <M-FILE-REPO NAME="FileProjectRepository" TYPE="DATA_LAYER" LAYER="4" ORDER="74" STATUS="partial">
+      <contract><purpose>Canonical atomic project commit with revisioned derived slides artifact, strict validation, and optimistic concurrency.</purpose></contract>
+      <target><source>src/video2pptx/infrastructure/persistence/file_project_repository.py</source><tests>tests/infra/test_file_repository.py</tests></target>
+      <verification-ref>V-FILE-REPO</verification-ref>
+      <depends>M-PORT-REPO, M-PERSIST-DTO, M-PERSIST-MIGRATIONS, M-DOMAIN-PROJECT</depends>
+    </M-FILE-REPO>
+    <M-PORT-PREVIEW NAME="PreviewAnalyzerPort" TYPE="INTEGRATION" LAYER="3" ORDER="75" STATUS="planned">
+      <contract><purpose>Produce immutable preview score data without mutating project or persistence.</purpose></contract>
+      <target><source>src/video2pptx/application/ports/preview_analyzer.py</source><tests>tests/application/test_preview_service.py</tests></target>
+      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+      <depends>M-DOMAIN-VALUE</depends>
+    </M-PORT-PREVIEW>
+    <M-PORT-DETECTOR NAME="SlideDetectorPort" TYPE="INTEGRATION" LAYER="3" ORDER="76" STATUS="planned">
+      <contract><purpose>Return a complete immutable candidate slide set from video input and detection options.</purpose></contract>
+      <target><source>src/video2pptx/application/ports/slide_detector.py</source><tests>tests/application/test_detection_service.py</tests></target>
+      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+      <depends>M-DOMAIN-VALUE</depends>
+    </M-PORT-DETECTOR>
+    <M-PORT-ALIGNMENT NAME="AlignmentPort" TYPE="INTEGRATION" LAYER="3" ORDER="77" STATUS="planned">
+      <contract><purpose>Compute an immutable alignment plan and metrics without applying aggregate mutations.</purpose></contract>
+      <target><source>src/video2pptx/application/ports/alignment.py</source><tests>tests/application/test_alignment_service.py</tests></target>
+      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+      <depends>M-DOMAIN-PROJECT</depends>
+    </M-PORT-ALIGNMENT>
+    <M-PORT-NOTES NAME="NotesProcessorPort" TYPE="INTEGRATION" LAYER="3" ORDER="78" STATUS="planned">
+      <contract><purpose>Produce basic or LLM note results while preserving raw subtitle cues.</purpose></contract>
+      <target><source>src/video2pptx/application/ports/notes_processor.py</source><tests>tests/application/test_notes_service.py</tests></target>
+      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+      <depends>M-DOMAIN-PROJECT</depends>
+    </M-PORT-NOTES>
+    <M-PORT-EXPORT NAME="PresentationExporterPort" TYPE="INTEGRATION" LAYER="3" ORDER="79" STATUS="planned">
+      <contract><purpose>Stage Markdown or PPTX output from immutable project snapshots and return artifact metadata.</purpose></contract>
+      <target><source>src/video2pptx/application/ports/presentation_exporter.py</source><tests>tests/application/test_export_service.py</tests></target>
+      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+      <depends>M-DOMAIN-PROJECT</depends>
+    </M-PORT-EXPORT>
+    <M-APP-PREVIEW NAME="PreviewService" TYPE="CORE_LOGIC" LAYER="2" ORDER="80" STATUS="planned">
+      <contract><purpose>Canonical waveform-only preview use case with revision-safe persistence and no slide invalidation.</purpose></contract>
+      <target><source>src/video2pptx/application/services/preview_service.py</source><tests>tests/application/test_preview_service.py</tests></target>
+      <verification-ref>V-APP-PREVIEW</verification-ref>
+      <depends>M-PORT-REPO, M-PORT-PREVIEW, M-DOMAIN-PROJECT</depends>
+    </M-APP-PREVIEW>
+    <M-APP-DETECT NAME="DetectionService" TYPE="CORE_LOGIC" LAYER="2" ORDER="81" STATUS="planned">
+      <contract><purpose>Canonical CV detection use case applying a complete validated candidate set through the aggregate.</purpose></contract>
+      <target><source>src/video2pptx/application/services/detection_service.py</source><tests>tests/application/test_detection_service.py</tests></target>
+      <verification-ref>V-APP-DETECT</verification-ref>
+      <depends>M-PORT-REPO, M-PORT-DETECTOR, M-DOMAIN-PROJECT</depends>
+    </M-APP-DETECT>
+    <M-APP-ALIGN NAME="AlignmentService" TYPE="CORE_LOGIC" LAYER="2" ORDER="82" STATUS="planned">
+      <contract><purpose>Canonical dry-run/apply alignment use case using full-plan validation and atomic aggregate application.</purpose></contract>
+      <target><source>src/video2pptx/application/services/alignment_service.py</source><tests>tests/application/test_alignment_service.py</tests></target>
+      <verification-ref>V-APP-ALIGN</verification-ref>
+      <depends>M-PORT-REPO, M-PORT-ALIGNMENT, M-DOMAIN-PROJECT</depends>
+    </M-APP-ALIGN>
+    <M-APP-NOTES NAME="NotesService" TYPE="CORE_LOGIC" LAYER="2" ORDER="83" STATUS="planned">
+      <contract><purpose>Canonical basic/LLM notes use case preserving raw cues and forbidding silent LLM fallback.</purpose></contract>
+      <target><source>src/video2pptx/application/services/notes_service.py</source><tests>tests/application/test_notes_service.py</tests></target>
+      <verification-ref>V-APP-NOTES</verification-ref>
+      <depends>M-PORT-REPO, M-PORT-NOTES, M-DOMAIN-PROJECT</depends>
+    </M-APP-NOTES>
+    <M-APP-EXPORT NAME="ExportService" TYPE="CORE_LOGIC" LAYER="2" ORDER="84" STATUS="planned">
+      <contract><purpose>Canonical staged Markdown/PPTX exports from immutable aggregate snapshots with output validation.</purpose></contract>
+      <target><source>src/video2pptx/application/services/export_service.py</source><tests>tests/application/test_export_service.py</tests></target>
+      <verification-ref>V-APP-EXPORT</verification-ref>
+      <depends>M-PORT-REPO, M-PORT-EXPORT, M-DOMAIN-PROJECT</depends>
+    </M-APP-EXPORT>
+    <M-APP-VALIDATE NAME="ValidationService" TYPE="CORE_LOGIC" LAYER="2" ORDER="85" STATUS="planned">
+      <contract><purpose>Validate storage, aggregate, media, artifacts, exports, and derived revision consistency.</purpose></contract>
+      <target><source>src/video2pptx/application/services/validation_service.py</source><tests>tests/application/test_validation_service.py</tests></target>
+      <verification-ref>V-APP-VALIDATE</verification-ref>
+      <depends>M-PORT-REPO, M-DOMAIN-PROJECT</depends>
+    </M-APP-VALIDATE>
+    <M-APP-AUTO NAME="AutoService" TYPE="CORE_LOGIC" LAYER="2" ORDER="86" STATUS="planned">
+      <contract><purpose>Coordinate full/resume/force by composing stage services without duplicating stage algorithms.</purpose></contract>
+      <target><source>src/video2pptx/application/services/auto_service.py</source><tests>tests/application/test_auto_service.py</tests></target>
+      <verification-ref>V-APP-AUTO</verification-ref>
+      <depends>M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-VALIDATE</depends>
+    </M-APP-AUTO>
   </Modules>
 
   <DataFlow>
@@ -767,6 +857,23 @@
       <step-8>Record step result in report</step-8>
       <evidence>per-step snapshot dirs; junit.xml; defects.json on failure</evidence>
     </DF-E2E-05>
+    <DF-PERSIST-01 NAME="CanonicalProjectLoadSave" TRIGGER="Repository load or save">
+      <step-1>FileProjectRepository parses schema 2.0 through M-PERSIST-DTO or migrates schema 1.0 through M-PERSIST-MIGRATIONS.</step-1>
+      <step-2>Mapper rehydrates M-DOMAIN-PROJECT without business transitions or downstream invalidation.</step-2>
+      <step-3>load returns LoadedProject with location, canonical revision, migration flag, and warnings.</step-3>
+      <step-4>save verifies expected_revision and atomically commits project.json with a new revision.</step-4>
+      <step-5>Repository regenerates slides.json with matching source_revision; failure leaves canonical state valid and derived state stale.</step-5>
+      <evidence>DTO round-trip, revision conflict, corrupt canonical document, and derived revision tests.</evidence>
+    </DF-PERSIST-01>
+
+    <DF-APP-01 NAME="RevisionSafeApplicationUseCase" TRIGGER="CLI, GUI, or MCP application command">
+      <step-1>Adapter creates command DTO and invokes a PySide6-free application service.</step-1>
+      <step-2>Service loads LoadedProject and invokes only domain methods and application ports.</step-2>
+      <step-3>Port returns immutable candidate data; service validates the complete result before aggregate mutation.</step-3>
+      <step-4>Mutating services save with loaded.revision; dry-run services do not save.</step-4>
+      <step-5>Service returns a typed result; AutoService composes the same stage services for full, resume, and force.</step-5>
+      <evidence>Service tests with fake ports, revision conflicts, cancellation, failure atomicity, and architecture import checks.</evidence>
+    </DF-APP-01>
   </DataFlow>
 
   <ImplementationOrder>
@@ -948,13 +1055,18 @@
         Create domain/project.py: Project as aggregate root with add_slide(), remove_slide(),
         replace_detected_slides(), invalidate_downstream_from(). Internal Pydantic model delegates.
       </step-3>
-      <step-4 name="RepositoryIsolation" status="done" verification="V-REF-REPOSITORY">
-        Create application/ports/project_repository.py (Protocol). Create FileProjectRepository with
-        atomic writes, schema migration. MainWindow stops writing project.json directly.
+      <step-4 name="RepositoryIsolationFoundation" status="done" verification="V-REF-REPOSITORY">
+        Repository port and initial FileProjectRepository foundation. Contract is provisional until Step 4.7.
       </step-4>
+      <step-4.7 name="PersistenceContractStabilization" status="planned" verification="V-REF-PERSISTENCE-STABILIZATION">
+        Introduce strict ProjectDocumentV2, full PipelineState round-trip, side-effect-free rehydration,
+        LoadedProject revision unit, portable root handling, revisioned slides.json, and strict storage validation.
+        Checkpoints: 5.0A DTO; 5.0B migration/rehydration; 5.0C LoadedProject/repository; 5.0D derived consistency.
+      </step-4.7>
       <step-5 name="ApplicationServices" status="planned" verification="V-REF-APP-SERVICES">
-        Extract DetectionService, AlignmentService, NotesService, ExportService. AppServiceRunner
-        calls services instead of raw functions. All use cases testable without Qt.
+        Checkpoints: 5.1 common DTO/errors/observer/cancellation; 5.2 Preview/Detect; 5.3 Align;
+        5.4 Notes/LLM; 5.5 Export/Validation; 5.6 Auto; 5.7 adapters/bootstrap/characterization.
+        Services depend only on domain and ports, never GUI, MCP, CLI, or concrete infrastructure.
       </step-5>
       <step-6 name="MCPtoApplication" status="planned" verification="V-REF-MCP-ADAPTER">
         MCP tools call DetectionService etc. Remove @mcp_action scanning from MainWindow.

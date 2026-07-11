@@ -197,11 +197,15 @@ Video2PptxError (base)
 
 ## Persistence strategy
 
-- `Project` is the canonical source of truth.
-- `project.json` is the primary persistence file, written atomically (temp + rename).
-- `slides.json` is a DERIVED artifact — a portable subset of `Project` for external consumption. Regenerated on save.
-- FileProjectRepository handles both in one `save()` transaction.
-- On load, `slides.json` is re-read into `Project.slides` only if present; otherwise slides are reconstructed from `project.json > slides[]`.
+- `project.json` is the canonical source of truth (schema 2.0).
+- `slides.json` is a DERIVED artifact containing `source_revision`; regenerated on save.
+- FileProjectRepository handles canonical commit + revisioned derived artifact.
+- Load returns `LoadedProject(project, location, revision, warnings, migrated)`.
+- Rehydration has no business side effects (no invalidation, no transitions).
+- `output_dir` is NOT persisted; project root is runtime context.
+- Corrupt canonical documents are not silently overwritten.
+- Full `PipelineState` (including FAILED, STALE, operation_id, error) is serialized.
+- Schema 1.0 → 2.0 migration preserves unknown legacy fields in `extensions.legacy`.
 
 ## Key design decisions
 
