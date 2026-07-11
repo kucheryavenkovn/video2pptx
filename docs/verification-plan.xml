@@ -938,7 +938,7 @@
     </scenarios>
   </V-APP-NOTES>
 
-  <V-APP-EXPORT MODULE="M-APP-EXPORT" PRIORITY="high" STATUS="planned">
+  <V-APP-EXPORT MODULE="M-APP-EXPORT" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_export_service.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Markdown staged, validated, atomically replaced.</scenario-1>
@@ -947,7 +947,7 @@
     </scenarios>
   </V-APP-EXPORT>
 
-  <V-APP-VALIDATE MODULE="M-APP-VALIDATE" PRIORITY="high" STATUS="planned">
+  <V-APP-VALIDATE MODULE="M-APP-VALIDATE" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_validation_service.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Valid canonical storage, media, artifacts, and exports produce valid=true.</scenario-1>
@@ -971,7 +971,7 @@
     <module-checks><check-1>python -m pytest tests/application/ -q</check-1></module-checks>
     <wave-checks><check-1>python -m pytest tests/domain tests/application tests/infra -q</check-1></wave-checks>
     <phase-checks><check-1>python -m pytest --ignore=tests/e2e -q</check-1></phase-checks>
-    <evidence><result>Checkpoint 5.4: 5 notes tests passed; 162 domain+application+infra wave passed; Ruff passed. Export/auto remain in 5.5-5.7.</result></evidence>
+    <evidence><result>Checkpoint 5.5: 8 export+validation tests passed; 170 domain+application+infra wave passed; Ruff passed. Auto remains in 5.6.</result></evidence>
     <scenarios>
       <scenario-1 kind="success">Services depend only on domain and ports and use repository revisions on every mutation.</scenario-1>
       <scenario-2 kind="success">Cancellation and adapter failures leave aggregate invariants intact and record typed stage failures.</scenario-2>

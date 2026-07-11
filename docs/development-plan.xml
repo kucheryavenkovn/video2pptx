@@ -637,7 +637,7 @@
       <verification-ref>V-REF-APP-SERVICES</verification-ref>
       <depends>M-DOMAIN-PROJECT</depends>
     </M-PORT-NOTES>
-    <M-PORT-EXPORT NAME="PresentationExporterPort" TYPE="INTEGRATION" LAYER="3" ORDER="79" STATUS="planned">
+    <M-PORT-EXPORT NAME="PresentationExporterPort" TYPE="INTEGRATION" LAYER="3" ORDER="79" STATUS="implemented">
       <contract><purpose>Stage Markdown or PPTX output from immutable project snapshots and return artifact metadata.</purpose></contract>
       <target><source>src/video2pptx/application/ports/presentation_exporter.py</source><tests>tests/application/test_export_service.py</tests></target>
       <verification-ref>V-REF-APP-SERVICES</verification-ref>
@@ -673,13 +673,13 @@
       <verification-ref>V-APP-NOTES</verification-ref>
       <depends>M-PORT-REPO, M-PORT-NOTES, M-DOMAIN-PROJECT</depends>
     </M-APP-NOTES>
-    <M-APP-EXPORT NAME="ExportService" TYPE="CORE_LOGIC" LAYER="2" ORDER="84" STATUS="planned">
+    <M-APP-EXPORT NAME="ExportService" TYPE="CORE_LOGIC" LAYER="2" ORDER="84" STATUS="implemented">
       <contract><purpose>Canonical staged Markdown/PPTX exports from immutable aggregate snapshots with output validation.</purpose></contract>
       <target><source>src/video2pptx/application/services/export_service.py</source><tests>tests/application/test_export_service.py</tests></target>
       <verification-ref>V-APP-EXPORT</verification-ref>
       <depends>M-PORT-REPO, M-PORT-EXPORT, M-DOMAIN-PROJECT</depends>
     </M-APP-EXPORT>
-    <M-APP-VALIDATE NAME="ValidationService" TYPE="CORE_LOGIC" LAYER="2" ORDER="85" STATUS="planned">
+    <M-APP-VALIDATE NAME="ValidationService" TYPE="CORE_LOGIC" LAYER="2" ORDER="85" STATUS="implemented">
       <contract><purpose>Validate storage, aggregate, media, artifacts, exports, and derived revision consistency.</purpose></contract>
       <target><source>src/video2pptx/application/services/validation_service.py</source><tests>tests/application/test_validation_service.py</tests></target>
       <verification-ref>V-APP-VALIDATE</verification-ref>
@@ -1077,7 +1077,7 @@
         <checkpoint-5.2 status="done">Preview and Detection services with revision-safe ports.</checkpoint-5.2>
         <checkpoint-5.3 status="done">Alignment service with dry-run/apply.</checkpoint-5.3>
         <checkpoint-5.4 status="done">Notes service with basic/LLM modes.</checkpoint-5.4>
-        <checkpoint-5.5 status="planned">Export and Validation services.</checkpoint-5.5>
+        <checkpoint-5.5 status="done">Export and Validation services.</checkpoint-5.5>
         <checkpoint-5.6 status="planned">Auto orchestration service.</checkpoint-5.6>
         <checkpoint-5.7 status="planned">Adapters, bootstrap, characterization.</checkpoint-5.7>
         Services depend only on domain and ports, never GUI, MCP, CLI, or concrete infrastructure.
