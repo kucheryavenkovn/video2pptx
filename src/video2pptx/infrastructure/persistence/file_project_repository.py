@@ -1,10 +1,10 @@
 # FILE: src/video2pptx/infrastructure/persistence/file_project_repository.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: File-based ProjectRepository implementation with atomic writes, migration, and revision tracking.
 #   SCOPE: create, load, save, exists, validate_storage
-#   DEPENDS: video2pptx.domain, video2pptx.infrastructure.persistence.errors, mapper, json_io
-#   LINKS: M-PORT-REPO
+#   DEPENDS: repository port, persistence DTO/migrations/errors/mapper, json_io
+#   LINKS: M-PORT-REPO, M-FILE-REPO, M-PERSIST-DTO, M-PERSIST-MIGRATIONS
 #   ROLE: RUNTIME
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
@@ -14,7 +14,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Initial implementation with atomic writes, legacy migration, UID persistence
+#   LAST_CHANGE: v1.1.0 - Return LoadedProject and commit strict canonical V2 documents
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -22,23 +22,27 @@ from __future__ import annotations
 import json
 import uuid
 from pathlib import Path
-from typing import Any
 
 from loguru import logger
+from pydantic import ValidationError as PydanticValidationError
 
 from video2pptx.application.ports.project_repository import (
+    LoadedProject,
     SaveResult,
     StorageValidationResult,
 )
 from video2pptx.domain.project import Project
+from video2pptx.infrastructure.persistence.dto import ProjectDocumentV2
 from video2pptx.infrastructure.persistence.errors import (
     ProjectAlreadyExists,
     ProjectAtomicWriteError,
     ProjectDocumentCorrupted,
     ProjectNotFound,
     ProjectRevisionConflict,
+    ProjectSchemaUnsupported,
 )
 from video2pptx.infrastructure.persistence.mapper import ProjectMapper
+from video2pptx.infrastructure.persistence.migrations import migrate_v1_to_v2
 from video2pptx.utils.json_io import write_json_atomic
 
 
@@ -53,8 +57,15 @@ class FileProjectRepository:
 
     SCHEMA_VERSION = "2.0"
 
-    def create(self, location: Path, project: Project) -> Project:
-        """Create a new project at *location*. Directory must be empty or not exist."""
+    # START_CONTRACT: create
+    #   PURPOSE: Create canonical project storage and return its first LoadedProject revision unit.
+    #   INPUTS: { location: Path, project: Project }
+    #   OUTPUTS: { LoadedProject }
+    #   SIDE_EFFECTS: creates directory; atomically writes project.json and slides.json
+    #   LINKS: M-FILE-REPO, M-PORT-REPO
+    # END_CONTRACT: create
+    def create(self, location: Path, project: Project) -> LoadedProject:
+        """Create a new canonical project and return its revision unit."""
         location = Path(location)
         if location.exists() and any(location.iterdir()):
             raise ProjectAlreadyExists(
@@ -63,12 +74,24 @@ class FileProjectRepository:
             )
         location.mkdir(parents=True, exist_ok=True)
         project.output_dir = str(location)
-        self.save(project, location, expected_revision=None)
+        result = self.save(project, location, expected_revision=None)
         logger.info(f"[FileProjectRepository] Created | location={location}")
-        return project
+        return LoadedProject(
+            project=project,
+            location=location,
+            revision=result.revision,
+            warnings=tuple(result.warnings),
+        )
 
-    def load(self, location: Path) -> Project:
-        """Load a project from *location* with migration and validation."""
+    # START_CONTRACT: load
+    #   PURPOSE: Load strict V2 storage or deterministically migrate raw legacy storage in memory.
+    #   INPUTS: { location: Path }
+    #   OUTPUTS: { LoadedProject }
+    #   SIDE_EFFECTS: reads project.json; emits structured logs
+    #   LINKS: M-FILE-REPO, M-PERSIST-DTO, M-PERSIST-MIGRATIONS
+    # END_CONTRACT: load
+    def load(self, location: Path) -> LoadedProject:
+        """Load strict V2 data or deterministically migrate raw legacy data."""
         location = Path(location)
         project_json = location / "project.json"
         if not project_json.is_file():
@@ -87,35 +110,48 @@ class FileProjectRepository:
                 recoverable=False,
             ) from exc
 
-        schema_version = data.get("schema_version", "1.0")
-        if schema_version not in ("1.0", "2.0"):
-            raise ProjectDocumentCorrupted(
-                f"Unsupported schema_version: {schema_version}",
-                path=str(project_json),
-            )
-
-        from video2pptx.project_manager import Project as LegacyProject
-
+        schema_version = str(data.get("schema_version", "1.0"))
+        warnings: list[str] = []
+        migrated = schema_version == "1.0"
         try:
-            legacy_project = LegacyProject.model_validate_json(raw)
-        except Exception as exc:
+            if migrated:
+                document = migrate_v1_to_v2(data, location)
+                warnings.append("Legacy schema migrated in memory; save to commit schema 2.0")
+            elif schema_version == self.SCHEMA_VERSION:
+                document = ProjectDocumentV2.model_validate_json(raw)
+            else:
+                raise ProjectSchemaUnsupported(
+                    f"Unsupported schema_version: {schema_version}",
+                    path=str(project_json),
+                )
+        except ProjectSchemaUnsupported:
+            raise
+        except (PydanticValidationError, ValueError, TypeError) as exc:
             raise ProjectDocumentCorrupted(
                 f"Invalid project data: {exc}",
                 path=str(project_json),
             ) from exc
 
-        project = ProjectMapper.from_legacy_project(legacy_project, location)
-
-        if schema_version == "1.0":
-            logger.info(
-                f"[FileProjectRepository] Legacy migration | location={location}"
-            )
-
+        project = ProjectMapper.to_domain(document, location)
         logger.info(
-            f"[FileProjectRepository] Loaded | location={location} slides={project.slide_count}"
+            f"[FileProjectRepository] Loaded | location={location} "
+            f"revision={document.revision} migrated={migrated} slides={project.slide_count}"
         )
-        return project
+        return LoadedProject(
+            project=project,
+            location=location,
+            revision=document.revision,
+            warnings=tuple(warnings),
+            migrated=migrated,
+        )
 
+    # START_CONTRACT: save
+    #   PURPOSE: Optimistically commit a strict canonical V2 document and derived compatibility data.
+    #   INPUTS: { project: Project, location: Path, expected_revision: str|None }
+    #   OUTPUTS: { SaveResult - new canonical revision and warnings }
+    #   SIDE_EFFECTS: atomically writes project.json and slides.json
+    #   LINKS: M-FILE-REPO, M-PERSIST-DTO
+    # END_CONTRACT: save
     def save(
         self,
         project: Project,
@@ -130,29 +166,45 @@ class FileProjectRepository:
 
         if expected_revision is not None and project_json.is_file():
             try:
-                existing = json.loads(project_json.read_text(encoding="utf-8"))
-                current_rev = existing.get("revision", "")
-                if current_rev != expected_revision:
-                    raise ProjectRevisionConflict(
-                        f"Revision mismatch: expected={expected_revision} "
-                        f"current={current_rev}",
+                existing_raw = project_json.read_text(encoding="utf-8")
+                existing = json.loads(existing_raw)
+                existing_schema = str(existing.get("schema_version", "1.0"))
+                if existing_schema == self.SCHEMA_VERSION:
+                    current_revision = ProjectDocumentV2.model_validate_json(
+                        existing_raw
+                    ).revision
+                elif existing_schema == "1.0":
+                    current_revision = migrate_v1_to_v2(existing, location).revision
+                else:
+                    raise ProjectSchemaUnsupported(
+                        f"Unsupported schema_version: {existing_schema}",
                         path=str(project_json),
-                        recoverable=True,
                     )
-            except json.JSONDecodeError:
-                warnings.append("Existing project.json is corrupt; overwriting")
+            except ProjectSchemaUnsupported:
+                raise
+            except (json.JSONDecodeError, UnicodeDecodeError, PydanticValidationError, ValueError, TypeError) as exc:
+                raise ProjectDocumentCorrupted(
+                    f"Cannot verify existing project revision: {exc}",
+                    path=str(project_json),
+                    recoverable=False,
+                ) from exc
+            if current_revision != expected_revision:
+                raise ProjectRevisionConflict(
+                    f"Revision mismatch: expected={expected_revision} "
+                    f"current={current_revision}",
+                    path=str(project_json),
+                    recoverable=True,
+                )
 
-        legacy_project = ProjectMapper.to_legacy_project(project)
-
-        document: dict[str, Any] = json.loads(
-            legacy_project.model_dump_json(indent=2, exclude_none=True)
-        )
-        document["schema_version"] = self.SCHEMA_VERSION
         new_revision = uuid.uuid4().hex
-        document["revision"] = new_revision
+        document = ProjectMapper.to_document(project, new_revision)
 
         try:
-            write_json_atomic(project_json, document, indent=2)
+            write_json_atomic(
+                project_json,
+                document.model_dump(mode="json"),
+                indent=2,
+            )
         except Exception as exc:
             raise ProjectAtomicWriteError(
                 f"Failed to write project.json: {exc}",

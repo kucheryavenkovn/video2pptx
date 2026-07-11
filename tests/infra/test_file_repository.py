@@ -1,8 +1,8 @@
 # FILE: tests/infra/test_file_repository.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Unit tests for FileProjectRepository — create, load, save, migration, atomicity, revision.
-#   SCOPE: Round-trip, legacy migration, UID stability, atomic write, revision conflict, corruption.
+#   SCOPE: LoadedProject, V2 round-trip, legacy migration, UID stability, revision conflict, corruption.
 #   DEPENDS: pytest, video2pptx.infrastructure.persistence, video2pptx.domain
 #   LINKS: V-PORT-REPO
 #   ROLE: TEST
@@ -21,6 +21,7 @@ from video2pptx.infrastructure.persistence.errors import (
     ProjectDocumentCorrupted,
     ProjectNotFound,
     ProjectRevisionConflict,
+    ProjectSchemaUnsupported,
 )
 from video2pptx.infrastructure.persistence.file_project_repository import (
     FileProjectRepository,
@@ -46,11 +47,13 @@ class TestCreateAndLoad:
         repo.create(location, project)
 
         loaded = repo.load(location)
-        assert loaded.name == "repo_test"
-        assert loaded.slide_count == 2
-        assert loaded.get_slide("s1") is not None
-        assert loaded.get_slide("s2") is not None
-        assert loaded.score_timestamps == [1.0, 2.0]
+        assert loaded.project.name == "repo_test"
+        assert loaded.project.slide_count == 2
+        assert loaded.project.get_slide("s1") is not None
+        assert loaded.project.get_slide("s2") is not None
+        assert loaded.project.score_timestamps == [1.0, 2.0]
+        assert loaded.location == location
+        assert loaded.revision
 
     def test_create_rejects_non_empty(self, tmp_path):
         repo = FileProjectRepository()
@@ -74,11 +77,11 @@ class TestUidStability:
         repo.create(location, project)
 
         loaded = repo.load(location)
-        uids_first = [v.slide_id.value for v in loaded.slides]
+        uids_first = [v.slide_id.value for v in loaded.project.slides]
 
-        repo.save(loaded, location)
+        repo.save(loaded.project, location, expected_revision=loaded.revision)
         reloaded = repo.load(location)
-        uids_second = [v.slide_id.value for v in reloaded.slides]
+        uids_second = [v.slide_id.value for v in reloaded.project.slides]
 
         assert uids_first == uids_second
 
@@ -114,13 +117,14 @@ class TestUidStability:
 
         repo = FileProjectRepository()
         loaded = repo.load(location)
-        assert loaded.slide_count == 2
-        uids = [v.slide_id.value for v in loaded.slides]
+        assert loaded.project.slide_count == 2
+        assert loaded.migrated is True
+        uids = [v.slide_id.value for v in loaded.project.slides]
         assert all(uid.strip() for uid in uids)
 
-        repo.save(loaded, location)
+        repo.save(loaded.project, location, expected_revision=loaded.revision)
         reloaded = repo.load(location)
-        uids_after = [v.slide_id.value for v in reloaded.slides]
+        uids_after = [v.slide_id.value for v in reloaded.project.slides]
         assert uids == uids_after
 
 
@@ -143,7 +147,54 @@ class TestAtomicWrite:
         repo.save(project, location)
 
         reloaded = repo.load(location)
-        assert reloaded.slide_count == 3
+        assert reloaded.project.slide_count == 3
+
+
+class TestCanonicalDocument:
+    def test_save_writes_strict_v2_without_output_dir(self, tmp_path):
+        repo = FileProjectRepository()
+        project = _make_project_with_slides()
+        project.pipeline = project.pipeline.from_dict(
+            {
+                "notes": {
+                    "status": "failed",
+                    "operation_id": "notes-op",
+                    "error": {"message": "failure"},
+                },
+                "markdown_export": {"status": "stale"},
+                "pptx_export": {"status": "skipped"},
+            }
+        )
+        location = tmp_path / "canonical"
+
+        created = repo.create(location, project)
+        data = json.loads((location / "project.json").read_text(encoding="utf-8"))
+
+        assert created.revision == data["revision"]
+        assert data["schema_version"] == "2.0"
+        assert "output_dir" not in data
+        assert data["pipeline"]["stages"]["notes"]["status"] == "failed"
+        assert data["pipeline"]["stages"]["notes"]["operation_id"] == "notes-op"
+        assert data["pipeline"]["stages"]["markdown_export"]["status"] == "stale"
+        assert data["pipeline"]["stages"]["pptx_export"]["status"] == "skipped"
+
+    def test_standard_load_edit_save_uses_loaded_revision(self, tmp_path):
+        repo = FileProjectRepository()
+        location = tmp_path / "cycle"
+        repo.create(location, _make_project_with_slides())
+
+        loaded = repo.load(location)
+        loaded.project.name = "edited"
+        result = repo.save(
+            loaded.project,
+            loaded.location,
+            expected_revision=loaded.revision,
+        )
+        reloaded = repo.load(location)
+
+        assert result.revision == reloaded.revision
+        assert result.revision != loaded.revision
+        assert reloaded.project.name == "edited"
 
 
 class TestRevisionConflict:
@@ -163,6 +214,19 @@ class TestRevisionConflict:
         with pytest.raises(ProjectRevisionConflict):
             repo.save(project, location, expected_revision="wrong")
 
+    def test_corrupt_existing_document_is_not_overwritten(self, tmp_path):
+        repo = FileProjectRepository()
+        project = _make_project_with_slides()
+        location = tmp_path / "corrupt-save"
+        location.mkdir()
+        project_json = location / "project.json"
+        project_json.write_text("{broken", encoding="utf-8")
+
+        with pytest.raises(ProjectDocumentCorrupted):
+            repo.save(project, location, expected_revision="expected")
+
+        assert project_json.read_text(encoding="utf-8") == "{broken"
+
 
 class TestCorruption:
     def test_corrupt_json_raises(self, tmp_path):
@@ -172,6 +236,17 @@ class TestCorruption:
         repo = FileProjectRepository()
         with pytest.raises(ProjectDocumentCorrupted):
             repo.load(location)
+
+    def test_unsupported_schema_raises_specific_error(self, tmp_path):
+        location = tmp_path / "unsupported"
+        location.mkdir()
+        (location / "project.json").write_text(
+            json.dumps({"schema_version": "99.0"}),
+            encoding="utf-8",
+        )
+
+        with pytest.raises(ProjectSchemaUnsupported):
+            FileProjectRepository().load(location)
 
 
 class TestValidateStorage:

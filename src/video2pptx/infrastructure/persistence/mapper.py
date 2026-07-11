@@ -1,9 +1,9 @@
 # FILE: src/video2pptx/infrastructure/persistence/mapper.py
-# VERSION: 2.0.0
+# VERSION: 2.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Map strict ProjectDocumentV2 to and from the domain Project without business side effects.
-#   SCOPE: ProjectMapper with to_domain, to_document, transitional legacy bridge, and derived slides export
-#   DEPENDS: video2pptx.domain, persistence.dto, persistence.migrations, legacy models during transition
+#   SCOPE: ProjectMapper with to_domain, to_document, and derived slides export
+#   DEPENDS: video2pptx.domain, persistence.dto
 #   LINKS: M-PERSIST-DTO, M-PERSIST-MIGRATIONS, M-FILE-REPO
 #   ROLE: UTILITY
 #   MAP_MODE: EXPORTS
@@ -14,7 +14,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v2.0.0 - Map canonical V2 DTO without lifecycle transitions; retain transitional legacy bridge
+#   LAST_CHANGE: v2.1.0 - Remove legacy mapper bridge after repository adopted raw migration
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -33,7 +33,6 @@ from video2pptx.infrastructure.persistence.dto import (
     SlideDocument,
     StageStateDocument,
 )
-from video2pptx.infrastructure.persistence.migrations import migrate_v1_to_v2
 
 
 class ProjectMapper:
@@ -150,87 +149,6 @@ class ProjectMapper:
             ),
             extensions=dict(project.extensions),
         )
-
-    # START_CONTRACT: from_legacy_project
-    #   PURPOSE: Bridge legacy Pydantic project data through deterministic V2 migration.
-    #   INPUTS: { legacy_project: Any, project_root: str|Path }
-    #   OUTPUTS: { Project - rehydrated aggregate }
-    #   SIDE_EFFECTS: none
-    #   LINKS: M-PERSIST-MIGRATIONS, M-FILE-REPO
-    # END_CONTRACT: from_legacy_project
-    @staticmethod
-    def from_legacy_project(
-        legacy_project: Any,
-        project_root: str | Path,
-    ) -> Project:
-        """Transitional bridge used by FileProjectRepository until Checkpoint 5.0C."""
-        if hasattr(legacy_project, "model_dump"):
-            data = legacy_project.model_dump(mode="json")
-        else:
-            data = dict(legacy_project)
-        document = migrate_v1_to_v2(data, project_root)
-        return ProjectMapper.to_domain(document, project_root)
-
-    @staticmethod
-    def to_legacy_project(
-        project: Project,
-        legacy_project: Any | None = None,
-    ) -> Any:
-        """Update or create a legacy Pydantic Project from the domain aggregate.
-
-        Preserves fields the domain doesn't model yet (detection config, etc).
-        """
-        from video2pptx.project_manager import Project as LegacyProject
-        from video2pptx.project_manager import ProjectState
-
-        if legacy_project is not None:
-            lp = legacy_project
-        else:
-            lp = LegacyProject(
-                name=project.name,
-                video=project.video_path,
-                subtitles=project.subtitle_path,
-                output_dir=project.output_dir,
-            )
-
-        lp.name = project.name
-        lp.video = project.video_path
-        lp.subtitles = project.subtitle_path
-        lp.score_timestamps = list(project.score_timestamps)
-        lp.score_values = list(project.score_values)
-
-        legacy_flags = project.pipeline.to_legacy_booleans()
-        if lp.state is None:
-            lp.state = ProjectState()
-        lp.state.preview_done = legacy_flags["preview_done"]
-        lp.state.detect_done = legacy_flags["detect_done"]
-        lp.state.align_done = legacy_flags["align_done"]
-        lp.state.notes_done = legacy_flags["notes_done"]
-        lp.state.llm_done = legacy_flags["llm_done"]
-        lp.state.md_exported = legacy_flags["md_exported"]
-        lp.state.pptx_exported = legacy_flags["pptx_exported"]
-        lp.state.auto_done = legacy_flags["auto_done"]
-
-        from video2pptx.models import SlideSegment
-
-        lp.slides = [
-            SlideSegment(
-                uid=view.slide_id.value,
-                index=view.index,
-                start=view.interval.start,
-                end=view.interval.end,
-                duration=view.interval.duration,
-                image=str(view.image) if view.image else "",
-                representative_timestamp=view.representative_timestamp,
-                transcript=view.transcript,
-                llm_description=view.llm_description,
-                confidence=view.confidence,
-                manual=view.manual,
-            )
-            for view in project.slides
-        ]
-
-        return lp
 
     @staticmethod
     def to_slides_document(project: Project) -> dict[str, Any]:
