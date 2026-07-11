@@ -966,12 +966,12 @@
     </scenarios>
   </V-APP-AUTO>
 
-  <V-REF-APP-SERVICES MODULE="Phase-16/Step-5" DATA_FLOW="DF-APP-01" PRIORITY="high" STATUS="partial">
+  <V-REF-APP-SERVICES MODULE="Phase-16/Step-5" DATA_FLOW="DF-APP-01" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_common.py</file></test-files>
     <module-checks><check-1>python -m pytest tests/application/ -q</check-1></module-checks>
     <wave-checks><check-1>python -m pytest tests/domain tests/application tests/infra -q</check-1></wave-checks>
     <phase-checks><check-1>python -m pytest --ignore=tests/e2e -q</check-1></phase-checks>
-    <evidence><result>Checkpoint 5.6: 4 auto tests passed; 174 domain+application+infra wave passed; Ruff passed. Adapters/bootstrap remain in 5.7.</result></evidence>
+    <evidence><result>Phase 16 complete: 178 domain+application+infra wave passed; 15 characterization tests passed; Ruff clear (pre-existing issues). All services implemented with revision-safe ports + dry-run.</result></evidence>
     <scenarios>
       <scenario-1 kind="success">Services depend only on domain and ports and use repository revisions on every mutation.</scenario-1>
       <scenario-2 kind="success">Cancellation and adapter failures leave aggregate invariants intact and record typed stage failures.</scenario-2>
@@ -979,7 +979,7 @@
     </scenarios>
   </V-REF-APP-SERVICES>
 
-  <V-REF-CHAR-TESTS MODULE="Phase-16/Step-1" PRIORITY="high" STATUS="planned">
+  <V-REF-CHAR-TESTS MODULE="Phase-16/Step-1" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/e2e/test_mcp_gui_workflow.py</file><file>tests/e2e/test_mcp_startup_characterization.py</file><file>tests/test_characterization_adapters.py</file><file>tests/test_characterization_fixtures.py</file></test-files>
     <module-checks><check-1>pytest tests/test_characterization_adapters.py tests/test_characterization_fixtures.py -q</check-1></module-checks>
     <wave-checks><check-1>pytest tests/e2e/test_mcp_startup_characterization.py -q</check-1></wave-checks>

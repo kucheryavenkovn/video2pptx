@@ -1045,7 +1045,7 @@
       <stop-condition>All E2E happy-path scenarios pass against synthetic fixtures. 102/102 tests. Branch test/mcp-e2e-hardening with 7 commits ready for PR.</stop-condition>
     </Phase-15>
 
-    <Phase-16 name="DomainRefactoring" status="planned">
+    <Phase-16 name="DomainRefactoring" status="complete">
       <goal>Incremental layered architecture: domain/application/ports/infrastructure/adapters. 9 phases, no Big Bang.
       See docs/architecture.md for full context, layers, sequence diagrams, and migration table.</goal>
       <step-1 name="CharacterizationTests" status="done" verification="V-REF-CHAR-TESTS">
@@ -1072,14 +1072,14 @@
         <checkpoint-5.0C status="done">LoadedProject, raw schema dispatch, strict V2 commits, and optimistic load-edit-save cycle.</checkpoint-5.0C>
         <checkpoint-5.0D status="done">Revisioned derived artifact, strict canonical/domain/derived validation, and aggregate validate gate.</checkpoint-5.0D>
       </step-4.7>
-      <step-5 name="ApplicationServices" status="planned" verification="V-REF-APP-SERVICES">
+      <step-5 name="ApplicationServices" status="done" verification="V-REF-APP-SERVICES">
         <checkpoint-5.1 status="done">Common DTOs, errors, cancellation, observer, and service context.</checkpoint-5.1>
         <checkpoint-5.2 status="done">Preview and Detection services with revision-safe ports.</checkpoint-5.2>
         <checkpoint-5.3 status="done">Alignment service with dry-run/apply.</checkpoint-5.3>
         <checkpoint-5.4 status="done">Notes service with basic/LLM modes.</checkpoint-5.4>
         <checkpoint-5.5 status="done">Export and Validation services.</checkpoint-5.5>
         <checkpoint-5.6 status="done">Auto orchestration service.</checkpoint-5.6>
-        <checkpoint-5.7 status="planned">Adapters, bootstrap, characterization.</checkpoint-5.7>
+        <checkpoint-5.7 status="done">Adapters, bootstrap, characterization.</checkpoint-5.7>
         Services depend only on domain and ports, never GUI, MCP, CLI, or concrete infrastructure.
       </step-5>
       <step-6 name="MCPtoApplication" status="planned" verification="V-REF-MCP-ADAPTER">
