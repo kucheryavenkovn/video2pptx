@@ -537,7 +537,7 @@
 - Finding: The initial FileProjectRepository (Step 4) read and wrote schema 2.0 through the legacy `project_manager.Project` Pydantic model, losing full PipelineState (FAILED/STALE/CANCELLED/SKIPPED, operation_id, timestamps, error). The mapper called `replace_detected_slides()` during load, causing downstream invalidation as a side effect of hydration. `load()` did not return revision, making the standard `load→edit→save` optimistic cycle impossible. Absolute `output_dir` was persisted in the canonical document. Corrupt canonical documents could be silently overwritten when `expected_revision` was provided. `slides.json` lacked `source_revision`. `validate_storage()` only checked JSON syntax. `SlideId.new()` used only 48 bits of randomness.
 - Symptom/Reproduction: Open a project with `notes_done=True`, close, reopen — notes stage could be STALE instead of SUCCEEDED due to rehydration invalidation.
 - Impact: Application services cannot safely depend on the repository until the contract is stabilized.
-- Resolution/Status: Open. Step 4.7 PersistenceContractStabilization will introduce ProjectDocumentV2, full PipelineState round-trip, side-effect-free rehydration, LoadedProject, portable root, revisioned derived artifact, strict validation, and 128-bit SlideId.
+- Resolution/Status: Partially resolved. Checkpoints 5.0A–5.0B delivered ProjectDocumentV2, full PipelineState mapping, side-effect-free rehydration, portable root handling, extension preservation, and 128-bit SlideId. LoadedProject and repository/derived consistency remain in 5.0C–5.0D.
 - LINKS: M-PORT-REPO, M-FILE-REPO, M-PERSIST-DTO, V-REF-PERSISTENCE-STABILIZATION
 
 ### F-0060 — Active Python environment lacks optional mypy dependency

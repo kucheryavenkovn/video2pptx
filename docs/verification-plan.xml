@@ -853,9 +853,12 @@
     </scenarios>
   </V-PERSIST-DTO>
 
-  <V-PERSIST-MIGRATIONS MODULE="M-PERSIST-MIGRATIONS" PRIORITY="high" STATUS="planned">
-    <test-files><file>tests/infra/test_migrations.py</file></test-files>
-    <module-checks><check-1>pytest tests/infra/test_migrations.py -q</check-1></module-checks>
+  <V-PERSIST-MIGRATIONS MODULE="M-PERSIST-MIGRATIONS" PRIORITY="high" STATUS="passed">
+    <test-files><file>tests/infra/test_migrations.py</file><file>tests/infra/test_mapper.py</file></test-files>
+    <module-checks><check-1>python -m pytest tests/infra/test_migrations.py tests/infra/test_mapper.py tests/infra/test_file_repository.py -q</check-1></module-checks>
+    <wave-checks><check-1>python -m pytest tests/domain tests/infra -q</check-1></wave-checks>
+    <phase-checks><check-1>python -m pytest --ignore=tests/e2e -q</check-1></phase-checks>
+    <evidence><result>22 targeted tests passed; domain+infra and full non-E2E regression passed; Ruff passed.</result></evidence>
     <scenarios>
       <scenario-1 kind="success">Schema 1.0 migrates deterministically to schema 2.0 with stable slide IDs.</scenario-1>
       <scenario-2 kind="success">Unknown legacy fields survive under extensions.legacy.</scenario-2>

@@ -601,7 +601,7 @@
       <verification-ref>V-PERSIST-DTO</verification-ref>
       <depends>M-DOMAIN-VALUE</depends>
     </M-PERSIST-DTO>
-    <M-PERSIST-MIGRATIONS NAME="PersistenceMigrations" TYPE="DATA_LAYER" LAYER="4" ORDER="73" STATUS="planned">
+    <M-PERSIST-MIGRATIONS NAME="PersistenceMigrations" TYPE="DATA_LAYER" LAYER="4" ORDER="73" STATUS="implemented">
       <contract><purpose>Deterministic schema 1.0 to 2.0 migration preserving unknown legacy fields and stable UIDs.</purpose></contract>
       <target><source>src/video2pptx/infrastructure/persistence/migrations.py</source><tests>tests/infra/test_migrations.py</tests></target>
       <verification-ref>V-PERSIST-MIGRATIONS</verification-ref>
@@ -1062,7 +1062,7 @@
         Introduce strict ProjectDocumentV2, full PipelineState round-trip, side-effect-free rehydration,
         LoadedProject revision unit, portable root handling, revisioned slides.json, and strict storage validation.
         <checkpoint-5.0A status="done">Strict ProjectDocumentV2, complete pipeline DTO, portable artifacts, and full UUID SlideId.</checkpoint-5.0A>
-        <checkpoint-5.0B status="planned">Migration and side-effect-free rehydration.</checkpoint-5.0B>
+        <checkpoint-5.0B status="done">Deterministic migration, extension preservation, and side-effect-free complete-state rehydration.</checkpoint-5.0B>
         <checkpoint-5.0C status="planned">LoadedProject and revision-aware repository.</checkpoint-5.0C>
         <checkpoint-5.0D status="planned">Derived revision consistency and strict storage validation.</checkpoint-5.0D>
       </step-4.7>

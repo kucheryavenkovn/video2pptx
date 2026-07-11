@@ -993,11 +993,16 @@
         <type-ArtifactDocument PURPOSE="Named portable generated artifact references" />
       </annotations>
     </M-PERSIST-DTO>
-    <M-PERSIST-MIGRATIONS NAME="PersistenceMigrations" TYPE="DATA_LAYER" STATUS="planned">
+    <M-PERSIST-MIGRATIONS NAME="PersistenceMigrations" TYPE="DATA_LAYER" STATUS="implemented">
       <purpose>Deterministic schema 1.0 → 2.0 migration preserving unknown legacy fields and stable UIDs.</purpose>
       <path>src/video2pptx/infrastructure/persistence/migrations.py</path>
       <depends>M-PERSIST-DTO, M-DOMAIN-VALUE</depends>
       <verification-ref>V-PERSIST-MIGRATIONS</verification-ref>
+      <annotations>
+        <fn-migrate_v1_to_v2 PURPOSE="Deterministically build strict V2 data and preserve legacy extensions without output_dir" />
+        <fn-ProjectMapper-to_domain PURPOSE="Rehydrate complete aggregate state without lifecycle transitions or invalidation" />
+        <fn-ProjectMapper-to_document PURPOSE="Project aggregate, artifacts, extensions, and full pipeline into strict V2 data" />
+      </annotations>
     </M-PERSIST-MIGRATIONS>
     <M-FILE-REPO NAME="FileProjectRepository" TYPE="DATA_LAYER" STATUS="partial">
       <purpose>Canonical atomic commit with revisioned derived slides artifact, strict validation, optimistic concurrency.</purpose>
