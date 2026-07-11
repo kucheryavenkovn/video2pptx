@@ -685,7 +685,7 @@
       <verification-ref>V-APP-VALIDATE</verification-ref>
       <depends>M-PORT-REPO, M-DOMAIN-PROJECT</depends>
     </M-APP-VALIDATE>
-    <M-APP-AUTO NAME="AutoService" TYPE="CORE_LOGIC" LAYER="2" ORDER="86" STATUS="planned">
+    <M-APP-AUTO NAME="AutoService" TYPE="CORE_LOGIC" LAYER="2" ORDER="86" STATUS="implemented">
       <contract><purpose>Coordinate full/resume/force by composing stage services without duplicating stage algorithms.</purpose></contract>
       <target><source>src/video2pptx/application/services/auto_service.py</source><tests>tests/application/test_auto_service.py</tests></target>
       <verification-ref>V-APP-AUTO</verification-ref>
@@ -1078,7 +1078,7 @@
         <checkpoint-5.3 status="done">Alignment service with dry-run/apply.</checkpoint-5.3>
         <checkpoint-5.4 status="done">Notes service with basic/LLM modes.</checkpoint-5.4>
         <checkpoint-5.5 status="done">Export and Validation services.</checkpoint-5.5>
-        <checkpoint-5.6 status="planned">Auto orchestration service.</checkpoint-5.6>
+        <checkpoint-5.6 status="done">Auto orchestration service.</checkpoint-5.6>
         <checkpoint-5.7 status="planned">Adapters, bootstrap, characterization.</checkpoint-5.7>
         Services depend only on domain and ports, never GUI, MCP, CLI, or concrete infrastructure.
       </step-5>
