@@ -727,7 +727,7 @@
       <depends>M-APP-BOOTSTRAP, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-AUTO</depends>
       <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
     </M-GUI-PIPELINE-CTRL>
-    <M-GUI-TIMELINE-CTRL NAME="TimelineController" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-GUI-TIMELINE-CTRL NAME="TimelineController" TYPE="CORE_LOGIC" STATUS="active">
       <purpose>CRUD slide intervals, representative timestamps, and notes through ApplicationServices with Qt signals for timeline widgets.</purpose>
       <path>src/video2pptx/gui/controllers/timeline_controller.py</path>
       <depends>M-APP-BOOTSTRAP, M-DOMAIN-PROJECT</depends>
