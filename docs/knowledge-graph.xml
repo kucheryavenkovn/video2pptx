@@ -167,7 +167,7 @@
     </M-PIPELINE>
 
     <M-DETECT-SLIDES NAME="DetectSlides" TYPE="CORE_LOGIC" STATUS="implemented">
-      <purpose>Standalone slide detection: video → slides.json + screenshots, no subtitles</purpose>
+      <purpose>Standalone slide detection: video → slides.json + screenshots, no subtitles. Phase-18: 2 passes (detect + dedupe/save).</purpose>
       <path>src/video2pptx/detect_slides.py</path>
       <depends>M-VIDEO-DECODE, M-SLIDE-DETECTOR, M-SEGMENTER, M-DEDUPE, M-ROI, M-MODELS</depends>
       <verification-ref>V-M-DETECT-SLIDES</verification-ref>
@@ -820,6 +820,8 @@
     <CrossLink from="M-DETECT-SLIDES" to="M-SEGMENTER" relation="builds intervals" />
     <CrossLink from="M-DETECT-SLIDES" to="M-DEDUPE" relation="deduplicates" />
     <CrossLink from="M-DETECT-SLIDES" to="M-ROI" relation="crops and masks" />
+    <CrossLink from="M-DETECT-SLIDES" to="Phase-18/TwoPassDetection" relation="Phase-18: 3→2 passes, Pass 3 merged into Pass 2" />
+    <CrossLink from="Phase-18/TwoPassDetection" to="M-DETECT-METRICS" relation="baseline identified redundant Pass 3 bottleneck" />
     <CrossLink from="M-NOTES" to="M-SUBTITLES" relation="parses and aligns cues" />
     <CrossLink from="M-NOTES" to="M-NOTES-PROCESSOR" relation="cleans and formats notes" />
     <CrossLink from="M-ROI-TOOL" to="M-VIDEO-DECODE" relation="extracts frame" />

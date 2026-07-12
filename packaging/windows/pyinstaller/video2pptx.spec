@@ -1,22 +1,25 @@
 # -*- mode: python ; coding: utf-8 -*-
 # PyInstaller spec for Video2PPTX standalone Windows build.
-# Build: pyinstaller packaging/windows/pyinstaller/video2pptx.spec
+# Set REPO_ROOT env var before running, or run from repo root.
 # Output: dist/windows/Video2PPTX/Video2PPTX.exe
 
+import os
 import sys
-from pathlib import Path
 
-from video2pptx import __version__
+_REPO = os.environ.get("REPO_ROOT")
+if not _REPO:
+    _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(".")))))
+_REPO = os.path.abspath(_REPO)
+os.chdir(_REPO)
+sys.path.insert(0, os.path.join(_REPO, "src"))
 
 BLOCK_CIPHER = None
 
-import os
-# Force distpath to dist/windows
-os.environ.setdefault("PYINSTALLER_DISTPATH", str(Path(__file__).resolve().parent.parent.parent.parent / "dist" / "windows"))
+_ENTRY = os.path.join(_REPO, "src", "video2pptx", "desktop.py")
 
 a = Analysis(
-    ["src/video2pptx/desktop.py"],
-    pathex=[str(Path(__file__).resolve().parent.parent.parent.parent / "src")],
+    [_ENTRY],
+    pathex=[os.path.join(_REPO, "src")],
     binaries=[],
     datas=[],
     hiddenimports=[
@@ -130,7 +133,6 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon=None,
-    version=__version__,
 )
 
 coll = COLLECT(

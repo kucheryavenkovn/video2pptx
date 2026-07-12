@@ -5,7 +5,7 @@
     <non-goal>No ASR, no cloud processing, no web UI, no drag-to-reorder slides in MVP, no real-time streaming from network URLs.</non-goal>
     <risk-1>False slide splits due to cursor movement, webcam, or compression artifacts.</risk-1>
     <risk-2>GPU backend may not be available — CPU fallback must always work.</risk-2>
-    <risk-3>detect-slides is the longest step (2-3 video passes). Notes and export are fast.</risk-3>
+    <risk-3>detect-slides is the longest step (2 video passes). Notes and export are fast.</risk-3>
     <risk-4>PySide6 adds ~50MB dependency — must be optional via extras.</risk-4>
     <risk-5>QThread lifecycle bugs may cause crashes when switching projects mid-operation.</risk-5>
   </ArchitectureNotes>
@@ -1257,6 +1257,34 @@
         --diagnostics flag for packaged capability verification. BuildInfo preserves packaging_tool/build_time.
       </step-10.5>
     </Phase-17>
+    <Phase-18 name="DetectPerformance" status="in_progress">
+      <goal>Measure, analyze, and optimize slide detection throughput without degrading quality. Baseline → bottleneck analysis → targeted optimizations → re-benchmark on Hermes.</goal>
+      <step-18.1 name="PerformanceBaseline" status="done" verification="V-PERF-DETECT-BASELINE">
+        M-DETECT-METRICS module (detection_metrics.py), instrument detector/detect_slides/pyav_backend,
+        tools/benchmark_detect.py, initial Hermes run (partial — timeout during Pass 3).
+        Key finding: 3-pass structure redundant (Pass 3 only saves screenshots).
+      </step-18.1>
+      <step-18.2 name="TwoPassDetection" status="done">
+        Collapse Pass 3 (save screenshots) into Pass 2 (dedup frame grab).
+        decoder.iter_frames() calls reduced from 3 to 2.
+        run_detect_slides: unified DEDUPE_AND_SAVE_SCREENSHOTS block.
+        Log markers updated from Pass X/3 to Pass X/2.
+        Verified: all detect_slides tests pass, no "Pass 3/3" markers remain.
+      </step-18.2>
+      <step-18.3 name="ShortVideoBenchmark" status="pending">
+        Create or find a medium-length video (~10 min) for quick iteration.
+        Run baseline benchmark, apply optimization, compare.
+      </step-18.3>
+      <step-18.4 name="HermesReBenchmark" status="pending">
+        Re-run full Hermes benchmark after optimization chain.
+        Compare vs partial baseline metrics.
+      </step-18.4>
+      <step-18.5 name="AdditionalOptimizations" status="planned">
+        Candidate: parallel feature extraction, skip PHash when FrameDiff is low,
+        frame-level vs segment-level dedup order, lazy screenshot decode,
+        selective ROI compute.
+      </step-18.5>
+    </Phase-18>
   </ImplementationOrder>
 
   <DeploymentScenarios>

@@ -14,6 +14,24 @@
 - Resolution: `load_model()` catches `httpx.RequestError` and sets `_model_loaded = True` to continue. `unload_model()` logs warning and returns False.
 - LINKS: M-LLM-CLIENT, src/video2pptx/llm_client.py
 
+### F-0049 — Phase 18 Hermes baseline benchmark exceeds 30-minute timeout
+- Date: 2026-07-12
+- Area: detection
+- Finding: Full Hermes baseline benchmark (3655s video, 60fps source, sample_fps=2 → ~7310 sampled frames) was killed after 30 minutes during Pass 3 (screenshot saving). The 3-pass structure iterates the video decoder three times, each requiring a full sequential decode. An estimated 60+ minutes would be needed for completion. This confirms the need to collapse Pass 3 into Pass 2.
+- Symptom/Reproduction: Run `python tools/benchmark_detect.py --project out11 --output .benchmarks/phase18/baseline-hermes` on the 60-min Hermes video. Process terminates with no `metrics.json` or `output_signature.json` artifacts after 1800s.
+- Impact: Baseline run incomplete; efficient optimization iteration requires shorter test video (<10 min).
+- Resolution/Status: Observed. To be addressed by 18.2 TwoPassDetection (collapse Pass 3 into Pass 2) and use of a shorter benchmark video for iteration.
+- LINKS: M-DETECT-SLIDES, tools/benchmark_detect.py
+
+### F-0048 — 414 segments detected for Hermes 3655s video before timeout
+- Date: 2026-07-12
+- Area: detection
+- Finding: Despite incomplete run, the detector correctly identified 414 deduplicated segments from the 3655s Hermes video (avg duration ~8.8s per segment). Output was written during the killed run but slides.json was not updated before timeout.
+- Symptom/Reproduction: Stdout from killed benchmark shows "[SlideDetector] ... 414 deduplicated segments". bench-project/slides.json contains 1 slide (pre-existing).
+- Impact: Confirms detection works correctly for real lecture content.
+- Resolution/Status: Observed. Full metrics pending re-run after optimization.
+- LINKS: M-DETECT-SLIDES
+
 ### F-0012 — Vision API requires base64 data URIs for image content
 - Date: 2026-07-08
 - Area: llm

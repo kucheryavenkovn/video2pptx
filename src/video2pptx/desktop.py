@@ -26,9 +26,12 @@ from __future__ import annotations
 import sys
 
 
-def _print_diagnostics() -> None:
-    """Print packaged runtime capability info and exit."""
+def _print_diagnostics(target=None) -> None:
+    """Print packaged runtime capability info and exit.
+    When frozen (GUI app), writes to diagnostics.txt in the app directory.
+    """
     import platform
+    import tempfile
 
     modules = {
         "PySide6": False,
@@ -53,22 +56,30 @@ def _print_diagnostics() -> None:
     from video2pptx.application.identity import application_identity
 
     identity = application_identity()
-    print(f"Application: {identity.name}")
-    print(f"Version: {identity.version_str}")
-    print(f"Build: {identity.build.commit_sha or 'unknown'}")
-    print(f"Build type: {identity.build.build_type.value}")
+    lines = []
+    lines.append(f"Application: {identity.name}")
+    lines.append(f"Version: {identity.version_str}")
+    lines.append(f"Build: {identity.build.commit_sha or 'unknown'}")
+    lines.append(f"Build type: {identity.build.build_type.value}")
     if identity.build.packaging_tool:
-        print(f"Packaging: {identity.build.packaging_tool}")
+        lines.append(f"Packaging: {identity.build.packaging_tool}")
     if identity.build.build_time:
-        print(f"Built: {identity.build.build_time.isoformat()}")
-    print(f"OS: {platform.system()} {platform.release()} ({platform.machine()})")
-    print(f"Python: {platform.python_version()}")
-    print(f"Frozen: {getattr(sys, 'frozen', False)}")
-    print()
-    print("Capabilities:")
+        lines.append(f"Built: {identity.build.build_time.isoformat()}")
+    lines.append(f"OS: {platform.system()} {platform.release()} ({platform.machine()})")
+    lines.append(f"Python: {platform.python_version()}")
+    lines.append(f"Frozen: {getattr(sys, 'frozen', False)}")
+    lines.append("")
+    lines.append("Capabilities:")
     for mod_name, available in modules.items():
         status = "available" if available else "MISSING"
-        print(f"  {mod_name}: {status}")
+        lines.append(f"  {mod_name}: {status}")
+    output = "\n".join(lines)
+    if getattr(sys, "frozen", False):
+        exe_dir = Path(sys.executable).parent
+        (exe_dir / "diagnostics.txt").write_text(output, encoding="utf-8")
+        import tempfile
+        (Path(tempfile.gettempdir()) / "video2pptx_diagnostics.txt").write_text(output, encoding="utf-8")
+    print(output)
     sys.exit(0 if all(modules.values()) else 1)
 
 
@@ -77,7 +88,8 @@ def run_desktop() -> int:
 
     Returns exit code suitable for sys.exit().
     """
-    if "--diagnostics" in sys.argv:
+    # Must come before any Qt import to avoid importing PySide6 for diagnostics
+    if "--diagnostics" in sys.argv or "--diag" in sys.argv:
         _print_diagnostics()
 
     from PySide6.QtWidgets import QApplication
