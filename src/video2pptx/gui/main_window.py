@@ -451,6 +451,7 @@ class MainWindow(QMainWindow):
         if dlg.exec():
             logger.info("[GUI-Main][_on_app_settings] App settings updated")
             self.statusBar().showMessage("App settings updated")
+
     # END_BLOCK_SETTINGS_MENU
 
     # START_BLOCK_TIMELINE_MARKERS

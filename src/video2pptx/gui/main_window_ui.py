@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from loguru import logger
 from PySide6.QtCore import QObject, Qt, QTimer
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QDesktopServices, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -31,6 +31,23 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+
+def _show_about(window) -> None:
+    from video2pptx.gui.about_dialog import show_about_dialog
+    show_about_dialog(window)
+
+
+def _open_logs() -> None:
+    from video2pptx.gui.about_dialog import AboutDialog
+    path = AboutDialog._log_dir()
+    path.mkdir(parents=True, exist_ok=True)
+    QDesktopServices.openUrl(path.as_uri())
+
+
+def _open_github() -> None:
+    from video2pptx.application.identity import application_identity
+    QDesktopServices.openUrl(application_identity().repository_url)
 
 
 def setup_main_window_ui(window) -> None:
@@ -197,6 +214,11 @@ def connect_main_window_signals(window) -> None:
         signal.connect(slot)
     menu.open_recent_project.connect(window._on_open_recent_project)
     window._refresh_recent_projects()
+
+    # Help menu
+    menu.show_about.connect(lambda: _show_about(window))
+    menu.open_logs.connect(lambda: _open_logs())
+    menu.open_github.connect(lambda: _open_github())
 
 
 class MainWindowHost(QObject):

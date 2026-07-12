@@ -25,15 +25,17 @@ from PySide6.QtWidgets import QMainWindow, QMenuBar
 
 class MenuBarWidget(QMenuBar):
     # START_CONTRACT: MenuBarWidget
-    #   PURPOSE: Build File and Edit menus on the given QMainWindow, emit signals per action
+    #   PURPOSE: Build File, Edit, Help menus. Emit signals for all actions.
     #   INPUTS: { parent: QMainWindow }
-    #   OUTPUTS: signals: new_project, open_project, close_project, save_project, import_srt, exit_app,
-    #                      project_settings, app_settings, open_recent_project
-    #   SIDE_EFFECTS: connects actions to signals; does NOT install itself (caller adds to layout)
+    #   OUTPUTS: signals for project lifecycle, settings, help/about
     #   LINKS: M-GUI-MENUBAR
     # END_CONTRACT: MenuBarWidget
 
     open_recent_project = Signal(str)
+    show_about = Signal()
+    open_logs = Signal()
+    open_github = Signal()
+    check_updates = Signal()
 
     def __init__(self, parent: QMainWindow | None = None) -> None:
         super().__init__(parent)
@@ -41,6 +43,7 @@ class MenuBarWidget(QMenuBar):
         self._recent_actions: list[QAction] = []
         self._build_file_menu()
         self._build_edit_menu()
+        self._build_help_menu()
 
     def set_recent_projects(self, paths: list[str]) -> None:
         for act in self._recent_actions:
@@ -127,3 +130,30 @@ class MenuBarWidget(QMenuBar):
 
         logger.debug("[GUI-MenuBar][_build_edit_menu] Edit menu built")
     # END_BLOCK_EDIT_MENU
+
+    # START_BLOCK_HELP_MENU
+    def _build_help_menu(self) -> None:
+        help_menu = self.addMenu("&Help")
+
+        self.act_check_updates = QAction("&Check for Updates...", self)
+        help_menu.addAction(self.act_check_updates)
+        self.act_check_updates.triggered.connect(self.check_updates)
+
+        help_menu.addSeparator()
+
+        self.act_about = QAction("&About Video2PPTX...", self)
+        help_menu.addAction(self.act_about)
+        self.act_about.triggered.connect(self.show_about)
+
+        self.act_open_logs = QAction("Open &Logs Folder", self)
+        help_menu.addAction(self.act_open_logs)
+        self.act_open_logs.triggered.connect(self.open_logs)
+
+        help_menu.addSeparator()
+
+        self.act_github = QAction("&GitHub Repository", self)
+        help_menu.addAction(self.act_github)
+        self.act_github.triggered.connect(self.open_github)
+
+        logger.debug("[GUI-MenuBar][_build_help_menu] Help menu built")
+    # END_BLOCK_HELP_MENU
