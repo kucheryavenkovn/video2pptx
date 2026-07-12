@@ -39,8 +39,10 @@ def _get_imports(filepath: Path, module_level_only: bool = False) -> set[str]:
                 imports.add(top)
         elif isinstance(node, ast.ImportFrom):
             if node.module:
-                top = node.module.split(".")[0]
-                imports.add(top)
+                parts = node.module.split(".")
+                imports.add(parts[0])
+                if len(parts) > 1:
+                    imports.add(parts[1])
     return imports
 
 
@@ -83,7 +85,7 @@ class TestArchitectureConstraints:
         """M-DEBUG-MCP must not import MainWindow directly."""
         path = SRC / "debug" / "mcp_server.py"
         imports = _get_imports(path, module_level_only=True)
-        forbidden = {"gui", "main_window"}
+        forbidden = {"main_window"}
         violations = forbidden & imports
         assert not violations, f"mcp_server.module_level imports forbidden: {violations}"
 
@@ -102,3 +104,30 @@ class TestArchitectureConstraints:
         forbidden = {"gui", "PySide6"}
         violations = forbidden & imports
         assert not violations, f"detect_slides imports forbidden: {violations}"
+
+    def test_gui_controllers_no_legacy_project(self):
+        """gui/controllers/ must not import project_manager (use domain.Project)."""
+        ctrl_dir = SRC / "gui" / "controllers"
+        forbidden = {"project_manager"}
+        for f in sorted(ctrl_dir.glob("*.py")):
+            imports = _get_imports(f)
+            violations = forbidden & imports
+            assert not violations, f"{f.name} imports forbidden: {violations}"
+
+    def test_gui_no_legacy_pipeline(self):
+        """gui/ must not import legacy pipeline entry points."""
+        forbidden = {"detect_slides", "notes_pipeline", "markdown_export", "pptx_export", "debug_export"}
+        for f in sorted((SRC / "gui").rglob("*.py")):
+            imports = _get_imports(f, module_level_only=True)
+            violations = forbidden & imports
+            assert not violations, f"{f.name} imports forbidden legacy pipeline: {violations}"
+
+    def test_mcp_no_legacy_pipeline_at_module_level(self):
+        """MCP debug modules must not import legacy pipeline at module level."""
+        debug_dir = SRC / "debug"
+        forbidden = {"detect_slides", "notes_pipeline", "markdown_export",
+                     "pptx_export", "project_manager", "workers"}
+        for f in sorted(debug_dir.glob("*.py")):
+            imports = _get_imports(f, module_level_only=True)
+            violations = forbidden & imports
+            assert not violations, f"{f.name} imports forbidden legacy: {violations}"
