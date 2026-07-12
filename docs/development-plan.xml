@@ -1215,12 +1215,12 @@
       <step-2 name="DesktopEntryPoint" status="done" verification="V-REF-STANDALONE-BUILD"/>
       <step-3 name="PyInstallerReference" status="done"/>
       <step-4 name="NuitkaReference" status="planned"/>
-      <step-5 name="PackagingDecision" status="planned"/>
-      <step-6 name="CleanMachineVerification" status="planned"/>
-      <step-7 name="Installer" status="planned"/>
-      <step-8 name="PackagedMCP" status="planned"/>
-      <step-9 name="ReleaseWorkflow" status="planned"/>
-      <step-10 name="ReleaseAcceptance" status="planned"/>
+      <step-5 name="PackagingDecision" status="done"/>
+      <step-6 name="CleanMachineVerification" status="pending" verification="V-REF-CLEAN-WINDOWS"/>
+      <step-7 name="Installer" status="done" verification="V-REF-WIN-INSTALLER"/>
+      <step-8 name="PackagedMCP" status="pending" verification="V-REF-PACKAGED-MCP"/>
+      <step-9 name="ReleaseWorkflow" status="done" verification="V-REF-WIN-RELEASE"/>
+      <step-10 name="ReleaseAcceptance" status="pending"/>
     </Phase-17>
   </ImplementationOrder>
 

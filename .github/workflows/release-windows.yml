@@ -1,0 +1,99 @@
+name: Release Windows
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+env:
+  PYTHON_VERSION: "3.12"
+  QT_QPA_PLATFORM: offscreen
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build dependencies
+        run: |
+          pip install -e ".[gui,dev,pptx]"
+          pip install pyinstaller
+
+      - name: Run tests
+        run: python -m pytest tests/ --ignore=tests/e2e -q --tb=short
+
+      - name: Set version from tag
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $ver = $tag -replace "^v", ""
+          echo "VERSION=$ver" >> $env:GITHUB_ENV
+
+      - name: Inject build metadata
+        shell: pwsh
+        run: |
+          $sha = "${{ github.sha }}"
+          @"
+          BUILD_META = {
+              "commit_sha": "$sha",
+              "build_type": "installer",
+              "packaging_tool": "pyinstaller",
+          }
+          "@ | Out-File -FilePath src/video2pptx/build_meta.py -Encoding utf8
+
+      - name: Build standalone
+        run: pyinstaller --clean --noconfirm packaging/windows/pyinstaller/video2pptx.spec
+
+      - name: Smoke test
+        shell: pwsh
+        run: |
+          $exe = "dist\windows\Video2PPTX\Video2PPTX.exe"
+          if (-not (Test-Path $exe)) { throw "EXE not found" }
+          Write-Host "EXE size: $((Get-Item $exe).Length / 1MB) MB"
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $env:VERSION = $env:VERSION
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" packaging/windows/installer/video2pptx.iss
+
+      - name: Build portable ZIP
+        shell: pwsh
+        run: |
+          $dist = "dist\windows"
+          Compress-Archive -Path "$dist\Video2PPTX\*" -DestinationPath "$dist\Video2PPTX-$env:VERSION-portable-x64.zip"
+
+      - name: Calculate SHA256
+        shell: pwsh
+        run: |
+          $dist = "dist\windows"
+          Get-ChildItem "$dist\*.exe", "$dist\*.zip" | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
+            "$hash  $($_.Name)" | Out-File -FilePath "$dist\SHA256SUMS.txt" -Encoding ascii -Append
+          }
+          Get-Content "$dist\SHA256SUMS.txt"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: dist/windows/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          name: Video2PPTX ${{ env.VERSION }}
+          body_path: CHANGELOG.md
+          files: |
+            dist/windows/Video2PPTX-${{ env.VERSION }}-Setup-x64.exe
+            dist/windows/Video2PPTX-${{ env.VERSION }}-portable-x64.zip
+            dist/windows/SHA256SUMS.txt
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
