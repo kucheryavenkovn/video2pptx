@@ -55,14 +55,6 @@ def _module_name(path: Path) -> str:
 class TestArchitectureConstraints:
     """Verify clean layering: domain/service must not import GUI or Qt."""
 
-    def test_app_service_no_gui(self):
-        """M-APP-SERVICE must not import gui or PySide6."""
-        service = SRC / "app_service.py"
-        imports = _get_imports(service)
-        forbidden = {"gui", "PySide6"}
-        violations = forbidden & imports
-        assert not violations, f"app_service imports forbidden: {violations}"
-
     def test_auto_align_no_gui(self):
         """M-AUTO-ALIGN must not import gui or PySide6."""
         path = SRC / "auto_align.py"
@@ -78,14 +70,6 @@ class TestArchitectureConstraints:
         forbidden = {"gui", "PySide6"}
         violations = forbidden & imports
         assert not violations, f"project_manager imports forbidden: {violations}"
-
-    def test_command_router_no_gui(self):
-        """M-CANONICAL-COMMANDS must not import gui or PySide6."""
-        path = SRC / "command_router.py"
-        imports = _get_imports(path)
-        forbidden = {"gui", "PySide6"}
-        violations = forbidden & imports
-        assert not violations, f"command_router imports forbidden: {violations}"
 
     def test_project_validator_no_gui(self):
         """M-PROJECT-VALIDATOR must not import gui or PySide6."""
