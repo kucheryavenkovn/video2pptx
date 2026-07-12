@@ -923,6 +923,18 @@
     <CrossLink from="M-E2E-SCENARIOS" to="M-E2E-RUNNER" relation="drives runner per scenario" />
     <CrossLink from="M-APP-SERVICE" to="M-ATOMIC-JSON" relation="all writes atomic" />
     <CrossLink from="M-PIPELINE-STATES" to="M-ATOMIC-JSON" relation="project.json written atomically" />
+    <M-APP-INPUT-RESOLVER NAME="InputResolver" TYPE="UTILITY" STATUS="active">
+      <purpose>Common input resolution helpers for project-bound operations: resolve_project_input, resolve_project_path, resolve_detection_override, normalize_roi.</purpose>
+      <path>src/video2pptx/application/base.py</path>
+      <depends>M-APP-ERRORS</depends>
+      <verification-ref>V-REF-DETECTION-INPUT</verification-ref>
+    </M-APP-INPUT-RESOLVER>
+    <M-PERSIST-DETECTION NAME="DetectionConfigPersistence" TYPE="DATA_LAYER" STATUS="active">
+      <purpose>Canonical DetectionConfigDocument in schema 2.0 with to_domain/to_document round-trip and legacy migration.</purpose>
+      <path>src/video2pptx/infrastructure/persistence/</path>
+      <depends>M-DOMAIN-PROJECT, M-PERSIST-DTO</depends>
+      <verification-ref>V-REF-DETECTION-INPUT</verification-ref>
+    </M-PERSIST-DETECTION>
     <!-- ===== DOMAIN REFACTORING (Phase-16) ===== -->
     <M-ARCH-OVERVIEW NAME="ArchitectureOverview" TYPE="UTILITY" STATUS="planned">
       <purpose>Target layered architecture: domain/application/infrastructure/adapters with ports and dependency rules. See docs/architecture.md for full context.</purpose>

@@ -1095,4 +1095,17 @@
     F-0075 config propagation regression resolved. 11/13 CI jobs green (2 Qt segfault + Xvfb slide_set_frame
     are known CI_ENVIRONMENT). 928 non-E2E tests + 20 architecture tests pass.</result></evidence>
   </V-REF-CANONICAL-ROUTE>
+
+  <V-REF-DETECTION-INPUT MODULE="Phase-16/Step-10" PRIORITY="high" STATUS="in_progress">
+    <purpose>DetectionConfig schema 2.0 persistence round-trip, input resolution contract across all services.</purpose>
+    <scenarios>
+      <scenario-1 kind="persistence">DetectionConfigDocument in project.json, to_domain→Project.detection, to_document→schema 2.0.</scenario-1>
+      <scenario-2 kind="migration">Legacy extensions.detection migrated to canonical DetectionConfig with deterministic precedence.</scenario-2>
+      <scenario-3 kind="resolution">Detect/Preview/Auto resolve video_path from Project when override is None/""/"   ".</scenario-3>
+      <scenario-4 kind="route">ProjectSettingsDialog saves through canonical Project+repository, not legacy project_manager.</scenario-4>
+      <scenario-5 kind="propagation">decoder_backend reaches SlideDetectorPort and VideoDecoder config.</scenario-5>
+      <scenario-6 kind="regression">None override→project value, explicit override wins, missing project→PreconditionError.</scenario-6>
+    </scenarios>
+    <test-files><file>tests/application/test_detection_service.py</file><file>tests/application/test_preview_service.py</file><file>tests/gui/test_main_window_integration.py</file></test-files>
+  </V-REF-DETECTION-INPUT>
 </VerificationPlan>
