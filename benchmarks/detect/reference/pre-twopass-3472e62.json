@@ -1,0 +1,29 @@
+{
+  "source_commit": "3472e62b19fa4fea59bde1fa52b45cd2ff4939d0",
+  "fixture": "tests/fixtures/test_slides.mp4",
+  "config": {
+    "sample_fps": 0.5,
+    "threshold": "auto",
+    "min_slide_duration": 10.0,
+    "min_stable_duration": 5.0,
+    "dedupe_enabled": true,
+    "slide_roi": "auto"
+  },
+  "score_timestamps": [2.0, 4.0, 6.0, 8.0, 10.0],
+  "score_values": [0.0, 0.118, 0.2696, 0.0, 0.0867],
+  "segments": [
+    {
+      "index": 1,
+      "start": 0.0,
+      "end": 12.0,
+      "representative_timestamp": 9.600000000000001,
+      "image": "slides/slide_001.png"
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "slides/slide_001.png",
+      "sha256": "593fd9c8308f9bdef4d6b87fb9b1fd11efd8ba29a670a3b73df65a480acc1e1e"
+    }
+  ]
+}

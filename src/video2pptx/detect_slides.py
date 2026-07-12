@@ -1,3 +1,22 @@
+# FILE: src/video2pptx/detect_slides.py
+# VERSION: 0.4.0
+# START_MODULE_CONTRACT
+#   PURPOSE: Standalone slide detection pipeline — video → slides.json + screenshots, no subtitles required
+#   SCOPE: One function: run_detect_slides() that opens video, detects changes, deduplicates,
+#          saves screenshots, slides.json. 2-pass detection. DetectionRunMetrics instrumentation:
+#          frames_sampled (Pass 1), pass2_frames_sampled (Pass 2), rss_before/peak/after gauges,
+#          RssSampler for peak RSS tracking, representative_frame_bytes evidence.
+#   DEPENDS: models, config, video_decode, roi, frame_features, slide_detector, segmenter,
+#            dedupe, detection_metrics
+#   LINKS: M-DETECT-SLIDES, M-DETECT-METRICS
+#   ROLE: CORE_LOGIC
+#   MAP_MODE: EXPORTS
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   run_detect_slides - main entry: video_path + config -> SlidesDocument with screenshots saved to disk
+# END_MODULE_MAP
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -140,33 +159,37 @@ def run_detect_slides(
 
             metrics.counter_slides_detected.value = len(segments)
 
+            doc = SlidesDocument(
+                video=VideoInfo(
+                    path=str(video_path.resolve()),
+                    duration=info.duration,
+                    width=info.width,
+                    height=info.height,
+                    fps=info.fps,
+                ),
+                slides=segments,
+                score_timestamps=[f.timestamp for f in all_features[1:]],
+                score_values=all_scores,
+            )
+
+            json_path = out_dir / "slides.json"
+            json_path.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
+            logger.info(
+                f"[DetectSlides][run_detect_slides] Document saved | "
+                f"path={json_path} slides={len(segments)}"
+            )
+
+            return doc
+
         finally:
             sampler.stop()
             rss_after = _rss_now_mb()
             if rss_after is not None:
                 metrics.gauge_rss_after_mb.value = rss_after
-            peak = sampler.peak_mb
+            peak = max(
+                rss_before or 0,
+                sampler.peak_mb,
+                rss_after or 0,
+            )
             if peak > 0:
                 metrics.gauge_rss_peak_mb.value = peak
-
-        doc = SlidesDocument(
-            video=VideoInfo(
-                path=str(video_path.resolve()),
-                duration=info.duration,
-                width=info.width,
-                height=info.height,
-                fps=info.fps,
-            ),
-            slides=segments,
-            score_timestamps=[f.timestamp for f in all_features[1:]],
-            score_values=all_scores,
-        )
-
-        json_path = out_dir / "slides.json"
-        json_path.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
-        logger.info(
-            f"[DetectSlides][run_detect_slides] Document saved | "
-            f"path={json_path} slides={len(segments)}"
-        )
-
-        return doc
