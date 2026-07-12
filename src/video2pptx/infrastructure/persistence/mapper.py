@@ -1,11 +1,11 @@
 # FILE: src/video2pptx/infrastructure/persistence/mapper.py
-# VERSION: 2.2.0
+# VERSION: 2.3.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Map strict ProjectDocumentV2 to and from the domain Project without business side effects.
 #   SCOPE: ProjectMapper with to_domain, to_document, and derived slides export
 #   DEPENDS: video2pptx.domain, persistence.dto
 #   LINKS: M-PERSIST-DTO, M-PERSIST-MIGRATIONS, M-FILE-REPO
-#   ROLE: UTILITY
+#   ROLE: RUNTIME
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
 #
@@ -14,7 +14,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v2.2.0 - Stamp derived slides documents with canonical source revision
+#   LAST_CHANGE: v2.3.0 - Emit legacy-valid sentinel video dimensions in derived slides documents
+#   v2.2.0 - Stamp derived slides documents with canonical source revision
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -171,8 +172,8 @@ class ProjectMapper:
                 "path": project.video_path,
                 "duration": 0,
                 "fps": 0,
-                "width": 0,
-                "height": 0,
+                "width": 1,
+                "height": 1,
             },
             "slides": slides_data,
             "score_timestamps": list(project.score_timestamps),

@@ -1,12 +1,12 @@
 # FILE: src/video2pptx/application/services/auto_service.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Coordinate full/resume/force by composing stage services without duplicating stage algorithms.
-#   SCOPE: AutoService.execute — orchestrates preview → detect → align → notes → export → validate
+#   SCOPE: AutoService.execute — orchestrates preview → detect → align → notes → Markdown/PPTX export → validate
 #   DEPENDS: video2pptx.application.base, video2pptx.application.dto, video2pptx.application.errors,
 #            video2pptx.application.services.*
 #   LINKS: M-APP-AUTO, V-APP-AUTO, V-REF-APP-SERVICES
-#   ROLE: CORE_LOGIC
+#   ROLE: RUNTIME
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
 #
@@ -15,7 +15,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Add auto orchestration service
+#   LAST_CHANGE: v1.1.0 - Export both deck formats and commit successful auto stage
+#   v1.0.0 - Add auto orchestration service
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -131,8 +132,17 @@ class AutoService:
                     self._skip(rs, results, f"halted after {failed_stage}")
                 break
 
-        self._ctx.report_progress(100, "Auto complete")
         all_ok = failed_stage is None
+        if all_ok and not dry_run:
+            loaded = repo.load(project_location)
+            loaded.project.pipeline.start("auto")
+            loaded.project.pipeline.succeed("auto")
+            repo.save(
+                loaded.project,
+                loaded.location,
+                expected_revision=loaded.revision,
+            )
+        self._ctx.report_progress(100, "Auto complete")
 
         logger.info(
             f"[AutoService] Done | mode={mode} success={all_ok} "
@@ -187,12 +197,32 @@ class AutoService:
                     mode=kwargs["notes_mode"],
                 )
             elif stage == "export":
-                return self._export.execute(
+                markdown_path = str(location / "deck.md")
+                pptx_path = str(location / "deck.pptx")
+                markdown = self._export.execute(
                     location,
-                    output_path=kwargs["export_output_path"],
-                    format=kwargs["export_format"],
+                    output_path=markdown_path,
+                    format="markdown",
                     overwrite=True,
                     dry_run=kwargs["dry_run"],
+                )
+                if not markdown.success:
+                    return markdown
+                pptx = self._export.execute(
+                    location,
+                    output_path=pptx_path,
+                    format="pptx",
+                    overwrite=True,
+                    dry_run=kwargs["dry_run"],
+                )
+                if not pptx.success:
+                    return pptx
+                return ServiceResult.ok(
+                    "export",
+                    data={
+                        "markdown": markdown.to_dict(),
+                        "pptx": pptx.to_dict(),
+                    },
                 )
             elif stage == "validate":
                 return self._validate.execute(location)

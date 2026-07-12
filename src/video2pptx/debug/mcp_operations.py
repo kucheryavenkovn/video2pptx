@@ -1,17 +1,17 @@
 # FILE: src/video2pptx/debug/mcp_operations.py
-# VERSION: 1.3.0
+# VERSION: 1.5.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Wire OperationRegistry into MCP — write tools create op, run app_service in OpRunnerThread, return operation_id.
 #            Lifecycle tools: health, get_capabilities, get_operation, wait_operation, cancel_operation, list_operations.
 #   SCOPE: OpRunnerThread, submit(), lifecycle functions, health/capabilities
-#   DEPENDS: M-OPERATION-REGISTRY, M-APP-SERVICE, M-STRUCTURED-ERRORS, M-CONFIRM-POLICY
+#   DEPENDS: M-OPERATION-REGISTRY, M-MCP-ADAPTER, M-STRUCTURED-ERRORS, M-CONFIRM-POLICY
 #   LINKS: M-MCP-OPERATIONS
-#   ROLE: INTEGRATION
+#   ROLE: RUNTIME
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   AppServiceRunner - maps MCP names to application commands and persists compatibility results
+#   AppServiceRunner - dispatches MCP pipeline tools through McpServiceAdapter
 #   OpRunnerThread - background thread running app_service commands with op status updates
 #   OperationRunner - single-dispatch: runs one operation via app_service
 #   clear_registry - clear operations, queues, and completion synchronization state
@@ -30,7 +30,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.4.0 - Add process_notes and auto persistence to compatibility bridge
+#   LAST_CHANGE: v1.5.0 - Route MCP pipeline operations through Phase 16 services
+#   v1.4.0 - Add process_notes and auto persistence to compatibility bridge
 #   v1.2.0 - Skip project persistence and Qt refresh for pure Auto Align dry-runs
 #   v1.1.0 - Added adapter mapping, compatibility persistence, and Qt completion synchronization
 # END_CHANGE_SUMMARY
@@ -208,13 +209,19 @@ class OperationRunner:
     ) -> bool:
         return False
 
-
 class AppServiceRunner(OperationRunner):
-    """Concrete runner that delegates to app_service.execute_command with project context."""
+    """Concrete runner that delegates to Phase 16 Application Services via McpServiceAdapter."""
 
     def __init__(self, project_model=None) -> None:
         super().__init__()
         self._project_model = project_model
+        self._adapter: object = None
+
+    def _get_adapter(self):
+        if self._adapter is None:
+            from video2pptx.debug.app_service_adapter import McpServiceAdapter
+            self._adapter = McpServiceAdapter()
+        return self._adapter
 
     def _requires_completion_sync(
         self,
@@ -227,8 +234,6 @@ class AppServiceRunner(OperationRunner):
         return self._project_model is not None
 
     def _dispatch(self, tool: str, args: dict[str, Any]) -> dict[str, Any]:
-        from video2pptx.app_service import execute_command
-
         project = getattr(self._project_model, "project_data", None) if self._project_model else None
         raw_project_path = (
             getattr(self._project_model, "project_path", None)
@@ -237,103 +242,43 @@ class AppServiceRunner(OperationRunner):
         )
         project_path = Path(raw_project_path) if raw_project_path else None
 
-        if project is None:
+        if project_path is None:
             raise RuntimeError(f"No open project for tool: {tool}")
 
-        video_path = getattr(project, "video", None)
-        out_dir = project_path if project_path else Path.cwd()
-        cfg = getattr(project, "detection", None)
-
+        # Build service kwargs from project config, merged with MCP call args
+        video_path = str(getattr(project, "video", None) or "")
         base_kwargs = {
-            "video_path": str(video_path) if video_path else "",
-            "out_dir": str(out_dir),
-            "slides_json": str(out_dir / "slides.json") if out_dir else "",
-            "subtitles_path": getattr(project, "subtitles", None),
-            "title": getattr(project, "name", "Presentation"),
+            "video_path": video_path,
+            "subtitles_path": str(getattr(project, "subtitles", None) or ""),
+            "title": str(getattr(project, "name", "Presentation")),
+            "sample_fps": getattr(getattr(project, "video_config", None), "sample_fps", 2.0),
+            "slide_roi": getattr(getattr(project, "detection", None), "slide_roi", "auto"),
+            "ignore_rois": list(getattr(getattr(project, "detection", None), "ignore_rois", [])),
+            "threshold": getattr(getattr(project, "detection", None), "threshold", 0.95),
+            "min_stable_duration": getattr(getattr(project, "detection", None), "min_stable_duration", 2.0),
+            "min_slide_duration": getattr(getattr(project, "detection", None), "min_slide_duration", 2.0),
+            "dedupe_enabled": getattr(getattr(project, "detection", None), "dedupe_enabled", True),
+            "max_shift_sec": 3.0,
+            "dry_run": False,
+            "include_manual": False,
+            "mode": "basic",
         }
 
-        if cfg:
-            from video2pptx.config import AppConfig
-            base_kwargs["cfg"] = AppConfig(
-                detection=cfg,
-                llm=getattr(project, "llm", None),
-                video=getattr(project, "video_config", None),
-            )
-
         full_kwargs = {**base_kwargs, **args}
-        command = {"quick_preview": "preview"}.get(tool, tool)
-        result = execute_command(command, **full_kwargs)
+        adapter = self._get_adapter()
+        result = adapter.execute_command(
+            tool,
+            project_path,
+            **full_kwargs,
+        )
         if result.get("success") is False:
             raise OperationError(
                 type="ApplicationCommandError",
-                message=result.get("error", f"Command failed: {command}"),
-                stage=result.get("stage", command),
+                message=result.get("error", f"Command failed: {tool}"),
+                stage=result.get("stage", tool),
                 recoverable=True,
             )
-        self._persist_project_result(project_path, tool, result, args)
         return result
-
-    @staticmethod
-    def _persist_project_result(
-        project_path: Path | None,
-        tool: str,
-        result: dict[str, Any],
-        arguments: dict[str, Any] | None = None,
-    ) -> None:
-        """Compatibility bridge until Phase-16 repository services own persistence."""
-        if project_path is None:
-            return
-        if tool == "auto_align" and (arguments or {}).get("dry_run") is True:
-            return
-        from video2pptx.project_manager import (
-            load_slides_into_project,
-            open_project,
-            save_project,
-        )
-
-        project = open_project(project_path)
-        if tool == "quick_preview":
-            project.score_timestamps = list(result.get("score_timestamps", []))
-            project.score_values = list(result.get("score_values", []))
-            project.state.preview_done = True
-        elif tool == "detect":
-            project.slides_json = "slides.json"
-            load_slides_into_project(project, force=True)
-            project.state.detect_done = True
-            project.state.detect_stale = False
-            project.state.mark_stale_downstream("detect")
-        elif tool == "auto_align":
-            load_slides_into_project(project, force=True)
-            project.state.align_done = True
-            project.state.align_stale = False
-            project.state.mark_stale_downstream("align")
-        elif tool == "export_md":
-            project.state.md_exported = True
-            project.state.md_stale = False
-        elif tool == "export_pptx":
-            project.state.pptx_exported = True
-            project.state.pptx_stale = False
-        elif tool == "process_notes":
-            load_slides_into_project(project, force=True)
-            project.state.notes_done = True
-            project.state.notes_stale = False
-            project.state.mark_stale_downstream("notes")
-        elif tool == "auto":
-            project.slides_json = "slides.json"
-            load_slides_into_project(project, force=True)
-            project.state.detect_done = True
-            project.state.detect_stale = False
-            if project.subtitles:
-                project.state.align_done = True
-                project.state.align_stale = False
-                project.state.notes_done = True
-                project.state.notes_stale = False
-            project.state.md_exported = True
-            project.state.md_stale = False
-            project.state.pptx_exported = True
-            project.state.pptx_stale = False
-            project.state.auto_done = True
-        save_project(project, project_path)
 
 
 class OpRunnerThread(Thread):

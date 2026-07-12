@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/infrastructure/persistence/file_project_repository.py
-# VERSION: 1.2.0
+# VERSION: 1.3.0
 # START_MODULE_CONTRACT
 #   PURPOSE: File-based ProjectRepository implementation with atomic writes, migration, and revision tracking.
 #   SCOPE: create, load, save, exists, validate_storage
@@ -14,7 +14,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.2.0 - Revision derived slides and validate canonical/domain/derived consistency
+#   LAST_CHANGE: v1.3.0 - Generate derived slides.json only when canonical slides exist
+#   v1.2.0 - Revision derived slides and validate canonical/domain/derived consistency
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -149,7 +150,7 @@ class FileProjectRepository:
     #   PURPOSE: Optimistically commit a strict canonical V2 document and derived compatibility data.
     #   INPUTS: { project: Project, location: Path, expected_revision: str|None }
     #   OUTPUTS: { SaveResult - new canonical revision and warnings }
-    #   SIDE_EFFECTS: atomically writes project.json and slides.json
+    #   SIDE_EFFECTS: atomically writes project.json and, when slides exist, slides.json
     #   LINKS: M-FILE-REPO, M-PERSIST-DTO
     # END_CONTRACT: save
     def save(
@@ -212,15 +213,16 @@ class FileProjectRepository:
                 path=str(project_json),
             ) from exc
 
-        slides_doc = ProjectMapper.to_slides_document(project, new_revision)
-        slides_json = location / "slides.json"
-        try:
-            write_json_atomic(slides_json, slides_doc, indent=2)
-        except Exception as exc:
-            raise ProjectAtomicWriteError(
-                f"Failed to write slides.json: {exc}",
-                path=str(slides_json),
-            ) from exc
+        if project.slide_count:
+            slides_doc = ProjectMapper.to_slides_document(project, new_revision)
+            slides_json = location / "slides.json"
+            try:
+                write_json_atomic(slides_json, slides_doc, indent=2)
+            except Exception as exc:
+                raise ProjectAtomicWriteError(
+                    f"Failed to write slides.json: {exc}",
+                    path=str(slides_json),
+                ) from exc
 
         logger.info(
             f"[FileProjectRepository] Saved | location={location} "

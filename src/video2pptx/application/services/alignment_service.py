@@ -1,12 +1,12 @@
 # FILE: src/video2pptx/application/services/alignment_service.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Canonical dry-run/apply alignment use case using full-plan validation and atomic aggregate application.
-#   SCOPE: AlignmentService.execute
+#   SCOPE: AlignmentService.execute, applied alignment report persistence
 #   DEPENDS: video2pptx.application.base, video2pptx.application.dto, video2pptx.application.errors,
-#            video2pptx.application.ports.alignment, video2pptx.domain
+#            video2pptx.application.ports.alignment, video2pptx.domain, video2pptx.utils.json_io
 #   LINKS: M-APP-ALIGN, V-APP-ALIGN, V-REF-APP-SERVICES
-#   ROLE: CORE_LOGIC
+#   ROLE: RUNTIME
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
 #
@@ -15,7 +15,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Add revision-safe alignment service with dry-run support
+#   LAST_CHANGE: v1.1.0 - Persist alignment_report.json after successful apply
+#   v1.0.0 - Add revision-safe alignment service with dry-run support
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -28,7 +29,9 @@ from video2pptx.application.base import ServiceContext
 from video2pptx.application.dto import ServiceResult
 from video2pptx.application.errors import StageFailureError
 from video2pptx.application.ports.alignment import AlignmentPort
+from video2pptx.domain.pipeline_state import StageStatus
 from video2pptx.domain.time import TimeInterval
+from video2pptx.utils.json_io import write_json_atomic
 
 
 class AlignmentService:
@@ -99,6 +102,28 @@ class AlignmentService:
                     },
                 )
 
+            current_intervals = [
+                (view.interval.start, view.interval.end)
+                for view in project.slides
+            ]
+            if (
+                project.pipeline.status("align") == StageStatus.SUCCEEDED
+                and current_intervals == plan.aligned_intervals
+            ):
+                self._ctx.report_progress(100, "Alignment already current")
+                return ServiceResult.ok(
+                    "align",
+                    data={
+                        "dry_run": False,
+                        "boundaries_total": plan.boundaries_total,
+                        "boundaries_moved": plan.boundaries_moved,
+                        "avg_shift": plan.avg_shift,
+                        "max_shift": plan.max_shift,
+                        "report": plan.report,
+                    },
+                    revision=loaded.revision,
+                )
+
             project.pipeline.start("align")
             self._ctx.report_progress(60, "Applying alignment")
 
@@ -119,6 +144,11 @@ class AlignmentService:
                 project,
                 loaded.location,
                 expected_revision=loaded.revision,
+            )
+            write_json_atomic(
+                Path(project_location) / "alignment_report.json",
+                plan.report,
+                indent=2,
             )
             self._ctx.report_progress(100, "Alignment saved")
 

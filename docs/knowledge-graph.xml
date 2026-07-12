@@ -932,6 +932,24 @@
       <depends>M-DOMAIN-VALUE</depends>
       <verification-ref>V-DOMAIN-EVENTS</verification-ref>
     </M-DOMAIN-EVENTS>
+    <M-ADAPTERS NAME="LegacyPortAdapters" TYPE="INTEGRATION" STATUS="implemented">
+      <purpose>Translate Phase 16 port contracts to legacy CV, alignment, notes, and export functions.</purpose>
+      <path>src/video2pptx/adapters/</path>
+      <depends>M-PORT-PREVIEW, M-PORT-DETECTOR, M-PORT-ALIGNMENT, M-PORT-NOTES, M-PORT-EXPORT</depends>
+      <verification-ref>V-REF-MCP-ADAPTER</verification-ref>
+    </M-ADAPTERS>
+    <M-MCP-ADAPTER NAME="McpServiceAdapter" TYPE="INTEGRATION" STATUS="implemented">
+      <purpose>Map MCP tool arguments and results to Phase 16 Application Services without legacy pipeline dispatch.</purpose>
+      <path>src/video2pptx/debug/app_service_adapter.py</path>
+      <depends>M-MCP-COMPOSITION, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-AUTO</depends>
+      <verification-ref>V-REF-MCP-ADAPTER</verification-ref>
+    </M-MCP-ADAPTER>
+    <M-MCP-COMPOSITION NAME="McpComposition" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Wire application services to FileProjectRepository and concrete legacy port adapters.</purpose>
+      <path>src/video2pptx/debug/mcp_composition.py</path>
+      <depends>M-ADAPTERS, M-FILE-REPO, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-AUTO</depends>
+      <verification-ref>V-REF-MCP-ADAPTER</verification-ref>
+    </M-MCP-COMPOSITION>
     <M-APP-PROJECT name="ProjectService" TYPE="CORE_LOGIC" STATUS="planned">
       <purpose>Create, open, close, save project via repository port. No direct file access.</purpose>
       <path>src/video2pptx/application/services/project_service.py</path>
@@ -1101,6 +1119,11 @@
     <CrossLink from="M-APP-EXPORT" to="M-PORT-EXPORT" relation="stages presentation artifacts" />
     <CrossLink from="M-APP-DETECT" to="M-FILE-REPO" relation="loads and saves through repository" />
     <CrossLink from="M-APP-AUTO" to="M-APP-PREVIEW" relation="may invoke preview in full mode" />
+    <CrossLink from="M-MCP-OPERATIONS" to="M-MCP-ADAPTER" relation="dispatches MCP pipeline operations through application services" />
+    <CrossLink from="M-MCP-ADAPTER" to="M-MCP-COMPOSITION" relation="obtains wired application services" />
+    <CrossLink from="M-MCP-COMPOSITION" to="M-ADAPTERS" relation="injects concrete legacy port adapters" />
+    <CrossLink from="M-MCP-COMPOSITION" to="M-FILE-REPO" relation="shares canonical repository context" />
+    <CrossLink from="M-PROJECT-MODEL" to="M-FILE-REPO" relation="preserves canonical schema during GUI refresh and slide CRUD" />
     <CrossLink from="M-PORT-EVENTS" to="M-DOMAIN-EVENTS" relation="distributes domain events to subscribers" />
   </Project>
 </KnowledgeGraph>

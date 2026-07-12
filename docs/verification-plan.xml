@@ -1002,6 +1002,21 @@
     </scenarios>
   </V-REF-CHAR-TESTS>
 
+  <V-REF-MCP-ADAPTER MODULE="Phase-16/Step-6" PRIORITY="high" STATUS="passed">
+    <test-files><file>tests/test_app_service_runner.py</file><file>tests/application/test_export_service.py</file><file>tests/e2e/test_mcp_startup_characterization.py</file></test-files>
+    <module-checks><check-1>python -m pytest tests/application tests/infra/test_file_repository.py tests/test_app_service_runner.py -q</check-1></module-checks>
+    <wave-checks><check-1>python -m pytest tests/e2e/test_mcp_startup_characterization.py -q</check-1></wave-checks>
+    <phase-checks><check-1>python -m pytest tests --ignore=tests/e2e/test_mcp_gui_workflow.py -q</check-1></phase-checks>
+    <evidence><result>All 11 real GUI+MCP characterization tests passed; full available suite passed with 8 skips; changed-file Ruff check passed.</result></evidence>
+    <scenarios>
+      <scenario-1 kind="success">MCP preview, detect, align, notes, export, and auto dispatch through Phase 16 services.</scenario-1>
+      <scenario-2 kind="success">Legacy algorithms are reachable only through concrete application port adapters.</scenario-2>
+      <scenario-3 kind="success">Quick Preview creates no slide artifacts; alignment apply is idempotent and writes its report.</scenario-3>
+      <scenario-4 kind="success">Markdown and PPTX preserve project title, images, notes, and canonical pipeline state.</scenario-4>
+      <scenario-5 kind="success">GUI slide CRUD and save/open retain schema 2.0 and revisioned repository persistence.</scenario-5>
+    </scenarios>
+  </V-REF-MCP-ADAPTER>
+
   <V-ARCH-IMPORTS MODULE="Phase-16" PRIORITY="medium" STATUS="planned">
     <scenarios>
       <scenario-1 kind="success">domain/ does not import application, infrastructure, adapters, PySide6.</scenario-1>

@@ -557,3 +557,12 @@
 - Impact: CLI-generated execution packets cannot be trusted as the sole source for verification entries using the project's established `V-PERSIST-*` or `V-DOMAIN-*` naming.
 - Resolution/Status: Open. Continue reading `docs/verification-plan.xml` directly or standardize IDs in a dedicated GRACE artifact migration.
 - LINKS: M-PERSIST-DTO, V-PERSIST-DTO, docs/verification-plan.xml
+
+### F-0062 — Canonical schema 2.0 was incompatible with legacy GUI projection writes
+- Date: 2026-07-12
+- Area: persistence, gui, mcp
+- Finding: Phase 16 services correctly committed ProjectDocumentV2, but GUI refresh parsed canonical slides as legacy SlideSegment values without computed duration/null-image normalization, and GUI CRUD/save subsequently rewrote project.json through the legacy writer. Derived slides.json also used zero dimensions rejected by the legacy compatibility model.
+- Symptom/Reproduction: MCP detect succeeded, then get_project reported detect_done=false; slide_add failed validation; project_save silently replaced schema_version/revision/pipeline with legacy version/state fields.
+- Impact: MCP completion could desynchronize GUI state, slide CRUD could fail after detection, and save/open could lose optimistic revision and full pipeline state.
+- Resolution/Status: Resolved. ProjectModel now projects schema 2.0 into the legacy Qt model for reads while routing canonical save and slide CRUD through FileProjectRepository. Compatibility slides use valid sentinel dimensions, nullable images are normalized, and real GUI+MCP detect/CRUD/save/open characterization passes while project.json remains schema 2.0.
+- LINKS: M-PROJECT-MODEL, M-FILE-REPO, M-MCP-ADAPTER, V-REF-MCP-ADAPTER

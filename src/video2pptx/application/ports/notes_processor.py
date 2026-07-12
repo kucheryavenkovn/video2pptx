@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/application/ports/notes_processor.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Port for processing slide transcripts from subtitle cues without aggregate mutation.
 #   SCOPE: NotesOutput, NotesProcessorPort Protocol
@@ -10,12 +10,13 @@
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   NotesOutput - immutable result with processed notes per slide UID
+#   NotesOutput - immutable transcripts and processed notes keyed by slide UID
 #   NotesProcessorPort - Protocol for computing notes from slide data and subtitles
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Add notes processor port and output DTO
+#   LAST_CHANGE: v1.1.0 - Return aligned transcripts with processed notes
+#   v1.0.0 - Add notes processor port and output DTO
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -26,6 +27,7 @@ from typing import Any, Protocol
 
 @dataclass(frozen=True, slots=True)
 class NotesOutput:
+    transcripts_by_uid: dict[str, str] = field(default_factory=dict)
     notes_by_uid: dict[str, str] = field(default_factory=dict)
     llm_descriptions_by_uid: dict[str, str | None] = field(default_factory=dict)
     raw_cues_preserved: bool = True

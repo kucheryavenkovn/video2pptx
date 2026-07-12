@@ -1,12 +1,12 @@
 # FILE: src/video2pptx/application/services/export_service.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Canonical staged Markdown/PPTX exports from immutable aggregate snapshots with output validation.
 #   SCOPE: ExportService.execute — dry_run and apply modes
 #   DEPENDS: video2pptx.application.base, video2pptx.application.dto, video2pptx.application.errors,
 #            video2pptx.application.ports.presentation_exporter, video2pptx.domain
 #   LINKS: M-APP-EXPORT, V-APP-EXPORT, V-REF-APP-SERVICES
-#   ROLE: CORE_LOGIC
+#   ROLE: RUNTIME
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
 #
@@ -15,7 +15,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Add revision-safe export service with overwrite guard
+#   LAST_CHANGE: v1.1.0 - Preserve the canonical project title in exports
+#   v1.0.0 - Add revision-safe export service with overwrite guard
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -76,6 +77,7 @@ class ExportService:
                 slides_data,
                 effective_output,
                 format=format,
+                title=project.name,
             )
             self._ctx.check_cancelled("export")
             self._ctx.report_progress(70, "Export staged")

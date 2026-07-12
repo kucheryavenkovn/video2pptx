@@ -1,12 +1,12 @@
 # FILE: src/video2pptx/application/services/notes_service.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Canonical basic/LLM notes use case preserving raw cues and forbidding silent LLM fallback.
 #   SCOPE: NotesService.execute
 #   DEPENDS: video2pptx.application.base, video2pptx.application.dto, video2pptx.application.errors,
 #            video2pptx.application.ports.notes_processor, video2pptx.domain
 #   LINKS: M-APP-NOTES, V-APP-NOTES, V-REF-APP-SERVICES
-#   ROLE: CORE_LOGIC
+#   ROLE: RUNTIME
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
 #
@@ -15,7 +15,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Add revision-safe notes service
+#   LAST_CHANGE: v1.1.0 - Persist aligned transcripts returned by the notes port
+#   v1.0.0 - Add revision-safe notes service
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -78,6 +79,8 @@ class NotesService:
 
             for slide in project._slides:
                 uid = str(slide.slide_id)
+                if uid in output.transcripts_by_uid:
+                    slide.transcript = output.transcripts_by_uid[uid]
                 if uid in output.notes_by_uid:
                     slide.notes = output.notes_by_uid[uid]
                 if uid in output.llm_descriptions_by_uid:

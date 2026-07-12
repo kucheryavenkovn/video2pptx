@@ -1,24 +1,29 @@
 # FILE: src/video2pptx/project_model.py
-# VERSION: 0.2.0
+# VERSION: 0.4.0
 # START_MODULE_CONTRACT
 #   PURPOSE: QObject-based project model — bridges CLI project manager with GUI signals
-#   SCOPE: create/open/save/close lifecycle, slide CRUD, subtitle/marker management, score waveform
+#   SCOPE: create/open/save/close lifecycle, canonical schema 2.0 projection persistence, slide CRUD, subtitle/marker management, score waveform
 #   DEPENDS: PySide6.QtCore, video2pptx.project_manager, video2pptx.timeline_model, video2pptx.subtitles
 #   LINKS: M-PROJECT-MODEL
-#   ROLE: DATA_LAYER
+#   ROLE: RUNTIME
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
 #   ProjectModel - QObject wrapping project state with Qt signals for GUI binding
+#   ProjectModel._legacy_project_from_v2 - map canonical persistence to the legacy GUI model
+#   ProjectModel._save_canonical_projection - persist GUI slide edits through FileProjectRepository
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.2.0 - Persist UID-based slide CRUD consistently to project, slides document, and timeline
+#   LAST_CHANGE: v0.4.0 - Preserve canonical schema during GUI open, save, and slide CRUD
+#   v0.3.0 - Refresh schema 2.0 persistence through a legacy GUI compatibility mapping
+#   v0.2.0 - Persist UID-based slide CRUD consistently to project, slides document, and timeline
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pysubs2
@@ -124,28 +129,30 @@ class ProjectModel(QObject):
         self.projectOpened.emit()
 
     def open(self, path: str) -> None:
-        self._project = open_project(path)
+        project_path = Path(path)
+        raw = json.loads((project_path / "project.json").read_text(encoding="utf-8"))
+        if str(raw.get("schema_version", "1.0")) == "2.0":
+            self._project = self._legacy_project_from_v2(raw, project_path)
+        else:
+            self._project = open_project(path)
         self._project_path = path
         self._subs = self._load_subs_if_needed()
         self._timeline.clear()
         if self._project:
-            dur = getattr(self._project, "video_duration", 0) or 0
-            self._timeline.duration = dur
-            load_slides_into_project(self._project)
-            self._sync_slides_to_timeline()
-            self._sync_subtitles_to_timeline()
-            if self._project.score_timestamps and self._project.score_values:
-                self._score_timestamps = list(self._project.score_timestamps)
-                self._score_values = list(self._project.score_values)
-                self._sync_scores_to_timeline()
-                self.scoresChanged.emit()
+            self._timeline.duration = getattr(self._project, "video_duration", 0) or 0
+            self._sync_project_to_ui()
             if self._project.video:
                 self.videoChanged.emit(self._project.video)
         self.projectOpened.emit()
         logger.info(f"[ProjectModel][open] Opened | path={path} name={self._project.name if self._project else '?'}")
 
     def save(self) -> None:
-        if self._project:
+        if not self._project or not self._project_path:
+            return
+        project_path = Path(self._project_path)
+        if self._is_canonical_project(project_path):
+            self._save_canonical_projection(project_path, slides_changed=False)
+        else:
             save_project(self._project)
 
     def close(self) -> None:
@@ -153,32 +160,82 @@ class ProjectModel(QObject):
         self.projectClosed.emit()
 
     def refresh_from_disk(self) -> None:
-        """Re-read project.json and slides.json from disk, sync timeline, emit signals.
-        Must be called from Qt main thread. Used after MCP operations complete.
-        """
+        """Re-read legacy or canonical project data and refresh GUI state."""
         if not self._project or not self._project_path:
             return
         try:
-            from video2pptx.project_manager import load_slides_into_project, open_project
-            self._project = open_project(self._project_path)
+            project_path = Path(self._project_path)
+            raw = json.loads((project_path / "project.json").read_text(encoding="utf-8"))
+            if str(raw.get("schema_version", "1.0")) == "2.0":
+                self._project = self._legacy_project_from_v2(raw, project_path)
+            else:
+                self._project = open_project(project_path)
             self._subs = self._load_subs_if_needed()
             self._timeline.clear()
-            if self._project:
-                dur = getattr(self._project, "video_duration", 0) or 0
-                self._timeline.duration = dur
-                load_slides_into_project(self._project)
-                self._sync_slides_to_timeline()
-                self._sync_subtitles_to_timeline()
-                if self._project.score_timestamps and self._project.score_values:
-                    self._score_timestamps = list(self._project.score_timestamps)
-                    self._score_values = list(self._project.score_values)
-                    self._sync_scores_to_timeline()
-                    self.scoresChanged.emit()
-                self.slidesChanged.emit()
-                self.projectOpened.emit()
+            self._timeline.duration = getattr(self._project, "video_duration", 0) or 0
+            self._sync_project_to_ui()
             logger.info("[ProjectModel][refresh_from_disk] Refreshed from disk")
-        except Exception as e:
-            logger.error(f"[ProjectModel][refresh_from_disk] Failed: {e}")
+        except Exception as exc:
+            logger.error(f"[ProjectModel][refresh_from_disk] Failed | error={exc}")
+
+    @staticmethod
+    def _legacy_project_from_v2(data: dict, project_path: Path) -> Project:
+        """Map canonical schema 2.0 data to the legacy GUI Project model."""
+        stages = data.get("pipeline", {}).get("stages", {})
+
+        def has_status(stage: str, status: str) -> bool:
+            return stages.get(stage, {}).get("status") == status
+
+        slides = []
+        for slide in data.get("slides", []):
+            item = dict(slide)
+            item["duration"] = float(item["end"]) - float(item["start"])
+            item["image"] = item.get("image") or ""
+            slides.append(item)
+
+        scores = data.get("scores", {})
+        return Project.model_validate(
+            {
+                "version": "2.0",
+                "name": data.get("name", "Untitled"),
+                "video": data.get("video_path", ""),
+                "subtitles": data.get("subtitle_path"),
+                "state": {
+                    "preview_done": has_status("preview", "succeeded"),
+                    "detect_done": has_status("detect", "succeeded"),
+                    "align_done": has_status("align", "succeeded"),
+                    "notes_done": has_status("notes", "succeeded"),
+                    "llm_done": has_status("llm", "succeeded"),
+                    "md_exported": has_status("markdown_export", "succeeded"),
+                    "pptx_exported": has_status("pptx_export", "succeeded"),
+                    "auto_done": has_status("auto", "succeeded"),
+                    "detect_stale": has_status("detect", "stale"),
+                    "align_stale": has_status("align", "stale"),
+                    "notes_stale": has_status("notes", "stale"),
+                    "md_stale": has_status("markdown_export", "stale"),
+                    "pptx_stale": has_status("pptx_export", "stale"),
+                },
+                "slides_json": "slides.json",
+                "slides": slides,
+                "output_dir": str(project_path),
+                "score_timestamps": scores.get("timestamps", []),
+                "score_values": scores.get("values", []),
+            }
+        )
+
+    def _sync_project_to_ui(self) -> None:
+        """Sync current project state to timeline and emit signals."""
+        if not self._project:
+            return
+        self._sync_slides_to_timeline()
+        self._sync_subtitles_to_timeline()
+        self._score_timestamps = list(self._project.score_timestamps)
+        self._score_values = list(self._project.score_values)
+        if self._score_timestamps and self._score_values:
+            self._sync_scores_to_timeline()
+            self.scoresChanged.emit()
+        self.slidesChanged.emit()
+        self.projectOpened.emit()
 
     def _close_internal(self) -> None:
         self._project = None
@@ -397,6 +454,44 @@ class ProjectModel(QObject):
             if start < slide.end and slide.start < end:
                 raise ValueError(f"Slide interval overlaps slide {slide.uid}")
 
+    @staticmethod
+    def _is_canonical_project(project_path: Path) -> bool:
+        try:
+            data = json.loads(
+                (project_path / "project.json").read_text(encoding="utf-8")
+            )
+        except (OSError, json.JSONDecodeError):
+            return False
+        return str(data.get("schema_version", "1.0")) == "2.0"
+
+    def _save_canonical_projection(
+        self,
+        project_path: Path,
+        *,
+        slides_changed: bool,
+    ) -> None:
+        """Persist the GUI projection without downgrading canonical storage."""
+        from video2pptx.domain.slide import Slide
+        from video2pptx.infrastructure.persistence.file_project_repository import (
+            FileProjectRepository,
+        )
+
+        repo = FileProjectRepository()
+        loaded = repo.load(project_path)
+        if slides_changed:
+            slides = [
+                Slide.from_dict(slide.model_dump(mode="json"))
+                for slide in self._project.slides
+            ]
+            loaded.project.replace_detected_slides(slides)
+            loaded.project.score_timestamps = list(self._project.score_timestamps)
+            loaded.project.score_values = list(self._project.score_values)
+        repo.save(
+            loaded.project,
+            loaded.location,
+            expected_revision=loaded.revision,
+        )
+
     def _commit_slide_changes(self) -> None:
         if not self._project:
             return
@@ -406,23 +501,27 @@ class ProjectModel(QObject):
             slide.duration = slide.end - slide.start
         self._project.state.mark_stale_downstream("detect")
 
-        if self._project.slides_json:
-            slides_path = (
-                Path(self._project.output_dir) / self._project.slides_json
-            )
-            if slides_path.is_file():
-                from video2pptx.utils.json_io import write_json_atomic
+        project_path = Path(self._project_path) if self._project_path else None
+        if project_path and self._is_canonical_project(project_path):
+            self._save_canonical_projection(project_path, slides_changed=True)
+        else:
+            if self._project.slides_json:
+                slides_path = (
+                    Path(self._project.output_dir) / self._project.slides_json
+                )
+                if slides_path.is_file():
+                    from video2pptx.utils.json_io import write_json_atomic
 
-                document = SlidesDocument.model_validate_json(
-                    slides_path.read_text(encoding="utf-8")
-                )
-                document.slides = list(self._project.slides)
-                write_json_atomic(
-                    slides_path,
-                    document.model_dump(mode="json"),
-                    indent=2,
-                )
-        save_project(self._project)
+                    document = SlidesDocument.model_validate_json(
+                        slides_path.read_text(encoding="utf-8")
+                    )
+                    document.slides = list(self._project.slides)
+                    write_json_atomic(
+                        slides_path,
+                        document.model_dump(mode="json"),
+                        indent=2,
+                    )
+            save_project(self._project)
         self._sync_slides_to_timeline()
 
     def load_subtitles(self, path: str) -> None:

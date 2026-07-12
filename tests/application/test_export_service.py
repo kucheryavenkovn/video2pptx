@@ -1,5 +1,5 @@
 # FILE: tests/application/test_export_service.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Verify ExportService markdown, PPTX, overwrite guard, dry-run, and cancellation.
 #   SCOPE: Markdown staged, PPTX slide/image count, overwrite=false error, dry-run, cancellation.
@@ -9,8 +9,14 @@
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
 #
+# START_MODULE_MAP
+#   FakeExporter - captures exporter-port calls without filesystem export
+#   TestExportService - export orchestration and persistence scenarios
+# END_MODULE_MAP
+#
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Add export service tests with fake exporter
+#   LAST_CHANGE: v1.1.0 - Verify canonical project title is passed through exporter port
+#   v1.0.0 - Add export service tests with fake exporter
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -30,6 +36,7 @@ from video2pptx.infrastructure.persistence.file_project_repository import FilePr
 
 class FakeExporter:
     def __init__(self, output: ExportOutput | None = None):
+        self.title = None
         self._output = output or ExportOutput(
             format="markdown",
             output_path="/fake/output/deck.md",
@@ -37,7 +44,10 @@ class FakeExporter:
             image_count=1,
         )
 
-    def export(self, slides_data, output_path, *, format="markdown"):
+    def export(
+        self, slides_data, output_path, *, format="markdown", title="Presentation"
+    ):
+        self.title = title
         return ExportOutput(
             format=format,
             output_path=output_path,
@@ -64,7 +74,8 @@ class TestExportService:
     def test_markdown_staged_and_validated(self, tmp_path):
         repo, location = _make_project(tmp_path)
         ctx = ServiceContext(repository=repo)
-        service = ExportService(FakeExporter(), ctx)
+        exporter = FakeExporter()
+        service = ExportService(exporter, ctx)
         output_path = str(tmp_path / "output" / "deck.md")
 
         result = service.execute(location, output_path=output_path, format="markdown")
@@ -72,6 +83,7 @@ class TestExportService:
         assert result.success is True
         assert result.data["format"] == "markdown"
         assert result.data["slide_count"] == 2
+        assert exporter.title == "export-test"
         assert result.data["image_count"] == 1
 
         loaded = repo.load(location)

@@ -1082,9 +1082,11 @@
         <checkpoint-5.7 status="done">Adapters, bootstrap, characterization.</checkpoint-5.7>
         Services depend only on domain and ports, never GUI, MCP, CLI, or concrete infrastructure.
       </step-5>
-      <step-6 name="MCPtoApplication" status="planned" verification="V-REF-MCP-ADAPTER">
-        MCP tools call DetectionService etc. Remove @mcp_action scanning from MainWindow.
-        Explicit handler registry in application layer.
+      <step-6 name="MCPtoApplication" status="done" verification="V-REF-MCP-ADAPTER">
+        MCP operation dispatch calls Phase 16 services through McpServiceAdapter and a dedicated
+        composition root. Legacy CV/subtitle/export functions are isolated behind port adapters;
+        FileProjectRepository remains the canonical writer. GUI completion refresh and slide CRUD
+        preserve schema 2.0 while projecting canonical state into the legacy Qt model.
       </step-6>
       <step-7 name="CLItoApplication" status="planned" verification="V-REF-CLI-ADAPTER">
         CLI commands call same services as MCP. Remove run_detect_slides call from cli.py.

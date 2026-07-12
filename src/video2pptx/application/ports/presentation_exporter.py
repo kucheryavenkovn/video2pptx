@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/application/ports/presentation_exporter.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Port for staging Markdown/PPTX output from immutable project snapshots.
 #   SCOPE: ExportOutput, PresentationExporterPort Protocol
@@ -15,7 +15,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Add presentation exporter port and output DTO
+#   LAST_CHANGE: v1.1.0 - Pass presentation title through the exporter port
+#   v1.0.0 - Add presentation exporter port and output DTO
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -43,5 +44,6 @@ class PresentationExporterPort(Protocol):
         output_path: str,
         *,
         format: str = "markdown",
+        title: str = "Presentation",
     ) -> ExportOutput:
         ...
