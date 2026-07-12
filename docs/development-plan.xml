@@ -1206,6 +1206,22 @@
         No PySide6 in domain/ or application/. MainWindow does not contain pipeline business logic.
         MCP does not call GUI slots. One canonical source of project state.</stop-condition>
     </Phase-16>
+    <Phase-17 name="WindowsPackaging" status="in_progress">
+      <goal>Standalone Windows desktop application with installer, clean-machine verification, and GitHub Release pipeline.</goal>
+      <step-0 name="ProductIdentity" status="done" verification="V-REF-PRODUCT-IDENTITY">
+        ApplicationIdentity, BuildInfo, AboutDialog, Help menu. version=__version__ single source.
+      </step-0>
+      <step-1 name="PackagingInventory" status="planned" verification="V-REF-PACKAGING-INVENTORY"/>
+      <step-2 name="DesktopEntryPoint" status="planned"/>
+      <step-3 name="PyInstallerReference" status="planned"/>
+      <step-4 name="NuitkaReference" status="planned"/>
+      <step-5 name="PackagingDecision" status="planned"/>
+      <step-6 name="CleanMachineVerification" status="planned"/>
+      <step-7 name="Installer" status="planned"/>
+      <step-8 name="PackagedMCP" status="planned"/>
+      <step-9 name="ReleaseWorkflow" status="planned"/>
+      <step-10 name="ReleaseAcceptance" status="planned"/>
+    </Phase-17>
   </ImplementationOrder>
 
   <DeploymentScenarios>

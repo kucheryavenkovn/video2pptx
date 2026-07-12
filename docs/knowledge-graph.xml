@@ -935,7 +935,32 @@
       <depends>M-DOMAIN-PROJECT, M-PERSIST-DTO</depends>
       <verification-ref>V-REF-DETECTION-INPUT</verification-ref>
     </M-PERSIST-DETECTION>
-    <!-- ===== DOMAIN REFACTORING (Phase-16) ===== -->
+    <!-- ===== WINDOWS PACKAGING (Phase-17) ===== -->
+    <M-APP-IDENTITY NAME="ApplicationIdentity" TYPE="UTILITY" STATUS="active">
+      <purpose>Canonical application identity: version, build SHA, repository, runtime info. Single source of product metadata.</purpose>
+      <path>src/video2pptx/application/identity.py</path>
+      <depends>packaging.version</depends>
+      <verification-ref>V-REF-PRODUCT-IDENTITY</verification-ref>
+    </M-APP-IDENTITY>
+    <M-APP-BUILD-META NAME="BuildMeta" TYPE="UTILITY" STATUS="active">
+      <purpose>Build-time injected metadata (commit SHA, build type). Overwritten by CI/CD pipeline.</purpose>
+      <path>src/video2pptx/build_meta.py</path>
+      <depends>none</depends>
+      <verification-ref>V-REF-PRODUCT-IDENTITY</verification-ref>
+    </M-APP-BUILD-META>
+    <M-GUI-ABOUT NAME="AboutDialog" TYPE="UI_COMPONENT" STATUS="active">
+      <purpose>About dialog with version, build SHA, runtime capabilities, diagnostic info copy, GitHub/logs actions.</purpose>
+      <path>src/video2pptx/gui/about_dialog.py</path>
+      <depends>M-APP-IDENTITY, PySide6</depends>
+      <verification-ref>V-REF-PRODUCT-IDENTITY</verification-ref>
+    </M-GUI-ABOUT>
+    <M-GUI-HELP-MENU NAME="HelpMenu" TYPE="UI_COMPONENT" STATUS="active">
+      <purpose>Help menu: About, Check for Updates, Open Logs, GitHub Repository.</purpose>
+      <path>src/video2pptx/gui/menu_bar.py</path>
+      <depends>M-GUI-ABOUT, M-APP-IDENTITY</depends>
+      <verification-ref>V-REF-PRODUCT-IDENTITY</verification-ref>
+    </M-GUI-HELP-MENU>
+    <!-- ===== WINDOWS PACKAGING (Phase-17) ===== -->
     <M-ARCH-OVERVIEW NAME="ArchitectureOverview" TYPE="UTILITY" STATUS="planned">
       <purpose>Target layered architecture: domain/application/infrastructure/adapters with ports and dependency rules. See docs/architecture.md for full context.</purpose>
       <path>docs/architecture.md</path>

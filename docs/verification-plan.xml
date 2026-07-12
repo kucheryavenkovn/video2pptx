@@ -1107,4 +1107,11 @@
     </scenarios>
     <test-files><file>tests/application/test_detection_service.py</file><file>tests/application/test_preview_service.py</file><file>tests/gui/test_main_window_integration.py</file></test-files>
   </V-REF-DETECTION-INPUT>
+
+  <V-REF-PRODUCT-IDENTITY MODULE="Phase-17/Step-0" PRIORITY="high" STATUS="passed">
+    <purpose>Application identity, version consistency, About dialog, Help menu, diagnostic info.</purpose>
+    <evidence><result>ApplicationIdentity with version/build/repository. AboutDialog shows version, build SHA, runtime.
+    Help menu has About/Logs/GitHub. __version__ is single source. MainWindow under 600 LOC.</result></evidence>
+    <test-files><file>tests/gui/test_main_window_integration.py</file></test-files>
+  </V-REF-PRODUCT-IDENTITY>
 </VerificationPlan>
