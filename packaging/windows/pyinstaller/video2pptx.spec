@@ -8,7 +8,7 @@ import sys
 
 _REPO = os.environ.get("REPO_ROOT")
 if not _REPO:
-    _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(".")))))
+    _REPO = os.path.abspath(".")
 _REPO = os.path.abspath(_REPO)
 os.chdir(_REPO)
 sys.path.insert(0, os.path.join(_REPO, "src"))

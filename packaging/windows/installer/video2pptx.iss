@@ -27,6 +27,7 @@ SolidCompression=yes
 WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
+SetupIconFile=..\..\..\assets\branding\Video2PPTX-clean.ico
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -45,9 +46,3 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-
-[Code]
-function InitializeSetup: Boolean;
-begin
-  Result := True;
-end;
