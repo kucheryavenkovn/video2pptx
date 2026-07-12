@@ -30,7 +30,7 @@ class TestMetricsSchema:
         m = DetectionRunMetrics()
         m.timer_total.elapsed = 12.5
         m.counter_frames_decoded.value = 100
-        m.gauge_peak_ram_mb.value = 512
+        m.gauge_rss_before_mb.value = 512
         d = m.to_dict()
 
         assert "timers" in d
@@ -39,7 +39,7 @@ class TestMetricsSchema:
 
         assert d["timers"]["total"] == 12.5
         assert d["counters"]["frames_decoded"] == 100
-        assert d["gauges"]["peak_ram_mb"] == 512
+        assert d["gauges"]["rss_before_mb"] == 512
 
         # No nested raw dicts
         assert "elapsed" not in str(d["timers"])
@@ -83,7 +83,17 @@ class TestMetricsSchema:
         d = m.to_dict()
         for section in ("timers", "counters", "gauges"):
             for val in d[section].values():
-                assert val == 0 or val == 0.0, f"non-zero default: {section} = {val}"
+                assert val == 0 or val == 0.0
+
+    def test_new_fields_present(self):
+        m = DetectionRunMetrics()
+        d = m.to_dict()
+        assert "pass2_frames_sampled" in d["counters"]
+        assert "representative_frame_bytes" in d["counters"]
+        assert "rss_before_mb" in d["gauges"]
+        assert "rss_peak_mb" in d["gauges"]
+        assert "rss_after_mb" in d["gauges"]
+        assert "peak_ram_mb" not in d["gauges"]
 
 
 class TestMeasure:
@@ -219,3 +229,102 @@ class TestBenchmarkContract:
         loaded = json.loads(text)
         assert loaded["timers"]["total"] > 0
         assert loaded["counters"]["frames_sampled"] > 0
+
+
+def _psutil_available() -> bool:
+    try:
+        import psutil
+        psutil.Process()
+        return True
+    except Exception:
+        return False
+
+
+class TestRssSampler:
+    def test_lifecycle(self):
+        if not _psutil_available():
+            import pytest
+            pytest.skip("psutil not available")
+        sampler = RssSampler(interval=0.05)
+        sampler.start()
+        time.sleep(0.15)
+        sampler.stop()
+        assert sampler.peak_mb > 0
+
+    def test_stop_before_start_no_error(self):
+        sampler = RssSampler()
+        sampler.stop()
+        assert sampler.peak_mb == 0
+
+    def test_never_started_peak_zero(self):
+        sampler = RssSampler()
+        assert sampler.peak_mb == 0
+
+
+class TestBenchmarkContract:
+    def _run_detect(self, tmp_path, cfg_override=None):
+        from pathlib import Path
+        from video2pptx.config import AppConfig
+        from video2pptx.detect_slides import run_detect_slides
+        video = Path(__file__).parent / "fixtures" / "test_slides.mp4"
+        cfg = cfg_override() if callable(cfg_override) else AppConfig()
+        with collect() as m:
+            run_detect_slides(video_path=video, out_dir=tmp_path, cfg=cfg)
+        return m
+
+    def test_metrics_collected_on_tiny_video(self, tmp_path):
+        m = self._run_detect(tmp_path)
+        d = m.to_dict()
+        psutil_ok = _psutil_available()
+
+        assert "timers" in d and "counters" in d and "gauges" in d
+        assert d["timers"]["total"] > 0
+        assert d["timers"]["extract_features"] > 0
+
+        fs = d["counters"]["frames_sampled"]
+        ffull = d["counters"]["features_full"]
+        fquick = d["counters"]["features_quick"]
+        assert fs > 0
+        assert ffull + fquick == fs
+
+        assert d["counters"]["pass2_frames_sampled"] > 0
+
+        fd = d["counters"]["frames_decoded"]
+        nc = d["counters"]["ndarray_conversions"]
+        assert fd >= nc
+        assert nc >= fs
+
+        assert d["counters"]["representative_frames"] > 0
+        assert d["counters"]["representative_frame_bytes"] > 0
+
+        if psutil_ok:
+            assert d["gauges"]["rss_before_mb"] > 0
+            assert d["gauges"]["rss_peak_mb"] >= d["gauges"]["rss_before_mb"]
+        else:
+            assert d["gauges"]["rss_before_mb"] == 0
+
+        assert d["counters"]["screenshots_written"] >= 1
+        assert d["counters"]["slides_detected"] >= 1
+        assert d["gauges"]["rgb_transfer_bytes"] > 0
+
+        slides_dir = tmp_path / "slides"
+        png_count = len(list(slides_dir.glob("*.png"))) if slides_dir.is_dir() else 0
+        assert png_count == d["counters"]["screenshots_written"]
+
+    def test_metrics_json_serializable(self, tmp_path):
+        import json
+        m = self._run_detect(tmp_path)
+        loaded = json.loads(json.dumps(m.to_dict()))
+        assert loaded["timers"]["total"] > 0
+        assert loaded["counters"]["frames_sampled"] > 0
+
+    def test_invariant_no_dedup(self, tmp_path):
+        from video2pptx.config import AppConfig
+        def cfg_no_dedup():
+            c = AppConfig()
+            c.detection.dedupe_enabled = False
+            return c
+        m = self._run_detect(tmp_path, cfg_no_dedup)
+        d = m.to_dict()
+        fs = d["counters"]["frames_sampled"]
+        assert d["counters"]["features_full"] + d["counters"]["features_quick"] == fs

@@ -12,6 +12,7 @@
 #
 # START_MODULE_MAP
 #   DetectionRunMetrics - aggregated timers/counters/gauges with canonical to_dict/from_dict
+#   RssSampler - background daemon thread that tracks peak RSS
 #   measure - optional zero-overhead context manager
 #   collect - context manager to activate collection
 #   reset, get, set_active - global collector API
@@ -26,6 +27,7 @@
 from __future__ import annotations
 
 import json
+import threading
 import time
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -35,6 +37,45 @@ from typing import Any
 # =========================================================================
 # Primitive wrappers
 # =========================================================================
+
+
+
+
+class RssSampler:
+    def __init__(self, interval: float = 0.2):
+        self._interval = interval
+        self._peak = 0.0
+        self._stop = threading.Event()
+        self._thread: threading.Thread | None = None
+        self._process = None
+
+    def start(self) -> None:
+        try:
+            import psutil
+            self._process = psutil.Process()
+        except Exception:
+            return
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
+
+    def _run(self) -> None:
+        while not self._stop.is_set():
+            try:
+                rss = self._process.memory_info().rss / 1_000_000
+                if rss > self._peak:
+                    self._peak = rss
+            except Exception:
+                pass
+            self._stop.wait(self._interval)
+
+    def stop(self) -> None:
+        self._stop.set()
+        if self._thread is not None:
+            self._thread.join(timeout=1.0)
+
+    @property
+    def peak_mb(self) -> float:
+        return self._peak
 
 
 @dataclass
@@ -107,10 +148,14 @@ class DetectionRunMetrics:
     counter_screenshots_written: MetricsCounter = field(default_factory=MetricsCounter)
     counter_ndarray_conversions: MetricsCounter = field(default_factory=MetricsCounter)
     counter_representative_frames: MetricsCounter = field(default_factory=MetricsCounter)
+    counter_pass2_frames_sampled: MetricsCounter = field(default_factory=MetricsCounter)
+    counter_representative_frame_bytes: MetricsCounter = field(default_factory=MetricsCounter)
 
     # Gauges
     gauge_rgb_transfer_bytes: MetricsGauge = field(default_factory=MetricsGauge)
-    gauge_peak_ram_mb: MetricsGauge = field(default_factory=MetricsGauge)
+    gauge_rss_before_mb: MetricsGauge = field(default_factory=MetricsGauge)
+    gauge_rss_peak_mb: MetricsGauge = field(default_factory=MetricsGauge)
+    gauge_rss_after_mb: MetricsGauge = field(default_factory=MetricsGauge)
     gauge_peak_in_flight: MetricsGauge = field(default_factory=MetricsGauge)
 
     # ------------------------------------------------------------------

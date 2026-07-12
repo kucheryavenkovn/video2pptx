@@ -1,18 +1,3 @@
-# FILE: src/video2pptx/detect_slides.py
-# VERSION: 0.2.0
-# START_MODULE_CONTRACT
-#   PURPOSE: Standalone slide detection pipeline — video → slides.json + screenshots, no subtitles required
-#   SCOPE: One function: run_detect_slides() that opens video, detects changes, deduplicates, saves screenshots and slides.json
-#   DEPENDS: models, config, video_decode, roi, frame_features, slide_detector, segmenter, dedupe, detection_metrics
-#   LINKS: M-DETECT-SLIDES, M-DETECT-METRICS
-#   ROLE: CORE_LOGIC
-#   MAP_MODE: EXPORTS
-# END_MODULE_CONTRACT
-#
-# START_MODULE_MAP
-#   run_detect_slides - main entry: video_path + config → SlidesDocument with screenshots saved to disk
-# END_MODULE_MAP
-
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -26,6 +11,7 @@ from video2pptx.config import AppConfig
 from video2pptx.dedupe import deduplicate_segments
 from video2pptx.detection_metrics import (
     InstrumentedIterator,
+    RssSampler,
     measure,
 )
 from video2pptx.detection_metrics import (
@@ -38,10 +24,9 @@ from video2pptx.slide_detector import detect_changes
 from video2pptx.video_decode import VideoDecoder
 
 
-def _peak_rss_mb() -> float | None:
+def _rss_now_mb() -> float | None:
     try:
         import psutil
-
         return psutil.Process().memory_info().rss / 1_000_000
     except Exception:
         return None
@@ -54,128 +39,116 @@ def run_detect_slides(
     quick_mode: bool = False,
     progress_callback: Callable[[int, str], None] | None = None,
 ) -> SlidesDocument:
-    # START_CONTRACT: run_detect_slides
-    #   PURPOSE: Run standalone slide detection — no subtitles, no export, only slides.json + screenshots
-    #   INPUTS: {
-    #       video_path: Path — path to video file,
-    #       out_dir: Path — output directory (must exist),
-    #       cfg: AppConfig — merged config with detection parameters
-    #   }
-    #   OUTPUTS: SlidesDocument — saved to slides.json in out_dir, screenshots saved to out_dir/slides/
-    #   SIDE_EFFECTS: creates slides/*.png, writes slides.json, iterates video 2 times
-    #   LINKS: M-DETECT-SLIDES
-    # END_CONTRACT: run_detect_slides
+    sampler = RssSampler(interval=0.2)
 
     with _collect_metrics() as metrics, measure("total"):
-        # START_BLOCK_SETUP_DIRS
-        slides_dir = out_dir / "slides"
-        slides_dir.mkdir(parents=True, exist_ok=True)
-        # END_BLOCK_SETUP_DIRS
+        rss_before = _rss_now_mb()
+        if rss_before is not None:
+            metrics.gauge_rss_before_mb.value = rss_before
+        sampler.start()
 
-        # START_BLOCK_OPEN_VIDEO
-        decoder = VideoDecoder(
-            video_path=video_path,
-            sample_fps=cfg.video.sample_fps,
-            backend=cfg.video.decoder_backend,
-        )
-        info = decoder.get_info()
-        logger.info(
-            f"[DetectSlides][run_detect_slides] Video opened | "
-            f"duration={info.duration:.2f}s {info.width}x{info.height} fps={info.fps:.2f}"
-        )
-        # END_BLOCK_OPEN_VIDEO
+        try:
+            slides_dir = out_dir / "slides"
+            slides_dir.mkdir(parents=True, exist_ok=True)
 
-        # START_BLOCK_PARSE_ROI
-        ignore_rois = parse_ignore_rois(cfg.detection.ignore_rois)
-        slide_region = SlideRegion(
-            roi=parse_roi(cfg.detection.slide_roi).roi,
-            ignore_rois=ignore_rois,
-        )
-        # END_BLOCK_PARSE_ROI
-
-        sample_tolerance = 0.5 / max(cfg.video.sample_fps, 0.1)
-
-        # START_BLOCK_DETECT_CHANGES
-        logger.info("[DetectSlides][run_detect_slides] Pass 1/2: detecting changes")
-        frames_iter = (
-            (f.timestamp, f.image)
-            for f in InstrumentedIterator(decoder.iter_frames(), metrics.counter_frames_sampled)
-        )
-        if quick_mode:
-            from video2pptx.frame_features import quick_extract as _extract
-            from video2pptx.frame_features import quick_visual_distance as _dist
-        else:
-            from video2pptx.frame_features import extract_features as _extract
-            from video2pptx.frame_features import visual_distance as _dist
-        changes, all_features, all_scores = detect_changes(
-            frames=frames_iter,
-            slide_region=slide_region,
-            threshold=cfg.detection.threshold,
-            min_stable_duration=cfg.detection.min_stable_duration,
-            sample_fps=cfg.video.sample_fps,
-            video_duration=info.duration,
-            progress_callback=progress_callback,
-            extract_fn=_extract,
-            distance_fn=_dist,
-            quick_mode=quick_mode,
-        )
-        # END_BLOCK_DETECT_CHANGES
-
-        # START_BLOCK_BUILD_SEGMENTS
-        segments: list[SlideSegment] = build_segments(
-            changes=changes,
-            video_duration=info.duration,
-            min_slide_duration=cfg.detection.min_slide_duration,
-        )
-        # END_BLOCK_BUILD_SEGMENTS
-
-        # START_BLOCK_DEDUPE_AND_SAVE_SCREENSHOTS
-        rep_frames: dict[float, np.ndarray] = {}
-
-        if cfg.detection.dedupe_enabled and len(segments) > 1:
-            logger.info(
-                "[DetectSlides][run_detect_slides] Pass 2/2: deduplicating segments & saving screenshots"
+            decoder = VideoDecoder(
+                video_path=video_path,
+                sample_fps=cfg.video.sample_fps,
+                backend=cfg.video.decoder_backend,
             )
-        else:
-            logger.info("[DetectSlides][run_detect_slides] Pass 2/2: saving screenshots")
+            info = decoder.get_info()
+            logger.info(
+                f"[DetectSlides][run_detect_slides] Video opened | "
+                f"duration={info.duration:.2f}s {info.width}x{info.height} fps={info.fps:.2f}"
+            )
 
-        with measure("pass2_collect"):
-            for vf in InstrumentedIterator(decoder.iter_frames(), metrics.counter_frames_sampled):
-                for s in segments:
-                    ts = s.representative_timestamp
-                    if ts not in rep_frames and abs(vf.timestamp - ts) < sample_tolerance:
-                        rep_frames[ts] = slide_region.process(vf.image)
-                        break
+            ignore_rois = parse_ignore_rois(cfg.detection.ignore_rois)
+            slide_region = SlideRegion(
+                roi=parse_roi(cfg.detection.slide_roi).roi,
+                ignore_rois=ignore_rois,
+            )
 
-        metrics.counter_representative_frames.value = len(rep_frames)
+            sample_tolerance = 0.5 / max(cfg.video.sample_fps, 0.1)
 
-        with measure("pass2_dedupe"):
+            logger.info("[DetectSlides][run_detect_slides] Pass 1/2: detecting changes")
+            frames_iter = (
+                (f.timestamp, f.image)
+                for f in InstrumentedIterator(decoder.iter_frames(), metrics.counter_frames_sampled)
+            )
+            if quick_mode:
+                from video2pptx.frame_features import quick_extract as _extract
+                from video2pptx.frame_features import quick_visual_distance as _dist
+            else:
+                from video2pptx.frame_features import extract_features as _extract
+                from video2pptx.frame_features import visual_distance as _dist
+            changes, all_features, all_scores = detect_changes(
+                frames=frames_iter,
+                slide_region=slide_region,
+                threshold=cfg.detection.threshold,
+                min_stable_duration=cfg.detection.min_stable_duration,
+                sample_fps=cfg.video.sample_fps,
+                video_duration=info.duration,
+                progress_callback=progress_callback,
+                extract_fn=_extract,
+                distance_fn=_dist,
+                quick_mode=quick_mode,
+            )
+
+            segments: list[SlideSegment] = build_segments(
+                changes=changes,
+                video_duration=info.duration,
+                min_slide_duration=cfg.detection.min_slide_duration,
+            )
+
+            rep_frames: dict[float, np.ndarray] = {}
+
             if cfg.detection.dedupe_enabled and len(segments) > 1:
-                segments = deduplicate_segments(segments, rep_frames)
+                logger.info(
+                    "[DetectSlides][run_detect_slides] Pass 2/2: deduplicating segments & saving screenshots"
+                )
+            else:
+                logger.info("[DetectSlides][run_detect_slides] Pass 2/2: saving screenshots")
 
-        with measure("pass2_screenshots"):
-            for seg in segments:
-                cropped = rep_frames.get(seg.representative_timestamp)
-                if cropped is not None:
-                    fname = f"slide_{seg.index:03d}.png"
-                    bgr = cv2.cvtColor(cropped, cv2.COLOR_RGB2BGR)
-                    ok = cv2.imwrite(str(slides_dir / fname), bgr)
-                    if ok:
-                        metrics.counter_screenshots_written.increment()
-                    seg.image = f"slides/{fname}"
-        # END_BLOCK_DEDUPE_AND_SAVE_SCREENSHOTS
+            with measure("pass2_collect"):
+                for vf in InstrumentedIterator(
+                    decoder.iter_frames(), metrics.counter_pass2_frames_sampled
+                ):
+                    for s in segments:
+                        ts = s.representative_timestamp
+                        if ts not in rep_frames and abs(vf.timestamp - ts) < sample_tolerance:
+                            cropped = slide_region.process(vf.image)
+                            rep_frames[ts] = cropped
+                            metrics.counter_representative_frame_bytes.value += cropped.nbytes
+                            break
 
-        # START_BLOCK_COUNTERS
-        metrics.counter_slides_detected.value = len(segments)
-        # END_BLOCK_COUNTERS
+            metrics.counter_representative_frames.value = len(rep_frames)
 
-        # START_BLOCK_RAM_GAUGE
-        rss = _peak_rss_mb()
-        if rss is not None:
-            metrics.gauge_peak_ram_mb.value = rss
-        # END_BLOCK_RAM_GAUGE
+            with measure("pass2_dedupe"):
+                if cfg.detection.dedupe_enabled and len(segments) > 1:
+                    segments = deduplicate_segments(segments, rep_frames)
 
-        # START_BLOCK_BUILD_DOCUMENT
+            with measure("pass2_screenshots"):
+                for seg in segments:
+                    cropped = rep_frames.get(seg.representative_timestamp)
+                    if cropped is not None:
+                        fname = f"slide_{seg.index:03d}.png"
+                        bgr = cv2.cvtColor(cropped, cv2.COLOR_RGB2BGR)
+                        ok = cv2.imwrite(str(slides_dir / fname), bgr)
+                        if ok:
+                            metrics.counter_screenshots_written.increment()
+                        seg.image = f"slides/{fname}"
+
+            metrics.counter_slides_detected.value = len(segments)
+
+        finally:
+            sampler.stop()
+            rss_after = _rss_now_mb()
+            if rss_after is not None:
+                metrics.gauge_rss_after_mb.value = rss_after
+            peak = sampler.peak_mb
+            if peak > 0:
+                metrics.gauge_rss_peak_mb.value = peak
+
         doc = SlidesDocument(
             video=VideoInfo(
                 path=str(video_path.resolve()),
@@ -195,6 +168,5 @@ def run_detect_slides(
             f"[DetectSlides][run_detect_slides] Document saved | "
             f"path={json_path} slides={len(segments)}"
         )
-        # END_BLOCK_BUILD_DOCUMENT
 
         return doc
