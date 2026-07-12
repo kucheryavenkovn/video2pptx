@@ -833,3 +833,21 @@
 - Impact: The required 11-test GUI+MCP gate could not run from the documented pytest command.
 - Resolution/Status: TEST_BUG resolved by adding the repository root to pytest pythonpath and tools/__init__.py.
 - LINKS: V-REF-GUI-ADAPTER, pyproject.toml, tools/__init__.py
+
+### F-0078 — Hermes baseline benchmark exceeds 30-minute timeout mid-Pass 3
+- Date: 2026-07-12
+- Area: detection
+- Finding: Full Hermes baseline benchmark (3655s video, 60fps source, sample_fps=2 = ~7310 sampled frames) was killed after 30 min during Pass 3 (screenshot saving). The redundant third full sequential decode is a confirmed architectural cost and a strong optimization target. An estimated 60+ minutes would be needed for completion.
+- Symptom/Reproduction: Run `python tools/benchmark_detect.py --project out11 --output .benchmarks/phase18/baseline-hermes` on 60-min Hermes video. Process terminates without metrics.json or output_signature.json after 1800s.
+- Impact: Baseline run incomplete; full stage timings not isolated because metrics were lost. Efficient optimization iteration requires shorter test video (<10 min).
+- Resolution/Status: Resolved by 18.2 TwoPassDetection. decoder.iter_frames() reduced from 3 to 2 by merging screenshot writing into Pass 2. Step 18.3 short-video benchmark needed for remaining optimization iteration.
+- LINKS: M-DETECT-SLIDES, tools/benchmark_detect.py, Phase-18/TwoPassDetection
+
+### F-0077 — 414 deduplicated segments were reported before timeout
+- Date: 2026-07-12
+- Area: detection
+- Finding: Despite incomplete run, the detector reported 414 deduplicated segments from the 3655s Hermes video (avg duration ~8.8s per segment). Output was not written to slides.json before timeout.
+- Symptom/Reproduction: Stdout from killed benchmark shows "[SlideDetector] ... 414 deduplicated segments". bench-project/slides.json contains 1 slide (pre-existing copy).
+- Impact: Confirms the detector produced non-trivial segmentation on Hermes; quality acceptance remains pending.
+- Resolution/Status: Resolved by 18.2 TwoPassDetection. Full metrics and quality signature pending re-benchmark.
+- LINKS: M-DETECT-SLIDES

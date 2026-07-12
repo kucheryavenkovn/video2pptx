@@ -21,6 +21,7 @@ from pathlib import Path
 
 from loguru import logger
 
+from video2pptx.detection_metrics import get as _get_metrics
 from video2pptx.models import VideoFrame, VideoInfo
 
 # START_BLOCK_HW_DEVICES
@@ -135,14 +136,20 @@ def pyav_iter_frames(
     try:
         for packet in container.demux(stream):
             for frame in packet.decode():
+                m = _get_metrics()
+                if m is not None:
+                    m.counter_frames_decoded.increment()
+
                 if keyframes_only and not frame.key_frame:
                     current_frame_idx += 1
                     continue
-                # yield all keyframes (no interval skip), or apply sampling for normal mode
+
                 if keyframes_only or current_frame_idx % frame_interval == 0:
                     timestamp = current_frame_idx / video_fps
-                    # to_ndarray handles GPU->CPU transfer automatically
                     img = frame.to_ndarray(format="rgb24")
+                    if m is not None:
+                        m.counter_ndarray_conversions.increment()
+                        m.gauge_rgb_transfer_bytes.value += img.nbytes
                     yield VideoFrame(timestamp=timestamp, image=img)
                 current_frame_idx += 1
     finally:
