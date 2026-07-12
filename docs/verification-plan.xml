@@ -1084,6 +1084,14 @@
   <V-REF-LEGACY MODULE="Phase-16/Step-9" PRIORITY="high" STATUS="passed">
     <purpose>Dead legacy modules removed, @mcp_action/ActionRegistry gone, architecture tests enforce clean layering.</purpose>
     <evidence><result>Deleted 6 dead modules (1982 lines), removed ActionRegistry (253 lines), 9 architecture tests pass,
-    928 non-E2E tests pass, 11 MCP char tests pass. CI: all jobs green (3.10 segfault CI_ENVIRONMENT known).</result></evidence>
+    928 non-E2E tests pass, 11 MCP char tests pass.</result></evidence>
   </V-REF-LEGACY>
+
+  <V-REF-CANONICAL-ROUTE MODULE="Phase-16/Step-9.5" PRIORITY="high" STATUS="passed">
+    <purpose>Canonical route closure: CLI → ApplicationServices, MCP → canonical, GUI → controllers, operation lifecycle.</purpose>
+    <evidence><result>Console entry point switched to adapters/cli/app.py. CLI architecture rule forbids legacy pipeline imports.
+    PipelineController: is_busy/active_stage/busyChanged/operationStarted/operationRejected + PipelineStartResult.
+    StatusBarManager: operation_key identity. MainWindow: button disable during busy, rejection dialog.
+    All 13 CI jobs green on commit 295b72e.</result></evidence>
+  </V-REF-CANONICAL-ROUTE>
 </VerificationPlan>

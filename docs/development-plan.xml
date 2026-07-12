@@ -1188,6 +1188,15 @@
         remove @mcp_action/ActionRegistry from MainWindow, add architecture tests enforcing clean layering.
         Canonical source of truth: Project aggregate + FileProjectRepository.
       </step-9>
+      <step-9.5 name="CanonicalRouteClosure" status="done" verification="V-REF-CANONICAL-ROUTE">
+        Switch console entry point to adapters/cli/app.py with project/gui commands.
+        CLI architecture rule forbids legacy pipeline imports.
+        PipelineController: operation lifecycle with start acknowledgement, busy state, rejection signals.
+        StatusBarManager: operation identity to reject stale cross-operation updates.
+        MainWindow: disable pipeline buttons during operation, reject concurrent starts.
+        Fix Windows 3.12 test_list_operations_ordered race.
+        All 13 CI jobs green. 928 non-E2E tests + 11 MCP char tests pass.
+      </step-9.5>
       <stop-condition>All existing 568+ tests pass at each phase. Architecture rules enforced in CI.
         No PySide6 in domain/ or application/. MainWindow does not contain pipeline business logic.
         MCP does not call GUI slots. One canonical source of project state.</stop-condition>
