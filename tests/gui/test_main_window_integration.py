@@ -266,3 +266,31 @@ def test_main_window_detect_rejects_quick_preview(tmp_path: Path, qtbot) -> None
     mock_detect.stop()
     mock_preview.stop()
     mock_rejected.stop()
+
+
+def test_main_window_detect_resolves_project_video_path(tmp_path: Path, qtbot) -> None:
+    """F-0076: MainWindow Detect call uses project.video_path, not explicit override."""
+    window = _window(qtbot)
+    vid_dir = tmp_path / "videos"
+    vid_dir.mkdir(parents=True)
+    vpath = vid_dir / "video.mp4"
+    vpath.write_text("fake")
+    location = tmp_path / "f76"
+    project = Project(name="f76", output_dir=str(location), video_path=str(vpath))
+    window._app_svcs.repository.create(location, project)
+    window._project_ctrl.open(location)
+
+    call_args = []
+
+    def capture(proj_loc, **kw):
+        call_args.append((proj_loc, kw))
+        from video2pptx.gui.controllers.pipeline_controller import PipelineStartResult
+        return PipelineStartResult(accepted=True, requested_stage="detect", active_stage="detect")
+
+    with patch.object(window._pipeline_ctrl, "run_detect", side_effect=capture):
+        window._on_detect()
+
+    assert len(call_args) == 1
+    proj_loc, params = call_args[0]
+    assert not params.get("video_path")
+    assert window._project_ctrl.project.video_path == str(vpath)

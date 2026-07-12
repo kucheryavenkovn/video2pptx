@@ -693,7 +693,7 @@
   resolve_project_input() to fall back to Project.video_path. Same for decoder_backend and all
   detection settings. PipelineController.run_detect defaults video_path to None.
   PreconditionError raised instead of raw Permission denied if both override and project value absent.
-  Path("") is never constructed.
+  Path("") is never constructed. MainWindow integration test verifies project.video_path propagates.
 - LINKS: M-APP-DETECT, M-APP-INPUT-RESOLVER, M-GUI-PIPELINE-CTRL
 
 ### F-0074 — GUI operation lifecycle: status destroyed by rejected second operation

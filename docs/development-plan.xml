@@ -1198,17 +1198,9 @@
         928 non-E2E tests + 11 MCP char tests pass. CI: 10/13 green (3 Qt/Xvfb env).
       </step-9.5>
       <step-10 name="DetectionInputPersistenceGate" status="done" verification="V-REF-DETECTION-INPUT">
-        Common input resolver (resolve_project_input, resolve_project_path, detect settings helpers).
-        DetectionService resolves video_path and decoder_backend from canonical Project.
-        PreviewService uses optional params with project defaults.
-        DetectionConfigDocument in schema 2.0 with to_domain/to_document round-trip.
-        Legacy migration from extensions.detection/legacy to canonical DetectionConfig.
-        ProjectSettingsDialog uses canonical save route (no legacy project_manager).
-        decoder_backend propagation through SlideDetectorPort to VideoDecoder config.
-        None inheritance semantics preserved (no `or []` destruction).
-        Blank ROI normalized to "auto".
-        F-0075 persistence regression test. F-0076 empty video path regression test.
-        Real MainWindow Detect regression. Full cross-service input audit.
+        DetectionConfig schema 2.0 round-trip. Legacy migration. ProjectSettingsDialog canonical
+        save route. Detection/Preview/Auto project-bound input resolution. decoder_backend propagation.
+        F-0075/F-0076 regression tests with GUI integration evidence.
       </step-10>
       <stop-condition>All existing 568+ tests pass at each phase. Architecture rules enforced in CI.
         No PySide6 in domain/ or application/. MainWindow does not contain pipeline business logic.

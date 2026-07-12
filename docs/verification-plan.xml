@@ -1095,7 +1095,7 @@
     928 non-E2E tests + 20 architecture tests pass.</result></evidence>
   </V-REF-CANONICAL-ROUTE>
 
-  <V-REF-DETECTION-INPUT MODULE="Phase-16/Step-10" PRIORITY="high" STATUS="in_progress">
+  <V-REF-DETECTION-INPUT MODULE="Phase-16/Step-10" PRIORITY="high" STATUS="passed">
     <purpose>DetectionConfig schema 2.0 persistence round-trip, input resolution contract across all services.</purpose>
     <scenarios>
       <scenario-1 kind="persistence">DetectionConfigDocument in project.json, to_domain→Project.detection, to_document→schema 2.0.</scenario-1>
