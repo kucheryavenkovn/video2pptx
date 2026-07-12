@@ -25,6 +25,9 @@ from __future__ import annotations
 
 import sys
 
+# Register Qt resources (branding PNGs via :/branding/ prefix)
+import video2pptx.gui.resources.branding_rc  # noqa: F401
+
 
 def _print_diagnostics(target=None) -> None:
     """Print packaged runtime capability info and exit.
@@ -101,6 +104,10 @@ def run_desktop() -> int:
     app.setApplicationName(identity.name)
     app.setApplicationVersion(identity.version_str)
     app.setOrganizationName(identity.author)
+    from PySide6.QtGui import QIcon
+    win_icon = QIcon(":/branding/Video2PPTX-icon.png")
+    if not win_icon.isNull():
+        app.setWindowIcon(win_icon)
 
     # Lazy import to keep desktop.py light
     from video2pptx.gui.main_window import MainWindow

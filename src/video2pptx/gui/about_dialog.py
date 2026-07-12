@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QDesktopServices, QFont
+from PySide6.QtGui import QDesktopServices, QFont, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
@@ -35,6 +35,9 @@ from PySide6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
 )
+
+# Register Qt resources before any pixmap load
+import video2pptx.gui.resources.branding_rc  # noqa: F401
 
 from video2pptx.application.identity import ApplicationIdentity, application_identity
 
@@ -65,8 +68,23 @@ class AboutDialog(QDialog):
         layout = QVBoxLayout(self)
         identity = self._identity
 
-        # Title
+        # Logo from Qt resource
+        logo = QLabel()
+        pixmap = QPixmap(":/branding/Video2PPTX-logo.png")
+        logo_visible = False
+        if not pixmap.isNull():
+            scaled = pixmap.scaled(320, 120, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            logo.setPixmap(scaled)
+            logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            logo_visible = True
+        else:
+            logo.hide()
+        layout.addWidget(logo)
+
+        # Title (hidden when logo displayed)
         title = QLabel(f"<b>{identity.name}</b>")
+        if logo_visible:
+            title.hide()
         title_font = QFont()
         title_font.setPointSize(16)
         title.setFont(title_font)
