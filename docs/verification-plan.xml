@@ -1017,9 +1017,9 @@
     </scenarios>
   </V-REF-MCP-ADAPTER>
 
-  <V-REF-CLI-ADAPTER MODULE="M-CLI-ADAPTER" PRIORITY="high" STATUS="in_progress">
-    <test-files><file>tests/test_cli_characterization.py</file><file>tests/test_cli.py</file><file>tests/test_cli_e2e.py</file><file>tests/test_cli_architecture.py</file><file>tests/application/test_project_service.py</file><file>tests/application/test_llm_service.py</file></test-files>
-    <module-checks><check-1>python -m pytest tests/test_cli_characterization.py tests/test_cli.py tests/test_cli_architecture.py tests/application/test_project_service.py tests/application/test_llm_service.py -q</check-1></module-checks>
+  <V-REF-CLI-ADAPTER MODULE="M-CLI-ADAPTER" PRIORITY="high" STATUS="active">
+    <test-files><file>tests/test_cli_characterization.py</file><file>tests/test_cli.py</file><file>tests/test_cli_adapter_core.py</file><file>tests/test_cli_adapter_commands.py</file><file>tests/test_cli_architecture.py</file><file>tests/test_bootstrap.py</file></test-files>
+    <module-checks><check-1>python -m pytest tests/test_cli_characterization.py tests/test_cli_adapter_core.py tests/test_cli_adapter_commands.py tests/test_cli_architecture.py tests/test_bootstrap.py -q</check-1></module-checks>
     <wave-checks><check-1>python -m pytest tests/test_cli_e2e.py tests/test_characterization_adapters.py -q</check-1></wave-checks>
     <phase-checks><check-1>python -m pytest tests --ignore=tests/e2e/test_mcp_gui_workflow.py -q</check-1><check-2>python -m pytest tests/e2e/test_mcp_startup_characterization.py -q</check-2></phase-checks>
     <scenarios>

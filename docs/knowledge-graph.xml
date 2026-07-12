@@ -950,16 +950,16 @@
       <depends>M-ADAPTERS, M-FILE-REPO, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-AUTO</depends>
       <verification-ref>V-REF-MCP-ADAPTER</verification-ref>
     </M-MCP-COMPOSITION>
-    <M-CLI-ADAPTER NAME="CliAdapter" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-CLI-ADAPTER NAME="CliAdapter" TYPE="ENTRY_POINT" STATUS="active">
       <purpose>Thin Typer transport adapter over operation-scoped canonical application services.</purpose>
       <path>src/video2pptx/adapters/cli/</path>
-      <depends>M-APP-BOOTSTRAP, M-APP-PROJECT, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-LLM, M-APP-EXPORT, M-APP-VALIDATE, M-APP-AUTO</depends>
+      <depends>M-APP-BOOTSTRAP, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-VALIDATE, M-APP-AUTO</depends>
       <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
     </M-CLI-ADAPTER>
-    <M-APP-BOOTSTRAP NAME="ApplicationServicesBootstrap" TYPE="UTILITY" STATUS="planned">
+    <M-APP-BOOTSTRAP NAME="ApplicationServicesBootstrap" TYPE="UTILITY" STATUS="active">
       <purpose>Build one service bundle and operation-scoped context shared by CLI and MCP.</purpose>
-      <path>src/video2pptx/bootstrap/application.py</path>
-      <depends>M-FILE-REPO, M-ADAPTERS, M-APP-PROJECT, M-APP-LLM, M-APP-AUTO</depends>
+      <path>src/video2pptx/bootstrap/__init__.py, src/video2pptx/bootstrap/application.py</path>
+      <depends>M-FILE-REPO, M-ADAPTERS, M-APP-AUTO</depends>
       <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
     </M-APP-BOOTSTRAP>
     <M-APP-LLM NAME="LlmEnrichmentService" TYPE="CORE_LOGIC" STATUS="planned">

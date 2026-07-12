@@ -703,17 +703,17 @@
       <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
       <depends>M-PORT-REPO, M-PORT-LLM, M-DOMAIN-PROJECT</depends>
     </M-APP-LLM>
-    <M-APP-BOOTSTRAP NAME="ApplicationServicesBootstrap" TYPE="UTILITY" LAYER="4" ORDER="89" STATUS="planned">
+    <M-APP-BOOTSTRAP NAME="ApplicationServicesBootstrap" TYPE="UTILITY" LAYER="4" ORDER="89" STATUS="active">
       <contract><purpose>Build one operation-scoped service bundle shared by CLI and MCP adapters.</purpose></contract>
-      <target><source>src/video2pptx/bootstrap/application.py</source><tests>tests/test_application_bootstrap.py</tests></target>
+      <target><source>src/video2pptx/bootstrap/application.py</source><tests>tests/test_bootstrap.py</tests></target>
       <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
       <depends>M-FILE-REPO, M-ADAPTERS, M-APP-PROJECT, M-APP-LLM, M-APP-AUTO</depends>
     </M-APP-BOOTSTRAP>
-    <M-CLI-ADAPTER NAME="CliAdapter" TYPE="ENTRY_POINT" LAYER="0" ORDER="90" STATUS="planned">
+    <M-CLI-ADAPTER NAME="CliAdapter" TYPE="ENTRY_POINT" LAYER="0" ORDER="90" STATUS="active">
       <contract><purpose>Parse Typer input, invoke one canonical application service, render results/errors, and return documented exit codes.</purpose></contract>
-      <target><source>src/video2pptx/adapters/cli/</source><tests>tests/test_cli.py</tests><tests>tests/test_cli_e2e.py</tests></target>
+      <target><source>src/video2pptx/adapters/cli/</source><tests>tests/test_cli_adapter_core.py</tests><tests>tests/test_cli_adapter_commands.py</tests><tests>tests/test_cli_architecture.py</tests><tests>tests/test_cli_characterization.py</tests></target>
       <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
-      <depends>M-APP-BOOTSTRAP, M-APP-PROJECT, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-LLM, M-APP-EXPORT, M-APP-VALIDATE, M-APP-AUTO</depends>
+      <depends>M-APP-BOOTSTRAP, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-VALIDATE, M-APP-AUTO</depends>
     </M-CLI-ADAPTER>
   </Modules>
 
