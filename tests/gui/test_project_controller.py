@@ -18,6 +18,7 @@ from pathlib import Path
 import pytest
 
 from video2pptx.bootstrap.application import ApplicationServices
+from video2pptx.domain.project import Project
 from video2pptx.gui.controllers.project_controller import ProjectController
 
 # -- fixtures ---------------------------------------------------------------
@@ -248,3 +249,70 @@ class TestSignals:
         controller.stateChanged.connect(spy)
         controller.save()
         assert len(calls) == 1
+
+
+class TestDetectionConfigPersistence:
+    """F-0075: DetectionConfig schema 2.0 round-trip via canonical save."""
+
+    def test_detection_config_round_trip(self, tmp_path: Path) -> None:
+        svc = ApplicationServices()
+        location = tmp_path / "det-persist"
+        project = Project(
+            name="det-roundtrip", output_dir=str(location),
+            video_path=str(tmp_path / "video.mp4"),
+        )
+        Path(project.video_path).write_text("fake")
+        project.detection.sample_fps = 3.5
+        project.detection.threshold = 0.123
+        project.detection.slide_roi = "100,50,1800,1000"
+        project.detection.min_slide_duration = 4.5
+        project.detection.min_stable_duration = 3.0
+        project.detection.decoder_backend = "pyav"
+        project.detection.dedupe_enabled = False
+        project.detection.ignore_rois = ["10,10,100,100"]
+        svc.repository.create(location, project)
+
+        reopened = svc.repository.load(location)
+        dc = reopened.project.detection
+        assert dc.sample_fps == 3.5
+        assert dc.threshold == 0.123
+        assert dc.slide_roi == "100,50,1800,1000"
+        assert dc.min_slide_duration == 4.5
+        assert dc.min_stable_duration == 3.0
+        assert dc.decoder_backend == "pyav"
+        assert dc.dedupe_enabled is False
+        assert dc.ignore_rois == ["10,10,100,100"]
+
+    def test_detection_config_detect_receives_exact(self, tmp_path: Path) -> None:
+        svc = ApplicationServices()
+        location = tmp_path / "det-detect"
+        project = Project(name="det-detect", output_dir=str(location))
+        project.video_path = str(tmp_path / "video.mp4")
+        Path(project.video_path).write_text("fake")
+        project.detection.sample_fps = 0.5
+        project.detection.threshold = "auto"
+        project.detection.min_slide_duration = 10.0
+        project.detection.min_stable_duration = 5.0
+        project.detection.dedupe_enabled = False
+        svc.repository.create(location, project)
+
+        received = {}
+
+        class FakeDetect:
+            def detect(self, video_path, out_dir, **kw):
+                received.update(kw)
+                from video2pptx.application.ports.slide_detector import DetectionOutput
+                return DetectionOutput(slides=[], score_timestamps=[], score_values=[])
+
+        from video2pptx.application.base import ServiceContext
+        from video2pptx.application.cancellation import CancellationToken
+        ctx = ServiceContext(repository=svc.repository, cancellation=CancellationToken())
+        from video2pptx.application.services.detection_service import DetectionService
+        service = DetectionService(detector=FakeDetect(), context=ctx)
+        service.execute(location, video_path=None)
+
+        assert received["sample_fps"] == 0.5
+        assert received["threshold"] == "auto"
+        assert received["min_slide_duration"] == 10.0
+        assert received["min_stable_duration"] == 5.0
+        assert received["dedupe_enabled"] is False
