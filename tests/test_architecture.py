@@ -90,12 +90,23 @@ class TestArchitectureConstraints:
         assert not violations, f"mcp_server.module_level imports forbidden: {violations}"
 
     def test_cli_no_gui(self):
-        """CLI entry point (cli.py) must not import gui or PySide6 at module level."""
-        path = SRC / "cli.py"
-        imports = _get_imports(path, module_level_only=True)
-        forbidden = {"PySide6"}
-        violations = forbidden & imports
-        assert not violations, f"cli module-level imports forbidden: {violations}"
+        """CLI entry point must not import gui or PySide6 at module level."""
+        for name in ("cli.py",):
+            path = SRC / name
+            imports = _get_imports(path, module_level_only=True)
+            forbidden = {"PySide6"}
+            violations = forbidden & imports
+            assert not violations, f"{name} module-level imports forbidden: {violations}"
+
+    def test_cli_adapter_no_legacy_pipeline(self):
+        """CLI adapter must not import legacy pipeline modules directly."""
+        for name in ("app.py",):
+            path = SRC / "adapters" / "cli" / name
+            imports = _get_imports(path, module_level_only=True)
+            forbidden = {"detect_slides", "notes_pipeline", "markdown_export",
+                         "pptx_export", "llm_orchestrator", "project_manager"}
+            violations = forbidden & imports
+            assert not violations, f"{name} imports forbidden legacy: {violations}"
 
     def test_detect_slides_no_gui(self):
         """M-DETECT-SLIDES must not import gui or PySide6."""

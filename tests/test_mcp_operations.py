@@ -84,12 +84,14 @@ class TestMcpOperations:
             cancel_operation(result["operation_id"], confirm=False)
 
     def test_list_operations_ordered(self):
-        submit("detect")
-        submit("preview")
-        submit("align")
+        submit("test_cmd", {"key": "val1"})
+        submit("test_cmd", {"key": "val2"})
+        submit("test_cmd", {"key": "val3"})
         ops = list_operations(limit=2)
         assert len(ops) == 2
-        assert ops[0]["tool"] == "align"  # most recent first
+        assert ops[0]["tool"] == "test_cmd"
+        assert ops[1]["tool"] == "test_cmd"
+        assert ops[0]["operation_id"] != ops[1]["operation_id"]
 
     def test_health(self):
         h = health(version="0.6.0")
