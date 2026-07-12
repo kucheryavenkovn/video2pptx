@@ -220,6 +220,10 @@ def _handle_rpc(method: str, params: dict, model, timeline: Timeline, main_windo
             if tool == "project_create":
                 cargs = (args.get("path", ""),)
                 ckwargs = {"name": args.get("name", "Untitled")}
+            elif tool == "slide_set_frame":
+                target = args.get("uid", args.get("index", 1))
+                cargs = (target,)
+                ckwargs = {}
             elif arg_name is not None and arg_name in args:
                 cargs = (args[arg_name],)
                 ckwargs = {}
