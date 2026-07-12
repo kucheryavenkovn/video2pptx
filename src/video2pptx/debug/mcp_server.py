@@ -619,7 +619,7 @@ class McpServer:
         _Handler._sse_clients.clear()
 
         port = self._port
-        for attempt in range(5):
+        for attempt in range(16):
             try:
                 self._server = _ThreadedServer(("127.0.0.1", port), _Handler)
                 self._port = port
