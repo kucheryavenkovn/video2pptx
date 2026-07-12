@@ -223,9 +223,8 @@ class MainWindowHost(QObject):
 
     def _setup_mcp_server(self) -> None:
         try:
-            from video2pptx.debug.action_registry import ActionRegistry
             from video2pptx.debug.mcp_server import McpServer
-            self._mcp = McpServer(self._model, self._model.timeline, port=9812, action_registry=ActionRegistry(self._window), main_window=self._window)
+            self._mcp = McpServer(self._model, self._model.timeline, port=9812, main_window=self._window)
             self._mcp.start()
             self._timer = QTimer(self)
             self._timer.timeout.connect(self._process_mcp_queue)

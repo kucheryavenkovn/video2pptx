@@ -39,7 +39,6 @@ from typing import Any
 
 from loguru import logger
 
-from video2pptx.debug.action_registry import ActionRegistry
 from video2pptx.debug.confirm import require_confirm
 from video2pptx.debug.errors import OperationError
 from video2pptx.debug.mcp_operations import (
@@ -141,9 +140,6 @@ def _is_qt_affine(tool: str) -> bool:
     return tool in _QT_WRITE_CMDS
 
 
-def _is_action_registry_tool(tool: str) -> bool:
-    global ACTION_REGISTRY
-    return ACTION_REGISTRY is not None and ACTION_REGISTRY.has(tool)
 
 
 def _handle_rpc(method: str, params: dict, model, timeline: Timeline, main_window=None) -> Any:
@@ -190,8 +186,6 @@ def _handle_rpc(method: str, params: dict, model, timeline: Timeline, main_windo
                     "inputSchema": {"type": "object"},
                 })
         # Add action registry tools
-        if ACTION_REGISTRY is not None:
-            tools.extend(ACTION_REGISTRY.tools())
         return {"tools": tools}
 
     if method == "tools/call":
@@ -291,7 +285,6 @@ def _handle_rpc(method: str, params: dict, model, timeline: Timeline, main_windo
             return {"content": [{"type": "text", "text": json.dumps(result, ensure_ascii=False, default=str)}]}
 
         # -- action registry --
-        if _is_action_registry_tool(tool):
             _ACTION_QUEUE.put(("__action__", (tool, args), {}))
             return {"content": [{"type": "text", "text": json.dumps({"status": "queued", "tool": tool, "op_type": "action"})}]}
 
@@ -506,7 +499,6 @@ class _ThreadedServer(ThreadingMixIn, TCPServer):
 
 _CMD_QUEUE: Queue[tuple[str, str, str, tuple, dict]] = Queue()
 _ACTION_QUEUE: Queue[tuple[str, tuple, dict]] = Queue()
-ACTION_REGISTRY: ActionRegistry | None = None
 _OP_RUNNER_THREAD: OpRunnerThread | None = None
 _INSTANCE_ID = ""
 _INSTANCE_STARTED_AT = ""
@@ -567,8 +559,6 @@ def mcp_process_queue(model, main_window=None) -> None:
                 record_completed(operation_id)
     while not _ACTION_QUEUE.empty():
         name, args, kwargs = _ACTION_QUEUE.get_nowait()
-        if name == "__action__" and ACTION_REGISTRY is not None:
-            ACTION_REGISTRY.call(args[0], args[1] if len(args) > 1 else None)
 
     # Drain completed app_service operations and refresh GUI (F-0043 fix)
     from video2pptx.debug.mcp_operations import drain_completed_ops
@@ -589,7 +579,6 @@ class McpServer:
         model,
         timeline: Timeline,
         port: int = 9812,
-        action_registry: ActionRegistry | None = None,
         main_window=None,
     ) -> None:
         self._model = model
@@ -598,8 +587,6 @@ class McpServer:
         self._server: _ThreadedServer | None = None
         self._thread: Thread | None = None
         self._main_window = main_window
-        global ACTION_REGISTRY
-        ACTION_REGISTRY = action_registry
 
     def start(self) -> None:
         global _INSTANCE_ID, _INSTANCE_STARTED_AT

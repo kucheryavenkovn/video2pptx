@@ -33,7 +33,6 @@ from PySide6.QtGui import QCloseEvent, QPixmap
 from PySide6.QtWidgets import QFileDialog, QMainWindow, QMessageBox
 
 from video2pptx.backends import BACKENDS
-from video2pptx.debug.action_registry import mcp_action
 from video2pptx.gui.app_config import add_recent_project, load_app_config, save_app_config
 from video2pptx.gui.status_manager import StatusBarManager
 from video2pptx.project_model import ProjectModel
@@ -330,7 +329,6 @@ class MainWindow(QMainWindow):
         self._status.finish(f"Pipeline failed: {msg}")
         QMessageBox.critical(self, "Error", msg)
 
-    @mcp_action(name='detect', desc='Run full slide detection')
     def _on_detect(self) -> None:
         proj = self._model.project_data
         if not proj:
@@ -339,7 +337,6 @@ class MainWindow(QMainWindow):
             return
         self._run_pipeline("detect", video_path=proj.video or "")
 
-    @mcp_action(name='detect_quick', desc='Run quick preview')
     def _on_quick_detect(self) -> None:
         proj = self._model.project_data
         if not proj:
@@ -348,7 +345,6 @@ class MainWindow(QMainWindow):
             return
         self._run_pipeline("preview", video_path=proj.video or "")
 
-    @mcp_action(name='notes', desc='Process speaker notes')
     def _on_process_notes(self) -> None:
         proj = self._model.project_data
         if not proj:
@@ -370,7 +366,6 @@ class MainWindow(QMainWindow):
             return
         self._run_pipeline("auto", video_path=proj.video, subtitles_path=proj.subtitles or "")
 
-    @mcp_action(name='export_md', desc='Export to Markdown')
     def _on_export_md(self) -> None:
         proj = self._model.project_data
         if not proj:
@@ -380,7 +375,6 @@ class MainWindow(QMainWindow):
             return
         self._run_pipeline("export", format="markdown", output_path=str(out))
 
-    @mcp_action(name='export_pptx', desc='Export to PPTX')
     def _on_export_pptx(self) -> None:
         proj = self._model.project_data
         if not proj:
@@ -390,7 +384,6 @@ class MainWindow(QMainWindow):
             return
         self._run_pipeline("export", format="pptx", output_path=str(out))
 
-    @mcp_action(name='add_marker', desc='Add marker at current position')
     def _on_add_marker_at_position(self) -> None:
         if not self._model.is_open:
             QMessageBox.information(self, "Add Slide", "Open a project first")
@@ -456,11 +449,9 @@ class MainWindow(QMainWindow):
         if msg:
             self.statusBar().showMessage(msg)
 
-    @mcp_action(name='slide_add_ui', desc='Add manual slide at timestamp')
     def _on_add_manual_slide(self, ts: float) -> None:
         self._with_timeline("add_slide", ts, msg=f"Manual slide added at {ts:.1f}s")
 
-    @mcp_action(name='slide_set_frame', desc='Capture frame as slide image')
     def _on_set_slide_frame(self, slide_index: int) -> None:
         d = self._project_dir()
         if not d:
@@ -491,19 +482,16 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to capture frame: {e}")
 
-    @mcp_action(name='slide_clear_image', desc='Clear slide image')
     def _on_clear_slide_image(self, slide_index: int) -> None:
         slide_id = self._slide_id(slide_index)
         if slide_id is not None:
             self._with_timeline("clear_slide_image", slide_id, msg=f"Slide {slide_index} image cleared")
 
-    @mcp_action(name='slide_delete_ui', desc='Delete slide by index')
     def _on_delete_slide(self, slide_index: int) -> None:
         slide_id = self._slide_id(slide_index)
         if slide_id is not None:
             self._with_timeline("delete_slide", slide_id, msg=f"Slide {slide_index} deleted", confirm=f"Delete slide #{slide_index}?")
 
-    @mcp_action(name='slide_moved', desc='Move slide to new start/end')
     def _on_slide_moved(self, index: int, new_start: float, new_end: float) -> None:
         d = self._project_dir()
         if not d:
@@ -516,7 +504,6 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(0, self._sync_timeline)
         self.statusBar().showMessage(f"Slide {index} moved: {new_start:.1f}s – {new_end:.1f}s")
 
-    @mcp_action(name='slide_resize', desc='Resize slide interval')
     def _on_slide_resized(self, index: int, new_start: float, new_end: float) -> None:
         d = self._project_dir()
         if not d:
@@ -529,7 +516,6 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(0, self._sync_timeline)
         self.statusBar().showMessage(f"Slide {index} resized: {new_start:.1f}s – {new_end:.1f}s")
 
-    @mcp_action(name='edit_subtitles', desc='Open subtitle editor')
     def _on_open_subtitle_editor(self, slide_index: int) -> None:
         proj = self._model.project_data
         if not proj or slide_index >= len(proj.slides):
@@ -560,13 +546,11 @@ class MainWindow(QMainWindow):
         if self._project_ctrl.project_dir:
             self._model.open(self._project_ctrl.project_dir)
 
-    @mcp_action(name='seek', desc='Seek video to position')
     def _on_seek_to_marker(self, ts: float) -> None:
         self._video_player._player.pause()
         self._video_player._player.setPosition(int(ts * 1000))
         self.statusBar().showMessage(f"Seeked to {ts:.1f}s")
 
-    @mcp_action(name='slide_show_image', desc='Show slide image')
     def _on_open_timeline_image(self, path: str, slide_index: int = 0) -> None:
         if not path:
             self.statusBar().showMessage(f"Slide #{slide_index}: no image set")
@@ -575,7 +559,6 @@ class MainWindow(QMainWindow):
         self._video_player.show_slide_image(full, f"Slide #{slide_index}" if slide_index else "")
         self.statusBar().showMessage(f"Slide #{slide_index}: {path}")
 
-    @mcp_action(name='marker_panel', desc='Open marker panel')
     def _on_open_marker_panel(self) -> None:
         proj = self._model.project_data
         if not proj:
