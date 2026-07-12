@@ -1114,4 +1114,9 @@
     Help menu has About/Logs/GitHub. __version__ is single source. MainWindow under 600 LOC.</result></evidence>
     <test-files><file>tests/gui/test_main_window_integration.py</file></test-files>
   </V-REF-PRODUCT-IDENTITY>
+
+  <V-REF-PACKAGING-INVENTORY MODULE="Phase-17/Step-1" PRIORITY="high" STATUS="passed">
+    <purpose>Runtime dependency map, dynamic imports, Qt plugins, native DLLs, video backends.</purpose>
+    <evidence><result>packaging/windows/inventory.md documents all dependencies, Qt plugins, native DLLs, backend requirements, dynamic imports, and excluded dev packages.</result></evidence>
+  </V-REF-PACKAGING-INVENTORY>
 </VerificationPlan>
