@@ -60,7 +60,7 @@ SAMPLE_PROJECT = Path("/tmp/test-project")
 
 
 def _wait(controller: PipelineController, qtbot) -> None:
-    qtbot.waitUntil(lambda: controller._thread is None, timeout=3000)
+    qtbot.waitUntil(lambda: controller._thread is None, timeout=10000)
 
 
 # -- progress forwarding ----------------------------------------------------

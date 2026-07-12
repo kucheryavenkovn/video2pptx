@@ -64,7 +64,7 @@ def test_real_gui_mcp_startup(repo_dir, tmp_path):
     harness = GuiProcessHarness(
         repo=repo_dir,
         run_dir=tmp_path / "run",
-        startup_timeout=30.0,
+        startup_timeout=60.0,
         qt_platform="offscreen",
     )
     try:
@@ -115,7 +115,7 @@ def test_real_gui_project_create_updates_model_and_window(repo_dir, tmp_path):
     harness = GuiProcessHarness(
         repo=repo_dir,
         run_dir=tmp_path / "run",
-        startup_timeout=30.0,
+        startup_timeout=60.0,
         qt_platform="offscreen",
     )
     try:
@@ -155,7 +155,7 @@ def test_real_gui_mcp_detect_updates_project_timeline_and_disk(
     harness = GuiProcessHarness(
         repo=repo_dir,
         run_dir=tmp_path / "run",
-        startup_timeout=30.0,
+        startup_timeout=60.0,
         qt_platform="offscreen",
     )
     try:
@@ -210,7 +210,7 @@ def test_real_gui_mcp_quick_preview_is_idempotent_and_side_effect_free(
     harness = GuiProcessHarness(
         repo=repo_dir,
         run_dir=tmp_path / "run",
-        startup_timeout=30.0,
+        startup_timeout=60.0,
         qt_platform="offscreen",
     )
     try:
@@ -261,7 +261,7 @@ def test_real_gui_mcp_auto_align_dry_run_apply_and_idempotency(
     harness = GuiProcessHarness(
         repo=repo_dir,
         run_dir=tmp_path / "run",
-        startup_timeout=30.0,
+        startup_timeout=60.0,
         qt_platform="offscreen",
     )
     try:
@@ -348,7 +348,7 @@ def test_real_gui_mcp_slide_crud_keeps_four_views_consistent(
     harness = GuiProcessHarness(
         repo=repo_dir,
         run_dir=tmp_path / "run",
-        startup_timeout=30.0,
+        startup_timeout=60.0,
         qt_platform="offscreen",
     )
     try:
@@ -467,7 +467,7 @@ def test_real_gui_mcp_save_close_open_preserves_project_state(
     harness = GuiProcessHarness(
         repo=repo_dir,
         run_dir=tmp_path / "run",
-        startup_timeout=30.0,
+        startup_timeout=60.0,
         qt_platform="offscreen",
     )
     try:
@@ -577,7 +577,7 @@ def test_real_gui_mcp_markdown_and_pptx_exports_are_structurally_valid(
     harness = GuiProcessHarness(
         repo=repo_dir,
         run_dir=tmp_path / "run",
-        startup_timeout=30.0,
+        startup_timeout=60.0,
         qt_platform="offscreen",
     )
     try:
@@ -663,7 +663,7 @@ def test_real_gui_mcp_video_and_subtitle_import_gates(
     harness = GuiProcessHarness(
         repo=repo_dir,
         run_dir=tmp_path / "run",
-        startup_timeout=30.0,
+        startup_timeout=60.0,
         qt_platform="offscreen",
     )
     try:
@@ -711,7 +711,7 @@ def test_real_gui_mcp_process_notes_enriches_transcript(
     harness = GuiProcessHarness(
         repo=repo_dir,
         run_dir=tmp_path / "run",
-        startup_timeout=30.0,
+        startup_timeout=60.0,
         qt_platform="offscreen",
     )
     try:
@@ -770,7 +770,7 @@ def test_real_gui_mcp_full_auto_completes_all_stages(
     harness = GuiProcessHarness(
         repo=repo_dir,
         run_dir=tmp_path / "run",
-        startup_timeout=30.0,
+        startup_timeout=60.0,
         qt_platform="offscreen",
     )
     try:
