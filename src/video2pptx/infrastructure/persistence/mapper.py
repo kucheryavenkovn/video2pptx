@@ -28,6 +28,7 @@ from video2pptx.domain.pipeline_state import PIPELINE_STAGES, PipelineState
 from video2pptx.domain.project import Project
 from video2pptx.infrastructure.persistence.dto import (
     ArtifactDocument,
+    DetectionConfigDocument,
     PipelineDocument,
     ProjectDocumentV2,
     ScoreDocument,
@@ -90,6 +91,17 @@ class ProjectMapper:
             for name, path in document.artifacts.items.items()
         }
         project.extensions = dict(document.extensions)
+        # START_BLOCK_DETECTION_TO_DOMAIN
+        dc = document.detection
+        project.detection.sample_fps = dc.sample_fps
+        project.detection.decoder_backend = dc.decoder_backend
+        project.detection.slide_roi = dc.slide_roi
+        project.detection.ignore_rois = list(dc.ignore_rois)
+        project.detection.threshold = dc.threshold
+        project.detection.min_slide_duration = dc.min_slide_duration
+        project.detection.min_stable_duration = dc.min_stable_duration
+        project.detection.dedupe_enabled = dc.dedupe_enabled
+        # END_BLOCK_DETECTION_TO_DOMAIN
         return project
 
     # START_CONTRACT: to_document
@@ -148,6 +160,16 @@ class ProjectMapper:
             artifacts=ArtifactDocument(
                 items={name: ref.as_posix() for name, ref in project.artifacts.items()}
             ),
+            detection=DetectionConfigDocument(
+                sample_fps=project.detection.sample_fps,
+                decoder_backend=project.detection.decoder_backend,
+                slide_roi=project.detection.slide_roi,
+                ignore_rois=list(project.detection.ignore_rois),
+                threshold=project.detection.threshold,
+                min_slide_duration=project.detection.min_slide_duration,
+                min_stable_duration=project.detection.min_stable_duration,
+                dedupe_enabled=project.detection.dedupe_enabled,
+            ),
             extensions=dict(project.extensions),
         )
 
@@ -173,7 +195,7 @@ class ProjectMapper:
                 "duration": 0,
                 "fps": 0,
                 "width": 1,
-                "height": 1,
+                "height": 1,  # TODO: populate from DetectionOutput in DetectionService
             },
             "slides": slides_data,
             "score_timestamps": list(project.score_timestamps),

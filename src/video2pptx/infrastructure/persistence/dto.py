@@ -156,6 +156,18 @@ class ArtifactDocument(_StrictDocument):
         return value
 
 
+class DetectionConfigDocument(BaseModel):
+    """Canonical typed detection settings for schema 2.0."""
+    sample_fps: float = 2.0
+    decoder_backend: str = "auto"
+    slide_roi: str = "auto"
+    ignore_rois: list[str] = Field(default_factory=list)
+    threshold: float | str = "auto"
+    min_slide_duration: float = 2.0
+    min_stable_duration: float = 2.0
+    dedupe_enabled: bool = True
+
+
 class ProjectDocumentV2(_StrictDocument):
     """Canonical schema 2.0 project document.
 
@@ -173,6 +185,7 @@ class ProjectDocumentV2(_StrictDocument):
     pipeline: PipelineDocument
     scores: ScoreDocument = Field(default_factory=ScoreDocument)
     artifacts: ArtifactDocument = Field(default_factory=ArtifactDocument)
+    detection: DetectionConfigDocument = Field(default_factory=DetectionConfigDocument)
     extensions: dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("revision", "name")

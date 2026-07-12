@@ -29,6 +29,7 @@ from video2pptx.domain.errors import ValidationError as DomainValidationError
 from video2pptx.domain.pipeline_state import PIPELINE_STAGES, StageStatus
 from video2pptx.infrastructure.persistence.dto import (
     ArtifactDocument,
+    DetectionConfigDocument,
     PipelineDocument,
     ProjectDocumentV2,
     ScoreDocument,
@@ -166,6 +167,7 @@ def migrate_v1_to_v2(
         for key, value in data.items()
         if key not in _CONSUMED_PROJECT_FIELDS
     }
+    legacy_detection = _extract_legacy_detection(data, legacy_extensions)
     revision = str(data.get("revision") or "").strip() or _stable_hex(data)
     name = str(data.get("name") or "Untitled").strip() or "Untitled"
 
@@ -178,5 +180,32 @@ def migrate_v1_to_v2(
         pipeline=_migrate_pipeline(data),
         scores=ScoreDocument(timestamps=score_timestamps, values=score_values),
         artifacts=ArtifactDocument(items=artifact_items),
+        detection=DetectionConfigDocument(
+            sample_fps=legacy_detection.get("sample_fps", 2.0),
+            decoder_backend=legacy_detection.get("decoder_backend", "auto"),
+            slide_roi=legacy_detection.get("slide_roi", "auto"),
+            ignore_rois=legacy_detection.get("ignore_rois", []),
+            threshold=legacy_detection.get("threshold", "auto"),
+            min_slide_duration=legacy_detection.get("min_slide_duration", 2.0),
+            min_stable_duration=legacy_detection.get("min_stable_duration", 2.0),
+            dedupe_enabled=legacy_detection.get("dedupe_enabled", True),
+        ),
         extensions={"legacy": legacy_extensions} if legacy_extensions else {},
     )
+
+
+def _extract_legacy_detection(data: dict, extensions: dict) -> dict:
+    """Extract detection settings from legacy schema with deterministic precedence."""
+    video_cfg = data.get("video_config") or {}
+    ext_det = (extensions.get("legacy") or {}).get("detection") or {}
+    ext_video = (extensions.get("legacy") or {}).get("video") or {}
+    return {
+        "sample_fps": video_cfg.get("sample_fps") or ext_video.get("sample_fps") or ext_det.get("sample_fps") or 2.0,
+        "decoder_backend": video_cfg.get("decoder_backend") or ext_video.get("decoder_backend") or "auto",
+        "slide_roi": ext_det.get("slide_roi", "auto"),
+        "ignore_rois": ext_det.get("ignore_rois", []),
+        "threshold": ext_det.get("threshold", "auto"),
+        "min_slide_duration": ext_det.get("min_slide_duration", 2.0),
+        "min_stable_duration": ext_det.get("min_stable_duration", 2.0),
+        "dedupe_enabled": ext_det.get("dedupe_enabled", True),
+    }
