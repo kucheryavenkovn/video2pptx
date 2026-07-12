@@ -566,3 +566,93 @@
 - Impact: MCP completion could desynchronize GUI state, slide CRUD could fail after detection, and save/open could lose optimistic revision and full pipeline state.
 - Resolution/Status: Resolved. ProjectModel now projects schema 2.0 into the legacy Qt model for reads while routing canonical save and slide CRUD through FileProjectRepository. Compatibility slides use valid sentinel dimensions, nullable images are normalized, and real GUI+MCP detect/CRUD/save/open characterization passes while project.json remains schema 2.0.
 - LINKS: M-PROJECT-MODEL, M-FILE-REPO, M-MCP-ADAPTER, V-REF-MCP-ADAPTER
+
+### F-0063 — GUI pipeline stages execute synchronously on the Qt main thread
+- Date: 2026-07-12
+- Area: ui
+- Finding: MainWindow calls PipelineController.run_* directly and PipelineController executes services synchronously without a QThread replacement.
+- Symptom/Reproduction: A blocking fake detection service prevents a Qt timer from firing until run_detect returns.
+- Impact: Detect, Auto, Notes, and Export freeze the GUI.
+- Resolution/Status: Open for Step 8.5; reproduce with MainWindow integration test, then add QThread-owned execution.
+- LINKS: M-GUI-PIPELINE-CTRL, M-GUI-PIPELINE-WORKER, V-REF-GUI-ADAPTER
+
+### F-0064 — Pipeline operation context is constructed but not consumed
+- Date: 2026-07-12
+- Area: ui
+- Finding: PipelineController creates SignalProgressObserver and CancellationToken but dispatches through services built with ApplicationServices' original context.
+- Symptom/Reproduction: Service progress is reported to the bootstrap context, while PipelineController.progress emits nothing.
+- Impact: GUI progress and cancellation are disconnected from real service execution.
+- Resolution/Status: Open for Step 8.5; build operation-scoped ApplicationServices with the GUI context and assert emitted progress.
+- LINKS: M-GUI-PIPELINE-CTRL, M-APP-SERVICE-CONTEXT, V-REF-GUI-ADAPTER
+
+### F-0065 — Project-open signal precedes legacy GUI projection synchronization
+- Date: 2026-07-12
+- Area: ui
+- Finding: ProjectController emits projectOpened before MainWindow opens ProjectModel, while _on_project_opened reads ProjectModel.project_data.
+- Symptom/Reproduction: create/open/recent-open signal handler sees stale or empty project data.
+- Impact: Labels, timeline, actions, and recent-project state can remain stale.
+- Resolution/Status: Open for Step 8.5; select ProjectController as canonical owner and emit one synchronized GUI event.
+- LINKS: M-GUI-PROJECT-CTRL, M-GUI-MAIN, V-REF-GUI-ADAPTER
+
+### F-0066 — Timeline display indexes cross the SlideId application boundary
+- Date: 2026-07-12
+- Area: ui
+- Finding: MainWindow forwards timeline indexes into TimelineController methods whose contracts require SlideId.
+- Symptom/Reproduction: delete/move/resize/clear paths receive an integer instead of the displayed slide UID.
+- Impact: Wrong slide mutation or domain lookup failure after reorder/delete.
+- Resolution/Status: Open for Step 8.5; resolve index to SlideId only at the MainWindow adapter boundary.
+- LINKS: M-GUI-TIMELINE-CTRL, M-GUI-MAIN, V-REF-GUI-ADAPTER
+
+### F-0067 — Set-frame clears the canonical image reference after writing the file
+- Date: 2026-07-12
+- Area: ui
+- Finding: MainWindow writes a frame with cv2.imwrite and then invokes clear_slide_image instead of a canonical set-image operation.
+- Symptom/Reproduction: Screenshot exists on disk but reopened project has no matching ArtifactRef.
+- Impact: Representative frame is lost from canonical project state.
+- Resolution/Status: Open for Step 8.5; add TimelineController set_slide_image/set_slide_frame using ArtifactRef.
+- LINKS: M-GUI-TIMELINE-CTRL, M-DOMAIN-PROJECT, V-REF-GUI-ADAPTER
+
+### F-0068 — GUI revision ownership is split across stale snapshots
+- Date: 2026-07-12
+- Area: ui
+- Finding: ProjectController, ProjectModel, pipeline services, and TimelineController can independently load and save project revisions.
+- Symptom/Reproduction: Pipeline or timeline save followed by ProjectController.save uses a stale expected revision.
+- Impact: Valid GUI sequences can raise ProjectRevisionConflict or overwrite newer state.
+- Resolution/Status: Open for Step 8.5; ProjectController becomes canonical GUI owner and reloads after every external mutation.
+- LINKS: M-GUI-PROJECT-CTRL, M-GUI-PIPELINE-CTRL, M-GUI-TIMELINE-CTRL, V-REF-GUI-ADAPTER
+
+### F-0069 — videoChanged assigns a Python attribute instead of Qt enabled state
+- Date: 2026-07-12
+- Area: ui
+- Finding: MainWindow uses setattr(button, "enabled", value), which does not call QWidget.setEnabled.
+- Symptom/Reproduction: videoChanged leaves Detect and Quick Preview disabled.
+- Impact: Imported/opened video cannot reliably enable pipeline actions.
+- Resolution/Status: Open for Step 8.5; use setEnabled(bool) and cover the real signal path.
+- LINKS: M-GUI-MAIN, V-REF-GUI-ADAPTER
+
+### F-0070 — MainWindow Step 8 stop condition is unmet
+- Date: 2026-07-12
+- Area: ui
+- Finding: Commit 88eaec4 leaves main_window.py above the approved 600-line stop condition.
+- Symptom/Reproduction: Physical line count is 793 at the audited commit.
+- Impact: Step 8 cannot be marked complete.
+- Resolution/Status: Open for Step 8.5; extract UI construction or host adapters structurally.
+- LINKS: M-GUI-MAIN, M-GUI-WINDOW-UI, V-REF-GUI-ADAPTER
+
+### F-0071 — CI matrix omits the PySide6 dependency required during collection
+- Date: 2026-07-12
+- Area: tooling
+- Finding: PR #1 standard CI test jobs run GUI-importing tests without installing PySide6.
+- Symptom/Reproduction: GitHub run 29186796164 fails collection with ModuleNotFoundError: PySide6.
+- Impact: Linux and Windows matrix, GUI test, and dependent acceptance jobs are red.
+- Resolution/Status: CI_ENVIRONMENT; open for Step 8.5 workflow correction.
+- LINKS: M-CI, .github/workflows/ci.yml, V-REF-GUI-ADAPTER
+
+### F-0072 — MCP workflows install obsolete Ubuntu Mesa package names
+- Date: 2026-07-12
+- Area: tooling
+- Finding: MCP workflows request libegl1-mesa and libgl1-mesa-glx, unavailable on the current GitHub Ubuntu image.
+- Symptom/Reproduction: Runs 29186795062 and 29186796133 fail apt with exit code 100 before tests.
+- Impact: MCP E2E smoke is skipped and required unit-tests remain red.
+- Resolution/Status: CI_ENVIRONMENT; open for Step 8.5 workflow correction using current runtime packages.
+- LINKS: M-CI, .github/workflows/mcp-e2e.yml, V-REF-GUI-ADAPTER

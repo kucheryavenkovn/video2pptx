@@ -1040,7 +1040,10 @@
   </V-REF-CLI-ADAPTER>
 
   <V-REF-GUI-ADAPTER MODULE="M-GUI-PROJECT-CTRL" PRIORITY="high" STATUS="in_progress">
-    <purpose>New GUI controller code must use ApplicationServices (not legacy pipeline modules), emit Qt signals for state changes, and pass architecture import checks.</purpose>
+    <purpose>Step 8.5 proves that the real MainWindow uses one canonical project state, asynchronous operation-scoped services, SlideId-only domain mutations, persistent ArtifactRef frames, and non-blocking Qt integration.</purpose>
+    <test-files><file>tests/gui/test_project_controller.py</file><file>tests/gui/test_pipeline_controller.py</file><file>tests/gui/test_timeline_controller.py</file><file>tests/gui/test_main_window_integration.py</file><file>tests/e2e/test_mcp_startup_characterization.py</file></test-files>
+    <module-checks><check-1>python -m pytest tests/gui/test_project_controller.py tests/gui/test_pipeline_controller.py tests/gui/test_timeline_controller.py tests/gui/test_main_window_integration.py -q</check-1><check-2>ruff check src/ tests/</check-2></module-checks>
+    <wave-checks><check-1>python -m pytest tests --ignore=tests/e2e -q</check-1><check-2>python -m pytest tests/e2e/test_mcp_startup_characterization.py -q</check-2></wave-checks>
     <scenarios>
       <scenario-1 kind="success">ProjectController creates/open/saves/closes projects through FileProjectRepository.</scenario-1>
       <scenario-2 kind="success">Controller emits projectOpened/projectClosed/stateChanged/errorOccurred Qt signals.</scenario-2>
@@ -1048,10 +1051,23 @@
       <scenario-4 kind="success">PipelineController runs stage services through ApplicationServices in a QThread.</scenario-4>
       <scenario-5 kind="success">TimelineController provides slide CRUD through ApplicationServices with revision-safe saves.</scenario-5>
       <scenario-6 kind="error">Controller emits errorOccurred on create(already exists)/open(not found)/save(revision conflict).</scenario-6>
+      <scenario-7 kind="concurrency">Detect, auto, notes, and export return control to the Qt event loop before service completion.</scenario-7>
+      <scenario-8 kind="observability">A service ProgressUpdate reaches PipelineController.progress and MainWindow status UI through the actual operation ServiceContext.</scenario-8>
+      <scenario-9 kind="lifecycle">Real MainWindow create, open, and recent-open update labels, timeline, and canonical state from one project-open event.</scenario-9>
+      <scenario-10 kind="adapter">Timeline add/delete/move/resize/clear/set-frame resolves display index to SlideId at MainWindow boundary; controller/domain receive no index.</scenario-10>
+      <scenario-11 kind="persistence">Set frame stores a matching file and ArtifactRef and survives close/open.</scenario-11>
+      <scenario-12 kind="revision">Detect, align, move, and delete followed by save do not raise ProjectRevisionConflict.</scenario-12>
+      <scenario-13 kind="regression">videoChanged uses QWidget.setEnabled(bool), and playback routing F-0058 reaches the video player.</scenario-13>
+      <scenario-14 kind="architecture">MainWindow remains structurally below 600 physical LOC without multi-operation lambdas or statement packing.</scenario-14>
+      <scenario-15 kind="acceptance">Required GitHub Actions jobs are green and every historical failure is classified PRODUCT_BUG, TEST_BUG, or CI_ENVIRONMENT.</scenario-15>
     </scenarios>
     <stop-conditions>
       <condition-1>Stop if controller code imports video2pptx.project_manager, video2pptx.models, video2pptx.detect_slides, or any legacy pipeline module.</condition-1>
       <condition-2>Stop if controller mutates domain objects without going through ApplicationServices.</condition-2>
+      <condition-3>Stop if any pipeline stage executes on QApplication.instance().thread().</condition-3>
+      <condition-4>Stop if ProjectController and ProjectModel retain independently writable project snapshots.</condition-4>
+      <condition-5>Stop if MainWindow is 600 or more physical lines.</condition-5>
+      <condition-6>Stop if any required GitHub workflow remains red.</condition-6>
     </stop-conditions>
   </V-REF-GUI-ADAPTER>
 

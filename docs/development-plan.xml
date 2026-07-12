@@ -722,17 +722,29 @@
       <depends>M-APP-BOOTSTRAP, M-DOMAIN-PROJECT</depends>
     </M-GUI-PROJECT-CTRL>
     <M-GUI-PIPELINE-CTRL NAME="PipelineController" TYPE="CORE_LOGIC" LAYER="1" ORDER="92" STATUS="active">
-      <contract><purpose>Run stage services (preview/detect/align/notes/export) through ApplicationServices; emit progress via Qt signals.</purpose></contract>
+      <contract><purpose>Run stage services through operation-scoped ApplicationServices on a worker thread; emit queued progress, cancellation, completion, and error signals.</purpose></contract>
       <target><source>src/video2pptx/gui/controllers/pipeline_controller.py</source><tests>tests/gui/test_pipeline_controller.py</tests></target>
       <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
-      <depends>M-APP-BOOTSTRAP, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-AUTO</depends>
+      <depends>M-GUI-PIPELINE-WORKER, M-APP-BOOTSTRAP, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-AUTO</depends>
     </M-GUI-PIPELINE-CTRL>
     <M-GUI-TIMELINE-CTRL NAME="TimelineController" TYPE="CORE_LOGIC" LAYER="1" ORDER="93" STATUS="active">
-      <contract><purpose>CRUD slide intervals, representative timestamps, and notes through ApplicationServices; signal changes to timeline widgets.</purpose></contract>
+      <contract><purpose>Mutate slides only by SlideId, including canonical ArtifactRef image assignment, then publish revision-safe persisted state changes.</purpose></contract>
       <target><source>src/video2pptx/gui/controllers/timeline_controller.py</source><tests>tests/gui/test_timeline_controller.py</tests></target>
       <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
       <depends>M-APP-BOOTSTRAP, M-DOMAIN-PROJECT</depends>
     </M-GUI-TIMELINE-CTRL>
+    <M-GUI-PIPELINE-WORKER NAME="GuiPipelineWorker" TYPE="UTILITY" LAYER="1" ORDER="94" STATUS="planned">
+      <contract><purpose>Own one QThread-bound pipeline operation and execute an operation-scoped ApplicationServices composition without blocking the Qt main thread.</purpose></contract>
+      <target><source>src/video2pptx/gui/controllers/pipeline_worker.py</source><tests>tests/gui/test_pipeline_controller.py</tests></target>
+      <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
+      <depends>M-APP-BOOTSTRAP, M-APP-SERVICE-CONTEXT</depends>
+    </M-GUI-PIPELINE-WORKER>
+    <M-GUI-WINDOW-UI NAME="MainWindowUiBuilder" TYPE="UI_COMPONENT" LAYER="0" ORDER="95" STATUS="planned">
+      <contract><purpose>Construct and connect MainWindow toolbar, info row, central widgets, and optional MCP host adapter without project or pipeline business logic.</purpose></contract>
+      <target><source>src/video2pptx/gui/main_window_ui.py</source><tests>tests/gui/test_main_window_integration.py</tests></target>
+      <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
+      <depends>M-GUI-MAIN, M-GUI-MENUBAR, M-GUI-VIDEOPLAYER, M-GUI-TIMELINE3</depends>
+    </M-GUI-WINDOW-UI>
   </Modules>
 
   <DataFlow>
@@ -1164,6 +1176,12 @@
       <step-8 name="GUIRefactoring" status="in_progress" verification="V-REF-GUI-ADAPTER">
         Extract ProjectController, PipelineController, TimelineController. Workers call use cases.
         MainWindow below 600 LOC.
+        <step-8.5 name="GUIIntegrationRegressionGate" status="in_progress">
+          Reproduce and fix asynchronous pipeline execution, operation-scoped progress/cancellation,
+          canonical project-state and revision ownership, display-index to SlideId adaptation,
+          canonical set-frame persistence, Qt button state, playback routing F-0058, MainWindow below
+          600 LOC, and all required GitHub workflows. Step 9 is blocked until every gate is green.
+        </step-8.5>
       </step-8>
       <step-9 name="LegacyRemoval" status="planned" verification="V-REF-LEGACY">
         Delete dead code, remove duplicate implementations, enforce architecture rules in CI (import-linter).
