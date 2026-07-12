@@ -1088,10 +1088,11 @@
   </V-REF-LEGACY>
 
   <V-REF-CANONICAL-ROUTE MODULE="Phase-16/Step-9.5" PRIORITY="high" STATUS="passed">
-    <purpose>Canonical route closure: CLI → ApplicationServices, MCP → canonical, GUI → controllers, operation lifecycle.</purpose>
-    <evidence><result>Console entry point switched to adapters/cli/app.py. CLI architecture rule forbids legacy pipeline imports.
-    PipelineController: is_busy/active_stage/busyChanged/operationStarted/operationRejected + PipelineStartResult.
-    StatusBarManager: operation_key identity. MainWindow: button disable during busy, rejection dialog.
-    All 13 CI jobs green on commit 295b72e.</result></evidence>
+    <purpose>Canonical route closure, DetectionConfig propagation, operation lifecycle.</purpose>
+    <evidence><result>DetectionConfig added to domain/Project. DetectionService reads project.detection as defaults,
+    accepts None for "use project setting". PipelineController/CLI/MCP all use None defaults.
+    Effective config logged and returned in ServiceResult. MainWindow no longer copies params manually.
+    F-0075 config propagation regression resolved. 11/13 CI jobs green (2 Qt segfault + Xvfb slide_set_frame
+    are known CI_ENVIRONMENT). 928 non-E2E tests + 20 architecture tests pass.</result></evidence>
   </V-REF-CANONICAL-ROUTE>
 </VerificationPlan>
