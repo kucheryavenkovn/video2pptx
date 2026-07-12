@@ -950,6 +950,30 @@
       <depends>M-ADAPTERS, M-FILE-REPO, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-AUTO</depends>
       <verification-ref>V-REF-MCP-ADAPTER</verification-ref>
     </M-MCP-COMPOSITION>
+    <M-CLI-ADAPTER NAME="CliAdapter" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Thin Typer transport adapter over operation-scoped canonical application services.</purpose>
+      <path>src/video2pptx/adapters/cli/</path>
+      <depends>M-APP-BOOTSTRAP, M-APP-PROJECT, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-LLM, M-APP-EXPORT, M-APP-VALIDATE, M-APP-AUTO</depends>
+      <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
+    </M-CLI-ADAPTER>
+    <M-APP-BOOTSTRAP NAME="ApplicationServicesBootstrap" TYPE="UTILITY" STATUS="planned">
+      <purpose>Build one service bundle and operation-scoped context shared by CLI and MCP.</purpose>
+      <path>src/video2pptx/bootstrap/application.py</path>
+      <depends>M-FILE-REPO, M-ADAPTERS, M-APP-PROJECT, M-APP-LLM, M-APP-AUTO</depends>
+      <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
+    </M-APP-BOOTSTRAP>
+    <M-APP-LLM NAME="LlmEnrichmentService" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Canonical explicit LLM enrichment use case with no silent basic-mode fallback.</purpose>
+      <path>src/video2pptx/application/services/llm_service.py</path>
+      <depends>M-PORT-REPO, M-PORT-LLM, M-DOMAIN-PROJECT</depends>
+      <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
+    </M-APP-LLM>
+    <M-PORT-LLM NAME="LlmEnricherPort" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Enrich immutable slide snapshots and return descriptions/transcripts without persistence.</purpose>
+      <path>src/video2pptx/application/ports/llm_enricher.py</path>
+      <depends>M-DOMAIN-PROJECT</depends>
+      <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
+    </M-PORT-LLM>
     <M-APP-PROJECT name="ProjectService" TYPE="CORE_LOGIC" STATUS="planned">
       <purpose>Create, open, close, save project via repository port. No direct file access.</purpose>
       <path>src/video2pptx/application/services/project_service.py</path>
@@ -1124,6 +1148,12 @@
     <CrossLink from="M-MCP-COMPOSITION" to="M-ADAPTERS" relation="injects concrete legacy port adapters" />
     <CrossLink from="M-MCP-COMPOSITION" to="M-FILE-REPO" relation="shares canonical repository context" />
     <CrossLink from="M-PROJECT-MODEL" to="M-FILE-REPO" relation="preserves canonical schema during GUI refresh and slide CRUD" />
+    <CrossLink from="M-CLI" to="M-CLI-ADAPTER" relation="compatibility entry point exports Typer app" />
+    <CrossLink from="M-CLI-ADAPTER" to="M-APP-BOOTSTRAP" relation="builds one operation-scoped service bundle" />
+    <CrossLink from="M-MCP-ADAPTER" to="M-APP-BOOTSTRAP" relation="shares canonical service composition with CLI" />
+    <CrossLink from="M-APP-BOOTSTRAP" to="M-FILE-REPO" relation="injects canonical repository" />
+    <CrossLink from="M-APP-LLM" to="M-PORT-LLM" relation="requests explicit external enrichment" />
+    <CrossLink from="M-APP-PROJECT" to="M-PORT-REPO" relation="creates and queries canonical projects" />
     <CrossLink from="M-PORT-EVENTS" to="M-DOMAIN-EVENTS" relation="distributes domain events to subscribers" />
   </Project>
 </KnowledgeGraph>

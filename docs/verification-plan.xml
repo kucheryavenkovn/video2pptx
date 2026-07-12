@@ -1017,6 +1017,28 @@
     </scenarios>
   </V-REF-MCP-ADAPTER>
 
+  <V-REF-CLI-ADAPTER MODULE="M-CLI-ADAPTER" PRIORITY="high" STATUS="in_progress">
+    <test-files><file>tests/test_cli_characterization.py</file><file>tests/test_cli.py</file><file>tests/test_cli_e2e.py</file><file>tests/test_cli_architecture.py</file><file>tests/application/test_project_service.py</file><file>tests/application/test_llm_service.py</file></test-files>
+    <module-checks><check-1>python -m pytest tests/test_cli_characterization.py tests/test_cli.py tests/test_cli_architecture.py tests/application/test_project_service.py tests/application/test_llm_service.py -q</check-1></module-checks>
+    <wave-checks><check-1>python -m pytest tests/test_cli_e2e.py tests/test_characterization_adapters.py -q</check-1></wave-checks>
+    <phase-checks><check-1>python -m pytest tests --ignore=tests/e2e/test_mcp_gui_workflow.py -q</check-1><check-2>python -m pytest tests/e2e/test_mcp_startup_characterization.py -q</check-2></phase-checks>
+    <scenarios>
+      <scenario-1 kind="characterization">Freeze command names, arguments, options, usage errors, missing-file behavior, and legacy detect semantic migration.</scenario-1>
+      <scenario-2 kind="success">Project commands create/load/query strict schema 2.0 state through application services.</scenario-2>
+      <scenario-3 kind="success">Preview, detect, align, notes, LLM, Markdown, PPTX, validate, and auto each invoke the matching canonical service.</scenario-3>
+      <scenario-4 kind="failure">Central error mapper produces stable precondition, validation, conflict, adapter, and cancellation exit codes without traceback.</scenario-4>
+      <scenario-5 kind="cancellation">Ctrl+C triggers the operation CancellationToken and returns the documented cancelled code.</scenario-5>
+      <scenario-6 kind="architecture">CLI pipeline modules contain no forbidden legacy pipeline/project imports and no orchestration sequence outside AutoService.</scenario-6>
+      <scenario-7 kind="parity">Application direct, MCP, and CLI produce semantically equivalent slides, pipeline state, and revisioned artifacts.</scenario-7>
+      <scenario-8 kind="regression">All 11 real GUI+MCP characterization tests remain passing; F-0058 stays open for Step 8.</scenario-8>
+    </scenarios>
+    <stop-conditions>
+      <condition-1>Stop if public CLI options cannot reach service/port contracts without silent loss.</condition-1>
+      <condition-2>Stop if canonical project writes regress to legacy project_manager or mutable slides.json.</condition-2>
+      <condition-3>Stop if LLM mode silently falls back to basic processing.</condition-3>
+    </stop-conditions>
+  </V-REF-CLI-ADAPTER>
+
   <V-ARCH-IMPORTS MODULE="Phase-16" PRIORITY="medium" STATUS="planned">
     <scenarios>
       <scenario-1 kind="success">domain/ does not import application, infrastructure, adapters, PySide6.</scenario-1>

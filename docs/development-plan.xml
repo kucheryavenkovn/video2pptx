@@ -691,6 +691,30 @@
       <verification-ref>V-APP-AUTO</verification-ref>
       <depends>M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-VALIDATE</depends>
     </M-APP-AUTO>
+    <M-APP-PROJECT NAME="ProjectService" TYPE="CORE_LOGIC" LAYER="2" ORDER="87" STATUS="planned">
+      <contract><purpose>Create and query canonical schema 2.0 projects through ProjectRepository.</purpose></contract>
+      <target><source>src/video2pptx/application/services/project_service.py</source><tests>tests/application/test_project_service.py</tests></target>
+      <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
+      <depends>M-PORT-REPO, M-DOMAIN-PROJECT</depends>
+    </M-APP-PROJECT>
+    <M-APP-LLM NAME="LlmEnrichmentService" TYPE="CORE_LOGIC" LAYER="2" ORDER="88" STATUS="planned">
+      <contract><purpose>Apply explicit LLM slide enrichment to the canonical aggregate without silent fallback.</purpose></contract>
+      <target><source>src/video2pptx/application/services/llm_service.py</source><tests>tests/application/test_llm_service.py</tests></target>
+      <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
+      <depends>M-PORT-REPO, M-PORT-LLM, M-DOMAIN-PROJECT</depends>
+    </M-APP-LLM>
+    <M-APP-BOOTSTRAP NAME="ApplicationServicesBootstrap" TYPE="UTILITY" LAYER="4" ORDER="89" STATUS="planned">
+      <contract><purpose>Build one operation-scoped service bundle shared by CLI and MCP adapters.</purpose></contract>
+      <target><source>src/video2pptx/bootstrap/application.py</source><tests>tests/test_application_bootstrap.py</tests></target>
+      <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
+      <depends>M-FILE-REPO, M-ADAPTERS, M-APP-PROJECT, M-APP-LLM, M-APP-AUTO</depends>
+    </M-APP-BOOTSTRAP>
+    <M-CLI-ADAPTER NAME="CliAdapter" TYPE="ENTRY_POINT" LAYER="0" ORDER="90" STATUS="planned">
+      <contract><purpose>Parse Typer input, invoke one canonical application service, render results/errors, and return documented exit codes.</purpose></contract>
+      <target><source>src/video2pptx/adapters/cli/</source><tests>tests/test_cli.py</tests><tests>tests/test_cli_e2e.py</tests></target>
+      <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
+      <depends>M-APP-BOOTSTRAP, M-APP-PROJECT, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-LLM, M-APP-EXPORT, M-APP-VALIDATE, M-APP-AUTO</depends>
+    </M-CLI-ADAPTER>
   </Modules>
 
   <DataFlow>
@@ -880,6 +904,13 @@
       <step-5>Service returns a typed result; AutoService composes the same stage services for full, resume, and force.</step-5>
       <evidence>Service tests with fake ports, revision conflicts, cancellation, failure atomicity, and architecture import checks.</evidence>
     </DF-APP-01>
+    <DF-CLI-ADAPTER NAME="CliApplicationDispatch" TRIGGER="Typer pipeline command">
+      <step-1>Typer parses PROJECT_DIR and options into adapter values.</step-1>
+      <step-2>CliContext builds one operation-scoped ApplicationServices bundle with observer and cancellation token.</step-2>
+      <step-3>Command handler invokes exactly one application service; AutoService alone owns multi-stage orchestration.</step-3>
+      <step-4>Renderer maps ServiceResult or typed error to human/JSON output and centralized exit code.</step-4>
+      <evidence>CLI architecture tests contain no forbidden legacy pipeline imports; CLI and MCP characterization remain semantically equivalent.</evidence>
+    </DF-CLI-ADAPTER>
   </DataFlow>
 
   <ImplementationOrder>
@@ -1045,7 +1076,7 @@
       <stop-condition>All E2E happy-path scenarios pass against synthetic fixtures. 102/102 tests. Branch test/mcp-e2e-hardening with 7 commits ready for PR.</stop-condition>
     </Phase-15>
 
-    <Phase-16 name="DomainRefactoring" status="complete">
+    <Phase-16 name="DomainRefactoring" status="in_progress">
       <goal>Incremental layered architecture: domain/application/ports/infrastructure/adapters. 9 phases, no Big Bang.
       See docs/architecture.md for full context, layers, sequence diagrams, and migration table.</goal>
       <step-1 name="CharacterizationTests" status="done" verification="V-REF-CHAR-TESTS">
@@ -1088,7 +1119,7 @@
         FileProjectRepository remains the canonical writer. GUI completion refresh and slide CRUD
         preserve schema 2.0 while projecting canonical state into the legacy Qt model.
       </step-6>
-      <step-7 name="CLItoApplication" status="planned" verification="V-REF-CLI-ADAPTER">
+      <step-7 name="CLItoApplication" status="in_progress" verification="V-REF-CLI-ADAPTER">
         CLI commands call same services as MCP. Remove run_detect_slides call from cli.py.
       </step-7>
       <step-8 name="GUIRefactoring" status="planned" verification="V-REF-GUI-ADAPTER">
