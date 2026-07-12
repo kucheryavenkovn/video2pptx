@@ -29,7 +29,7 @@ from pathlib import Path
 import pysubs2
 from loguru import logger
 from PySide6.QtCore import QTimer, Signal
-from PySide6.QtGui import QCloseEvent, QPixmap
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QFileDialog, QMainWindow, QMessageBox
 
 from video2pptx.backends import BACKENDS
@@ -424,23 +424,26 @@ class MainWindow(QMainWindow):
 
     # START_BLOCK_SETTINGS_MENU
     def _on_project_settings(self) -> None:
-        proj = self._model.project_data
-        if proj is None:
+        project = self._project_ctrl.project
+        if project is None:
             QMessageBox.information(self, "Project Settings", "Open a project first")
             return
+        from video2pptx.domain.project import DetectionConfig
         from video2pptx.gui.settings_project import ProjectSettingsDialog
-        dlg = ProjectSettingsDialog(proj, self, frame_grabber=self._grab_current_frame)
+        dc = project.detection
+        dlg = ProjectSettingsDialog(
+            DetectionConfig(sample_fps=dc.sample_fps, decoder_backend=dc.decoder_backend,
+                            slide_roi=dc.slide_roi, ignore_rois=list(dc.ignore_rois),
+                            threshold=dc.threshold, min_slide_duration=dc.min_slide_duration,
+                            min_stable_duration=dc.min_stable_duration, dedupe_enabled=dc.dedupe_enabled),
+            self, frame_grabber=(lambda: getattr(getattr(self, "_video_player", None), "_view", None).grab() if hasattr(self, "_video_player") and self._video_player and self._video_player._view else None),
+        )
         if dlg.exec():
-            logger.info("[GUI-Main][_on_project_settings] Project settings updated")
-            self.statusBar().showMessage("Project settings updated")
-
-    def _grab_current_frame(self) -> QPixmap | None:
-        if not hasattr(self, "_video_player") or self._video_player is None:
-            return None
-        view = self._video_player._view
-        if view is None:
-            return None
-        return view.grab()
+            new_config = dlg.result_config
+            if new_config is not None:
+                project.detection = new_config
+                self._project_ctrl.save()
+                self.statusBar().showMessage("Project settings updated")
 
     def _on_app_settings(self) -> None:
         from video2pptx.gui.settings_app import AppSettingsDialog
@@ -589,9 +592,6 @@ class MainWindow(QMainWindow):
             self._backend_label.setText(f"Backend: {', '.join(avail) if avail else 'none'}")
         except Exception:
             self._backend_label.setText("Backend: auto")
-
-    def project(self):
-        return self._model.project_data
 
     def _on_worker_progress_msg(self, pct: int, msg: str) -> None:
         key = self._pipeline_ctrl.active_stage or self._status.key()

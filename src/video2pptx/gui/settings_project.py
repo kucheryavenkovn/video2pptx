@@ -1,27 +1,32 @@
 # FILE: src/video2pptx/gui/settings_project.py
-# VERSION: 0.2.0
+# VERSION: 0.3.0
 # START_MODULE_CONTRACT
-#   PURPOSE: Project Settings QDialog — detection parameters (ROI, thresholds, fps, dedupe)
-#   SCOPE: QDialog with form fields. Read/write via project.json. Emit signal on save. "Select ROI" button opens RoiSelectorDialog.
-#   DEPENDS: PySide6, M-CONFIG, M-PROJECT, M-GUI-ROI-SELECTOR
-#   LINKS: M-GUI-SETTINGS-PROJECT
+#   PURPOSE: Project Settings QDialog — form-only detection parameters (ROI, thresholds, fps, dedupe).
+#            Does NOT persist. Emits settingsChanged signal with DetectionConfig for caller to save.
+#   SCOPE: QDialog with form fields initialized from DetectionConfig. Return updated settings via signal.
+#   DEPENDS: PySide6, M-DOMAIN-PROJECT, M-GUI-ROI-SELECTOR
+#   LINKS: M-GUI-SETTINGS-PROJECT, V-REF-DETECTION-INPUT
 #   ROLE: UI_COMPONENT
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   ProjectSettingsDialog - QDialog with detection parameter fields + visual ROI selector
+#   ProjectSettingsDialog - form-only QDialog returns canonical DetectionConfig
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.3.0 - Remove legacy persistence; use canonical DetectionConfig only
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
 from collections.abc import Callable
 
 from loguru import logger
-from PySide6.QtCore import Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
+    QComboBox,
     QDialog,
     QDialogButtonBox,
     QDoubleSpinBox,
@@ -34,29 +39,28 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from video2pptx.domain.project import DetectionConfig
 from video2pptx.gui.roi_selector import RoiSelectorDialog
-from video2pptx.project_manager import Project, save_project
 
 
 class ProjectSettingsDialog(QDialog):
     # START_CONTRACT: ProjectSettingsDialog
-    #   PURPOSE: QDialog with form fields for detection parameters — ROI, thresholds, fps, dedupe
-    #   INPUTS: { project: Project }
-    #   OUTPUTS: Signal: settings_changed()
-    #   SIDE_EFFECTS: writes project.json on accept
+    #   PURPOSE: Form-only QDialog for detection settings. Returns updated DetectionConfig.
+    #   INPUTS: { config: DetectionConfig, parent: QWidget, frame_grabber: Callable }
+    #   OUTPUTS: Signal: settingsChanged(DetectionConfig)
+    #   SIDE_EFFECTS: none (caller handles persistence)
     #   LINKS: M-GUI-SETTINGS-PROJECT
     # END_CONTRACT: ProjectSettingsDialog
 
-    settings_changed = Signal()
-
     def __init__(
         self,
-        project: Project,
+        config: DetectionConfig,
         parent: QWidget | None = None,
         frame_grabber: Callable[[], QPixmap | None] | None = None,
     ) -> None:
         super().__init__(parent)
-        self._project = project
+        self._config = config
+        self._result_config: DetectionConfig | None = None
         self._frame_grabber = frame_grabber
         self.setWindowTitle("Project Settings")
         self.setMinimumWidth(400)
@@ -94,6 +98,10 @@ class ProjectSettingsDialog(QDialog):
         self._fps_spin.setRange(0.1, 30.0)
         self._fps_spin.setSingleStep(0.5)
         det_layout.addRow("Sample FPS:", self._fps_spin)
+
+        self._backend_combo = QComboBox()
+        self._backend_combo.addItems(["auto", "opencv", "pyav", "decord"])
+        det_layout.addRow("Decoder Backend:", self._backend_combo)
 
         self._min_dur_spin = QDoubleSpinBox()
         self._min_dur_spin.setRange(0.5, 60.0)
@@ -157,66 +165,64 @@ class ProjectSettingsDialog(QDialog):
 
     # START_BLOCK_LOAD_VALUES
     def _load_values(self) -> None:
-        det = self._project.detection
-        vc = self._project.video_config
-        self._roi_edit.setText(str(det.slide_roi))
+        dc = self._config
+        self._roi_edit.setText(str(dc.slide_roi))
         self._ignore_roi_edit.setText("; ".join(
-            ",".join(str(v) for v in roi) for roi in det.ignore_rois
+            ",".join(str(v) for v in roi) for roi in dc.ignore_rois
         ))
-        self._threshold_edit.setText(str(det.threshold))
-        self._fps_spin.setValue(vc.sample_fps)
-        self._min_dur_spin.setValue(det.min_slide_duration)
-        self._min_stable_spin.setValue(det.min_stable_duration)
-        self._dedupe_check.setChecked(det.dedupe_enabled)
-        self._export_md_check.setChecked(det.export_md)
-        self._export_pptx_check.setChecked(det.export_pptx)
+        self._threshold_edit.setText(str(dc.threshold))
+        self._fps_spin.setValue(dc.sample_fps)
+        self._backend_combo.setCurrentText(dc.decoder_backend)
+        self._min_dur_spin.setValue(dc.min_slide_duration)
+        self._min_stable_spin.setValue(dc.min_stable_duration)
+        self._dedupe_check.setChecked(dc.dedupe_enabled)
     # END_BLOCK_LOAD_VALUES
 
     # START_BLOCK_ON_ACCEPT
     def _on_accept(self) -> None:
-        det = self._project.detection
-        vc = self._project.video_config
+        raw_roi = self._roi_edit.text().strip()
+        raw_ignore = self._ignore_roi_edit.text().strip()
+        raw_thresh = self._threshold_edit.text().strip()
 
-        det.slide_roi = self._roi_edit.text().strip() or "auto"
-
-        raw = self._ignore_roi_edit.text().strip()
-        if raw:
-            parts = raw.split(";")
-            rois: list[list[int]] = []
-            for p in parts:
+        ignore_rois: list[list[int]] = []
+        if raw_ignore:
+            for p in raw_ignore.split(";"):
                 p = p.strip()
                 if p:
                     try:
                         vals = [int(x.strip()) for x in p.split(",")]
                         if len(vals) == 4:
-                            rois.append(vals)
+                            ignore_rois.append(vals)
                     except ValueError:
                         pass
-            det.ignore_rois = rois
-        else:
-            det.ignore_rois = []
 
-        thresh = self._threshold_edit.text().strip()
-        if thresh:
+        threshold: float | str = "auto"
+        if raw_thresh:
             try:
-                det.threshold = float(thresh)
+                threshold = float(raw_thresh)
             except ValueError:
-                det.threshold = thresh
-        else:
-            det.threshold = "auto"
+                threshold = raw_thresh
 
-        vc.sample_fps = self._fps_spin.value()
-        det.min_slide_duration = self._min_dur_spin.value()
-        det.min_stable_duration = self._min_stable_spin.value()
-        det.dedupe_enabled = self._dedupe_check.isChecked()
-        det.export_md = self._export_md_check.isChecked()
-        det.export_pptx = self._export_pptx_check.isChecked()
-
-        save_project(self._project)
-        logger.info(
-            "[GUI-SettingsProject][_on_accept] Project settings saved | "
-            f"roi={det.slide_roi} threshold={det.threshold} fps={vc.sample_fps}"
+        updated = DetectionConfig(
+            sample_fps=self._fps_spin.value(),
+            decoder_backend=self._backend_combo.currentText(),
+            slide_roi=raw_roi or "auto",
+            ignore_rois=ignore_rois,
+            threshold=threshold,
+            min_slide_duration=self._min_dur_spin.value(),
+            min_stable_duration=self._min_stable_spin.value(),
+            dedupe_enabled=self._dedupe_check.isChecked(),
         )
-        self.settings_changed.emit()
+        self._result_config = updated
+        logger.info(
+            "[GUI-SettingsProject][_on_accept] Settings updated | "
+            f"threshold={updated.threshold} fps={updated.sample_fps} "
+            f"backend={updated.decoder_backend}"
+        )
         self.accept()
+
+    @property
+    def result_config(self) -> DetectionConfig | None:
+        """Return updated DetectionConfig if dialog was accepted, else None."""
+        return self._result_config
     # END_BLOCK_ON_ACCEPT
