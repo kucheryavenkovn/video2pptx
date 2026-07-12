@@ -44,6 +44,10 @@ def services() -> MagicMock:
     svc.validation_service = MagicMock()
     svc.auto_service = MagicMock()
     svc.repository = MagicMock()
+    def scoped(context):
+        svc.context = context
+        return svc
+    svc.scoped.side_effect = scoped
     return svc
 
 
@@ -55,27 +59,28 @@ def controller(services: MagicMock) -> PipelineController:
 SAMPLE_PROJECT = Path("/tmp/test-project")
 
 
+def _wait(controller: PipelineController, qtbot) -> None:
+    qtbot.waitUntil(lambda: controller._thread is None, timeout=3000)
+
+
 # -- progress forwarding ----------------------------------------------------
 
 
 class TestProgressForwarding:
-    def test_progress_signal_emitted(self, controller: PipelineController) -> None:
+    def test_progress_signal_emitted(self, controller: PipelineController, qtbot) -> None:
         calls, spy = _spy_signal()
         controller.progress.connect(spy)
 
-        # The SignalProgressObserver is created inside _run, so we trigger
-        # via a service that actually calls report_progress.  Since services
-        # are mocked, we simulate by emitting on the internal observer.
-        # Instead, verify the wiring: the controller's progress signal
-        # should forward from the service's context observer.
-        controller._services.detection_service.execute.return_value = ServiceResult.ok(
-            "detect", data={"slides_count": 3}
-        )
+        def execute(*args, **kwargs):
+            controller._services.context.report_progress(42, "Detected candidates")
+            return ServiceResult.ok("detect", data={"slides_count": 3})
+
+        controller._services.detection_service.execute.side_effect = execute
 
         controller.run_detect(SAMPLE_PROJECT)
-
-        # The mock execute was called with the right location
-        controller._services.detection_service.execute.assert_called_once()
+        qtbot.waitUntil(lambda: bool(calls), timeout=1000)
+        _wait(controller, qtbot)
+        assert calls == [(42, "Detected candidates")]
 
 
 # -- successful dispatch ----------------------------------------------------
@@ -114,6 +119,7 @@ class TestDispatchSuccess:
         run_method: str,
         service_attr: str,
         params: dict,
+        qtbot,
     ) -> None:
         svc = getattr(controller._services, service_attr)
         svc.execute.return_value = ServiceResult.ok(stage)
@@ -121,12 +127,13 @@ class TestDispatchSuccess:
         controller.stageFinished.connect(spy)
 
         getattr(controller, run_method)(SAMPLE_PROJECT, **params)
+        _wait(controller, qtbot)
 
         svc.execute.assert_called_once()
         assert spy_calls == [(ServiceResult.ok(stage),)]
 
     def test_auto_dispatches_to_auto_service(
-        self, controller: PipelineController
+        self, controller: PipelineController, qtbot
     ) -> None:
         controller._services.auto_service.execute.return_value = ServiceResult.ok(
             "auto", data={"mode": "full"}
@@ -135,6 +142,7 @@ class TestDispatchSuccess:
         controller.stageFinished.connect(spy)
 
         controller.run_auto(SAMPLE_PROJECT, mode="full")
+        _wait(controller, qtbot)
 
         controller._services.auto_service.execute.assert_called_once()
         assert spy_calls == [(ServiceResult.ok("auto", data={"mode": "full"}),)]
@@ -145,7 +153,7 @@ class TestDispatchSuccess:
 
 class TestErrorScenarios:
     def test_error_on_service_failure(
-        self, controller: PipelineController
+        self, controller: PipelineController, qtbot
     ) -> None:
         controller._services.detection_service.execute.return_value = ServiceResult.fail(
             "detect", error="Detection failed"
@@ -154,12 +162,13 @@ class TestErrorScenarios:
         controller.error.connect(spy)
 
         controller.run_detect(SAMPLE_PROJECT)
+        _wait(controller, qtbot)
 
         assert len(spy_calls) == 1
         assert "Detection failed" in str(spy_calls[0][0])
 
     def test_error_on_exception(
-        self, controller: PipelineController
+        self, controller: PipelineController, qtbot
     ) -> None:
         controller._services.detection_service.execute.side_effect = RuntimeError(
             "Unexpected crash"
@@ -168,17 +177,19 @@ class TestErrorScenarios:
         controller.error.connect(spy)
 
         controller.run_detect(SAMPLE_PROJECT)
+        _wait(controller, qtbot)
 
         assert len(spy_calls) == 1
 
     def test_stage_finished_not_emitted_on_error(
-        self, controller: PipelineController
+        self, controller: PipelineController, qtbot
     ) -> None:
         controller._services.detection_service.execute.side_effect = RuntimeError("boom")
         finished_calls, finished_spy = _spy_signal()
         controller.stageFinished.connect(finished_spy)
 
         controller.run_detect(SAMPLE_PROJECT)
+        _wait(controller, qtbot)
 
         assert len(finished_calls) == 0
 
@@ -187,7 +198,7 @@ class TestErrorScenarios:
 
 
 class TestIntegration:
-    def test_validate_on_real_project(self, tmp_path: Path) -> None:
+    def test_validate_on_real_project(self, tmp_path: Path, qtbot) -> None:
         """Validate requires an actual project on disk.  Create one first."""
         from video2pptx.bootstrap.application import ApplicationServices
         from video2pptx.domain.project import Project
@@ -206,6 +217,7 @@ class TestIntegration:
         ctrl.stageFinished.connect(spy)
 
         ctrl.run_validate(location)
+        _wait(ctrl, qtbot)
 
         assert len(spy_calls) == 1
         result = spy_calls[0][0]

@@ -1,11 +1,11 @@
 # FILE: src/video2pptx/gui/controllers/pipeline_controller.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: QObject-based pipeline stage controller — runs preview, detect, align, notes,
 #            export, validate, and auto stages through ApplicationServices with Qt progress signals.
 #   SCOPE: Execute individual stage services (preview/detect/align/notes/export/validate/auto)
 #          via ApplicationServices, forwarding progress updates and ServiceResult through Qt signals.
-#          Does NOT manage threading — the caller (MainWindow or QThread wrapper) decides threading.
+#          Own QThread lifecycle and operation-scoped progress/cancellation context.
 #   DEPENDS: PySide6.QtCore, video2pptx.bootstrap.application,
 #            video2pptx.application.dto, video2pptx.application.observer
 #   LINKS: M-GUI-PIPELINE-CTRL
@@ -23,13 +23,13 @@ from __future__ import annotations
 from pathlib import Path
 
 from loguru import logger
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, QThread, QTimer, Signal
 
 from video2pptx.application.base import ServiceContext
 from video2pptx.application.cancellation import CancellationToken
 from video2pptx.application.dto import ProgressUpdate, ServiceResult
 from video2pptx.bootstrap.application import ApplicationServices
-from video2pptx.infrastructure.persistence.errors import ProjectNotFound
+from video2pptx.gui.controllers.pipeline_worker import PipelineWorker
 
 
 class SignalProgressObserver(QObject):
@@ -48,9 +48,8 @@ class SignalProgressObserver(QObject):
 class PipelineController(QObject):
     """Qt-aware controller for running pipeline stages through ApplicationServices.
 
-    Each ``run_*`` method creates a temporary ServiceContext with a fresh
-    SignalProgressObserver, calls the corresponding ApplicationServices method,
-    and emits ``stageFinished`` with the result.  Errors emit ``error``.
+    Each ``run_*`` method creates a temporary ServiceContext and scoped service
+    composition, starts a PipelineWorker on QThread, and returns immediately.
 
     Usage::
 
@@ -58,7 +57,6 @@ class PipelineController(QObject):
         ctrl.progress.connect(on_progress)
         ctrl.stageFinished.connect(on_finished)
 
-        # synchronous — wrap in QThread for GUI responsiveness
         ctrl.run_detect("/path/to/project", sample_fps=2.0)
 
     Signals are thread-safe (queued connections if crossing threads).
@@ -75,6 +73,10 @@ class PipelineController(QObject):
     ) -> None:
         super().__init__(parent)
         self._services = services
+        self._thread: QThread | None = None
+        self._worker: PipelineWorker | None = None
+        self._cancellation: CancellationToken | None = None
+        self._observer: SignalProgressObserver | None = None
 
     # -- individual stage runners -------------------------------------------
 
@@ -237,54 +239,52 @@ class PipelineController(QObject):
     # -- internal dispatch --------------------------------------------------
 
     def _run(self, stage: str, project_location: str | Path, **params) -> None:
-        """Create a scoped ServiceContext, invoke the stage, and emit results."""
+        """Schedule a stage with a scoped context and return before it completes."""
+        if self._thread is not None:
+            self.error.emit("A pipeline operation is already running")
+            return
         location = Path(project_location)
-
-        observer = SignalProgressObserver()
-        observer.progressUpdated.connect(self.progress)
+        observer = SignalProgressObserver(self)
+        observer.progressUpdated.connect(self.progress.emit)
+        cancellation = CancellationToken()
         ctx = ServiceContext(
             repository=self._services.repository,
             observer=observer,
-            cancellation=CancellationToken(),
+            cancellation=cancellation,
         )
+        scoped = self._services.scoped(ctx)
+        thread = QThread(self)
+        worker = PipelineWorker(scoped, stage, location, params)
+        worker.moveToThread(thread)
+        thread.started.connect(worker.run)
+        worker.completed.connect(self._finish)
+        worker.failed.connect(self._fail)
+        worker.completed.connect(thread.quit)
+        worker.failed.connect(thread.quit)
+        thread.finished.connect(worker.deleteLater)
+        thread.finished.connect(self._operation_stopped)
+        self._observer = observer
+        self._cancellation = cancellation
+        self._thread = thread
+        self._worker = worker
+        thread.start()
 
-        try:
-            result = self._dispatch_stage(stage, location, ctx, params)
-        except ProjectNotFound as exc:
-            logger.error("[PipelineController][{}] Project not found | location={}", stage, location)
-            self.error.emit(str(exc))
-            return
-        except Exception as exc:
-            logger.exception("[PipelineController][{}] Unhandled error | location={}", stage, location)
-            self.error.emit(str(exc))
-            return
+    def cancel(self) -> None:
+        if self._cancellation is not None:
+            self._cancellation.cancel()
 
-        if result.success:
-            self.stageFinished.emit(result)
-        else:
-            self.error.emit(result.error or f"{stage} failed")
+    def _finish(self, result: ServiceResult) -> None:
+        self.stageFinished.emit(result)
 
-    def _dispatch_stage(
-        self,
-        stage: str,
-        location: Path,
-        ctx: ServiceContext,
-        params: dict,
-    ) -> ServiceResult:
-        services = self._services
-        if stage == "preview":
-            return services.preview_service.execute(location, **params)
-        elif stage == "detect":
-            return services.detection_service.execute(location, **params)
-        elif stage == "align":
-            return services.alignment_service.execute(location, **params)
-        elif stage == "notes":
-            return services.notes_service.execute(location, **params)
-        elif stage == "export":
-            return services.export_service.execute(location, **params)
-        elif stage == "validate":
-            return services.validation_service.execute(location, **params)
-        elif stage == "auto":
-            return services.auto_service.execute(location, **params)
-        else:
-            raise ValueError(f"Unknown pipeline stage: {stage}")
+    def _fail(self, message: str) -> None:
+        logger.error("[PipelineController][_fail] Pipeline failed | error={}", message)
+        self.error.emit(message)
+
+    def _operation_stopped(self) -> None:
+        QTimer.singleShot(0, self._clear_operation)
+
+    def _clear_operation(self) -> None:
+        self._worker = None
+        self._thread = None
+        self._observer = None
+        self._cancellation = None

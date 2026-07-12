@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Project aggregate root — owns slides, enforces invariants, manages pipeline state.
 #   SCOPE: add_slide, remove_slide, move_slide, resize_slide, replace_detected_slides,
-#          invalidate_downstream_from, clear_image, to_slides_dict, from_slides_dict,
+#          invalidate_downstream_from, set_image, clear_image, to_slides_dict, from_slides_dict,
 #          validate, _validate_candidate_slides
 #   DEPENDS: video2pptx.domain.slide, video2pptx.domain.identifiers, video2pptx.domain.time,
 #            video2pptx.domain.pipeline_state, video2pptx.domain.artifacts, video2pptx.domain.errors
@@ -195,6 +195,14 @@ class Project:
         """Clear the representative image for a slide and invalidate exports."""
         slide = self._require_slide(slide_id)
         slide.image = None
+        self.pipeline.invalidate_from("notes")
+
+    def set_image(self, slide_id: SlideId | str, image: ArtifactRef) -> None:
+        """Assign a portable representative image and invalidate downstream output."""
+        if not isinstance(image, ArtifactRef):
+            raise TypeError("image must be an ArtifactRef")
+        slide = self._require_slide(slide_id)
+        slide.image = image
         self.pipeline.invalidate_from("notes")
 
     def replace_detected_slides(self, slides: Sequence[Slide]) -> None:

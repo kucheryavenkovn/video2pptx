@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/gui/controllers/timeline_controller.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: QObject-based timeline controller — CRUD slide intervals, representative
 #            timestamps, and notes through ApplicationServices with revision-safe persistence.
@@ -25,6 +25,7 @@ from loguru import logger
 from PySide6.QtCore import QObject, Signal
 
 from video2pptx.bootstrap.application import ApplicationServices
+from video2pptx.domain.artifacts import ArtifactRef
 from video2pptx.domain.identifiers import SlideId
 from video2pptx.domain.project import Project
 from video2pptx.infrastructure.persistence.errors import (
@@ -176,6 +177,30 @@ class TimelineController(QObject):
         if not self._resave(loaded.project, loaded.location, loaded.revision):
             return False
 
+        self.slidesChanged.emit()
+        return True
+
+    def set_slide_image(
+        self,
+        project_location: str | Path,
+        slide_id: str | SlideId,
+        image: ArtifactRef,
+    ) -> bool:
+        """Persist an existing project-relative slide image by SlideId."""
+        loaded = self._reload(project_location)
+        if loaded is None:
+            return False
+        if not image.resolve(loaded.location).is_file():
+            self.errorOccurred.emit(f"Slide image does not exist: {image.relative_path}")
+            return False
+        try:
+            loaded.project.set_image(slide_id, image)
+        except Exception as exc:
+            logger.exception("[TimelineController][set_slide_image] Domain error")
+            self.errorOccurred.emit(str(exc))
+            return False
+        if not self._resave(loaded.project, loaded.location, loaded.revision):
+            return False
         self.slidesChanged.emit()
         return True
 

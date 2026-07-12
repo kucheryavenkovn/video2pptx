@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/gui/controllers/project_controller.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: QObject-based project lifecycle controller — create, open, save, close projects
 #            through ApplicationServices (FileProjectRepository). Bridges canonical domain.Project
@@ -147,8 +147,24 @@ class ProjectController(QObject):
             )
             self.stateChanged.emit()
         except ProjectRevisionConflict as exc:
-            logger.error("[ProjectController][save] Revision conflict | error={}", exc)
+            logger.warning("[ProjectController][save] Reloading stale revision | error={}", exc)
+            if not self.reload(emit=False):
+                self.errorOccurred.emit(str(exc))
+
+    def reload(self, *, emit: bool = True) -> bool:
+        """Reload the canonical GUI snapshot and revision from repository storage."""
+        if self.project_dir is None:
+            return False
+        try:
+            loaded = self._services.repository.load(Path(self.project_dir))
+        except Exception as exc:
+            logger.exception("[ProjectController][reload] Reload failed")
             self.errorOccurred.emit(str(exc))
+            return False
+        self._set_loaded(loaded)
+        if emit:
+            self.stateChanged.emit()
+        return True
 
     def close(self) -> None:
         """Close the current project and reset internal state.

@@ -9,9 +9,9 @@
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
 
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 import cv2
 import pytest

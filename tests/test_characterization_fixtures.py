@@ -40,4 +40,4 @@ def test_synthetic_subtitle_metadata(synthetic_subtitle_path):
     assert len(cues) == 4
     assert all(cue.text.strip() for cue in cues)
     assert all(cue.start < cue.end for cue in cues)
-    assert all(left.end <= right.start for left, right in zip(cues, cues[1:]))
+    assert all(left.end <= right.start for left, right in zip(cues, cues[1:], strict=False))

@@ -56,7 +56,6 @@ def validate_project(project_dir: str | Path) -> ValidationResult:
     deck_md = base / "deck.md"
     deck_pptx = base / "deck.pptx"
     alignment_report = base / "alignment_report.json"
-    slides_dir = base / "slides"
 
     # 1. project.json schema
     if not project_json.is_file():
@@ -120,7 +119,7 @@ def validate_project(project_dir: str | Path) -> ValidationResult:
                         result.valid = False
 
             # 5. Slide images existence
-            for i, s in enumerate(slides_list):
+            for s in slides_list:
                 img = s.get("image", "")
                 if img:
                     img_path = base / img
@@ -165,7 +164,7 @@ def validate_project(project_dir: str | Path) -> ValidationResult:
             with zipfile.ZipFile(deck_pptx, 'r') as zf:
                 names = zf.namelist()
                 if "[Content_Types].xml" not in names:
-                    result.errors.append(f"PPTX missing [Content_Types].xml — not a valid OPC package")
+                    result.errors.append("PPTX missing [Content_Types].xml — not a valid OPC package")
                     result.valid = False
                 else:
                     result.statistics["pptx_entries"] = len(names)

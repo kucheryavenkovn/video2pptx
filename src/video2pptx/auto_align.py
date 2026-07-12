@@ -114,7 +114,6 @@ def _compute_cue_crossings(slides: list[SlideSegment], cues: list) -> dict[str, 
     """Compute metrics: cues crossing boundaries, multi-slide cues, avg overlap."""
     total_crossings = 0
     multi_slide_cues = 0
-    empty_slides_with_cues = 0
     for i in range(len(slides) - 1):
         boundary = slides[i].end
         for cue in cues:

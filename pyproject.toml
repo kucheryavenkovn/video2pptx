@@ -55,6 +55,7 @@ gpu = [
 dev = [
     "pytest>=8.0",
     "pytest-cov>=4.0",
+    "pytest-timeout>=2.3",
     "ruff>=0.4",
     "mypy>=1.8",
     "httpx>=0.27",
@@ -87,7 +88,7 @@ include = ["src/video2pptx", "examples", "docs", "README.md", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 addopts = "-q"
 markers = [
     "integration: tests that require real video files or network access",

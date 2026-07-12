@@ -11,14 +11,12 @@
 
 from pathlib import Path
 
-import pytest
-
 from video2pptx.debug.mcp_read_tools import (
     get_app_state,
     get_project,
-    get_timeline,
     get_slide,
     get_subtitle_clip,
+    get_timeline,
     list_artifacts,
 )
 

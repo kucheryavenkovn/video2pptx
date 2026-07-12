@@ -512,16 +512,23 @@ _INSTANCE_ID = ""
 _INSTANCE_STARTED_AT = ""
 
 
-def mcp_process_queue(model) -> None:
+def mcp_process_queue(model, main_window=None) -> None:
     while not _CMD_QUEUE.empty():
         operation_id, tool_name, cmd_name, args, kwargs = _CMD_QUEUE.get_nowait()
         registry = get_registry()
         registry.update(operation_id, status="running", stage=tool_name)
         try:
-            fn = getattr(model, cmd_name, None)
+            target = model
+            routed_name = cmd_name
+            if tool_name == "video_seek" and main_window is not None:
+                target = main_window
+                routed_name = "_on_seek_to_marker"
+            elif tool_name in {"video_play", "video_pause"} and main_window is not None:
+                target = main_window._video_player
+            fn = getattr(target, routed_name, None)
             if fn is None:
                 raise AttributeError(
-                    f"ProjectModel command not found: {cmd_name}"
+                    f"Qt command target not found: {routed_name}"
                 )
             command_result = fn(*args, **kwargs)
             require_completion_sync(operation_id)

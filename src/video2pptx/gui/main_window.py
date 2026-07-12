@@ -1,9 +1,9 @@
 # FILE: src/video2pptx/gui/main_window.py
-# VERSION: 0.4.1
+# VERSION: 0.5.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Main GUI window — QMainWindow with menu bar, video player, subtitle overlay, always-visible timeline, marker panel, project lifecycle, detection
-#   SCOPE: Integrate MenuBarWidget, VideoPlayerWidget, TimelineV2Widget, MarkerPanel, SettingsProjectDialog, SettingsAppDialog, MarkerManager
-#   DEPENDS: PySide6, M-PROJECT-MODEL, M-PROJECT, M-GUI-MENUBAR, M-GUI-VIDEOPLAYER, M-GUI-TIMELINE-V2, M-GUI-SETTINGS-PROJECT, M-GUI-SETTINGS-APP, M-GUI-SMART-SNAP, M-GUI-MARKER-MANAGER, M-GUI-MARKER-PANEL, M-GUI-WORKER
+#   SCOPE: Adapt Qt events to canonical project, pipeline, and timeline controllers.
+#   DEPENDS: PySide6, M-PROJECT-MODEL, M-GUI-PROJECT-CTRL, M-GUI-PIPELINE-CTRL, M-GUI-TIMELINE-CTRL, M-GUI-WINDOW-UI
 #   LINKS: M-GUI-MAIN
 #   ROLE: UI_COMPONENT
 #   MAP_MODE: EXPORTS
@@ -14,7 +14,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.4.1 - Reset Auto and Auto Align controls when a project closes
+#   LAST_CHANGE: v0.5.0 - Step 8.5 canonical state, async pipeline, SlideId boundary, and UI extraction
+#   v0.4.1 - Reset Auto and Auto Align controls when a project closes
 #   v0.4.0 - Refactor to use ProjectModel (QObject with signals) instead of Project (Pydantic data bag)
 #   v0.3.1 - Fix _on_slide_resized duplicate save + missing timeline refresh
 #   v0.3.1 - Fix closeEvent not clearing timeline (now calls _on_close_project)
@@ -27,22 +28,9 @@ from pathlib import Path
 
 import pysubs2
 from loguru import logger
-from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtGui import QCloseEvent, QKeySequence, QPixmap, QShortcut
-from PySide6.QtWidgets import (
-    QFileDialog,
-    QHBoxLayout,
-    QLabel,
-    QMainWindow,
-    QMenu,
-    QMessageBox,
-    QPushButton,
-    QSizePolicy,
-    QSplitter,
-    QToolBar,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtCore import QTimer, Signal
+from PySide6.QtGui import QCloseEvent, QPixmap
+from PySide6.QtWidgets import QFileDialog, QMainWindow, QMessageBox
 
 from video2pptx.backends import BACKENDS
 from video2pptx.debug.action_registry import mcp_action
@@ -75,48 +63,22 @@ class MainWindow(QMainWindow):
         self._project_ctrl = ProjectController(services=self._app_svcs, parent=self)
         self._pipeline_ctrl = PipelineController(services=self._app_svcs, parent=self)
         self._timeline_ctrl = TimelineController(services=self._app_svcs, parent=self)
-        self._mcp_active: bool = False
+        self._syncing_projection = False
         self._subs: pysubs2.SSAFile | None = None
         self._app_config = load_app_config()
         self._status = StatusBarManager(self)
-        self._setup_ui()
-        self._connect_controller_signals()
-        self._connect_model_signals()
-        self._connect_menu_signals()
-        self._setup_debug_dock()
-        self._setup_mcp_server()
+        from video2pptx.gui.main_window_ui import (
+            MainWindowHost,
+            connect_main_window_signals,
+            setup_main_window_ui,
+        )
+        setup_main_window_ui(self)
+        connect_main_window_signals(self)
+        self._host = MainWindowHost(self, self._model)
+        self._host.start()
         self._try_restore_last_project()
 
-    def _connect_controller_signals(self) -> None:
-        pc, pp, tm = self._pipeline_ctrl, self._project_ctrl, self._timeline_ctrl
-        pc.progress.connect(self._on_worker_progress_msg)
-        pc.stageFinished.connect(self._on_pipeline_finished)
-        pc.error.connect(self._on_pipeline_error)
-        pp.projectOpened.connect(self._on_project_opened)
-        pp.errorOccurred.connect(self._on_project_ctrl_error)
-        tm.slidesChanged.connect(self._on_model_slides_changed)
-        tm.errorOccurred.connect(lambda m: QMessageBox.critical(self, "Timeline Error", m))
-
     # START_BLOCK_MODEL_SIGNALS
-    def _connect_model_signals(self) -> None:
-        m = self._model
-        m.slidesChanged.connect(self._on_model_slides_changed)
-        m.subtitlesChanged.connect(lambda: (
-            self._load_subs_from_model(),
-            self._timeline.set_subtitles(self._subs),
-            self._subs_label.setText(f"Subtitles: {Path(m.project_data.subtitles).name}" if m.project_data and m.project_data.subtitles else "Subtitles: —"),
-        ))
-        m.videoChanged.connect(lambda p: (
-            self._video_label.setText(f"Video: {Path(p).name}" if p else "Video: —"),
-            self._video_player.load_video(p) if p else None,
-            setattr(self._btn_detect, 'enabled', bool(p)),
-            setattr(self._btn_quick_preview, 'enabled', bool(p)),
-        ))
-        m.projectClosed.connect(self._reset_ui)
-        m.scoresChanged.connect(lambda: (
-            self._timeline.set_scores(m.score_timestamps, m.score_values) if m.score_timestamps and m.score_values else self._timeline.clear_scores(),
-        ))
-
     def _on_model_slides_changed(self) -> None:
         proj = self._model.project_data
         if proj and proj.slides:
@@ -127,6 +89,20 @@ class MainWindow(QMainWindow):
         has = bool(proj and proj.slides)
         self._btn_export.setEnabled(has)
         self._btn_process_notes.setEnabled(has and bool(proj and proj.subtitles))
+
+    def _on_model_subtitles_changed(self) -> None:
+        self._load_subs_from_model()
+        self._timeline.set_subtitles(self._subs)
+        project = self._model.project_data
+        text = Path(project.subtitles).name if project and project.subtitles else "—"
+        self._subs_label.setText(f"Subtitles: {text}")
+
+    def _on_model_video_changed(self, path: str) -> None:
+        self._video_label.setText(f"Video: {Path(path).name}" if path else "Video: —")
+        if path:
+            self._video_player.load_video(path)
+        self._btn_detect.setEnabled(bool(path))
+        self._btn_quick_preview.setEnabled(bool(path))
 
     def _reset_ui(self) -> None:
         self._video_player.clear_video()
@@ -144,184 +120,8 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Project closed")
     # END_BLOCK_MODEL_SIGNALS
 
-    # START_BLOCK_SETUP_UI
-    def _setup_ui(self) -> None:
-        self.setWindowTitle("video2pptx")
-        self.resize(1200, 800)
-
-        # --- Menu bar ---
-        from video2pptx.gui.menu_bar import MenuBarWidget
-        self._menu_bar = MenuBarWidget(self)
-        self.setMenuBar(self._menu_bar)
-
-        toolbar = QToolBar("Project")
-        self.addToolBar(toolbar)
-        for text, tip, slot in (
-            ("New Project", "", self._on_new_project), ("Open Project", "", self._on_open_project),
-            ("---", "", None), ("Import Video", "", self._on_import_video),
-            ("Import Subtitles", "", self._on_import_srt), ("---", "", None),
-            ("Add Marker", "Add a manual slide at current video position (Ctrl+M)", self._on_add_marker_at_position),
-            ("Slides", "Show slide info", self._on_open_marker_panel),
-        ):
-            if text == "---":
-                toolbar.addSeparator()
-            else:
-                a = toolbar.addAction(text)
-                if tip:
-                    a.setToolTip(tip)
-                if slot:
-                    a.triggered.connect(slot)
-        # --- Central widget ---
-        central = QWidget()
-        self.setCentralWidget(central)
-        main_layout = QVBoxLayout(central)
-        main_layout.setContentsMargins(4, 4, 4, 4)
-
-        # Info row
-        info_row = QHBoxLayout()
-        self._video_label = QLabel("Video: —")
-        self._subs_label = QLabel("Subtitles: —")
-        self._backend_label = QLabel("Backend: auto")
-        def _mkbtn(n, tip, slot):
-            b = QPushButton(n)
-            b.setToolTip(tip)
-            b.setEnabled(False)
-            b.clicked.connect(slot)
-            return b
-        self._btn_detect = _mkbtn("Detect", "Detect slides via computer vision — CV only, no align/notes/export", self._on_detect)
-        self._btn_quick_preview = _mkbtn("Quick Preview", "Quick preview: compute diff scores only, no slides created", self._on_quick_detect)
-        self._btn_auto_align = _mkbtn("Auto Align", "Align visual boundaries to subtitle anchors", self._on_auto_align)
-        self._btn_auto = _mkbtn("Auto", "Full pipeline: Detect → Align → Notes → Export → Save", self._on_auto)
-        self._btn_process_notes = _mkbtn("Process Notes", "Process subtitles into cleaned speaker notes", self._on_process_notes)
-        self._btn_save = _mkbtn("Save", "Save project changes", self._on_save_project)
-        self._btn_export = QPushButton("Export")
-        self._btn_export.setToolTip("Export to Markdown or PPTX")
-        self._btn_export.setEnabled(False)
-        self._export_menu = QMenu(self)
-        self._export_menu.addAction("Export &Markdown (Marp)...", self._on_export_md)
-        self._export_menu.addAction("Export &PPTX...", self._on_export_pptx)
-        self._btn_export.setMenu(self._export_menu)
-
-        info_row.addWidget(self._video_label)
-        info_row.addWidget(self._subs_label)
-        info_row.addWidget(self._backend_label)
-        info_row.addStretch()
-        info_row.addWidget(self._btn_quick_preview)
-        info_row.addWidget(self._btn_detect)
-        info_row.addWidget(self._btn_auto_align)
-        info_row.addWidget(QLabel("  "))
-        info_row.addWidget(self._btn_process_notes)
-        info_row.addWidget(self._btn_auto)
-        info_row.addWidget(self._btn_export)
-        info_row.addWidget(self._btn_save)
-        main_layout.addLayout(info_row)
-
-        # Splitter: top = video + overlay, bottom = timeline
-        self._splitter = QSplitter(Qt.Orientation.Vertical)
-        self._splitter.setChildrenCollapsible(False)
-
-        # --- Video + subtitle overlay container ---
-        video_container = QWidget()
-        video_layout = QVBoxLayout(video_container)
-        video_layout.setContentsMargins(0, 0, 0, 0)
-
-        from video2pptx.gui.video_player import VideoPlayerWidget
-        self._video_player = VideoPlayerWidget()
-        self._video_player.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-        video_layout.addWidget(self._video_player, stretch=1)
-
-        # --- Timeline V3 (multi-track, zoom/pan) ---
-        from video2pptx.gui.timeline3 import TimelineWidget
-        self._timeline = TimelineWidget()
-
-        self._splitter.addWidget(video_container)
-        self._splitter.addWidget(self._timeline)
-        self._splitter.setStretchFactor(0, 3)
-        self._splitter.setStretchFactor(1, 2)  # more timeline height
-        main_layout.addWidget(self._splitter, stretch=1)
-
-        # Status bar
-        self.statusBar().showMessage("Ready")
-        self._show_backend_info()
-
-        # Connect video position → subtitle overlay
-        self._video_player.positionChanged.connect(self._on_video_position_changed)
-        self._video_player.durationChanged.connect(self._on_video_duration_changed)
-
-        tl = self._timeline
-        for sig, slot in (
-            (tl.add_manual_slide, self._on_add_manual_slide), (tl.set_slide_frame, self._on_set_slide_frame),
-            (tl.clear_slide_image, self._on_clear_slide_image), (tl.delete_slide, self._on_delete_slide),
-            (tl.seek_requested, self._on_seek_to_marker), (tl.open_image, self._on_open_timeline_image),
-            (tl.slide_moved, self._on_slide_moved), (tl.slide_resized, self._on_slide_resized),
-            (tl.open_subtitle_editor, self._on_open_subtitle_editor),
-        ):
-            sig.connect(slot)
-
-        # Keyboard shortcuts
-        self._shortcut_add_marker = QShortcut(QKeySequence("Ctrl+M"), self)
-        self._shortcut_add_marker.activated.connect(self._on_add_marker_at_position)
-
-    def _setup_debug_dock(self) -> None:
-        try:
-            from video2pptx.gui.debug_dock import DebugDock
-            from video2pptx.gui.log_bridge import LogBridge
-            lb = LogBridge.instance()
-            self._debug_dock = DebugDock()
-            self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self._debug_dock)
-            self._debug_dock.hide()
-            lb.newLog.connect(self._debug_dock.append_log)
-            QShortcut(QKeySequence("Ctrl+D"), self).activated.connect(self._debug_dock.toggleViewAction().trigger)
-        except Exception:
-            logger.debug("[GUI-Main][_setup_debug_dock] Debug dock not available")
-
-    def _setup_mcp_server(self) -> None:
-        self._mcp = self._mcp_timer = None
-        try:
-            from video2pptx.debug.action_registry import ActionRegistry
-            from video2pptx.debug.mcp_server import McpServer
-            self._mcp = McpServer(self._model, self._model.timeline, port=9812, action_registry=ActionRegistry(self), main_window=self)
-            self._mcp.start()
-            self._mcp_timer = QTimer(self)
-            self._mcp_timer.timeout.connect(self._process_mcp_queue)
-            self._mcp_timer.start(50)
-        except Exception as e:
-            logger.warning(f"[GUI-Main][_setup_mcp_server] MCP server not available: {e}")
-
-    def _process_mcp_queue(self) -> None:
-        from video2pptx.debug.mcp_server import _ACTION_QUEUE, _CMD_QUEUE, mcp_process_queue
-        qc, qa = _CMD_QUEUE.qsize(), _ACTION_QUEUE.qsize()
-        if qc or qa:
-            logger.debug(f"[GUI-Main][_process_mcp_queue] Processing | cmd_queue={qc} action_queue={qa}")
-        self._mcp_active = True
-        try:
-            mcp_process_queue(self._model)
-        finally:
-            self._mcp_active = False
-
     def _confirm(self, title: str, text: str) -> bool:
-        return self._mcp_active or QMessageBox.question(self, title, text, QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No) == QMessageBox.StandardButton.Yes
-
-    def _connect_menu_signals(self) -> None:
-        mb = self._menu_bar
-        for sig, slot in (
-            (mb.act_new_project.triggered, self._on_new_project),
-            (mb.act_open_project.triggered, self._on_open_project),
-            (mb.act_close_project.triggered, self._on_close_project),
-            (mb.act_save_project.triggered, self._on_save_project),
-            (mb.act_import_video.triggered, self._on_import_video),
-            (mb.act_import_srt.triggered, self._on_import_srt),
-            (mb.act_exit.triggered, self.close),
-            (mb.act_export_md.triggered, self._on_export_md),
-            (mb.act_export_pptx.triggered, self._on_export_pptx),
-            (mb.act_process_notes.triggered, self._on_process_notes),
-            (mb.act_project_settings.triggered, self._on_project_settings),
-            (mb.act_app_settings.triggered, self._on_app_settings),
-        ):
-            sig.connect(slot)
-        mb.open_recent_project.connect(self._on_open_recent_project)
-        self._refresh_recent_projects()
+        return self._host.active or QMessageBox.question(self, title, text, QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No) == QMessageBox.StandardButton.Yes
 
     # END_BLOCK_SETUP_UI
 
@@ -373,16 +173,12 @@ class MainWindow(QMainWindow):
         folder_name = os.path.basename(os.path.normpath(proj_dir))
         parent_dir = str(Path(proj_dir).parent)
         self._project_ctrl.create(parent_dir, folder_name)
-        if self._project_ctrl.project_dir:
-            self._model.open(self._project_ctrl.project_dir)
 
     def _on_open_project(self) -> None:
         proj_dir = QFileDialog.getExistingDirectory(self, "Open Project Directory")
         if not proj_dir:
             return
         self._project_ctrl.open(proj_dir)
-        if self._project_ctrl.project_dir:
-            self._model.open(self._project_ctrl.project_dir)
 
     def _on_open_recent_project(self, path: str) -> None:
         proj_dir = Path(path).resolve()
@@ -394,10 +190,14 @@ class MainWindow(QMainWindow):
             self._refresh_recent_projects()
             return
         self._project_ctrl.open(str(proj_dir))
-        if self._project_ctrl.project_dir:
-            self._model.open(self._project_ctrl.project_dir)
 
     def _on_project_opened(self) -> None:
+        if self._project_ctrl.project_dir:
+            self._syncing_projection = True
+            try:
+                self._model.open(self._project_ctrl.project_dir)
+            finally:
+                self._syncing_projection = False
         proj = self._model.project_data
         if proj is None:
             return
@@ -516,7 +316,7 @@ class MainWindow(QMainWindow):
 
     def _on_pipeline_finished(self, result) -> None:
         self._status.finish(f"{result.stage.capitalize()} complete")
-        self._model.refresh_from_disk()
+        self._reload_project_state()
         if result.stage in ("detect", "preview"):
             proj = self._model.project_data
             if proj:
@@ -651,7 +451,7 @@ class MainWindow(QMainWindow):
         if confirm and not self._confirm("Confirm", confirm):
             return
         getattr(self._timeline_ctrl, action)(d, *a, **kw)
-        self._model.refresh_from_disk()
+        self._reload_project_state()
         self._sync_timeline()
         if msg:
             self.statusBar().showMessage(msg)
@@ -677,9 +477,14 @@ class MainWindow(QMainWindow):
                 if vf.timestamp >= pos_sec:
                     img = cv2.cvtColor(vf.image, cv2.COLOR_RGB2BGR)
                     (Path(d) / "slides").mkdir(parents=True, exist_ok=True)
-                    cv2.imwrite(str(Path(d) / "slides" / f"slide_{slide_index:03d}.png"), img)
-                    self._timeline_ctrl.clear_slide_image(d, slide_index)
-                    self._model.refresh_from_disk()
+                    image_path = Path(d) / "slides" / f"slide_{slide_index:03d}.png"
+                    cv2.imwrite(str(image_path), img)
+                    slide_id = self._slide_id(slide_index)
+                    if slide_id is None:
+                        return
+                    from video2pptx.domain.artifacts import ArtifactRef
+                    self._timeline_ctrl.set_slide_image(d, slide_id, ArtifactRef.parse(image_path.relative_to(d)))
+                    self._reload_project_state()
                     self._sync_timeline()
                     self.statusBar().showMessage(f"Slide {slide_index} image set from {pos_sec:.1f}s")
                     break
@@ -688,19 +493,26 @@ class MainWindow(QMainWindow):
 
     @mcp_action(name='slide_clear_image', desc='Clear slide image')
     def _on_clear_slide_image(self, slide_index: int) -> None:
-        self._with_timeline("clear_slide_image", slide_index, msg=f"Slide {slide_index} image cleared")
+        slide_id = self._slide_id(slide_index)
+        if slide_id is not None:
+            self._with_timeline("clear_slide_image", slide_id, msg=f"Slide {slide_index} image cleared")
 
     @mcp_action(name='slide_delete_ui', desc='Delete slide by index')
     def _on_delete_slide(self, slide_index: int) -> None:
-        self._with_timeline("delete_slide", slide_index, msg=f"Slide {slide_index} deleted", confirm=f"Delete slide #{slide_index}?")
+        slide_id = self._slide_id(slide_index)
+        if slide_id is not None:
+            self._with_timeline("delete_slide", slide_id, msg=f"Slide {slide_index} deleted", confirm=f"Delete slide #{slide_index}?")
 
     @mcp_action(name='slide_moved', desc='Move slide to new start/end')
     def _on_slide_moved(self, index: int, new_start: float, new_end: float) -> None:
         d = self._project_dir()
         if not d:
             return
-        self._timeline_ctrl.move_slide(d, index, new_start, new_end)
-        self._model.refresh_from_disk()
+        slide_id = self._slide_id(index)
+        if slide_id is None:
+            return
+        self._timeline_ctrl.move_slide(d, slide_id, new_start, new_end)
+        self._reload_project_state()
         QTimer.singleShot(0, self._sync_timeline)
         self.statusBar().showMessage(f"Slide {index} moved: {new_start:.1f}s – {new_end:.1f}s")
 
@@ -709,8 +521,11 @@ class MainWindow(QMainWindow):
         d = self._project_dir()
         if not d:
             return
-        self._timeline_ctrl.resize_slide(d, index, new_end)
-        self._model.refresh_from_disk()
+        slide_id = self._slide_id(index)
+        if slide_id is None:
+            return
+        self._timeline_ctrl.resize_slide(d, slide_id, new_end)
+        self._reload_project_state()
         QTimer.singleShot(0, self._sync_timeline)
         self.statusBar().showMessage(f"Slide {index} resized: {new_start:.1f}s – {new_end:.1f}s")
 
@@ -733,6 +548,17 @@ class MainWindow(QMainWindow):
                 self._timeline.set_project(proj)
             self._timeline.set_subtitles(self._subs)
             self._timeline.zoom_fit()
+
+    def _slide_id(self, display_index: int):
+        project = self._project_ctrl.project
+        if project is None or not 0 <= display_index < len(project.slides):
+            return None
+        return project.slides[display_index].slide_id
+
+    def _reload_project_state(self) -> None:
+        self._project_ctrl.reload(emit=False)
+        if self._project_ctrl.project_dir:
+            self._model.open(self._project_ctrl.project_dir)
 
     @mcp_action(name='seek', desc='Seek video to position')
     def _on_seek_to_marker(self, ts: float) -> None:

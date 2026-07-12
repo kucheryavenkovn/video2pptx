@@ -9,12 +9,10 @@
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
 
-import time
 
 import pytest
 
 from video2pptx.debug.mcp_operations import (
-    OpRunnerThread,
     OperationRunner,
     cancel_operation,
     clear_registry,
@@ -25,7 +23,6 @@ from video2pptx.debug.mcp_operations import (
     submit,
     wait_operation,
 )
-from video2pptx.debug.operation_registry import TERMINAL_STATUSES
 
 
 @pytest.fixture(autouse=True)

@@ -12,8 +12,6 @@
 import json
 from pathlib import Path
 
-import pytest
-
 from video2pptx.validators.project_validator import validate_project
 
 

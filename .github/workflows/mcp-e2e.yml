@@ -21,7 +21,7 @@ jobs:
       - name: Install system deps
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg libegl1-mesa libgl1-mesa-glx
+          sudo apt-get install -y -qq ffmpeg libegl1 libgl1
       - name: Install Python deps
         run: |
           pip install -e ".[gui,dev]"
@@ -41,7 +41,7 @@ jobs:
       - name: Install system deps
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg libegl1-mesa libgl1-mesa-glx \
+          sudo apt-get install -y -qq ffmpeg libegl1 libgl1 \
             libxkbcommon0 libdbus-1-3 \
             xvfb
       - name: Install Python deps
@@ -51,8 +51,7 @@ jobs:
         run: python tests/fixtures/gen_test_video.py
       - name: Headless MCP GUI smoke (Xvfb)
         run: |
-          xvfb-run -a python -m pytest tests/e2e/ -x -v --timeout=120 2>&1 || \
-          echo "E2E scenarios require interactive display; unit-level MCP tests pass"
+          xvfb-run -a python -m pytest tests/e2e/ -x -v --timeout=120
         timeout-minutes: 5
       - name: Upload E2E report
         if: always()

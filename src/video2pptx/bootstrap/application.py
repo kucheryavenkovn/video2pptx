@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/bootstrap/application.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Neutral composition root providing all wired Application Services
 #            for both MCP and CLI transport adapters.
@@ -16,10 +16,11 @@
 #
 # START_MODULE_MAP
 #   ApplicationServices - neutral wired composition of all application services
+#   ApplicationServices.scoped - create an operation-scoped composition with a supplied context
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Extract neutral composition root from debug/mcp_composition.py
+#   LAST_CHANGE: v1.1.0 - Add operation-scoped composition for GUI progress/cancellation
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -71,6 +72,12 @@ class ApplicationServices:
     @property
     def repository(self) -> FileProjectRepository:
         return self._repository
+
+    def scoped(self, context: ServiceContext) -> ApplicationServices:
+        """Create a fresh service composition sharing storage but using *context*."""
+        if context.repository is not self._repository:
+            raise ValueError("Scoped ServiceContext must use the shared repository")
+        return type(self)(repository=self._repository, context=context)
 
     @property
     def preview_service(self) -> PreviewService:
