@@ -1,8 +1,9 @@
 # FILE: src/video2pptx/detection_metrics.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Low-overhead aggregated performance telemetry for detector runs.
-#   SCOPE: DetectionRunMetrics — typed timers, counters, gauges; JSON-serializable; zero-cost when disabled.
+#   SCOPE: DetectionRunMetrics — typed timers, counters, gauges; JSON-serializable
+#          canonical {timers/ counters/ gauges/} schema; zero-cost when disabled.
 #   DEPENDS: time, dataclasses, json
 #   LINKS: M-DETECT-METRICS, V-PERF-DETECT-BASELINE
 #   ROLE: UTILITY
@@ -10,27 +11,34 @@
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   DetectionRunMetrics - aggregated timers, counters, gauges for detection pass
-#   MetricsTimer - context manager for timing blocks
-#   MetricsCollector - optional collector to avoid overhead when not benchmarking
-# END_MODULE_MODULE_MAP
+#   DetectionRunMetrics - aggregated timers/counters/gauges with canonical to_dict/from_dict
+#   measure - optional zero-overhead context manager
+#   collect - context manager to activate collection
+#   reset, get, set_active - global collector API
+# END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Initial aggregated detection telemetry
+#   LAST_CHANGE: v1.1.0 — Canonical {timers/counters/gauges} schema; measure() context manager;
+#                from_dict round-trip; gauge_rgb_transfer_bytes, gauge_peak_ram_mb,
+#                counter_ndarray_conversions, counter_representative_frames
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
 import json
+import time
+from collections.abc import Generator
 from contextlib import contextmanager
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import Any
+
+# =========================================================================
+# Primitive wrappers
+# =========================================================================
 
 
 @dataclass
 class MetricsTimer:
-    """Named elapsed time accumulator in seconds."""
-
     elapsed: float = 0.0
 
     def __iadd__(self, delta: float) -> MetricsTimer:
@@ -40,8 +48,6 @@ class MetricsTimer:
 
 @dataclass
 class MetricsCounter:
-    """Named integer counter."""
-
     value: int = 0
 
     def increment(self, n: int = 1) -> None:
@@ -50,21 +56,36 @@ class MetricsCounter:
 
 @dataclass
 class MetricsGauge:
-    """Named gauge (last-set value)."""
-
     value: float | int = 0
 
     def set(self, v: float | int) -> None:
         self.value = v
 
 
+# =========================================================================
+# Canonical field metadata — maps Python attr name → JSON key
+# =========================================================================
+
+_TIMER_PREFIX = "timer_"
+_COUNTER_PREFIX = "counter_"
+_GAUGE_PREFIX = "gauge_"
+
+
+def _canonical_key(attr: str, prefix: str) -> str:
+    return attr[len(prefix) :]
+
+
+def _attr_name(key: str, prefix: str) -> str:
+    return f"{prefix}{key}"
+
+
+# =========================================================================
+# Main metrics container
+# =========================================================================
+
+
 @dataclass
 class DetectionRunMetrics:
-    """Aggregated telemetry for one detection run.
-
-    Thread-safe for concurrent timer/counter updates when used with external locking.
-    """
-
     # Timers (seconds)
     timer_total: MetricsTimer = field(default_factory=MetricsTimer)
     timer_decoder_wait: MetricsTimer = field(default_factory=MetricsTimer)
@@ -84,55 +105,86 @@ class DetectionRunMetrics:
     counter_features_quick: MetricsCounter = field(default_factory=MetricsCounter)
     counter_slides_detected: MetricsCounter = field(default_factory=MetricsCounter)
     counter_screenshots_written: MetricsCounter = field(default_factory=MetricsCounter)
+    counter_ndarray_conversions: MetricsCounter = field(default_factory=MetricsCounter)
+    counter_representative_frames: MetricsCounter = field(default_factory=MetricsCounter)
 
     # Gauges
+    gauge_rgb_transfer_bytes: MetricsGauge = field(default_factory=MetricsGauge)
     gauge_peak_ram_mb: MetricsGauge = field(default_factory=MetricsGauge)
     gauge_peak_in_flight: MetricsGauge = field(default_factory=MetricsGauge)
 
+    # ------------------------------------------------------------------
+    # Schema conversion
+    # ------------------------------------------------------------------
+
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        result: dict[str, Any] = {"timers": {}, "counters": {}, "gauges": {}}
+        for f in fields(self):
+            val = getattr(self, f.name)
+            if f.name.startswith(_TIMER_PREFIX):
+                result["timers"][_canonical_key(f.name, _TIMER_PREFIX)] = val.elapsed
+            elif f.name.startswith(_COUNTER_PREFIX):
+                result["counters"][_canonical_key(f.name, _COUNTER_PREFIX)] = val.value
+            elif f.name.startswith(_GAUGE_PREFIX):
+                result["gauges"][_canonical_key(f.name, _GAUGE_PREFIX)] = val.value
+        return result
 
     def to_json(self, indent: int = 2) -> str:
-        return json.dumps(self.to_dict(), indent=indent, default=str)
+        return json.dumps(self.to_dict(), indent=indent)
 
     @classmethod
     def from_dict(cls, data: dict) -> DetectionRunMetrics:
-        return cls(**data)
+        kwargs: dict[str, Any] = {}
+        sections = {"timers": _TIMER_PREFIX, "counters": _COUNTER_PREFIX, "gauges": _GAUGE_PREFIX}
+        for section_name, prefix in sections.items():
+            section = data.get(section_name, {})
+            if not isinstance(section, dict):
+                continue
+            for key, val in section.items():
+                attr = _attr_name(key, prefix)
+                if prefix == _TIMER_PREFIX:
+                    kwargs[attr] = MetricsTimer(elapsed=float(val))
+                elif prefix == _COUNTER_PREFIX:
+                    kwargs[attr] = MetricsCounter(value=int(val))
+                elif prefix == _GAUGE_PREFIX:
+                    kwargs[attr] = MetricsGauge(
+                        value=float(val) if isinstance(val, float) else int(val)
+                    )
+        return cls(**kwargs)
+
+    @classmethod
+    def from_json(cls, text: str) -> DetectionRunMetrics:
+        return cls.from_dict(json.loads(text))
 
 
-# -- optional zero-cost wrapper ------------------------------------------------
+# =========================================================================
+# Global zero-cost collector
+# =========================================================================
 
-_COLLECTOR: DetectionRunMetrics | None = None
+_collector: DetectionRunMetrics | None = None
 
 
 def reset() -> DetectionRunMetrics:
-    """Create a fresh collector and set it as the global collector."""
-    global _COLLECTOR
-    _COLLECTOR = DetectionRunMetrics()
-    return _COLLECTOR
+    global _collector
+    m = DetectionRunMetrics()
+    _collector = m
+    return m
 
 
 def get() -> DetectionRunMetrics | None:
-    """Return the global collector, or None if no collection is active."""
-    return _COLLECTOR
+    return _collector
 
 
 def set_active(metrics: DetectionRunMetrics | None) -> None:
-    """Enable or disable the global collector."""
-    global _COLLECTOR
-    _COLLECTOR = metrics
+    global _collector
+    _collector = metrics
 
 
 @contextmanager
-def collect() -> DetectionRunMetrics:
-    """Context manager that creates, activates, and returns a fresh collector.
-
-    Usage::
-
-        with collect() as m:
-            run_detection(...)
-        print(m.to_json())
-    """
+def collect() -> Generator[DetectionRunMetrics, None, None]:
+    if _collector is not None:
+        yield _collector
+        return
     m = reset()
     try:
         yield m
@@ -140,12 +192,33 @@ def collect() -> DetectionRunMetrics:
         set_active(None)
 
 
-# -- helper for counting anything callable --------------------------------------
+# =========================================================================
+# Low-overhead timer helper
+# =========================================================================
+
+
+@contextmanager
+def measure(name: str) -> Generator[None, None, None]:
+    metrics = _collector
+    if metrics is None:
+        yield
+        return
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        elapsed = time.perf_counter() - start
+        timer = getattr(metrics, f"timer_{name}", None)
+        if timer is not None:
+            timer.elapsed += elapsed
+
+
+# =========================================================================
+# Instrumented iterator wrapper
+# =========================================================================
 
 
 class InstrumentedIterator:
-    """Wrapper around an iterator to count yielded items."""
-
     def __init__(self, iterator, counter: MetricsCounter):
         self._it = iter(iterator)
         self._counter = counter

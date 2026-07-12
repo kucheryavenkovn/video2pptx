@@ -21,6 +21,7 @@ from pathlib import Path
 
 from loguru import logger
 
+from video2pptx.detection_metrics import get as _get_metrics
 from video2pptx.models import VideoFrame, VideoInfo
 
 # START_BLOCK_HW_DEVICES
@@ -37,6 +38,7 @@ _HW_PREFERRED = ["cuda", "d3d12va", "d3d11va", "qsv", "dxva2"]
 # END_CONTRACT: _available_hw_devices
 def _available_hw_devices() -> list[str]:
     from av.codec.hwaccel import hwdevices_available
+
     return [d for d in _HW_PREFERRED if d in hwdevices_available()]
 
 
@@ -65,6 +67,7 @@ def _pick_hw_device() -> str | None:
 # END_CONTRACT: _create_hwaccel
 def _create_hwaccel(device_type: str, device_id: int = 0):
     from av.codec.hwaccel import HWAccel
+
     try:
         return HWAccel(device_type, device_id)
     except Exception as e:
@@ -82,6 +85,7 @@ def _create_hwaccel(device_type: str, device_id: int = 0):
 def pyav_video_info(video_path: str | Path) -> VideoInfo:
     # START_BLOCK_OPEN_METADATA
     import av
+
     container = av.open(str(video_path))
     try:
         stream = container.streams.video[0]
@@ -116,6 +120,7 @@ def pyav_iter_frames(
 ) -> Iterator[VideoFrame]:
     # START_BLOCK_INIT
     import av
+
     hw_device = _pick_hw_device()
     hwaccel = _create_hwaccel(hw_device) if hw_device else None
 
@@ -135,14 +140,22 @@ def pyav_iter_frames(
     try:
         for packet in container.demux(stream):
             for frame in packet.decode():
+                m = _get_metrics()
+                if m is not None:
+                    m.counter_frames_decoded.increment()
+
                 if keyframes_only and not frame.key_frame:
                     current_frame_idx += 1
                     continue
+
                 # yield all keyframes (no interval skip), or apply sampling for normal mode
                 if keyframes_only or current_frame_idx % frame_interval == 0:
                     timestamp = current_frame_idx / video_fps
                     # to_ndarray handles GPU->CPU transfer automatically
                     img = frame.to_ndarray(format="rgb24")
+                    if m is not None:
+                        m.counter_ndarray_conversions.increment()
+                        m.gauge_rgb_transfer_bytes.value += img.nbytes
                     yield VideoFrame(timestamp=timestamp, image=img)
                 current_frame_idx += 1
     finally:

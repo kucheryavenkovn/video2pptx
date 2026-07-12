@@ -1119,4 +1119,68 @@
     <purpose>Runtime dependency map, dynamic imports, Qt plugins, native DLLs, video backends.</purpose>
     <evidence><result>packaging/windows/inventory.md documents all dependencies, Qt plugins, native DLLs, backend requirements, dynamic imports, and excluded dev packages.</result></evidence>
   </V-REF-PACKAGING-INVENTORY>
+
+  <!-- ===== Phase 18 — Detect Performance ===== -->
+
+  <V-PERF-DETECT-BASELINE MODULE="Phase-18/Step-18.1" PRIORITY="high" STATUS="in_progress">
+    <purpose>Performance baseline instrumentation: DetectionRunMetrics schema, to_dict/from_dict round-trip,
+      measure() context manager, per-frame timers/counters, backend counters (frames_decoded, ndarray_conversions,
+      rgb_transfer_bytes), RAM gauge, representative frame evidence.</purpose>
+    <evidence><result>
+      Metrics typed round-trip PASS: to_dict() → from_dict() → exact values.
+      measure() records time, inactive overhead negligible.
+      Benchmark contract test PASS: timer_total &gt; 0, timer_extract_features &gt; 0,
+      frames_sampled &gt; 0, screenshots_written &gt; 0, rgb_transfer_bytes &gt; 0,
+      screenshots on disk match counter.
+    </result></evidence>
+    <test-files>
+      <file>tests/test_detection_metrics.py</file>
+      <file>src/video2pptx/detection_metrics.py</file>
+      <file>src/video2pptx/detect_slides.py</file>
+      <file>src/video2pptx/slide_detector.py</file>
+      <file>src/video2pptx/backends/pyav_backend.py</file>
+      <file>src/video2pptx/backends/opencv_backend.py</file>
+    </test-files>
+    <notes>Step 18.1 remains in_progress until a full Hermes or equivalent medium-length benchmark produces usable metrics artifacts. The 30-min timeout on the initial run means complete stage timing isolation is pending.</notes>
+  </V-PERF-DETECT-BASELINE>
+
+  <V-PERF-DETECT-TWO-PASS MODULE="Phase-18/Step-18.2" PRIORITY="high" STATUS="passed">
+    <purpose>Two-pass detection: collapse Pass 3 (screenshot save) into Pass 2 (dedup frame grab).
+      decoder.iter_frames() called exactly 2 times regardless of dedup mode.
+      Output signature (score values, segment boundaries, screenshot count) matches approved reference.</purpose>
+    <evidence><result>
+      Decoder call count PASS: iter_frames called exactly 2 times (dedup on + dedup off).
+      Output parity PASS: SHA-256 signature of score_timestamps, score_values, segment start/end,
+        representative_timestamp, screenshot count matches approved reference.
+      Screenshots valid PNG PASS: all screenshots have non-zero size and correct PNG header.
+      No Pass 3/3 markers PASS.
+    </result></evidence>
+    <test-files>
+      <file>tests/test_detect_slides.py</file>
+      <file>src/video2pptx/detect_slides.py</file>
+      <file>src/video2pptx/slide_detector.py</file>
+    </test-files>
+  </V-PERF-DETECT-TWO-PASS>
+
+  <V-PERF-DETECT-PARALLEL MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
+    <purpose>In-frame parallel feature extraction (PHash + FrameDiff computed concurrently).</purpose>
+  </V-PERF-DETECT-PARALLEL>
+
+  <V-PERF-DETECT-CASCADE MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
+    <purpose>Fast-full cascade: skip PHash when FrameDiff is below skip threshold.</purpose>
+  </V-PERF-DETECT-CASCADE>
+
+  <V-PERF-DETECT-CHUNKED MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
+    <purpose>Chunked decode: decode video in chunks, process each chunk independently.</purpose>
+  </V-PERF-DETECT-CHUNKED>
+
+  <V-PERF-DETECT-GPU MODULE="Phase-18/Step-18.5" PRIORITY="low" STATUS="planned">
+    <purpose>GPU-resident feature extraction (CuPy or CUDA kernels for PHash).</purpose>
+  </V-PERF-DETECT-GPU>
+
+  <V-PERF-DETECT-ACCEPTANCE MODULE="Phase-18" PRIORITY="high" STATUS="planned">
+    <purpose>Detect performance acceptance gate: Hermes full run &lt; 30 min, missed_slide_rate &lt;= 5%,
+      false_split_rate &lt;= 10%, timestamp_error &lt;= 1.5s.</purpose>
+  </V-PERF-DETECT-ACCEPTANCE>
+
 </VerificationPlan>

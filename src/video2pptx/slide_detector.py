@@ -21,6 +21,8 @@ from collections.abc import Callable, Iterator
 import numpy as np
 from loguru import logger
 
+from video2pptx.detection_metrics import get as _get_metrics
+from video2pptx.detection_metrics import measure
 from video2pptx.frame_features import compute_threshold, extract_features, visual_distance
 from video2pptx.models import FrameFeatures
 from video2pptx.roi import SlideRegion
@@ -50,11 +52,12 @@ def detect_changes(
     progress_callback: Callable[[int, str], None] | None = None,
     extract_fn: Callable | None = None,
     distance_fn: Callable | None = None,
+    quick_mode: bool = False,
 ) -> tuple[list[ChangeEvent], list[FrameFeatures], list[float]]:
     # START_CONTRACT: detect_changes
     #   PURPOSE: Scan frames, compare consecutive, detect slide changes
     #   INPUTS: { frames: timestamp+image iterator, slide_region, threshold,
-    #             min_stable_duration, sample_fps, video_duration }
+    #             min_stable_duration, sample_fps, video_duration, quick_mode }
     #   OUTPUTS: (changes: list[ChangeEvent], all_features: list[FrameFeatures], all_scores: list[float])
     #   SIDE_EFFECTS: none
     #   LINKS: M-SLIDE-DETECTOR
@@ -65,6 +68,9 @@ def detect_changes(
     changes: list[ChangeEvent] = []
     all_features: list[FrameFeatures] = []
     all_scores: list[float] = []
+
+    _extract = extract_fn or extract_features
+    _dist = distance_fn or visual_distance
     # END_BLOCK_DETECT_INIT
 
     # START_BLOCK_PROCESS_FRAMES
@@ -72,18 +78,29 @@ def detect_changes(
     progress_step: float = max(30.0, (video_duration or 600.0) * 0.1)
     next_progress: float = progress_step
     for timestamp, image in frames:
-        cropped = slide_region.process(image)
-        _extract = extract_fn or extract_features
-        _dist = distance_fn or visual_distance
-        ff = _extract(cropped)
+        m = _get_metrics()
+
+        with measure("roi"):
+            cropped = slide_region.process(image)
+
+        with measure("extract_features"):
+            ff = _extract(cropped)
         ff.timestamp = timestamp
         all_features.append(ff)
 
+        if m is not None:
+            if quick_mode:
+                m.counter_features_quick.increment()
+            else:
+                m.counter_features_full.increment()
+
         if prev_features is not None:
-            score = _dist(prev_features, ff)
+            with measure("visual_distance"):
+                score = _dist(prev_features, ff)
             all_scores.append(score)
 
-            actual_threshold = _resolve_threshold(threshold, all_scores, timestamp)
+            with measure("threshold"):
+                actual_threshold = _resolve_threshold(threshold, all_scores, timestamp)
             if score > actual_threshold:
                 changes.append(ChangeEvent(timestamp=timestamp, score=score, features=ff))
                 logger.debug(
@@ -92,7 +109,11 @@ def detect_changes(
                 )
 
         if timestamp >= next_progress:
-            pct = f"{timestamp / video_duration * 100:.0f}%" if video_duration else f"{timestamp:.0f}s"
+            pct = (
+                f"{timestamp / video_duration * 100:.0f}%"
+                if video_duration
+                else f"{timestamp:.0f}s"
+            )
             logger.info(
                 f"[SlideDetector][detect_changes] Progress | "
                 f"{pct} ts={timestamp:.0f}s changes={len(changes)}"
@@ -108,8 +129,9 @@ def detect_changes(
     # END_BLOCK_PROCESS_FRAMES
 
     # START_BLOCK_DEBOUNCE
-    stable_frames = max(1, int(round(sample_fps * min_stable_duration)))
-    changes = _debounce_changes(changes, stable_frames)
+    with measure("debounce"):
+        stable_frames = max(1, int(round(sample_fps * min_stable_duration)))
+        changes = _debounce_changes(changes, stable_frames)
     # END_BLOCK_DEBOUNCE
 
     logger.info(
@@ -132,10 +154,12 @@ def _debounce_changes(changes: list[ChangeEvent], min_stable_frames: int) -> lis
 
     result: list[ChangeEvent] = [changes[0]]
     for i in range(1, len(changes)):
-        gap_frames = int(round(
-            (changes[i].timestamp - result[-1].timestamp)
-            / max(0.5, 1.0 / 30.0)  # approximate frame duration
-        ))
+        gap_frames = int(
+            round(
+                (changes[i].timestamp - result[-1].timestamp)
+                / max(0.5, 1.0 / 30.0)  # approximate frame duration
+            )
+        )
         if gap_frames >= min_stable_frames:
             result.append(changes[i])
         else:
