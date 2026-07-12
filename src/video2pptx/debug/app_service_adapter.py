@@ -1,10 +1,10 @@
 # FILE: src/video2pptx/debug/app_service_adapter.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Thin transport adapter between MCP tools and Phase 16 Application Services.
 #            No old pipeline calls, no business orchestration, no manual persistence.
 #   SCOPE: McpServiceAdapter.execute_command — parse input → call service → map ServiceResult to dict
-#   DEPENDS: video2pptx.debug.mcp_composition
+#   DEPENDS: video2pptx.bootstrap
 #   LINKS: M-MCP-ADAPTER
 #   ROLE: RUNTIME
 #   MAP_MODE: EXPORTS
@@ -15,7 +15,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.1.0 - Call Phase 16 Application Services via composition root; no old pipeline
+#   LAST_CHANGE: v1.2.0 - Accept ApplicationServices in constructor, remove legacy factory imports
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -25,14 +25,7 @@ from typing import Any
 
 from loguru import logger
 
-from video2pptx.debug.mcp_composition import (
-    create_alignment_service,
-    create_auto_service,
-    create_detection_service,
-    create_export_service,
-    create_notes_service,
-    create_preview_service,
-)
+from video2pptx.bootstrap import ApplicationServices
 
 
 class McpServiceAdapter:
@@ -51,16 +44,19 @@ class McpServiceAdapter:
     - Know about tool name remapping
     """
 
-    # Mapping: MCP tool name → (service factory, method name)
-    _SERVICE_MAP: dict[str, tuple] = {
-        "preview": (create_preview_service, "preview"),
-        "quick_preview": (create_preview_service, "preview"),
-        "detect": (create_detection_service, "detect"),
-        "auto_align": (create_alignment_service, "align"),
-        "process_notes": (create_notes_service, "notes"),
-        "export_md": (create_export_service, "export"),
-        "export_pptx": (create_export_service, "export"),
-        "auto": (create_auto_service, "auto"),
+    def __init__(self, services: ApplicationServices | None = None) -> None:
+        self._services = services or ApplicationServices()
+
+    # Mapping: MCP tool name → (service property name, method name)
+    _SERVICE_MAP: dict[str, tuple[str, str]] = {
+        "preview": ("preview_service", "preview"),
+        "quick_preview": ("preview_service", "preview"),
+        "detect": ("detection_service", "detect"),
+        "auto_align": ("alignment_service", "align"),
+        "process_notes": ("notes_service", "notes"),
+        "export_md": ("export_service", "export"),
+        "export_pptx": ("export_service", "export"),
+        "auto": ("auto_service", "auto"),
     }
 
     # Accepted params per command (others are filtered out)
@@ -91,7 +87,7 @@ class McpServiceAdapter:
         if entry is None:
             return {"success": False, "error": f"unknown command: {command}", "stage": command}
 
-        service_factory, _stage_name = entry
+        service_attr, _stage_name = entry
 
         if command in {"export_md", "export_pptx"}:
             suffix = "md" if command == "export_md" else "pptx"
@@ -106,7 +102,7 @@ class McpServiceAdapter:
         }
 
         try:
-            service = service_factory()
+            service = getattr(self._services, service_attr)
             result = service.execute(
                 project_location,
                 **filtered_kwargs,

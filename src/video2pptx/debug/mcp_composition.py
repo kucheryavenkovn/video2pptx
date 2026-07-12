@@ -1,109 +1,62 @@
 # FILE: src/video2pptx/debug/mcp_composition.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
-#   PURPOSE: Composition root for Phase 16 Application Services used by MCP adapter.
-#            Wires port adapters, repository, and ServiceContext into ready-to-use services.
+#   PURPOSE: Legacy convenience factories that delegate to neutral bootstrap.
+#            Kept for backward compat — new code should use ApplicationServices directly.
 #   SCOPE: create_preview_service, create_detection_service, create_alignment_service,
 #          create_notes_service, create_export_service, create_auto_service
-#   DEPENDS: video2pptx.infrastructure.persistence.file_project_repository,
-#            video2pptx.adapters, video2pptx.application.services
-#   LINKS: M-MCP-ADAPTER
+#   DEPENDS: video2pptx.bootstrap
+#   LINKS: M-MCP-ADAPTER, M-APP-BOOTSTRAP
 #   ROLE: RUNTIME
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   create_preview_service - wired PreviewService
-#   create_detection_service - wired DetectionService
-#   create_alignment_service - wired AlignmentService
-#   create_notes_service - wired NotesService
-#   create_export_service - wired ExportService
-#   create_auto_service - wired AutoService
+#   create_preview_service - wired PreviewService via ApplicationServices
+#   create_detection_service - wired DetectionService via ApplicationServices
+#   create_alignment_service - wired AlignmentService via ApplicationServices
+#   create_notes_service - wired NotesService via ApplicationServices
+#   create_export_service - wired ExportService via ApplicationServices
+#   create_auto_service - wired AutoService via ApplicationServices
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Wire MCP application services to repository and port adapters
+#   LAST_CHANGE: v1.1.0 - Delegate to neutral bootstrap/application.py
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
-from video2pptx.adapters import (
-    LegacyAligner,
-    LegacyExporter,
-    LegacyNotesProcessor,
-    LegacyPreviewAnalyzer,
-    LegacySlideDetector,
-)
-from video2pptx.application.base import ServiceContext
-from video2pptx.application.services.alignment_service import AlignmentService
-from video2pptx.application.services.auto_service import AutoService
-from video2pptx.application.services.detection_service import DetectionService
-from video2pptx.application.services.export_service import ExportService
-from video2pptx.application.services.notes_service import NotesService
-from video2pptx.application.services.preview_service import PreviewService
-from video2pptx.application.services.validation_service import ValidationService
-from video2pptx.infrastructure.persistence.file_project_repository import FileProjectRepository
+from video2pptx.bootstrap import ApplicationServices
 
-_repo: FileProjectRepository | None = None
-_ctx: ServiceContext | None = None
+_services: ApplicationServices | None = None
 
 
-def _shared_repo() -> FileProjectRepository:
-    global _repo
-    if _repo is None:
-        _repo = FileProjectRepository()
-    return _repo
+def _shared() -> ApplicationServices:
+    global _services
+    if _services is None:
+        _services = ApplicationServices()
+    return _services
 
 
-def _shared_context() -> ServiceContext:
-    global _ctx
-    if _ctx is None:
-        _ctx = ServiceContext(repository=_shared_repo())
-    return _ctx
+def create_preview_service():
+    return _shared().preview_service
 
 
-def create_preview_service() -> PreviewService:
-    return PreviewService(
-        analyzer=LegacyPreviewAnalyzer(),
-        context=_shared_context(),
-    )
+def create_detection_service():
+    return _shared().detection_service
 
 
-def create_detection_service() -> DetectionService:
-    return DetectionService(
-        detector=LegacySlideDetector(),
-        context=_shared_context(),
-    )
+def create_alignment_service():
+    return _shared().alignment_service
 
 
-def create_alignment_service() -> AlignmentService:
-    return AlignmentService(
-        aligner=LegacyAligner(),
-        context=_shared_context(),
-    )
+def create_notes_service():
+    return _shared().notes_service
 
 
-def create_notes_service() -> NotesService:
-    return NotesService(
-        processor=LegacyNotesProcessor(),
-        context=_shared_context(),
-    )
+def create_export_service():
+    return _shared().export_service
 
 
-def create_export_service() -> ExportService:
-    return ExportService(
-        exporter=LegacyExporter(),
-        context=_shared_context(),
-    )
-
-
-def create_auto_service() -> AutoService:
-    return AutoService(
-        context=_shared_context(),
-        preview_service=create_preview_service(),
-        detection_service=create_detection_service(),
-        alignment_service=create_alignment_service(),
-        notes_service=create_notes_service(),
-        export_service=create_export_service(),
-        validation_service=ValidationService(context=_shared_context()),
-    )
+def create_auto_service():
+    return _shared().auto_service
