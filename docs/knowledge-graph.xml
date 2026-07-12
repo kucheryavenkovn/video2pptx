@@ -960,6 +960,12 @@
       <depends>M-GUI-ABOUT, M-APP-IDENTITY</depends>
       <verification-ref>V-REF-PRODUCT-IDENTITY</verification-ref>
     </M-GUI-HELP-MENU>
+    <M-DESKTOP-BOOTSTRAP NAME="DesktopBootstrap" TYPE="ENTRY_POINT" STATUS="active">
+      <purpose>Canonical desktop GUI entry point for source and packaged modes.</purpose>
+      <path>src/video2pptx/desktop.py</path>
+      <depends>M-GUI-MAIN, M-APP-BOOTSTRAP</depends>
+      <verification-ref>V-REF-STANDALONE-BUILD</verification-ref>
+    </M-DESKTOP-BOOTSTRAP>
     <!-- ===== WINDOWS PACKAGING (Phase-17) ===== -->
     <M-ARCH-OVERVIEW NAME="ArchitectureOverview" TYPE="UTILITY" STATUS="planned">
       <purpose>Target layered architecture: domain/application/infrastructure/adapters with ports and dependency rules. See docs/architecture.md for full context.</purpose>

@@ -1212,7 +1212,7 @@
         ApplicationIdentity, BuildInfo, AboutDialog, Help menu. version=__version__ single source.
       </step-0>
       <step-1 name="PackagingInventory" status="done" verification="V-REF-PACKAGING-INVENTORY"/>
-      <step-2 name="DesktopEntryPoint" status="planned"/>
+      <step-2 name="DesktopEntryPoint" status="done" verification="V-REF-STANDALONE-BUILD"/>
       <step-3 name="PyInstallerReference" status="planned"/>
       <step-4 name="NuitkaReference" status="planned"/>
       <step-5 name="PackagingDecision" status="planned"/>

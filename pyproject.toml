@@ -71,6 +71,8 @@ all = [
 
 [project.scripts]
 video2pptx = "video2pptx.adapters.cli.app:run"
+video2pptx-gui = "video2pptx.desktop:main"
+video2pptx-desktop = "video2pptx.desktop:main"
 
 [project.urls]
 Homepage = "https://github.com/kucheryavenkovn/video2pptx"
