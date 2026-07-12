@@ -159,3 +159,85 @@ def test_playback_routes_to_video_player(qtbot) -> None:
     mcp_process_queue(window._model, window)
 
     window._video_player.play.assert_called_once_with()
+
+
+# -- operation lifecycle (F-0074) ---------------------------------------------
+
+
+def test_controller_busy_after_accept(qtbot) -> None:
+    ctrl = PipelineController(MagicMock())
+    ctrl._services.scoped.return_value = ctrl._services
+    ctrl._services.preview_service.execute.return_value = ServiceResult.ok("preview")
+
+    result = ctrl.run_preview(Path("/tmp/proj"))
+
+    assert result is not None
+    assert result.accepted is True
+    assert ctrl.is_busy is True
+    assert ctrl.active_stage == "preview"
+    qtbot.waitUntil(lambda: ctrl._thread is None, timeout=5000)
+
+
+def test_second_operation_rejected(qtbot) -> None:
+    ctrl = PipelineController(MagicMock())
+    ctrl._services.scoped.return_value = ctrl._services
+    ctrl._services.preview_service.execute.side_effect = lambda *a, **kw: (
+        ServiceResult.ok("preview")
+    )
+
+    result1 = ctrl.run_preview(Path("/tmp/proj"))
+    assert result1.accepted
+
+    reject_signals = []
+    ctrl.operationRejected.connect(lambda *a: reject_signals.append(a))
+
+    result2 = ctrl.run_detect(Path("/tmp/proj"))
+
+    assert result2 is not None
+    assert result2.accepted is False
+    assert result2.active_stage == "preview"
+    assert len(reject_signals) >= 1
+    assert ctrl.active_stage == "preview"
+    assert ctrl.is_busy is True
+    qtbot.waitUntil(lambda: ctrl._thread is None, timeout=5000)
+
+
+def test_operation_started_signal_emitted(qtbot) -> None:
+    ctrl = PipelineController(MagicMock())
+    ctrl._services.scoped.return_value = ctrl._services
+    ctrl._services.detection_service.execute.return_value = ServiceResult.ok("detect")
+
+    signals = []
+    ctrl.operationStarted.connect(signals.append)
+
+    ctrl.run_detect(Path("/tmp/proj"))
+
+    assert signals == ["detect"]
+    qtbot.waitUntil(lambda: ctrl._thread is None, timeout=5000)
+
+
+def test_busy_false_after_finished(qtbot) -> None:
+    ctrl = PipelineController(MagicMock())
+    ctrl._services.scoped.return_value = ctrl._services
+    ctrl._services.validation_service.execute.return_value = ServiceResult.ok("validate")
+
+    ctrl.run_validate(Path("/tmp/proj"))
+    qtbot.waitUntil(lambda: ctrl._thread is None, timeout=5000)
+
+    assert ctrl.is_busy is False
+    assert ctrl.active_stage is None
+
+
+def test_cancel_sets_token(qtbot) -> None:
+    ctrl = PipelineController(MagicMock())
+    ctrl._services.scoped.return_value = ctrl._services
+    ctrl._services.detection_service.execute.return_value = ServiceResult.ok("detect")
+
+    result = ctrl.run_detect(Path("/tmp/proj"))
+    assert result.accepted
+
+    ctrl.cancel()
+    assert ctrl._cancellation is not None
+    assert ctrl._cancellation.is_cancelled
+    qtbot.waitUntil(lambda: ctrl._thread is None, timeout=5000)
+    assert ctrl.is_busy is False

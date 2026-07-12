@@ -91,6 +91,10 @@ def setup_main_window_ui(window) -> None:
     window._export_menu.addAction("Export &Markdown (Marp)...", window._on_export_md)
     window._export_menu.addAction("Export &PPTX...", window._on_export_pptx)
     window._btn_export.setMenu(window._export_menu)
+    window._PIPELINE_BUTTONS = [
+        window._btn_quick_preview, window._btn_detect, window._btn_auto_align,
+        window._btn_process_notes, window._btn_auto, window._btn_export,
+    ]
     for widget in (window._video_label, window._subs_label, window._backend_label):
         info_row.addWidget(widget)
     info_row.addStretch()
@@ -155,6 +159,8 @@ def connect_main_window_signals(window) -> None:
     pipeline.progress.connect(window._on_worker_progress_msg)
     pipeline.stageFinished.connect(window._on_pipeline_finished)
     pipeline.error.connect(window._on_pipeline_error)
+    pipeline.busyChanged.connect(window._on_busy_changed)
+    pipeline.operationRejected.connect(window._on_operation_rejected)
     window._project_ctrl.projectOpened.connect(window._on_project_opened)
     window._project_ctrl.errorOccurred.connect(window._on_project_ctrl_error)
     window._timeline_ctrl.slidesChanged.connect(slides_changed)

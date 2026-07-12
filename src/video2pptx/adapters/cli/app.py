@@ -25,6 +25,7 @@ from typing import Any
 
 import typer
 from rich.console import Console
+from rich.table import Table
 
 from video2pptx.adapters.cli.context import CliContext
 from video2pptx.adapters.cli.errors import render_cli_error
@@ -69,6 +70,8 @@ def _make_code(exit_code: CliExitCode) -> int:
 
 def build_app() -> typer.Typer:
     app = typer.Typer(name="video2pptx")
+    project_app = typer.Typer(name="project", help="Manage projects - create, open, info")
+    app.add_typer(project_app, name="project")
 
     @app.callback(invoke_without_command=True)
     def main_callback(
@@ -228,6 +231,19 @@ def build_app() -> typer.Typer:
         )
 
     @app.command()
+    def gui() -> None:
+        """Launch the desktop GUI."""
+        import sys
+
+        from PySide6.QtWidgets import QApplication
+
+        from video2pptx.gui.main_window import MainWindow
+        qapp = QApplication(sys.argv)
+        window = MainWindow()
+        window.show()
+        sys.exit(qapp.exec())
+
+    @app.command()
     def auto(
         ctx: typer.Context,
         project_dir: str = typer.Argument(..., help="Project directory"),
@@ -258,7 +274,79 @@ def build_app() -> typer.Typer:
             )
         )
 
+    @project_app.command(name="create")
+    def project_create(
+        ctx: typer.Context,
+        project_dir: str = typer.Argument(..., help="Output project directory"),
+        name: str = typer.Option("Untitled", "--name", "-n", help="Project name"),
+        video: str = typer.Option("", "--video", help="Path to video file"),
+        subtitles: str = typer.Option("", "--subtitles", help="Path to SRT/VTT file"),
+    ) -> None:
+        """Create a new project."""
+        cli_ctx: CliContext = ctx.obj
+        services = ApplicationServices()
+        location = Path(project_dir)
+        try:
+            from video2pptx.domain.project import Project
+            project = Project(name=name, output_dir=str(location))
+            services.repository.create(location, project)
+            if video:
+                loaded = services.repository.load(location)
+                loaded.project.import_video(Path(video))
+                services.repository.save(loaded.project, location, expected_revision=loaded.revision)
+            cli_ctx.console.print(f"[green]✓[/green] Project created: {location.resolve()}")
+        except Exception as e:
+            render_cli_error(e, cli_ctx.console, stage="project_create")
+            raise typer.Exit(code=1) from None
+
+    @project_app.command(name="open")
+    def project_open(
+        ctx: typer.Context,
+        project_dir: str = typer.Argument(..., help="Path to project directory"),
+    ) -> None:
+        """Open and display project info."""
+        cli_ctx: CliContext = ctx.obj
+        services = ApplicationServices()
+        try:
+            loaded = services.repository.load(Path(project_dir))
+            proj = loaded.project
+            table = Table(title=f"Project: {proj.name}")
+            table.add_column("Key", style="cyan")
+            table.add_column("Value")
+            table.add_row("Name", proj.name)
+            table.add_row("Output dir", proj.output_dir)
+            table.add_row("Video", str(proj.video) if proj.video else "(none)")
+            table.add_row("Subtitles", str(proj.subtitles) if proj.subtitles else "(none)")
+            table.add_row("Slides", str(len(proj.slides)))
+            cli_ctx.console.print(table)
+        except Exception as e:
+            render_cli_error(e, cli_ctx.console, stage="project_open")
+            raise typer.Exit(code=1) from None
+
+    @project_app.command(name="info")
+    def project_info(
+        ctx: typer.Context,
+        project_dir: str = typer.Argument(..., help="Path to project directory"),
+    ) -> None:
+        """Quick project status."""
+        cli_ctx: CliContext = ctx.obj
+        services = ApplicationServices()
+        try:
+            loaded = services.repository.load(Path(project_dir))
+            proj = loaded.project
+            cli_ctx.console.print(f"Project: [bold]{proj.name}[/bold] | "
+                  f"Slides: {len(proj.slides)} | "
+                  f"Detect: {'done' if proj.state.detect_done else 'pending'}")
+        except Exception as e:
+            render_cli_error(e, cli_ctx.console, stage="project_info")
+            raise typer.Exit(code=1) from None
+
     return app
 
 
 app = build_app()
+
+
+def run() -> None:
+    """Console_scripts entry point."""
+    app()

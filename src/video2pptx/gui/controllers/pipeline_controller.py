@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 from loguru import logger
@@ -32,12 +33,17 @@ from video2pptx.bootstrap.application import ApplicationServices
 from video2pptx.gui.controllers.pipeline_worker import PipelineWorker
 
 
-class SignalProgressObserver(QObject):
-    """QObject that implements ProgressObserver and emits a Qt progress signal.
+@dataclass
+class PipelineStartResult:
+    """Result of attempting to start a pipeline operation."""
 
-    Pass this observer's ``on_progress`` to ApplicationServices so that
-    PipelineController (or any caller) can connect to its signal.
-    """
+    accepted: bool
+    requested_stage: str
+    active_stage: str | None = None
+
+
+class SignalProgressObserver(QObject):
+    """QObject that implements ProgressObserver and emits a Qt progress signal."""
 
     progressUpdated = Signal(int, str)  # percent, message
 
@@ -48,23 +54,16 @@ class SignalProgressObserver(QObject):
 class PipelineController(QObject):
     """Qt-aware controller for running pipeline stages through ApplicationServices.
 
-    Each ``run_*`` method creates a temporary ServiceContext and scoped service
-    composition, starts a PipelineWorker on QThread, and returns immediately.
-
-    Usage::
-
-        ctrl = PipelineController(services)
-        ctrl.progress.connect(on_progress)
-        ctrl.stageFinished.connect(on_finished)
-
-        ctrl.run_detect("/path/to/project", sample_fps=2.0)
-
+    Owns operation lifecycle: busy state, active stage, cancellation.
     Signals are thread-safe (queued connections if crossing threads).
     """
 
     progress = Signal(int, str)          # percent, message
     stageFinished = Signal(ServiceResult)  # result from the finished stage
     error = Signal(str)                   # error message
+    busyChanged = Signal(bool)            # operation started/finished
+    operationStarted = Signal(str)        # stage name when accepted
+    operationRejected = Signal(str, str)  # (requested_stage, active_stage)
 
     def __init__(
         self,
@@ -77,6 +76,15 @@ class PipelineController(QObject):
         self._worker: PipelineWorker | None = None
         self._cancellation: CancellationToken | None = None
         self._observer: SignalProgressObserver | None = None
+        self._active_stage: str | None = None
+
+    @property
+    def is_busy(self) -> bool:
+        return self._thread is not None
+
+    @property
+    def active_stage(self) -> str | None:
+        return self._active_stage
 
     # -- individual stage runners -------------------------------------------
 
@@ -91,7 +99,7 @@ class PipelineController(QObject):
         threshold: float = 0.95,
         min_stable_duration: float = 2.0,
     ) -> None:
-        self._run(
+        return self._run(
             "preview",
             project_location,
             video_path=video_path,
@@ -115,7 +123,7 @@ class PipelineController(QObject):
         min_slide_duration: float = 2.0,
         dedupe_enabled: bool = True,
     ) -> None:
-        self._run(
+        return self._run(
             "detect",
             project_location,
             video_path=video_path,
@@ -137,7 +145,7 @@ class PipelineController(QObject):
         max_shift_sec: float = 3.0,
         include_manual: bool = False,
     ) -> None:
-        self._run(
+        return self._run(
             "align",
             project_location,
             subtitles_path=subtitles_path,
@@ -153,7 +161,7 @@ class PipelineController(QObject):
         subtitles_path: str = "",
         mode: str = "basic",
     ) -> None:
-        self._run(
+        return self._run(
             "notes",
             project_location,
             subtitles_path=subtitles_path,
@@ -169,7 +177,7 @@ class PipelineController(QObject):
         overwrite: bool = True,
         dry_run: bool = False,
     ) -> None:
-        self._run(
+        return self._run(
             "export",
             project_location,
             output_path=output_path,
@@ -188,7 +196,7 @@ class PipelineController(QObject):
         check_artifacts: bool = True,
         check_exports: bool = True,
     ) -> None:
-        self._run(
+        return self._run(
             "validate",
             project_location,
             check_storage=check_storage,
@@ -217,7 +225,7 @@ class PipelineController(QObject):
         export_output_path: str = "",
         dry_run: bool = False,
     ) -> None:
-        self._run(
+        return self._run(
             "auto",
             project_location,
             mode=mode,
@@ -238,11 +246,15 @@ class PipelineController(QObject):
 
     # -- internal dispatch --------------------------------------------------
 
-    def _run(self, stage: str, project_location: str | Path, **params) -> None:
-        """Schedule a stage with a scoped context and return before it completes."""
+    def _run(self, stage: str, project_location: str | Path, **params) -> PipelineStartResult:
+        """Schedule a stage with a scoped context. Returns PipelineStartResult."""
         if self._thread is not None:
-            self.error.emit("A pipeline operation is already running")
-            return
+            rejected = PipelineStartResult(
+                accepted=False, requested_stage=stage, active_stage=self._active_stage
+            )
+            self.operationRejected.emit(stage, self._active_stage or "")
+            return rejected
+
         location = Path(project_location)
         observer = SignalProgressObserver(self)
         observer.progressUpdated.connect(self.progress.emit)
@@ -263,15 +275,19 @@ class PipelineController(QObject):
         worker.failed.connect(thread.quit)
         thread.finished.connect(worker.deleteLater)
         thread.finished.connect(self._operation_stopped)
+        self._active_stage = stage
         self._observer = observer
         self._cancellation = cancellation
         self._thread = thread
         self._worker = worker
+        self.busyChanged.emit(True)
+        self.operationStarted.emit(stage)
         thread.start()
+        return PipelineStartResult(accepted=True, requested_stage=stage, active_stage=stage)
 
     def cancel(self) -> None:
         if self._cancellation is not None:
-            self._cancellation.cancel()
+            self._cancellation.trigger()
 
     def _finish(self, result: ServiceResult) -> None:
         self.stageFinished.emit(result)
@@ -284,7 +300,9 @@ class PipelineController(QObject):
         QTimer.singleShot(0, self._clear_operation)
 
     def _clear_operation(self) -> None:
+        self._active_stage = None
         self._worker = None
         self._thread = None
         self._observer = None
         self._cancellation = None
+        self.busyChanged.emit(False)

@@ -782,11 +782,9 @@ def auto(
 
 
 def run():
-    # START_CONTRACT: run
-    #   PURPOSE: Console_scripts entry point
-    #   INPUTS: none (reads sys.argv)
-    #   OUTPUTS: int exit code via typer
-    #   SIDE_EFFECTS: executes CLI commands
-    #   LINKS: M-CLI
-    # END_CONTRACT: run
-    app()
+    """Compatibility wrapper — delegates to canonical CLI adapter.
+
+    DEPRECATED: use video2pptx.adapters.cli.app.run instead.
+    """
+    from video2pptx.adapters.cli.app import run as _run
+    _run()

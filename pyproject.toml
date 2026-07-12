@@ -70,7 +70,7 @@ all = [
 ]
 
 [project.scripts]
-video2pptx = "video2pptx.cli:run"
+video2pptx = "video2pptx.adapters.cli.app:run"
 
 [project.urls]
 Homepage = "https://github.com/kucheryavenkovn/video2pptx"

@@ -657,6 +657,27 @@
 - Resolution/Status: CI_ENVIRONMENT fixed locally by using libegl1/libgl1; GitHub acceptance pending.
 - LINKS: M-CI, .github/workflows/mcp-e2e.yml, V-REF-GUI-ADAPTER
 
+### F-0074 — GUI operation lifecycle: status destroyed by rejected second operation
+- Date: 2026-07-12
+- Area: ui
+- Finding: MainWindow._run_pipeline starts StatusBarManager lifecycle before PipelineController accepts the operation.
+  PipelineController._run checks busy state only after the caller has already overwritten the status bar.
+  Consequence: clicking Quick Preview while Detect is running first erases Detect status, then shows
+  "Pipeline failed: A pipeline operation is already running" — making it look like Detect failed.
+- Symptom/Reproduction:
+  1. Open project with video
+  2. Click Detect
+  3. Status shows "Detect... 0%"
+  4. Immediately click Quick Preview
+  5. Status shows "Preview... 0%" (overwrites Detect)
+  6. Preview rejected: "Pipeline failed: A pipeline operation is already running"
+  7. Status now shows "Pipeline failed" — active Detect status is destroyed
+  8. Active Detect continues running but user has no visibility
+- Impact: User incorrectly believes Detect failed. No cancel UI for the running operation.
+  Conflicting buttons (Quick Preview, Detect, Auto) remain enabled during operation.
+- Resolution/Status: Open for Step 9.5.
+- LINKS: M-GUI-PIPELINE-CTRL, M-GUI-MAIN, M-GUI-STATUS
+
 ### F-0073 — E2E tooling package was absent from pytest import roots
 - Date: 2026-07-12
 - Area: tooling

@@ -48,6 +48,7 @@ class MainWindow(QMainWindow):
     # END_CONTRACT: MainWindow
 
     project_changed = Signal(object)  # Project (legacy, kept for MCP)
+    _PIPELINE_BUTTONS: list = []  # populated by setup_main_window_ui
 
     def __init__(self) -> None:
         super().__init__()
@@ -310,11 +311,25 @@ class MainWindow(QMainWindow):
         project_dir = self._project_ctrl.project_dir or proj.output_dir
         if not project_dir:
             return
-        self._status.start(stage.capitalize())
-        getattr(self._pipeline_ctrl, f"run_{stage}")(project_dir, **params)
+        result = getattr(self._pipeline_ctrl, f"run_{stage}")(project_dir, **params)
+        if result and result.accepted:
+            self._status.start(stage, stage.capitalize())
+
+    def _on_operation_rejected(self, requested: str, active: str) -> None:
+        self.statusBar().showMessage(f"{active.capitalize()} is already running")
+        QMessageBox.information(
+            self,
+            "Operation in Progress",
+            f"{active.capitalize()} is already running. Wait for it to finish or cancel it.",
+        )
+
+    def _on_busy_changed(self, busy: bool) -> None:
+        for btn in self._PIPELINE_BUTTONS:
+            btn.setEnabled(not busy)
 
     def _on_pipeline_finished(self, result) -> None:
-        self._status.finish(f"{result.stage.capitalize()} complete")
+        key = result.stage
+        self._status.finish(f"{key.capitalize()} complete", operation_key=key)
         self._reload_project_state()
         if result.stage in ("detect", "preview"):
             proj = self._model.project_data
@@ -326,7 +341,8 @@ class MainWindow(QMainWindow):
                 self._offer_open_file(Path(out))
 
     def _on_pipeline_error(self, msg: str) -> None:
-        self._status.finish(f"Pipeline failed: {msg}")
+        stage = self._pipeline_ctrl.active_stage or "pipeline"
+        self._status.finish(f"{stage.capitalize()} failed: {msg}", operation_key=stage)
         QMessageBox.critical(self, "Error", msg)
 
     def _on_detect(self) -> None:
@@ -577,4 +593,5 @@ class MainWindow(QMainWindow):
         return self._model.project_data
 
     def _on_worker_progress_msg(self, pct: int, msg: str) -> None:
-        self._status.update(pct, msg)
+        key = self._pipeline_ctrl.active_stage or self._status.key()
+        self._status.update(pct, msg, operation_key=key)
