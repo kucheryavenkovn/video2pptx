@@ -22,11 +22,25 @@
 from __future__ import annotations
 
 import pytest
+from typer.main import get_command
 from typer.testing import CliRunner
 
 from video2pptx.cli import app
 
 runner = CliRunner()
+
+
+def _declared_tokens(arguments: list[str]) -> set[str]:
+    command = get_command(app)
+    for name in arguments[:-1]:
+        assert hasattr(command, "commands")
+        command = command.commands[name]
+    tokens: set[str] = set()
+    for parameter in command.params:
+        tokens.add(parameter.name.upper())
+        tokens.update(getattr(parameter, "opts", ()))
+        tokens.update(getattr(parameter, "secondary_opts", ()))
+    return tokens
 
 EXPECTED_COMMANDS = (
     "detect",
@@ -76,8 +90,9 @@ def test_root_help_freezes_public_commands() -> None:
 def test_command_help_freezes_arguments_and_options(arguments, tokens) -> None:
     result = runner.invoke(app, arguments, env={"COLUMNS": "240"}, terminal_width=240)
     assert result.exit_code == 0, result.output
+    declared = _declared_tokens(arguments)
     for token in tokens:
-        assert token in result.stdout
+        assert token in declared
 
 
 def test_no_command_is_usage_error() -> None:
@@ -123,12 +138,10 @@ def test_missing_inputs_return_legacy_precondition_code(arguments) -> None:
 
 def test_detect_semantic_migration_is_explicit() -> None:
     """Step 7 intentionally changes detect from all-in-one VIDEO mode to CV-only PROJECT_DIR."""
-    legacy_help = runner.invoke(
-        app, ["detect", "--help"], env={"COLUMNS": "240"}, terminal_width=240
-    )
-    assert "VIDEO" in legacy_help.stdout
-    assert "--export-md" in legacy_help.stdout
-    assert "--llm" in legacy_help.stdout
+    declared = _declared_tokens(["detect", "--help"])
+    assert "VIDEO" in declared
+    assert "--export-md" in declared
+    assert "--llm" in declared
 
 
 def test_console_entry_point_shows_new_commands() -> None:
