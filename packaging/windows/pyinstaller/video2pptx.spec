@@ -132,7 +132,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,
+    icon=os.path.join(_REPO, "assets", "branding", "Video2PPTX-clean.ico"),
 )
 
 coll = COLLECT(
