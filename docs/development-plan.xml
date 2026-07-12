@@ -721,7 +721,7 @@
       <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
       <depends>M-APP-BOOTSTRAP, M-DOMAIN-PROJECT</depends>
     </M-GUI-PROJECT-CTRL>
-    <M-GUI-PIPELINE-CTRL NAME="PipelineController" TYPE="CORE_LOGIC" LAYER="1" ORDER="92" STATUS="planned">
+    <M-GUI-PIPELINE-CTRL NAME="PipelineController" TYPE="CORE_LOGIC" LAYER="1" ORDER="92" STATUS="active">
       <contract><purpose>Run stage services (preview/detect/align/notes/export) through ApplicationServices; emit progress via Qt signals.</purpose></contract>
       <target><source>src/video2pptx/gui/controllers/pipeline_controller.py</source><tests>tests/gui/test_pipeline_controller.py</tests></target>
       <verification-ref>V-REF-GUI-ADAPTER</verification-ref>

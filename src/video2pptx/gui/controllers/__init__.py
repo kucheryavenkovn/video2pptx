@@ -15,8 +15,10 @@
 
 from __future__ import annotations
 
+from video2pptx.gui.controllers.pipeline_controller import PipelineController
 from video2pptx.gui.controllers.project_controller import ProjectController
 
 __all__ = [
+    "PipelineController",
     "ProjectController",
 ]
