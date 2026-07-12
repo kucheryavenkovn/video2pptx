@@ -715,6 +715,24 @@
       <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
       <depends>M-APP-BOOTSTRAP, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-VALIDATE, M-APP-AUTO</depends>
     </M-CLI-ADAPTER>
+    <M-GUI-PROJECT-CTRL NAME="ProjectController" TYPE="CORE_LOGIC" LAYER="1" ORDER="91" STATUS="planned">
+      <contract><purpose>Create, open, save, and query projects through ApplicationServices; signal state changes to MainWindow.</purpose></contract>
+      <target><source>src/video2pptx/gui/controllers/project_controller.py</source><tests>tests/gui/test_project_controller.py</tests></target>
+      <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
+      <depends>M-APP-BOOTSTRAP, M-DOMAIN-PROJECT</depends>
+    </M-GUI-PROJECT-CTRL>
+    <M-GUI-PIPELINE-CTRL NAME="PipelineController" TYPE="CORE_LOGIC" LAYER="1" ORDER="92" STATUS="planned">
+      <contract><purpose>Run stage services (preview/detect/align/notes/export) through ApplicationServices; emit progress via Qt signals.</purpose></contract>
+      <target><source>src/video2pptx/gui/controllers/pipeline_controller.py</source><tests>tests/gui/test_pipeline_controller.py</tests></target>
+      <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
+      <depends>M-APP-BOOTSTRAP, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-AUTO</depends>
+    </M-GUI-PIPELINE-CTRL>
+    <M-GUI-TIMELINE-CTRL NAME="TimelineController" TYPE="CORE_LOGIC" LAYER="1" ORDER="93" STATUS="planned">
+      <contract><purpose>CRUD slide intervals, representative timestamps, and notes through ApplicationServices; signal changes to timeline widgets.</purpose></contract>
+      <target><source>src/video2pptx/gui/controllers/timeline_controller.py</source><tests>tests/gui/test_timeline_controller.py</tests></target>
+      <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
+      <depends>M-APP-BOOTSTRAP, M-DOMAIN-PROJECT</depends>
+    </M-GUI-TIMELINE-CTRL>
   </Modules>
 
   <DataFlow>
@@ -911,6 +929,25 @@
       <step-4>Renderer maps ServiceResult or typed error to human/JSON output and centralized exit code.</step-4>
       <evidence>CLI architecture tests contain no forbidden legacy pipeline imports; CLI and MCP characterization remain semantically equivalent.</evidence>
     </DF-CLI-ADAPTER>
+    <DF-GUI-PROJECT NAME="GuiProjectFlow" TRIGGER="MainWindow project create/open/save">
+      <step-1>MainWindow calls ProjectController.create/open/save(project_dir).</step-1>
+      <step-2>ProjectController calls ApplicationServices (load/save via repository).</step-2>
+      <step-3>Controller emits PySide signal with LoadedProject or error.</step-3>
+      <evidence>GUI project round-trip, error handling, signal emission tests.</evidence>
+    </DF-GUI-PROJECT>
+    <DF-GUI-PIPELINE NAME="GuiPipelineFlow" TRIGGER="MainWindow Detect/Align/Notes/Export buttons">
+      <step-1>MainWindow calls PipelineController.run_stage(project_dir, stage_name, params).</step-1>
+      <step-2>PipelineController delegates to ApplicationServices stage service; worker runs in QThread.</step-2>
+      <step-3>Worker emits progress signals; PipelineController relays as typed PySide signals.</step-3>
+      <step-4>MainWindow connects signals to status bar, timeline, and widget updates.</step-4>
+      <evidence>GUI pipeline round-trip, signal wiring, cancellation tests.</evidence>
+    </DF-GUI-PIPELINE>
+    <DF-GUI-TIMELINE NAME="GuiTimelineFlow" TRIGGER="Timeline widget drag/drop/edit/delete">
+      <step-1>TimelineWidget calls TimelineController.move_boundary/split/delete/reorder.</step-1>
+      <step-2>TimelineController validates through ApplicationServices (repository load/save with revision).</step-2>
+      <step-3>Controller emits signal with new SlideView list.</step-3>
+      <evidence>Timeline CRUD, revision-safe save, undo not required for MVP.</evidence>
+    </DF-GUI-TIMELINE>
   </DataFlow>
 
   <ImplementationOrder>
@@ -1124,7 +1161,7 @@
         ApplicationServices on the real console entry point. Architecture tests forbid legacy
         pipeline imports from adapter code. 51 module tests + full non-E2E suite pass.
       </step-7>
-      <step-8 name="GUIRefactoring" status="planned" verification="V-REF-GUI-ADAPTER">
+      <step-8 name="GUIRefactoring" status="in_progress" verification="V-REF-GUI-ADAPTER">
         Extract ProjectController, PipelineController, TimelineController. Workers call use cases.
         MainWindow below 600 LOC.
       </step-8>
