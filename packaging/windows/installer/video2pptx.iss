@@ -27,7 +27,7 @@ SolidCompression=yes
 WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
-SetupIconFile=..\..\..\assets\branding\Video2PPTX-clean.ico
+SetupIconFile=..\..\..\assets\branding\Video2PPTX.ico
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

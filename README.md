@@ -1,4 +1,14 @@
-# video2pptx
+<p align="center">
+  <img
+    src="assets/branding/Video2PPTX-logo.png"
+    alt="Video2PPTX"
+    width="720"
+  >
+</p>
+
+<p align="center">
+  <b>Video to Presentation. Automatically.</b>
+</p>
 
 Извлечение интервалов слайдов из обучающих видео, привязка к субтитрам, LLM-обогащение (vision + correction) и экспорт в Markdown-презентацию (Marp) и PPTX.
 

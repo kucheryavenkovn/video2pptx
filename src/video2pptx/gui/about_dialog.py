@@ -38,7 +38,6 @@ from PySide6.QtWidgets import (
 
 # Register Qt resources before any pixmap load
 import video2pptx.gui.resources.branding_rc  # noqa: F401
-
 from video2pptx.application.identity import ApplicationIdentity, application_identity
 
 
@@ -70,6 +69,7 @@ class AboutDialog(QDialog):
 
         # Logo from Qt resource
         logo = QLabel()
+        logo.setObjectName("aboutLogo")
         pixmap = QPixmap(":/branding/Video2PPTX-logo.png")
         logo_visible = False
         if not pixmap.isNull():

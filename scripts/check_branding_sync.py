@@ -12,8 +12,8 @@ REPO = Path(__file__).resolve().parent.parent
 QRC = REPO / "src" / "video2pptx" / "gui" / "resources" / "branding.qrc"
 RC_PY = REPO / "src" / "video2pptx" / "gui" / "resources" / "branding_rc.py"
 ASSETS = [
-    REPO / "assets" / "branding" / "Video2PPTX-logo-clean.png",
-    REPO / "assets" / "branding" / "Video2PPTX-icon-clean.png",
+    REPO / "assets" / "branding" / "Video2PPTX-logo.png",
+    REPO / "assets" / "branding" / "Video2PPTX-icon.png",
 ]
 
 

@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from loguru import logger
 from PySide6.QtCore import QObject, Qt, QTimer
-from PySide6.QtGui import QDesktopServices, QKeySequence, QShortcut
+from PySide6.QtGui import QDesktopServices, QKeySequence, QPixmap, QShortcut
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -91,6 +91,20 @@ def setup_main_window_ui(window) -> None:
     main_layout = QVBoxLayout(central)
     main_layout.setContentsMargins(4, 4, 4, 4)
     info_row = QHBoxLayout()
+
+    # Compact header logo
+    logo = QLabel()
+    logo.setObjectName("applicationLogo")
+    logo_pix = QPixmap(":/branding/Video2PPTX-logo.png")
+    if not logo_pix.isNull():
+        scaled = logo_pix.scaled(200, 60, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        logo.setPixmap(scaled)
+    else:
+        logo.setText("Video2PPTX")
+        logo.setStyleSheet("font-weight: bold; font-size: 14px;")
+    info_row.addWidget(logo)
+    info_row.addSpacing(6)
+
     window._video_label = QLabel("Video: —")
     window._subs_label = QLabel("Subtitles: —")
     window._backend_label = QLabel("Backend: auto")

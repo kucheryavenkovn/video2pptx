@@ -1,7 +1,7 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
   <qresource prefix="/branding">
-    <file alias="Video2PPTX-logo.png">../../../../assets/branding/Video2PPTX-logo-clean.png</file>
-    <file alias="Video2PPTX-icon.png">../../../../assets/branding/Video2PPTX-icon-clean.png</file>
+    <file alias="Video2PPTX-logo.png">../../../../assets/branding/Video2PPTX-logo.png</file>
+    <file alias="Video2PPTX-icon.png">../../../../assets/branding/Video2PPTX-icon.png</file>
   </qresource>
 </RCC>
