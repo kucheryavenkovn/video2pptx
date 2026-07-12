@@ -1125,13 +1125,22 @@
   <V-PERF-DETECT-BASELINE MODULE="Phase-18/Step-18.1" PRIORITY="high" STATUS="in_progress">
     <purpose>Performance baseline instrumentation: DetectionRunMetrics schema, to_dict/from_dict round-trip,
       measure() context manager, per-frame timers/counters, backend counters (frames_decoded, ndarray_conversions,
-      rgb_transfer_bytes), RAM gauge, representative frame evidence.</purpose>
+      rgb_transfer_bytes), RssSampler peak RSS (rss_before_mb, rss_peak_mb, rss_after_mb),
+      representative frame evidence (representative_frames, representative_frame_bytes).</purpose>
     <evidence><result>
       Metrics typed round-trip PASS: to_dict() → from_dict() → exact values.
       measure() records time, inactive overhead negligible.
-      Benchmark contract test PASS: timer_total &gt; 0, timer_extract_features &gt; 0,
-      frames_sampled &gt; 0, screenshots_written &gt; 0, rgb_transfer_bytes &gt; 0,
-      screenshots on disk match counter.
+      RssSampler lifecycle PASS: start/stop/peak, thread terminates cleanly.
+      Benchmark contract test PASS:
+        - timer_total &gt; 0, timer_extract_features &gt; 0
+        - frames_sampled (Pass 1 only) &gt; 0
+        - pass2_frames_sampled (Pass 2) &gt; 0
+        - features_full + features_quick == frames_sampled invariant
+        - frames_decoded >= ndarray_conversions >= frames_sampled + pass2_frames_sampled
+        - representative_frames &gt; 0, representative_frame_bytes &gt; 0
+        - rss_before_mb &gt; 0 (when psutil available), rss_peak_mb >= rss_before_mb
+        - screenshots_written == actual PNG count
+        - rgb_transfer_bytes &gt; 0
     </result></evidence>
     <test-files>
       <file>tests/test_detection_metrics.py</file>
@@ -1147,19 +1156,31 @@
   <V-PERF-DETECT-TWO-PASS MODULE="Phase-18/Step-18.2" PRIORITY="high" STATUS="passed">
     <purpose>Two-pass detection: collapse Pass 3 (screenshot save) into Pass 2 (dedup frame grab).
       decoder.iter_frames() called exactly 2 times regardless of dedup mode.
-      Output signature (score values, segment boundaries, screenshot count) matches approved reference.</purpose>
+      Output parity verified against pre-TwoPass 3-pass reference from commit 3472e62.</purpose>
     <evidence><result>
       Decoder call count PASS: iter_frames called exactly 2 times (dedup on + dedup off).
-      Output parity PASS: SHA-256 signature of score_timestamps, score_values, segment start/end,
-        representative_timestamp, screenshot count matches approved reference.
-      Screenshots valid PNG PASS: all screenshots have non-zero size and correct PNG header.
+      Output parity PASS vs 3472e62 3-pass reference (1e-4 tolerance):
+        - score_timestamps exact match
+        - score_values exact match
+        - segment index/start/end/representative_timestamp exact match
+        - image paths exact match
+        - screenshot count exact match
+        - per-screenshot relative paths exact match
+        - per-screenshot SHA-256 exact match
+      Screenshots valid PNG PASS.
       No Pass 3/3 markers PASS.
     </result></evidence>
     <test-files>
+      <file>tests/test_twopass_parity.py</file>
       <file>tests/test_detect_slides.py</file>
       <file>src/video2pptx/detect_slides.py</file>
       <file>src/video2pptx/slide_detector.py</file>
     </test-files>
+    <reference>
+      <source-commit>3472e62b19fa4fea59bde1fa52b45cd2ff4939d0</source-commit>
+      <artifact>benchmarks/detect/reference/pre-twopass-3472e62.json</artifact>
+      <parity-test>tests/test_twopass_parity.py::test_two_pass_matches_pre_twopass</parity-test>
+    </reference>
   </V-PERF-DETECT-TWO-PASS>
 
   <V-PERF-DETECT-PARALLEL MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">

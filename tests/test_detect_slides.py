@@ -11,8 +11,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from pathlib import Path
 
 import pytest
@@ -24,11 +22,8 @@ from video2pptx.video_decode import VideoDecoder
 FIXTURES = Path(__file__).parent / "fixtures"
 TEST_VIDEO = FIXTURES / "test_slides.mp4"
 
-# Canonical output signature for test_slides.mp4 at AppConfig defaults (sample_fps=0.5)
-# Captured from approved v0.1.0 TwoPass detection.
-# Changes to the detection algorithm must update this signature.
-_APPROVED_SIGNATURE = "c11f0288e2861a5a16461a5c4987c4d2f15b6f7bb1ff4e24c00233137eb6b698"
-
+# TwoPass output parity is verified against 3472e62 3-pass reference artifact
+# in tests/test_twopass_parity.py.
 
 class TestDetectSlides:
     def test_run_basic(self, tmp_path, loguru_sink):
@@ -159,41 +154,6 @@ class TestDetectSlides:
             cfg=cfg,
         )
         assert call_count == 2, f"iter_frames called {call_count} times, expected 2"
-
-    # ------------------------------------------------------------------
-    # Output parity test
-    # ------------------------------------------------------------------
-
-    def test_output_signature_match(self, tmp_path):
-        """Verify TwoPass output matches approved reference signature."""
-        cfg = AppConfig()
-        doc = run_detect_slides(
-            video_path=TEST_VIDEO,
-            out_dir=tmp_path,
-            cfg=cfg,
-        )
-
-        canonical = {
-            "score_timestamps": [round(t, 4) for t in doc.score_timestamps],
-            "score_values": [round(v, 4) for v in doc.score_values],
-            "segments": [
-                {
-                    "start": round(s.start, 4),
-                    "end": round(s.end, 4),
-                    "representative_timestamp": round(s.representative_timestamp, 4),
-                    "image": s.image,
-                }
-                for s in doc.slides
-            ],
-            "screenshot_count": len(list((tmp_path / "slides").glob("*.png"))),
-        }
-        raw = json.dumps(canonical, sort_keys=True, default=str).encode("utf-8")
-        actual_sig = hashlib.sha256(raw).hexdigest()
-        assert actual_sig == _APPROVED_SIGNATURE, (
-            f"Output signature mismatch: {actual_sig} != {_APPROVED_SIGNATURE}\n"
-            f"This means the detection output changed. If intentional, "
-            f"update _APPROVED_SIGNATURE in the test."
-        )
 
     def test_screenshots_have_valid_pngs(self, tmp_path):
         """Every screenshot is a valid PNG file with non-zero size."""

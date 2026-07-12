@@ -1,3 +1,19 @@
+# FILE: tests/test_detection_metrics.py
+# VERSION: 1.1.0
+# START_MODULE_CONTRACT
+#   PURPOSE: Tests for DetectionRunMetrics schema, round-trip, measure(), collect(),
+#            RssSampler, InstrumentedIterator, benchmark contract invariants
+#   SCOPE: Metrics typed round-trip, to_dict/from_dict/to_json/from_json, measure() timing,
+#          RssSampler lifecycle (start/stop/peak), InstrumentedIterator counting,
+#          benchmark invariants: features_full+features_quick==frames_sampled,
+#          frames_decoded>=ndarray_conversions>=frames_sampled+pass2_frames_sampled,
+#          RSS gauges, representative frame evidence
+#   DEPENDS: pytest, video2pptx.detection_metrics
+#   LINKS: V-PERF-DETECT-BASELINE
+#   ROLE: TEST
+#   MAP_MODE: LOCALS
+# END_MODULE_CONTRACT
+
 from __future__ import annotations
 
 import time

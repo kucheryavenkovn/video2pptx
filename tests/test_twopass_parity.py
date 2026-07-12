@@ -51,12 +51,21 @@ def test_two_pass_matches_pre_twopass(tmp_path):
         assert abs(seg.start - ref_seg["start"]) < _TOLERANCE
         assert abs(seg.end - ref_seg["end"]) < _TOLERANCE
         assert abs(seg.representative_timestamp - ref_seg["representative_timestamp"]) < _TOLERANCE
+        assert seg.image == ref_seg["image"], (
+            f"seg[{i}] image path: {seg.image} vs {ref_seg['image']}"
+        )
 
     slides_dir = tmp_path / "slides"
     png_files = sorted(slides_dir.glob("*.png")) if slides_dir.is_dir() else []
     assert len(png_files) == len(ref["screenshots"])
 
     for png, ref_ss in zip(png_files, ref["screenshots"], strict=True):
+        # Assert relative path matches
+        png_rel = str(png.relative_to(tmp_path)).replace("\\", "/")
+        assert png_rel == ref_ss["path"], (
+            f"Screenshot path mismatch: {png_rel} vs {ref_ss['path']}"
+        )
+        # Assert content hash matches
         png_sha = hashlib.sha256(png.read_bytes()).hexdigest()
         assert png_sha == ref_ss["sha256"], (
             f"Screenshot SHA-256 mismatch: {png.name} "

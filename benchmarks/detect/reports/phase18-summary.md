@@ -9,8 +9,10 @@
 - Canonical `{timers/ counters/ gauges/}` schema with `to_dict()`/`from_dict()` JSON round-trip
 - `measure()` context manager for per-block timing; `collect()` for zero-cost enable/disable
 - Per-frame timers: roi, extract_features, visual_distance, threshold, debounce
-- Counters: frames_decoded, frames_sampled, features_full/quick, ndarray_conversions, screenshots_written
-- Gauges: rgb_transfer_bytes, peak_ram_mb (psutil), peak_in_flight
+- Counters: frames_decoded, frames_sampled (Pass 1 only), pass2_frames_sampled (Pass 2 yields),
+  features_full/quick, ndarray_conversions, screenshots_written, representative_frames,
+  representative_frame_bytes
+- Gauges: rgb_transfer_bytes, rss_before_mb, rss_peak_mb, rss_after_mb, peak_in_flight
 
 **Instrumentation added to:**
 - `slide_detector.py` — per-frame `measure("roi")`, `measure("extract_features")`, `measure("visual_distance")`, `measure("threshold")`, `measure("debounce")`
