@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (provisional)
+Accepted for first public beta.
 
 ## Context
 
@@ -15,35 +15,36 @@ Both tools support PySide6, hidden imports, Qt plugin bundling, and console-mode
 
 ## Decision
 
-Select **PyInstaller** as the primary packaging tool.
+Select **PyInstaller** for the first public beta without a full comparative benchmark.
 
-### Reasons
+### Rationale
 
-1. **Maturity**: PyInstaller 6.x has been used in production for years with PySide6. The hook system automatically handles most hidden imports. Nuitka's PySide6 support is newer and less battle-tested.
+Minimize release risk, simplify native dependency debugging, and obtain a stable inspectable onedir Windows bundle.
 
-2. **Build speed**: PyInstaller completes a onedir build in 2-5 minutes. Nuitka takes 15-30+ minutes because it compiles Python to C++. This significantly impacts CI pipeline time.
+Key factors:
+- PyInstaller has existing community PySide6 hooks and mature Qt plugin handling.
+- onedir output is inspectable — critical for debugging missing DLLs and native dependencies in a first-time packaging effort.
+- Build toolchain is well understood: PyInstaller spec + Inno Setup installer.
+- Nuitka would require separate native dependency configuration and has longer build cycles.
 
-3. **Debugging**: PyInstaller onedir output is inspectable — you can browse the bundle, check DLLs, and debug missing imports. Nuitka standalone produces a single EXE with embedded runtime, making debugging harder.
+### Nuitka benchmark
 
-4. **Qt plugin handling**: PyInstaller's `--collect-all PySide6` reliably bundles Qt plugins. Nuitka relies on `--enable-plugin=pyside6` and `--include-qt-plugins=sensible` which has had regressions.
+Deferred. No comparative benchmark has been run for Video2PPTX.
 
-5. **Community**: PyInstaller has a larger community, more documentation, and better PySide6 support. Issues are resolved faster.
+The ADR will be revisited with a real comparative benchmark when:
+- A stable packaged release is in use
+- Build infrastructure is established
+- Sufficient CI capacity exists for parallel packaging experiments
 
 ### Trade-offs
 
-- **Bundle size**: PyInstaller onedir is larger (200-400 MB) than Nuitka standalone (100-200 MB). This is acceptable for a desktop application.
-- **Startup time**: PyInstaller onedir starts 1-3 seconds slower because it extracts to temp. Acceptable for a video processing app.
-- **Python runtime**: PyInstaller bundles CPython as a DLL. This is transparent to the user.
-
-### Future
-
-If Nuitka matures and addresses the build-time and Qt-plugin concerns, it may become the primary tool. The ADR should be revisited when:
-- Nuitka reduces build time to under 5 minutes for this project
-- PySide6 plugin handling becomes fully reliable
-- A performance benchmark shows >30% improvement in startup or detection speed
+- PyInstaller onedir is larger than a hypothetical Nuitka build. Actual size comparison requires a benchmark.
+- Startup time impact of PyInstaller vs Nuitka is not measured for Video2PPTX.
+- Python runtime is bundled as a DLL in both cases.
 
 ## Consequences
 
-- Build scripts use PyInstaller spec as the primary artifact
-- Nuitka build script is maintained as an alternative but not CI-tested
-- Future optimization phase may revisit this decision
+- Build scripts use PyInstaller spec as the primary artifact.
+- Nuitka build script directory (packaging/windows/nuitka/) is maintained as a placeholder but not CI-tested.
+- First public beta ships PyInstaller onedir with Inno Setup installer.
+- Nuitka benchmark is tracked as a deferred evaluation item, not as evidence for this decision.

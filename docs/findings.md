@@ -723,6 +723,90 @@
 - LINKS: M-GUI-PIPELINE-CTRL, M-GUI-MAIN, M-GUI-STATUS, V-REF-CANONICAL-ROUTE
 - LINKS: M-GUI-PIPELINE-CTRL, M-GUI-MAIN, M-GUI-STATUS
 
+### F-0075 — Update Checker signal never connected
+- Date: 2026-07-12
+- Area: ui
+- Finding: MenuBarWidget.check_updates signal was emitted but connect_main_window_signals() never connected it.
+  Help → Check for Updates produced no application action.
+- Symptom/Reproduction: Click Help → Check for Updates — nothing happens. No log, no error.
+- Impact: Incomplete UI feature for release.
+- Resolution: Connected through UpdateController.manual_check() in main_window_ui.py.
+- LINKS: M-GUI-MENUBAR, M-UPDATE-CHECKER, src/video2pptx/gui/main_window_ui.py
+
+### F-0076 — BuildInfo discarded packaging_tool and build_time
+- Date: 2026-07-12
+- Area: packaging
+- Finding: _detect_build_info() in identity.py only extracted commit_sha and build_type from BUILD_META.
+  packaging_tool and build_time were injected but never propagated to BuildInfo or About dialog.
+- Symptom/Reproduction: About dialog showed Build type but never Packaging tool or Build time.
+- Impact: Diagnostic info incomplete for packaged builds.
+- Resolution: _detect_build_info() now reads and preserves all BUILD_META fields.
+- LINKS: M-APP-IDENTITY, src/video2pptx/application/identity.py
+
+### F-0077 — PyInstaller spec lacked COLLECT step
+- Date: 2026-07-12
+- Area: packaging
+- Finding: The PyInstaller spec had EXE but no COLLECT, producing a single-file bundle instead
+  of the canonical onedir layout. The spec's output path wasn't directed to dist/windows/.
+- Symptom/Reproduction: dist/windows/Video2PPTX/ directory structure was not created correctly.
+- Impact: Installer, smoke tests, and workflow couldn't rely on a single canonical layout.
+- Resolution: Added COLLECT step, set PYINSTALLER_DISTPATH, added expected path validation.
+- LINKS: M-PACKAGING-PYINSTALLER, packaging/windows/pyinstaller/video2pptx.spec
+
+### F-0078 — Installer had dead --uninstall hook and .v2pp file association
+- Date: 2026-07-12
+- Area: packaging
+- Finding: video2pptx.iss contained [UninstallRun] section calling Video2PPTX.exe --uninstall but
+  no such application contract exists. Also registered .v2pp file association that the app doesn't support.
+- Symptom/Reproduction: Uninstall would launch GUI with an ignored argument. Desktop file association
+  would register a dead format.
+- Impact: Confusing uninstall experience, dead shell integration.
+- Resolution: Removed [UninstallRun] and [Registry] sections. Clean installer with only Start Menu shortcuts.
+- LINKS: M-WIN-INSTALLER, packaging/windows/installer/video2pptx.iss
+
+### F-0079 — build.ps1 was not a real release orchestrator
+- Date: 2026-07-12
+- Area: packaging
+- Finding: build.ps1 only called PyInstaller and smoke-test.ps1. Did not create portable ZIP,
+  installer, or SHA256SUMS.txt. Did not validate build environment or layout.
+- Symptom/Reproduction: Running build.ps1 produced only the PyInstaller output, not a complete release.
+- Impact: No single command could produce all release artifacts locally.
+- Resolution: Rewrote build.ps1 as a 9-step release orchestrator: validate env → resolve version →
+  validate deps → clean → inject metadata → PyInstaller → validate layout → smoke → build ZIP/installer/SHA256.
+- LINKS: M-WIN-PACKAGING, packaging/windows/build.ps1
+
+### F-0080 — release-windows.yml used dev dependency profile
+- Date: 2026-07-12
+- Area: ci
+- Finding: Release workflow installed ".[gui,dev,pptx]" for building. The dev profile includes
+  pytest, mypy, and other test tools that don't belong in the packaged runtime.
+- Symptom/Reproduction: CI packaged bundle potentially included test infrastructure.
+- Impact: Bloating the packaged application with unnecessary dev dependencies.
+- Resolution: Added [project.optional-dependencies] windows-release = [...] with only runtime deps.
+  Workflow now uses ".[windows-release]".
+- LINKS: M-WIN-RELEASE-CI, .github/workflows/release-windows.yml, pyproject.toml
+
+### F-0081 — release-windows.yml used string contains for prerelease detection
+- Date: 2026-07-12
+- Area: ci
+- Finding: Release workflow determined prerelease with: contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc').
+  This misses versions like 0.6.0b1 and doesn't use PEP 440 parsing.
+- Symptom/Reproduction: Tag v0.6.0b1 would not be detected as prerelease.
+- Impact: Beta releases could be published as full releases.
+- Resolution: Added version parsing step using packaging.version.Version.is_prerelease.
+- LINKS: M-WIN-RELEASE-CI, .github/workflows/release-windows.yml
+
+### F-0082 — smoke-test.ps1 only checked process liveness, no MCP interaction
+- Date: 2026-07-12
+- Area: packaging
+- Finding: smoke-test.ps1 launched the EXE and checked if it stayed alive for 10 seconds.
+  No MCP port discovery, initialize, tools/list, or project lifecycle was tested.
+- Symptom/Reproduction: A broken MCP server would pass the smoke test.
+- Impact: False confidence in packaged MCP functionality.
+- Resolution: Rewrote smoke-test.ps1 with full MCP interaction: port discovery (via .mcp_port or TCP),
+  initialize, tools/list, state read, shutdown verification.
+- LINKS: M-PACKAGED-DIAGNOSTICS, packaging/windows/smoke-test.ps1
+
 ### F-0073 — E2E tooling package was absent from pytest import roots
 - Date: 2026-07-12
 - Area: tooling

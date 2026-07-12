@@ -50,6 +50,12 @@ def _open_github() -> None:
     QDesktopServices.openUrl(application_identity().repository_url)
 
 
+def _on_check_updates(window) -> None:
+    from video2pptx.gui.update_controller import UpdateController
+    ctrl = UpdateController(window)
+    ctrl.manual_check(window)
+
+
 def setup_main_window_ui(window) -> None:
     """Build MainWindow's passive widgets and route their Qt signals."""
     from video2pptx.gui.menu_bar import MenuBarWidget
@@ -219,6 +225,7 @@ def connect_main_window_signals(window) -> None:
     menu.show_about.connect(lambda: _show_about(window))
     menu.open_logs.connect(lambda: _open_logs())
     menu.open_github.connect(lambda: _open_github())
+    menu.check_updates.connect(lambda: _on_check_updates(window))
 
 
 class MainWindowHost(QObject):

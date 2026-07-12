@@ -99,13 +99,15 @@ class ApplicationIdentity:
             f"Version: {self.version_str}",
             f"Build: {self.build.commit_sha or 'unknown'}",
             f"Build type: {self.build.build_type.value}",
-            "",
-            f"OS: {platform.system()} {platform.release()} ({platform.machine()})",
-            f"Python: {platform.python_version()} ({platform.python_implementation()})",
-            f"Frozen: {self.is_frozen}",
         ]
         if self.build.packaging_tool:
             lines.append(f"Packaging: {self.build.packaging_tool}")
+        if self.build.build_time:
+            lines.append(f"Built: {self.build.build_time.isoformat()}")
+        lines.append("")
+        lines.append(f"OS: {platform.system()} {platform.release()} ({platform.machine()})")
+        lines.append(f"Python: {platform.python_version()} ({platform.python_implementation()})")
+        lines.append(f"Frozen: {self.is_frozen}")
         return "\n".join(lines)
 
 
@@ -125,6 +127,8 @@ def _detect_build_info() -> BuildInfo:
     """Detect build info from environment and injected metadata."""
     build_type = BuildType.INSTALLER if getattr(sys, "frozen", False) else BuildType.SOURCE
     commit_sha = ""
+    packaging_tool = ""
+    build_time = None
     build_meta = _try_load_build_meta()
     if build_meta:
         commit_sha = build_meta.get("commit_sha", "")
@@ -134,9 +138,19 @@ def _detect_build_info() -> BuildInfo:
                 build_type = BuildType(build_type_str)
             except ValueError:
                 pass
+        packaging_tool = build_meta.get("packaging_tool", "")
+        build_time_str = build_meta.get("build_time", "")
+        if build_time_str:
+            try:
+                from datetime import datetime
+                build_time = datetime.fromisoformat(build_time_str)
+            except (ValueError, TypeError):
+                pass
     return BuildInfo(
         commit_sha=commit_sha,
         build_type=build_type,
+        packaging_tool=packaging_tool,
+        build_time=build_time,
     )
 
 

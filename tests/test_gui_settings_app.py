@@ -58,7 +58,7 @@ class TestAppSettingsDialog:
         dlg = AppSettingsDialog(app_config)
         tab_widget = dlg.findChild(QTabWidget)
         assert tab_widget is not None
-        assert tab_widget.count() == 4
+        assert tab_widget.count() == 5
         dlg.close()
 
     def test_loads_config_values(self, app_config) -> None:

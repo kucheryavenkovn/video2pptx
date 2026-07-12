@@ -1,6 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 # PyInstaller spec for Video2PPTX standalone Windows build.
 # Build: pyinstaller packaging/windows/pyinstaller/video2pptx.spec
+# Output: dist/windows/Video2PPTX/Video2PPTX.exe
 
 import sys
 from pathlib import Path
@@ -9,13 +10,16 @@ from video2pptx import __version__
 
 BLOCK_CIPHER = None
 
+import os
+# Force distpath to dist/windows
+os.environ.setdefault("PYINSTALLER_DISTPATH", str(Path(__file__).resolve().parent.parent.parent.parent / "dist" / "windows"))
+
 a = Analysis(
     ["src/video2pptx/desktop.py"],
-    pathex=[],
+    pathex=[str(Path(__file__).resolve().parent.parent.parent.parent / "src")],
     binaries=[],
     datas=[],
     hiddenimports=[
-        # Dynamic imports not detected by PyInstaller's hook scanner
         "video2pptx.gui.about_dialog",
         "video2pptx.gui.settings_project",
         "video2pptx.gui.settings_app",
@@ -47,6 +51,8 @@ a = Analysis(
         "video2pptx.application.services.export_service",
         "video2pptx.application.services.validation_service",
         "video2pptx.application.services.auto_service",
+        "video2pptx.application.update_service",
+        "video2pptx.application.identity",
         "video2pptx.domain.project",
         "video2pptx.domain.slide",
         "video2pptx.domain.identifiers",
@@ -58,6 +64,7 @@ a = Analysis(
         "video2pptx.infrastructure.persistence.dto",
         "video2pptx.infrastructure.persistence.mapper",
         "video2pptx.infrastructure.persistence.migrations",
+        "video2pptx.infrastructure.github_release_provider",
         "video2pptx.adapters.cli.app",
         "video2pptx.adapters.cli.context",
         "video2pptx.adapters.cli.errors",
@@ -109,14 +116,14 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name=f"Video2PPTX",
+    name="Video2PPTX",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,  # GUI app — no console window
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
@@ -124,4 +131,14 @@ exe = EXE(
     entitlements_file=None,
     icon=None,
     version=__version__,
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name="Video2PPTX",
 )

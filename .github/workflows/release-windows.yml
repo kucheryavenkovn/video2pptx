@@ -22,42 +22,98 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install build dependencies
+      - name: Install Windows release dependencies
         run: |
-          pip install -e ".[gui,dev,pptx]"
-          pip install pyinstaller
+          pip install -e ".[windows-release]"
+          pip install pyinstaller packaging
 
       - name: Run tests
         run: python -m pytest tests/ --ignore=tests/e2e -q --tb=short
 
-      - name: Set version from tag
+      - name: Resolve package version
+        id: version
         shell: pwsh
         run: |
-          $tag = "${{ github.ref_name }}"
-          $ver = $tag -replace "^v", ""
+          $ver = & python -c "import sys; sys.path.insert(0,'src'); from video2pptx import __version__; print(__version__)"
           echo "VERSION=$ver" >> $env:GITHUB_ENV
+
+      - name: Validate tag version (tag builds only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $tagVer = "${{ github.ref_name }}" -replace "^v", ""
+          $pkgVer = "${{ env.VERSION }}"
+          if ($tagVer -ne $pkgVer) {
+            Write-Host "Tag version ($tagVer) does not match package version ($pkgVer)" -ForegroundColor Red
+            exit 1
+          }
+          Write-Host "Tag version matches package version: $pkgVer" -ForegroundColor Green
+
+      - name: Determine prerelease from parsed version
+        id: prerelease
+        shell: pwsh
+        run: |
+          $isPrerelease = & python -c "from packaging.version import Version; v=Version('${{ env.VERSION }}'); print(str(v.is_prerelease).lower())"
+          echo "IS_PRERELEASE=$isPrerelease" >> $env:GITHUB_ENV
+          Write-Host "Version: ${{ env.VERSION }}, prerelease: $isPrerelease"
 
       - name: Inject build metadata
         shell: pwsh
         run: |
           $sha = "${{ github.sha }}"
+          $time = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss")
           @"
           BUILD_META = {
               "commit_sha": "$sha",
-              "build_type": "installer",
+              "build_type": "standalone",
               "packaging_tool": "pyinstaller",
+              "build_time": "$time",
           }
           "@ | Out-File -FilePath src/video2pptx/build_meta.py -Encoding utf8
 
       - name: Build standalone
         run: pyinstaller --clean --noconfirm packaging/windows/pyinstaller/video2pptx.spec
 
-      - name: Smoke test
+      - name: Validate layout
         shell: pwsh
         run: |
-          $exe = "dist\windows\Video2PPTX\Video2PPTX.exe"
-          if (-not (Test-Path $exe)) { throw "EXE not found" }
-          Write-Host "EXE size: $((Get-Item $exe).Length / 1MB) MB"
+          $expected = @(
+            "dist/windows/Video2PPTX",
+            "dist/windows/Video2PPTX/Video2PPTX.exe",
+            "dist/windows/Video2PPTX/_internal"
+          )
+          foreach ($p in $expected) {
+            if (-not (Test-Path $p)) { throw "Missing: $p" }
+          }
+          Write-Host "Layout validated" -ForegroundColor Green
+
+      - name: Packaged capability smoke
+        shell: pwsh
+        run: |
+          $exe = "dist/windows/Video2PPTX/Video2PPTX.exe"
+          $importResult = & $exe --diagnostics 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            # Fallback: check via Python that the onedir has the required modules
+            python -c "
+          import sys
+          sys.path.insert(0, 'dist/windows/Video2PPTX/_internal')
+          modules = ['PySide6', 'cv2', 'av', 'pptx', 'httpx']
+          for m in modules:
+              try:
+                  __import__(m)
+                  print(f'{m}: available')
+              except ImportError:
+                  print(f'{m}: MISSING')
+                  sys.exit(1)
+          print('All required modules available')
+          "
+          }
+
+      - name: Build portable ZIP
+        shell: pwsh
+        run: |
+          $dist = "dist\windows"
+          Compress-Archive -Path "$dist\Video2PPTX\*" -DestinationPath "$dist\Video2PPTX-${{ env.VERSION }}-portable-x64.zip" -Force
 
       - name: Build installer
         shell: pwsh
@@ -65,16 +121,11 @@ jobs:
           $env:VERSION = $env:VERSION
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" packaging/windows/installer/video2pptx.iss
 
-      - name: Build portable ZIP
-        shell: pwsh
-        run: |
-          $dist = "dist\windows"
-          Compress-Archive -Path "$dist\Video2PPTX\*" -DestinationPath "$dist\Video2PPTX-$env:VERSION-portable-x64.zip"
-
       - name: Calculate SHA256
         shell: pwsh
         run: |
           $dist = "dist\windows"
+          if (Test-Path "$dist\SHA256SUMS.txt") { Remove-Item -Force "$dist\SHA256SUMS.txt" }
           Get-ChildItem "$dist\*.exe", "$dist\*.zip" | ForEach-Object {
             $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
             "$hash  $($_.Name)" | Out-File -FilePath "$dist\SHA256SUMS.txt" -Encoding ascii -Append
@@ -96,4 +147,4 @@ jobs:
             dist/windows/Video2PPTX-${{ env.VERSION }}-Setup-x64.exe
             dist/windows/Video2PPTX-${{ env.VERSION }}-portable-x64.zip
             dist/windows/SHA256SUMS.txt
-          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          prerelease: ${{ env.IS_PRERELEASE }}

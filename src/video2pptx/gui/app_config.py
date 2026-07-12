@@ -33,7 +33,7 @@ from video2pptx.project_manager import Project
 class AppConfigModel(BaseModel):
     # START_CONTRACT: AppConfigModel
     #   PURPOSE: App-wide settings that persist across projects and sessions
-    #   INPUTS: { llm, backend, snap_mode, snap_flat_threshold, default_project_dir }
+    #   INPUTS: { llm, backend, snap_mode, snap_flat_threshold, default_project_dir, update settings }
     #   OUTPUTS: { AppConfigModel }
     #   SIDE_EFFECTS: none
     #   LINKS: M-GUI-APPCONFIG
@@ -48,6 +48,10 @@ class AppConfigModel(BaseModel):
     restore_last_project: bool = Field(default=True, description="Prompt to restore the last project on startup")
     notes_mode: str = Field(default="basic", description="Notes processing mode: basic or llm")
     recent_projects: list[str] = Field(default_factory=list, description="Last 10 unique project paths")
+    check_updates_on_startup: bool = Field(default=True, description="Check for updates on startup")
+    update_channel: str = Field(default="stable", description="Update channel: stable or beta")
+    last_update_check_at: str = Field(default="", description="ISO datetime of last update check")
+    last_seen_release: str = Field(default="", description="Last seen release version string")
 
 
 def get_config_dir() -> Path:

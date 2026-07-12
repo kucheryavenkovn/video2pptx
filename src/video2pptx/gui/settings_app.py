@@ -120,6 +120,7 @@ class AppSettingsDialog(QDialog):
         tabs.addTab(self._build_llm_tab(), "LLM")
         tabs.addTab(self._build_gpu_tab(), "GPU / Backend")
         tabs.addTab(self._build_snap_tab(), "Snap")
+        tabs.addTab(self._build_updates_tab(), "Updates")
         tabs.addTab(self._build_paths_tab(), "Default Paths")
         layout.addWidget(tabs)
 
@@ -246,6 +247,22 @@ class AppSettingsDialog(QDialog):
         return tab
     # END_BLOCK_BUILD_SNAP_TAB
 
+    # START_BLOCK_BUILD_UPDATES_TAB
+    def _build_updates_tab(self) -> QWidget:
+        tab = QWidget()
+        form = QFormLayout(tab)
+
+        self._update_check_cb = QCheckBox("Check for updates at startup")
+        form.addRow("", self._update_check_cb)
+
+        self._update_channel_combo = QComboBox()
+        self._update_channel_combo.addItem("Stable", "stable")
+        self._update_channel_combo.addItem("Beta", "beta")
+        form.addRow("Update channel:", self._update_channel_combo)
+
+        return tab
+    # END_BLOCK_BUILD_UPDATES_TAB
+
     # START_BLOCK_BUILD_PATHS_TAB
     def _build_paths_tab(self) -> QWidget:
         tab = QWidget()
@@ -295,6 +312,11 @@ class AppSettingsDialog(QDialog):
         self._snap_threshold_spin.setValue(self._app_config.snap_flat_threshold)
         self._default_dir_edit.setText(self._app_config.default_project_dir)
         self._restore_check.setChecked(self._app_config.restore_last_project)
+
+        self._update_check_cb.setChecked(self._app_config.check_updates_on_startup)
+        idx = self._update_channel_combo.findData(self._app_config.update_channel)
+        if idx >= 0:
+            self._update_channel_combo.setCurrentIndex(idx)
     # END_BLOCK_LOAD_VALUES
 
     # START_BLOCK_ON_ACCEPT
@@ -317,6 +339,8 @@ class AppSettingsDialog(QDialog):
         self._app_config.snap_flat_threshold = self._snap_threshold_spin.value()
         self._app_config.default_project_dir = self._default_dir_edit.text().strip()
         self._app_config.restore_last_project = self._restore_check.isChecked()
+        self._app_config.check_updates_on_startup = self._update_check_cb.isChecked()
+        self._app_config.update_channel = self._update_channel_combo.currentData() or "stable"
 
         save_app_config(self._app_config)
         logger.info(

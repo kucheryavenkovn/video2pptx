@@ -643,6 +643,24 @@
       <verification-ref>V-REF-APP-SERVICES</verification-ref>
       <depends>M-DOMAIN-PROJECT</depends>
     </M-PORT-EXPORT>
+    <M-UPDATE-CHECKER NAME="UpdateChecker" TYPE="CORE_LOGIC" LAYER="2" ORDER="78.5" STATUS="implemented">
+      <contract>
+        <purpose>Application-layer update check: UpdateService (version compare, channel filter), ReleaseProvider protocol, GitHubReleaseProvider (httpx). No Qt, no GUI.</purpose>
+      </contract>
+      <target><source>src/video2pptx/application/update_service.py</source><source>src/video2pptx/infrastructure/github_release_provider.py</source><tests>tests/test_update_service.py</tests><tests>tests/test_github_release_provider.py</tests></target>
+      <verification-ref>V-REF-UPDATE-CHECKER</verification-ref>
+      <depends>M-APP-IDENTITY, packaging, httpx</depends>
+    </M-UPDATE-CHECKER>
+
+    <M-GUI-UPDATE-CTRL NAME="GuiUpdateController" TYPE="UI_COMPONENT" LAYER="6" ORDER="78.6" STATUS="implemented">
+      <contract>
+        <purpose>GUI adapter: UpdateController (QObject), UpdateAvailableDialog (QDialog). Orchestrates fetch-compare-show. No business logic.</purpose>
+      </contract>
+      <target><source>src/video2pptx/gui/update_controller.py</source><source>src/video2pptx/gui/update_dialog.py</source></target>
+      <verification-ref>V-REF-UPDATE-CHECKER</verification-ref>
+      <depends>M-UPDATE-CHECKER, M-GUI-APPCONFIG, M-APP-IDENTITY</depends>
+    </M-GUI-UPDATE-CTRL>
+
     <M-APP-COMMON NAME="ApplicationCommon" TYPE="UTILITY" LAYER="2" ORDER="79" STATUS="implemented">
       <contract><purpose>Shared DTOs, errors, cancellation, observer, and service context for all stage services.</purpose></contract>
       <target><source>src/video2pptx/application/dto.py</source><source>src/video2pptx/application/errors.py</source><source>src/video2pptx/application/cancellation.py</source><source>src/video2pptx/application/observer.py</source><source>src/video2pptx/application/base.py</source><tests>tests/application/test_common.py</tests></target>
@@ -1214,13 +1232,30 @@
       <step-1 name="PackagingInventory" status="done" verification="V-REF-PACKAGING-INVENTORY"/>
       <step-2 name="DesktopEntryPoint" status="done" verification="V-REF-STANDALONE-BUILD"/>
       <step-3 name="PyInstallerReference" status="done"/>
-      <step-4 name="NuitkaReference" status="planned"/>
+      <step-4 name="NuitkaReference" status="deferred">
+        Nuitka benchmark deferred for first beta. PyInstaller selected as deliberate first-beta packaging decision.
+        Rationale: minimize release risk, simplify native dependency debugging, obtain stable inspectable onedir bundle.
+        See docs/architecture.md packaging ADR section.
+      </step-4>
       <step-5 name="PackagingDecision" status="done"/>
+      <step-5.5 name="UpdateChecker" status="done" verification="V-REF-UPDATE-CHECKER">
+        UpdateService, GitHubReleaseProvider, UpdateController, UpdateAvailableDialog.
+        Help → Check for Updates works. Startup check non-blocking. Stable/Beta channels.
+      </step-5.5>
       <step-6 name="CleanMachineVerification" status="pending" verification="V-REF-CLEAN-WINDOWS"/>
-      <step-7 name="Installer" status="done" verification="V-REF-WIN-INSTALLER"/>
-      <step-8 name="PackagedMCP" status="pending" verification="V-REF-PACKAGED-MCP"/>
-      <step-9 name="ReleaseWorkflow" status="done" verification="V-REF-WIN-RELEASE"/>
+      <step-7 name="Installer" status="done" verification="V-REF-WIN-INSTALLER">
+        Fixed: removed --uninstall hook, removed .v2pp association, canonical onedir layout.
+      </step-7>
+      <step-8 name="PackagedMCP" status="done" verification="V-REF-PACKAGED-MCP">
+        Real MCP smoke test: port discovery, initialize, tools/list, state read, shutdown.
+      </step-8>
+      <step-9 name="ReleaseWorkflow" status="done" verification="V-REF-WIN-RELEASE">
+        Fixed: windows-release dependency profile, prerelease via packaging.version, tag/package version validation.
+      </step-9>
       <step-10 name="ReleaseAcceptance" status="pending"/>
+      <step-10.5 name="Diagnostics" status="done" verification="V-REF-PACKAGING-PARITY">
+        --diagnostics flag for packaged capability verification. BuildInfo preserves packaging_tool/build_time.
+      </step-10.5>
     </Phase-17>
   </ImplementationOrder>
 

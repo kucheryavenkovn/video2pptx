@@ -52,6 +52,25 @@ llm = [
 gpu = [
     "av>=12.0",
 ]
+windows-release = [
+    "PySide6>=6.6",
+    "PySide6-Addons>=6.6",
+    "python-pptx>=0.6",
+    "httpx>=0.27",
+    "av>=12.0",
+    "opencv-python>=4.8",
+    "Pillow>=10.0",
+    "numpy>=1.24",
+    "scikit-image>=0.21",
+    "imagehash>=4.3",
+    "pysubs2>=1.7",
+    "PyYAML>=6.0",
+    "typer>=0.12",
+    "rich>=13.7",
+    "loguru>=0.7",
+    "packaging>=23.0",
+    "matplotlib>=3.7",
+]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=4.0",
