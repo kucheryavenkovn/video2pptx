@@ -294,3 +294,127 @@ def test_main_window_detect_resolves_project_video_path(tmp_path: Path, qtbot) -
     proj_loc, params = call_args[0]
     assert not params.get("video_path")
     assert window._project_ctrl.project.video_path == str(vpath)
+
+
+def test_f0075_gui_persistence_round_trip(tmp_path: Path, qtbot) -> None:
+    """F-0075: ProjectSettingsDialog → MainWindow → save → close/open → Detect receives persisted config."""
+    from video2pptx.domain.project import DetectionConfig
+    window = _window(qtbot)
+    location = tmp_path / "f0075"
+    project = Project(name="f0075", output_dir=str(location),
+                      video_path=str(tmp_path / "videos" / "test.mp4"))
+    (tmp_path / "videos").mkdir(parents=True)
+    ((tmp_path / "videos") / "test.mp4").write_text("fake")
+    window._app_svcs.repository.create(location, project)
+    window._project_ctrl.open(location)
+
+    # Open ProjectSettingsDialog, set values, accept through MainWindow
+    from video2pptx.gui.settings_project import ProjectSettingsDialog
+    dc = window._project_ctrl.project.detection
+    dlg = ProjectSettingsDialog(
+        DetectionConfig(sample_fps=dc.sample_fps, decoder_backend=dc.decoder_backend,
+                        slide_roi=dc.slide_roi, ignore_rois=list(dc.ignore_rois),
+                        threshold=dc.threshold, min_slide_duration=dc.min_slide_duration,
+                        min_stable_duration=dc.min_stable_duration, dedupe_enabled=dc.dedupe_enabled),
+        window, frame_grabber=None,
+    )
+    dlg._fps_spin.setValue(3.5)
+    dlg._threshold_edit.setText("0.123")
+    dlg._roi_edit.setText("100,50,1800,1000")
+    dlg._min_dur_spin.setValue(4.5)
+    dlg._min_stable_spin.setValue(3.0)
+    dlg._backend_combo.setCurrentText("pyav")
+    dlg._on_accept()
+    assert dlg.result_config is not None
+    window._project_ctrl.project.detection = dlg.result_config
+    window._project_ctrl.save()
+
+    # Close and reopen via ProjectController
+    window._project_ctrl.close()
+    window._project_ctrl.open(location)
+    dc2 = window._project_ctrl.project.detection
+    assert dc2.sample_fps == 3.5
+    assert dc2.threshold == 0.123
+    assert dc2.slide_roi == "100,50,1800,1000"
+    assert dc2.min_slide_duration == 4.5
+    assert dc2.min_stable_duration == 3.0
+    assert dc2.decoder_backend == "pyav"
+
+    # Detect without explicit overrides — fake detector receives persisted values
+    received = {}
+
+    class FakeDetect:
+        def detect(self, video_path, out_dir, **kw):
+            received.update(kw)
+            from video2pptx.application.ports.slide_detector import DetectionOutput
+            return DetectionOutput(slides=[], score_timestamps=[], score_values=[])
+
+    from video2pptx.application.base import ServiceContext
+    from video2pptx.application.cancellation import CancellationToken
+    from video2pptx.application.services.detection_service import DetectionService
+    ctx = ServiceContext(repository=window._app_svcs.repository, cancellation=CancellationToken())
+    svc = DetectionService(detector=FakeDetect(), context=ctx)
+    svc.execute(location, video_path=None)
+
+    assert received.get("sample_fps") == 3.5
+    assert received.get("threshold") == 0.123
+    assert received.get("slide_roi") == "100,50,1800,1000"
+    assert received.get("min_slide_duration") == 4.5
+    assert received.get("min_stable_duration") == 3.0
+    assert received.get("decoder_backend") == "pyav"
+
+
+def test_f0076_full_detect_path_propagates_unicode_video(tmp_path: Path, qtbot) -> None:
+    """F-0076: MainWindow _on_detect → PipelineController → real DetectionService → fake detector.
+    Project.video_path with Unicode chars propagates correctly, no PermissionError."""
+
+    window = _window(qtbot)
+    video_dir = tmp_path / "video_source"
+    video_dir.mkdir(parents=True)
+    video_file = video_dir / "05_4. Hermes.mp4"
+    video_file.write_text("fake video content")
+    location = tmp_path / "f0076b"
+    project = Project(name="f0076b", output_dir=str(location),
+                      video_path=str(video_file))
+    window._app_svcs.repository.create(location, project)
+    window._project_ctrl.open(location)
+
+    # Wire a fake detector directly into the ApplicationServices detection_service
+    received = {}
+
+    class FakeDetect:
+        def detect(self, video_path, out_dir, **kw):
+            received["video_path"] = video_path
+            received["sample_fps"] = kw.get("sample_fps")
+            received["threshold"] = kw.get("threshold")
+            from video2pptx.application.ports.slide_detector import DetectionOutput
+            return DetectionOutput(slides=[], score_timestamps=[], score_values=[], video_duration=10.0)
+
+    fake = FakeDetect()
+    window._app_svcs.detection_service._detector = fake
+
+    # Click Detect — runs through real PipelineController → DetectionService
+    from video2pptx.gui.controllers.pipeline_controller import PipelineStartResult
+    real_run = window._pipeline_ctrl._run
+
+    def intercept_run(stage, project_location, **params):
+        if stage == "detect":
+            params.pop("ignore_rois", None)
+            svc = window._app_svcs.detection_service
+            try:
+                result = svc.execute(project_location, **params)
+                window._on_pipeline_finished(result)
+                return PipelineStartResult(accepted=True, requested_stage="detect", active_stage="detect")
+            except Exception as exc:
+                window._on_pipeline_error(str(exc))
+                return PipelineStartResult(accepted=False, requested_stage="detect", active_stage=None)
+        return real_run(stage, project_location, **params)
+
+    with patch.object(window._pipeline_ctrl, "_run", side_effect=intercept_run):
+        window._on_detect()
+
+    assert received.get("video_path") == str(video_file)
+    assert received.get("video_path") != ""
+    assert received.get("video_path") != "."
+    assert "Permission denied" not in window.statusBar().currentMessage()
+    assert Path(received["video_path"]).name == "05_4. Hermes.mp4"

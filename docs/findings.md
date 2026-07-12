@@ -673,6 +673,7 @@
   MainWindow no longer copies params. Effective config logged and returned in ServiceResult.
   Legacy extensions.detection migrated with deterministic precedence.
   decoder_backend propagated through SlideDetectorPort to VideoDecoder config.
+  Regression: test_f0075_gui_persistence_round_trip (GUI→settings→save→close→open→Detect receives exact config).
 - LINKS: M-DOMAIN-PROJECT, M-APP-DETECT, M-GUI-PIPELINE-CTRL, M-APP-INPUT-RESOLVER, M-PERSIST-DETECTION
 
 ### F-0076 — Empty project video override resolves to current directory causing Permission denied
@@ -693,7 +694,8 @@
   resolve_project_input() to fall back to Project.video_path. Same for decoder_backend and all
   detection settings. PipelineController.run_detect defaults video_path to None.
   PreconditionError raised instead of raw Permission denied if both override and project value absent.
-  Path("") is never constructed. MainWindow integration test verifies project.video_path propagates.
+  Path("") is never constructed. Unicode path propagation confirmed.
+  Regression: test_f0076_full_detect_path_propagates_unicode_video (MainWindow→Controller→DetectionService→detector).
 - LINKS: M-APP-DETECT, M-APP-INPUT-RESOLVER, M-GUI-PIPELINE-CTRL
 
 ### F-0074 — GUI operation lifecycle: status destroyed by rejected second operation

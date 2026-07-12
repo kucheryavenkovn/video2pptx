@@ -119,6 +119,7 @@ _QT_WRITE_CMDS: dict[str, tuple] = {
     "project_open": ("open", "path", ""),
     "project_close": ("close", None, None),   # ProjectModel lifecycle
     "slide_set_frame": ("set_slide_frame", None, None),  # UI transport — needs video player
+    "slide_clear_image": ("clear_slide_image", None, None),
     "video_seek": ("seek", "position", 0.0),
     "video_play": ("play", None, None),
     "video_pause": ("pause", None, None),
@@ -220,7 +221,7 @@ def _handle_rpc(method: str, params: dict, model, timeline: Timeline, main_windo
             if tool == "project_create":
                 cargs = (args.get("path", ""),)
                 ckwargs = {"name": args.get("name", "Untitled")}
-            elif tool == "slide_set_frame":
+            elif tool in ("slide_set_frame", "slide_clear_image"):
                 target = args.get("uid", args.get("index", 1))
                 cargs = (target,)
                 ckwargs = {}

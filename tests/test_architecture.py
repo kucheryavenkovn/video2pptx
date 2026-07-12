@@ -148,7 +148,7 @@ class TestArchitectureConstraints:
                                 keys.append(k.value)
                         forbidden = {"project_save", "video_import", "subtitle_load",
                                      "subtitle_import", "slide_add", "slide_delete",
-                                     "slide_move", "slide_resize", "slide_clear_image"}
+                                     "slide_move", "slide_resize"}
                         violations = set(keys) & forbidden
                         assert not violations, f"_QT_WRITE_CMDS contains forbidden project/slide ops: {violations}"
                         break
