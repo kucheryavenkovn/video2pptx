@@ -1222,6 +1222,16 @@
       <step-9 name="ReleaseWorkflow" status="done" verification="V-REF-WIN-RELEASE"/>
       <step-10 name="ReleaseAcceptance" status="pending"/>
     </Phase-17>
+    <Phase-18 name="DetectPerformanceAndQuality" status="in_progress">
+      <goal>Measure and reduce Detect wall-clock time while preserving detector quality. Semantics-preserving optimizations first; algorithm-changing and GPU work are gated experiments.</goal>
+      <step-1 name="PerformanceBaseline" status="in_progress" verification="V-PERF-DETECT-BASELINE"/>
+      <step-2 name="TwoPassDetection" status="planned" verification="V-PERF-DETECT-TWO-PASS"/>
+      <step-3 name="OrderedParallelFeatures" status="planned" verification="V-PERF-DETECT-PARALLEL"/>
+      <step-4 name="FastFullCascadeExperiment" status="planned" verification="V-PERF-DETECT-CASCADE"/>
+      <step-5 name="ChunkedDecodeExperiment" status="planned" verification="V-PERF-DETECT-CHUNKED"/>
+      <step-6 name="GpuResidentFeatureExperiment" status="planned" verification="V-PERF-DETECT-GPU"/>
+      <step-7 name="DetectPerformanceAcceptance" status="planned" verification="V-PERF-DETECT-ACCEPTANCE"/>
+    </Phase-18>
   </ImplementationOrder>
 
   <DeploymentScenarios>
