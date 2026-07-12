@@ -1120,100 +1120,89 @@
     <evidence><result>packaging/windows/inventory.md documents all dependencies, Qt plugins, native DLLs, backend requirements, dynamic imports, and excluded dev packages.</result></evidence>
   </V-REF-PACKAGING-INVENTORY>
 
-  <V-REF-STANDALONE-BUILD MODULE="Phase-17/Step-2" PRIORITY="high" STATUS="passed">
-    <purpose>Desktop entry point, PyInstaller onedir spec, COLLECT output, canonical layout.</purpose>
-    <evidence><result>dist/windows/Video2PPTX/Video2PPTX.exe is the canonical standalone path. spec produces onedir with COLLECT. build.ps1 validates layout.</result></evidence>
-    <test-files><file>packaging/windows/pyinstaller/video2pptx.spec</file><file>packaging/windows/build.ps1</file></test-files>
-  </V-REF-STANDALONE-BUILD>
+  <!-- ===== Phase 18 — Detect Performance ===== -->
 
-  <V-REF-UPDATE-CHECKER MODULE="M-UPDATE-CHECKER" PRIORITY="high" STATUS="passed">
-    <purpose>Update checker: UpdateService, GitHubReleaseProvider, UpdateController, UpdateAvailableDialog.</purpose>
+  <V-PERF-DETECT-BASELINE MODULE="Phase-18/Step-18.1" PRIORITY="high" STATUS="in_progress">
+    <purpose>Performance baseline instrumentation: DetectionRunMetrics schema, to_dict/from_dict round-trip,
+      measure() context manager, per-frame timers/counters, backend counters (frames_decoded, ndarray_conversions,
+      rgb_transfer_bytes), RssSampler peak RSS (rss_before_mb, rss_peak_mb, rss_after_mb),
+      representative frame evidence (representative_frames, representative_frame_bytes).</purpose>
+    <evidence><result>
+      Metrics typed round-trip PASS: to_dict() → from_dict() → exact values.
+      measure() records time, inactive overhead negligible.
+      RssSampler lifecycle PASS: start/stop/peak, thread terminates cleanly.
+      Benchmark contract test PASS:
+        - timer_total &gt; 0, timer_extract_features &gt; 0
+        - frames_sampled (Pass 1 only) &gt; 0
+        - pass2_frames_sampled (Pass 2) &gt; 0
+        - features_full + features_quick == frames_sampled invariant
+        - frames_decoded >= ndarray_conversions >= frames_sampled + pass2_frames_sampled
+        - representative_frames &gt; 0, representative_frame_bytes &gt; 0
+        - rss_before_mb &gt; 0 (when psutil available), rss_peak_mb >= rss_before_mb
+        - screenshots_written == actual PNG count
+        - rgb_transfer_bytes &gt; 0
+    </result></evidence>
     <test-files>
-      <file>tests/test_update_service.py</file>
-      <file>tests/test_github_release_provider.py</file>
-      <file>src/video2pptx/application/update_service.py</file>
-      <file>src/video2pptx/infrastructure/github_release_provider.py</file>
+      <file>tests/test_detection_metrics.py</file>
+      <file>src/video2pptx/detection_metrics.py</file>
+      <file>src/video2pptx/detect_slides.py</file>
+      <file>src/video2pptx/slide_detector.py</file>
+      <file>src/video2pptx/backends/pyav_backend.py</file>
+      <file>src/video2pptx/backends/opencv_backend.py</file>
     </test-files>
-    <module-checks>
-      <check-1>python -m pytest tests/test_update_service.py tests/test_github_release_provider.py -v</check-1>
-    </module-checks>
-    <scenarios>
-      <scenario-1 kind="success">no releases → NO_RELEASES</scenario-1>
-      <scenario-2 kind="success">current == latest → UP_TO_DATE</scenario-2>
-      <scenario-3 kind="success">latest > current → UPDATE_AVAILABLE</scenario-3>
-      <scenario-4 kind="success">multiple releases picks highest version</scenario-4>
-      <scenario-5 kind="success">invalid tag ignored gracefully</scenario-5>
-      <scenario-6 kind="success">draft releases filtered out</scenario-6>
-      <scenario-7 kind="success">stable channel filters prereleases</scenario-7>
-      <scenario-8 kind="success">beta channel includes prereleases</scenario-8>
-      <scenario-9 kind="success">0.10.0 > 0.9.0 (PEP 440 comparison)</scenario-9>
-      <scenario-10 kind="success">normalize_tag strips v prefix</scenario-10>
-      <scenario-11 kind="success">normalize_tag returns None for invalid versions</scenario-11>
-      <scenario-12 kind="success">GitHub API 200 returns parsed releases</scenario-12>
-      <scenario-13 kind="failure">GitHub API 403/404/429/500 raises HTTPStatusError</scenario-13>
-      <scenario-14 kind="failure">timeout/DNS error raises httpx exception</scenario-14>
-      <scenario-15 kind="failure">invalid JSON raises ValueError</scenario-15>
-      <scenario-16 kind="failure">malformed release (invalid tag) raises ValueError</scenario-16>
-      <scenario-17 kind="success">empty assets tuple when no assets</scenario-17>
-      <scenario-18 kind="success">installer asset found by expected pattern</scenario-18>
-    </scenarios>
-  </V-REF-UPDATE-CHECKER>
+    <notes>Step 18.1 remains in_progress until a full Hermes or equivalent medium-length benchmark produces usable metrics artifacts. The 30-min timeout on the initial run means complete stage timing isolation is pending.</notes>
+  </V-PERF-DETECT-BASELINE>
 
-  <V-REF-PACKAGED-MCP MODULE="Phase-17/Step-8" PRIORITY="high" STATUS="passed">
-    <purpose>Packaged MCP smoke test: port discovery, initialize, tools/list, state read, shutdown.</purpose>
-    <test-files><file>packaging/windows/smoke-test.ps1</file></test-files>
-    <scenarios>
-      <scenario-1 kind="success">packaged EXE launches and MCP port is discovered within 15s</scenario-1>
-      <scenario-2 kind="success">MCP initialize responds</scenario-2>
-      <scenario-3 kind="success">MCP tools/list returns tool list</scenario-3>
-      <scenario-4 kind="success">application state readable</scenario-4>
-      <scenario-5 kind="success">clean process exit</scenario-5>
-    </scenarios>
-  </V-REF-PACKAGED-MCP>
+  <V-PERF-DETECT-TWO-PASS MODULE="Phase-18/Step-18.2" PRIORITY="high" STATUS="passed">
+    <purpose>Two-pass detection: collapse Pass 3 (screenshot save) into Pass 2 (dedup frame grab).
+      decoder.iter_frames() called exactly 2 times regardless of dedup mode.
+      Output parity verified against pre-TwoPass 3-pass reference from commit 3472e62.</purpose>
+    <evidence><result>
+      Decoder call count PASS: iter_frames called exactly 2 times (dedup on + dedup off).
+      Output parity PASS vs 3472e62 3-pass reference (1e-4 tolerance):
+        - score_timestamps parity within abs tolerance 1e-4
+        - score_values parity within abs tolerance 1e-4
+        - segment index exact
+        - segment start/end/representative_timestamp parity within abs tolerance 1e-4
+        - image paths exact match
+        - screenshot count exact match
+        - per-screenshot relative paths exact match
+        - per-screenshot SHA-256 exact match
+      Screenshots valid PNG PASS.
+      No Pass 3/3 markers PASS.
+    </result></evidence>
+    <test-files>
+      <file>tests/test_twopass_parity.py</file>
+      <file>tests/test_detect_slides.py</file>
+      <file>src/video2pptx/detect_slides.py</file>
+      <file>src/video2pptx/slide_detector.py</file>
+    </test-files>
+    <reference>
+      <source-commit>3472e62b19fa4fea59bde1fa52b45cd2ff4939d0</source-commit>
+      <artifact>benchmarks/detect/reference/pre-twopass-3472e62.json</artifact>
+      <parity-test>tests/test_twopass_parity.py::test_two_pass_matches_pre_twopass</parity-test>
+    </reference>
+  </V-PERF-DETECT-TWO-PASS>
 
-  <V-REF-PACKAGING-PARITY MODULE="Phase-17/Step-10.5" PRIORITY="high" STATUS="passed">
-    <purpose>Packaged runtime capability verification, BuildInfo propagation, --diagnostics flag.</purpose>
-    <test-files><file>src/video2pptx/desktop.py</file><file>src/video2pptx/application/identity.py</file></test-files>
-    <scenarios>
-      <scenario-1 kind="success">--diagnostics prints all required module capabilities</scenario-1>
-      <scenario-2 kind="success">BuildInfo preserves commit_sha, build_type, packaging_tool, build_time</scenario-2>
-      <scenario-3 kind="success">About dialog shows packaging_tool when available</scenario-3>
-      <scenario-4 kind="success">source mode shows BuildType.SOURCE without error</scenario-4>
-    </scenarios>
-  </V-REF-PACKAGING-PARITY>
+  <V-PERF-DETECT-PARALLEL MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
+    <purpose>In-frame parallel feature extraction (PHash + FrameDiff computed concurrently).</purpose>
+  </V-PERF-DETECT-PARALLEL>
 
-  <V-REF-CLEAN-WINDOWS MODULE="Phase-17/Step-6" PRIORITY="high" STATUS="pending">
-    <purpose>Clean Windows VM/Sandbox verification of installer and portable ZIP.</purpose>
-    <scenarios>
-      <scenario-1 kind="pending">installer starts and installs on clean Windows without Python</scenario-1>
-      <scenario-2 kind="pending">application starts from Start Menu shortcut</scenario-2>
-      <scenario-3 kind="pending">About opens with correct version/build metadata</scenario-3>
-      <scenario-4 kind="pending">project create and basic workflow completes</scenario-4>
-      <scenario-5 kind="pending">update checker offline behavior works</scenario-5>
-      <scenario-6 kind="pending">uninstall removes application but preserves user projects</scenario-6>
-    </scenarios>
-  </V-REF-CLEAN-WINDOWS>
+  <V-PERF-DETECT-CASCADE MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
+    <purpose>Fast-full cascade: skip PHash when FrameDiff is below skip threshold.</purpose>
+  </V-PERF-DETECT-CASCADE>
 
-  <V-REF-WIN-INSTALLER MODULE="Phase-17/Step-7" PRIORITY="high" STATUS="passed">
-    <purpose>Inno Setup installer: canonical layout, no dead .v2pp association, no invalid --uninstall hook.</purpose>
-    <test-files><file>packaging/windows/installer/video2pptx.iss</file></test-files>
-    <scenarios>
-      <scenario-1 kind="success">Installer sources from dist/windows/Video2PPTX/*</scenario-1>
-      <scenario-2 kind="success">No [UninstallRun] section (removed invalid --uninstall)</scenario-2>
-      <scenario-3 kind="success">No [Registry] section for .v2pp (removed dead file association)</scenario-3>
-    </scenarios>
-  </V-REF-WIN-INSTALLER>
+  <V-PERF-DETECT-CHUNKED MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
+    <purpose>Chunked decode: decode video in chunks, process each chunk independently.</purpose>
+  </V-PERF-DETECT-CHUNKED>
 
-  <V-REF-WIN-RELEASE MODULE="Phase-17/Step-9" PRIORITY="high" STATUS="passed">
-    <purpose>GitHub Actions release workflow: correct deps, version validation, prerelease parsing.</purpose>
-    <test-files><file>.github/workflows/release-windows.yml</file></test-files>
-    <scenarios>
-      <scenario-1 kind="success">windows-release dependency profile used instead of dev</scenario-1>
-      <scenario-2 kind="success">workflow_dispatch resolves version from package, not tag</scenario-2>
-      <scenario-3 kind="success">tag workflow validates tag == package version, fails on mismatch</scenario-3>
-      <scenario-4 kind="success">prerelease determined by packaging.version, not string contains</scenario-4>
-      <scenario-5 kind="success">build metadata uses build_type=standalone (not installer)</scenario-5>
-      <scenario-6 kind="success">workflow_dispatch does not create GitHub Release</scenario-6>
-    </scenarios>
-  </V-REF-WIN-RELEASE>
+  <V-PERF-DETECT-GPU MODULE="Phase-18/Step-18.5" PRIORITY="low" STATUS="planned">
+    <purpose>GPU-resident feature extraction (CuPy or CUDA kernels for PHash).</purpose>
+  </V-PERF-DETECT-GPU>
+
+  <V-PERF-DETECT-ACCEPTANCE MODULE="Phase-18" PRIORITY="high" STATUS="planned">
+    <purpose>Detect performance acceptance gate: Hermes full run &lt; 30 min, missed_slide_rate &lt;= 5%,
+      false_split_rate &lt;= 10%, timestamp_error &lt;= 1.5s.</purpose>
+  </V-PERF-DETECT-ACCEPTANCE>
+
 </VerificationPlan>
