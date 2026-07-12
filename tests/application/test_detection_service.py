@@ -153,3 +153,67 @@ class TestDetectionService:
         assert loaded.project.pipeline.status("notes") is StageStatus.NOT_STARTED
         assert loaded.project.pipeline.status("markdown_export") is StageStatus.NOT_STARTED
         assert loaded.project.pipeline.status("pptx_export") is StageStatus.NOT_STARTED
+
+
+class TestConfigPropagation:
+    """Verify DetectionService reads canonical Project.detection when overrides are None."""
+
+    def test_detection_service_uses_project_config(self, tmp_path: Path) -> None:
+        repo = FileProjectRepository()
+        location = tmp_path / "cfgtest"
+        project = Project(name="cfg-test", output_dir=str(location))
+        project.detection.sample_fps = 0.5
+        project.detection.threshold = "auto"
+        project.detection.min_slide_duration = 10.0
+        project.detection.min_stable_duration = 5.0
+        project.detection.dedupe_enabled = False
+        project.detection.decoder_backend = "opencv"
+        project.detection.slide_roi = "0,0,100,100"
+        project.detection.ignore_rois = ["10,10,20,20"]
+        project.video_path = str(tmp_path / "video.mp4")
+        Path(project.video_path).write_text("fake")
+        repo.create(location, project)
+
+        received = {}
+
+        class CapturingDetector:
+            def detect(self, video_path, out_dir, **kw):
+                received.update(kw)
+                return DetectionOutput(slides=[], score_timestamps=[], score_values=[], video_duration=0)
+
+        ctx = ServiceContext(repository=repo, cancellation=CancellationToken())
+        service = DetectionService(detector=CapturingDetector(), context=ctx)
+        service.execute(location, video_path=None)
+
+        assert received["sample_fps"] == 0.5
+        assert received["threshold"] == "auto"
+        assert received["min_slide_duration"] == 10.0
+        assert received["min_stable_duration"] == 5.0
+        assert received["dedupe_enabled"] is False
+        assert received["decoder_backend"] == "opencv"
+        assert received["slide_roi"] == "0,0,100,100"
+        assert received["ignore_rois"] == ["10,10,20,20"]
+
+    def test_detection_service_override_wins(self, tmp_path: Path) -> None:
+        repo = FileProjectRepository()
+        location = tmp_path / "override"
+        project = Project(name="override-test", output_dir=str(location))
+        project.detection.sample_fps = 0.5
+        project.detection.threshold = "auto"
+        project.video_path = str(tmp_path / "video.mp4")
+        Path(project.video_path).write_text("fake")
+        repo.create(location, project)
+
+        received = {}
+
+        class CapturingDetector:
+            def detect(self, video_path, out_dir, **kw):
+                received.update(kw)
+                return DetectionOutput(slides=[], score_timestamps=[], score_values=[], video_duration=0)
+
+        ctx = ServiceContext(repository=repo, cancellation=CancellationToken())
+        service = DetectionService(detector=CapturingDetector(), context=ctx)
+        service.execute(location, video_path=None, sample_fps=3.5, threshold=0.123)
+
+        assert received["sample_fps"] == 3.5
+        assert received["threshold"] == 0.123
