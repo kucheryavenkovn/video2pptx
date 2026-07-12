@@ -1,28 +1,21 @@
 # -*- mode: python ; coding: utf-8 -*-
 # PyInstaller spec for Video2PPTX standalone Windows build.
-# Set REPO_ROOT env var before running, or run from repo root.
-# Output: dist/windows/Video2PPTX/Video2PPTX.exe
+# Build: pyinstaller packaging/windows/pyinstaller/video2pptx.spec
 
-import os
 import sys
+from pathlib import Path
 
-_REPO = os.environ.get("REPO_ROOT")
-if not _REPO:
-    _REPO = os.path.abspath(".")
-_REPO = os.path.abspath(_REPO)
-os.chdir(_REPO)
-sys.path.insert(0, os.path.join(_REPO, "src"))
+from video2pptx import __version__
 
 BLOCK_CIPHER = None
 
-_ENTRY = os.path.join(_REPO, "src", "video2pptx", "desktop.py")
-
 a = Analysis(
-    [_ENTRY],
-    pathex=[os.path.join(_REPO, "src")],
+    ["src/video2pptx/desktop.py"],
+    pathex=[],
     binaries=[],
     datas=[],
     hiddenimports=[
+        # Dynamic imports not detected by PyInstaller's hook scanner
         "video2pptx.gui.about_dialog",
         "video2pptx.gui.settings_project",
         "video2pptx.gui.settings_app",
@@ -54,8 +47,6 @@ a = Analysis(
         "video2pptx.application.services.export_service",
         "video2pptx.application.services.validation_service",
         "video2pptx.application.services.auto_service",
-        "video2pptx.application.update_service",
-        "video2pptx.application.identity",
         "video2pptx.domain.project",
         "video2pptx.domain.slide",
         "video2pptx.domain.identifiers",
@@ -67,7 +58,6 @@ a = Analysis(
         "video2pptx.infrastructure.persistence.dto",
         "video2pptx.infrastructure.persistence.mapper",
         "video2pptx.infrastructure.persistence.migrations",
-        "video2pptx.infrastructure.github_release_provider",
         "video2pptx.adapters.cli.app",
         "video2pptx.adapters.cli.context",
         "video2pptx.adapters.cli.errors",
@@ -119,28 +109,19 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name="Video2PPTX",
+    name=f"Video2PPTX",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=False,  # GUI app — no console window
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=os.path.join(_REPO, "assets", "branding", "Video2PPTX-clean.ico"),
-)
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name="Video2PPTX",
+    icon=None,
+    version=__version__,
 )
