@@ -51,6 +51,12 @@ def classify_error(error: Exception) -> tuple[CliExitCode, str]:
         return CliExitCode.EXTERNAL_ADAPTER_ERROR, "EXTERNAL_ADAPTER_ERROR"
 
     if isinstance(error, StageFailureError):
+        if isinstance(error.cause, (ProjectNotFound, ProjectAlreadyExists, ProjectDocumentCorrupted, ProjectSchemaUnsupported)):
+            return CliExitCode.PRECONDITION_ERROR, "PRECONDITION_ERROR"
+        if isinstance(error.cause, ProjectRevisionConflict):
+            return CliExitCode.PERSISTENCE_CONFLICT, "PERSISTENCE_CONFLICT"
+        if isinstance(error.cause, (ValueError, FileNotFoundError)):
+            return CliExitCode.CLI_USAGE_ERROR, "CLI_USAGE_ERROR"
         return CliExitCode.GENERAL_APPLICATION_ERROR, "STAGE_FAILURE"
 
     if isinstance(error, ValidationError):
