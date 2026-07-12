@@ -47,9 +47,10 @@ class LegacySlideDetector(SlideDetectorPort):
         min_stable_duration: float,
         min_slide_duration: float,
         dedupe_enabled: bool,
+        decoder_backend: str = "auto",
     ) -> DetectionOutput:
         cfg = AppConfig(
-            video={"sample_fps": sample_fps, "decoder_backend": "auto"},
+            video={"sample_fps": sample_fps, "decoder_backend": decoder_backend},
             detection={
                 "threshold": threshold,
                 "min_stable_duration": min_stable_duration,

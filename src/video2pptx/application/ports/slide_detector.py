@@ -1,21 +1,21 @@
 # FILE: src/video2pptx/application/ports/slide_detector.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
-#   PURPOSE: Port for detecting slide candidates from video without aggregate mutation.
+#   PURPOSE: Port for detecting slide candidates from video with decoder_backend support.
 #   SCOPE: DetectionOutput, SlideDetectorPort Protocol
 #   DEPENDS: video2pptx.domain.slide
-#   LINKS: M-PORT-DETECTOR, V-REF-APP-SERVICES
+#   LINKS: M-PORT-DETECTOR, V-REF-DETECTION-INPUT
 #   ROLE: TYPES
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   DetectionOutput - immutable result with slides, scores, and video duration
+#   DetectionOutput - immutable result with slides, scores, video duration, decoder_backend
 #   SlideDetectorPort - Protocol for detecting slides from video
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Add slide detector port and output DTO
+#   LAST_CHANGE: v1.1.0 - Add decoder_backend to detect signature
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -51,5 +51,6 @@ class SlideDetectorPort(Protocol):
         min_stable_duration: float,
         min_slide_duration: float,
         dedupe_enabled: bool,
+        decoder_backend: str = "auto",
     ) -> DetectionOutput:
         ...

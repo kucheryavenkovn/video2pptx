@@ -1,21 +1,22 @@
 # FILE: src/video2pptx/application/services/detection_service.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
-#   PURPOSE: Canonical CV detection use case applying a complete validated candidate set through the aggregate.
-#   SCOPE: DetectionService.execute
+#   PURPOSE: Canonical CV detection use case with project-bound input resolution.
+#   SCOPE: DetectionService.execute — resolves video_path, decoder_backend, and all detection
+#          settings from canonical Project when command overrides are absent.
 #   DEPENDS: video2pptx.application.base, video2pptx.application.dto, video2pptx.application.errors,
 #            video2pptx.application.ports.slide_detector, video2pptx.domain
-#   LINKS: M-APP-DETECT, V-APP-DETECT, V-REF-APP-SERVICES
+#   LINKS: M-APP-DETECT, V-REF-DETECTION-INPUT
 #   ROLE: CORE_LOGIC
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   DetectionService - loads project, detects slides, replaces aggregate, saves with revision
+#   DetectionService - loads project, resolves inputs, detects slides, saves with revision
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Add revision-safe detection service
+#   LAST_CHANGE: v1.1.0 - Resolve video_path/decoder_backend from Project; add effective_video_path
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -24,16 +25,31 @@ from pathlib import Path
 
 from loguru import logger
 
-from video2pptx.application.base import ServiceContext
+from video2pptx.application.base import (
+    ServiceContext,
+    normalize_roi,
+    resolve_detection_override,
+    resolve_project_input,
+)
 from video2pptx.application.dto import ServiceResult
-from video2pptx.application.errors import StageFailureError
+from video2pptx.application.errors import PreconditionError, StageFailureError
 from video2pptx.application.ports.slide_detector import SlideDetectorPort
 
 
 class DetectionService:
-    """Canonical detection use case — replace slides and invalidate downstream.
+    """Canonical detection use case with project-bound input resolution.
 
-    Uses project's canonical DetectionConfig as defaults; caller overrides are optional.
+    # START_CONTRACT: DetectionService.execute
+    #   PURPOSE: Detect slides using canonical Project settings, resolving all inputs
+    #            from Project.detection and Project.video_path when overrides are None.
+    #   INPUTS: { project_location: Path, video_path: str|None, sample_fps: float|str|None,
+    #             slide_roi: str|None, ignore_rois: list[str]|None, threshold: float|str|None,
+    #             min_stable_duration: float|None, min_slide_duration: float|None,
+    #             dedupe_enabled: bool|None, decoder_backend: str|None }
+    #   OUTPUTS: ServiceResult with slides_count, effective_config, effective_video_path, warnings
+    #   SIDE_EFFECTS: mutates Project, saves via repository
+    #   LINKS: M-APP-DETECT
+    # END_CONTRACT: DetectionService.execute
     """
 
     def __init__(
@@ -47,7 +63,7 @@ class DetectionService:
     def execute(
         self,
         project_location: Path,
-        video_path: str = "",
+        video_path: str | None = None,
         *,
         sample_fps: float | str | None = None,
         slide_roi: str | None = None,
@@ -56,6 +72,7 @@ class DetectionService:
         min_stable_duration: float | None = None,
         min_slide_duration: float | None = None,
         dedupe_enabled: bool | None = None,
+        decoder_backend: str | None = None,
     ) -> ServiceResult:
         repo = self._ctx.repository
         if repo is None:
@@ -67,25 +84,36 @@ class DetectionService:
 
             project = loaded.project
             dc = project.detection
-            eff_sample_fps = sample_fps if sample_fps is not None else dc.sample_fps
-            eff_slide_roi = slide_roi if slide_roi is not None else dc.slide_roi
-            eff_ignore_rois = ignore_rois if ignore_rois is not None else dc.ignore_rois
-            eff_threshold = threshold if threshold is not None else dc.threshold
-            eff_min_stable = min_stable_duration if min_stable_duration is not None else dc.min_stable_duration
-            eff_min_slide = min_slide_duration if min_slide_duration is not None else dc.min_slide_duration
-            eff_dedupe = dedupe_enabled if dedupe_enabled is not None else dc.dedupe_enabled
+
+            # START_BLOCK_RESOLVE_INPUTS
+            effective_video = resolve_project_input(video_path, project.video_path, field="video")
+            eff_decoder = resolve_detection_override(decoder_backend, dc.decoder_backend)
+            eff_sample_fps = resolve_detection_override(sample_fps, dc.sample_fps)
+            eff_slide_roi = normalize_roi(resolve_detection_override(slide_roi, dc.slide_roi))
+            eff_ignore_rois = dc.ignore_rois if ignore_rois is None else ignore_rois
+            eff_threshold = resolve_detection_override(threshold, dc.threshold)
+            eff_min_stable = resolve_detection_override(min_stable_duration, dc.min_stable_duration)
+            eff_min_slide = resolve_detection_override(min_slide_duration, dc.min_slide_duration)
+            eff_dedupe = resolve_detection_override(dedupe_enabled, dc.dedupe_enabled)
+            # END_BLOCK_RESOLVE_INPUTS
 
             project.pipeline.start("detect")
             self._ctx.report_progress(10, "Starting detection")
             logger.info(
+                "[DetectionService] Resolved input | project_video={} override_video={} effective_video={}",
+                project.video_path or "(none)", video_path or "(none)", effective_video,
+            )
+            logger.info(
                 "[DetectionService] Effective config | sample_fps={} threshold={} "
-                "min_slide={} min_stable={} dedupe={} roi={}",
+                "min_slide={} min_stable={} dedupe={} roi={} decoder={}",
                 eff_sample_fps, eff_threshold, eff_min_slide,
-                eff_min_stable, eff_dedupe, eff_slide_roi,
+                eff_min_stable, eff_dedupe, eff_slide_roi, eff_decoder,
             )
 
+            # START_BLOCK_DETECTOR_CALL
+            video_path_resolved = effective_video
             output = self._detector.detect(
-                video_path,
+                video_path_resolved,
                 Path(project_location),
                 sample_fps=eff_sample_fps,
                 slide_roi=eff_slide_roi,
@@ -94,7 +122,9 @@ class DetectionService:
                 min_stable_duration=eff_min_stable,
                 min_slide_duration=eff_min_slide,
                 dedupe_enabled=eff_dedupe,
+                decoder_backend=eff_decoder,
             )
+            # END_BLOCK_DETECTOR_CALL
             self._ctx.check_cancelled("detect")
             self._ctx.report_progress(70, f"Detected {len(output.slides)} candidates")
 
@@ -130,17 +160,21 @@ class DetectionService:
                 data={
                     "slides_count": project.slide_count,
                     "video_duration": output.video_duration,
+                    "effective_video_path": effective_video,
                     "effective_config": {
                         "sample_fps": eff_sample_fps,
                         "threshold": eff_threshold,
                         "min_slide_duration": eff_min_slide,
                         "min_stable_duration": eff_min_stable,
                         "dedupe_enabled": eff_dedupe,
+                        "decoder_backend": eff_decoder,
                     },
                 },
                 revision=save_result.revision,
                 warnings=tuple(warnings),
             )
+        except PreconditionError:
+            raise
         except Exception as exc:
             logger.error(f"[DetectionService] Failed | error={exc}")
             raise StageFailureError("detect", str(exc), cause=exc) from exc
