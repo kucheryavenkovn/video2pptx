@@ -39,7 +39,7 @@ def resolve_artifact_path(
     if not artifact_path:
         return Path()
 
-    p = Path(artifact_path)
+    p = Path(*PurePosixPath(artifact_path.replace("\\", "/")).parts)
 
     # Absolute path — use as-is
     if p.is_absolute():

@@ -66,7 +66,7 @@ HELP_CASES = (
 
 
 def test_root_help_freezes_public_commands() -> None:
-    result = runner.invoke(app, ["--help"])
+    result = runner.invoke(app, ["--help"], terminal_width=200)
     assert result.exit_code == 0
     for command in EXPECTED_COMMANDS:
         assert command in result.stdout
@@ -74,7 +74,7 @@ def test_root_help_freezes_public_commands() -> None:
 
 @pytest.mark.parametrize(("arguments", "tokens"), HELP_CASES)
 def test_command_help_freezes_arguments_and_options(arguments, tokens) -> None:
-    result = runner.invoke(app, arguments)
+    result = runner.invoke(app, arguments, terminal_width=200)
     assert result.exit_code == 0, result.output
     for token in tokens:
         assert token in result.stdout
@@ -123,7 +123,7 @@ def test_missing_inputs_return_legacy_precondition_code(arguments) -> None:
 
 def test_detect_semantic_migration_is_explicit() -> None:
     """Step 7 intentionally changes detect from all-in-one VIDEO mode to CV-only PROJECT_DIR."""
-    legacy_help = runner.invoke(app, ["detect", "--help"])
+    legacy_help = runner.invoke(app, ["detect", "--help"], terminal_width=200)
     assert "VIDEO" in legacy_help.stdout
     assert "--export-md" in legacy_help.stdout
     assert "--llm" in legacy_help.stdout
@@ -131,7 +131,7 @@ def test_detect_semantic_migration_is_explicit() -> None:
 
 def test_console_entry_point_shows_new_commands() -> None:
     """Verify the console entry point (video2pptx.cli:run) exposes all Phase 16 Step 7 commands."""
-    result = runner.invoke(app, ["--help"])
+    result = runner.invoke(app, ["--help"], terminal_width=200)
     assert result.exit_code == 0
     output = result.stdout
     for cmd in EXPECTED_COMMANDS:

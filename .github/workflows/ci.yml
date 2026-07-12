@@ -35,7 +35,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install Linux GUI runtime
         if: runner.os == 'Linux'
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq libegl1 libgl1 libglib2.0-0
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libegl1 libgl1 libglib2.0-0 libpulse0
       - name: Install base + dev
         run: |
           pip install -e ".[gui,dev,pptx]"
@@ -53,7 +53,7 @@ jobs:
           python-version: "3.12"
       - name: Install with GUI extras
         run: |
-          sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libglib2.0-0 xvfb
+          sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libglib2.0-0 libpulse0 xvfb
           pip install -e ".[gui,dev,pptx]"
       - name: GUI tests (offscreen)
         env:
