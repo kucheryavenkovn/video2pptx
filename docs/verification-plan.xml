@@ -1089,11 +1089,10 @@
 
   <V-REF-CANONICAL-ROUTE MODULE="Phase-16/Step-9.5" PRIORITY="high" STATUS="passed">
     <purpose>Canonical route closure, DetectionConfig propagation, operation lifecycle.</purpose>
-    <evidence><result>DetectionConfig added to domain/Project. DetectionService reads project.detection as defaults,
-    accepts None for "use project setting". PipelineController/CLI/MCP all use None defaults.
-    Effective config logged and returned in ServiceResult. MainWindow no longer copies params manually.
-    F-0075 config propagation regression resolved. 11/13 CI jobs green (2 Qt segfault + Xvfb slide_set_frame
-    are known CI_ENVIRONMENT). 928 non-E2E tests + 20 architecture tests pass.</result></evidence>
+    <evidence><result>DetectionConfig added to domain/Project. DetectionService resolves all inputs from Project.
+    PipelineController/CLI/MCP use None defaults. Effective config logged in ServiceResult.
+    F-0075/F-0076 resolved. CI: 10/13 green (3 Qt segfault/Xvfb env limitations).
+    928 non-E2E tests + 20 architecture tests pass.</result></evidence>
   </V-REF-CANONICAL-ROUTE>
 
   <V-REF-DETECTION-INPUT MODULE="Phase-16/Step-10" PRIORITY="high" STATUS="in_progress">

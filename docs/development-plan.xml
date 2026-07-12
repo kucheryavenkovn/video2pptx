@@ -1197,7 +1197,7 @@
         Fix Windows 3.12 test_list_operations_ordered race.
         928 non-E2E tests + 11 MCP char tests pass. CI: 10/13 green (3 Qt/Xvfb env).
       </step-9.5>
-      <step-10 name="DetectionInputPersistenceGate" status="in_progress" verification="V-REF-DETECTION-INPUT">
+      <step-10 name="DetectionInputPersistenceGate" status="done" verification="V-REF-DETECTION-INPUT">
         Common input resolver (resolve_project_input, resolve_project_path, detect settings helpers).
         DetectionService resolves video_path and decoder_backend from canonical Project.
         PreviewService uses optional params with project defaults.

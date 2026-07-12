@@ -667,12 +667,34 @@
 - Symptom/Reproduction: Real 3655s video with max score 0.66 produces one slide [0, 3655.5] because
   effective threshold=0.95 exceeds all scores. No ChangeEvent is generated.
 - Impact: All detection results are incorrect unless the user's video coincidentally matches hardcoded defaults.
-- Resolution/Status: Resolved. Added canonical DetectionConfig to domain/Project with typed settings.
-  DetectionService now reads project.detection as defaults and accepts None for "use project setting".
-  PipelineController.run_detect/run_preview use None defaults. MainWindow no longer passes explicit params.
-  Effective config is logged and returned in ServiceResult.
-  Legacy extensions.detection → canonical DetectionConfig migration in mapper.
-- LINKS: M-DOMAIN-PROJECT, M-APP-DETECT, M-GUI-PIPELINE-CTRL, M-GUI-MAIN
+- Resolution/Status: Resolved. Added canonical DetectionConfig to domain/Project and DetectionConfigDocument
+  to schema 2.0 (dto/mapper/migrations round-trip). DetectionService resolves video_path/decoder_backend/
+  all detection settings from Project when overrides are None. PipelineController/CLI/MCP use None defaults.
+  MainWindow no longer copies params. Effective config logged and returned in ServiceResult.
+  Legacy extensions.detection migrated with deterministic precedence.
+  decoder_backend propagated through SlideDetectorPort to VideoDecoder config.
+- LINKS: M-DOMAIN-PROJECT, M-APP-DETECT, M-GUI-PIPELINE-CTRL, M-APP-INPUT-RESOLVER, M-PERSIST-DETECTION
+
+### F-0076 — Empty project video override resolves to current directory causing Permission denied
+- Date: 2026-07-12
+- Area: application, gui, input propagation
+- Finding: MainWindow._on_detect calls PipelineController.run_detect(project_location) without passing
+  video_path. PipelineController passes video_path="". DetectionService receives "" and does not
+  fall back to Project.video_path. LegacySlideDetector calls Path("") which resolves to current directory ".".
+  PyAV fails with "[Errno 13] Permission denied: '.'".
+- Symptom/Reproduction:
+  1. Open project E:\edu\vibecoding\Автономные агенты\05_4. Hermes.mp4
+  2. Click Detect
+  3. DetectionService logs effective config with sample_fps=2.0 (ignoring project 0.5)
+  4. Detector fails: Permission denied: '.'
+- Impact: Detection is completely broken for any project opened through GUI if the video path is not
+  explicitly re-passed. CLI/MCP also affected if video_path argument omitted.
+- Resolution/Status: Resolved. DetectionService.execute() now accepts video_path=None and uses
+  resolve_project_input() to fall back to Project.video_path. Same for decoder_backend and all
+  detection settings. PipelineController.run_detect defaults video_path to None.
+  PreconditionError raised instead of raw Permission denied if both override and project value absent.
+  Path("") is never constructed.
+- LINKS: M-APP-DETECT, M-APP-INPUT-RESOLVER, M-GUI-PIPELINE-CTRL
 
 ### F-0074 — GUI operation lifecycle: status destroyed by rejected second operation
 - Date: 2026-07-12
