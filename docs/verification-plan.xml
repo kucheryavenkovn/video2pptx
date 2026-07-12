@@ -1039,12 +1039,12 @@
     </stop-conditions>
   </V-REF-CLI-ADAPTER>
 
-  <V-REF-GUI-ADAPTER MODULE="M-GUI-PROJECT-CTRL" PRIORITY="high" STATUS="in_progress">
+  <V-REF-GUI-ADAPTER MODULE="M-GUI-PROJECT-CTRL" PRIORITY="high" STATUS="passed">
     <purpose>Step 8.5 proves that the real MainWindow uses one canonical project state, asynchronous operation-scoped services, SlideId-only domain mutations, persistent ArtifactRef frames, and non-blocking Qt integration.</purpose>
     <test-files><file>tests/gui/test_project_controller.py</file><file>tests/gui/test_pipeline_controller.py</file><file>tests/gui/test_timeline_controller.py</file><file>tests/gui/test_main_window_integration.py</file><file>tests/e2e/test_mcp_startup_characterization.py</file></test-files>
     <module-checks><check-1>python -m pytest tests/gui/test_project_controller.py tests/gui/test_pipeline_controller.py tests/gui/test_timeline_controller.py tests/gui/test_main_window_integration.py -q</check-1><check-2>ruff check src/ tests/</check-2></module-checks>
     <wave-checks><check-1>python -m pytest tests --ignore=tests/e2e -q</check-1><check-2>python -m pytest tests/e2e/test_mcp_startup_characterization.py -q</check-2></wave-checks>
-    <evidence><result>Local: 51 targeted GUI/controller tests passed; full non-E2E suite passed with 8 skips; 11 real GUI+MCP characterization tests passed; Ruff src/tests passed; MainWindow 596 physical lines. GitHub Actions acceptance pending.</result></evidence>
+    <evidence><result>CI: all 12 jobs green (gui-test, lint, package, 6x matrix, 2x unit-tests, 2x mcp-smoke). Local: 51 targeted GUI/controller tests; full non-E2E suite 947 pass; 11 real GUI+MCP characterization tests pass; Ruff clean; MainWindow 596 physical lines.</result></evidence>
     <scenarios>
       <scenario-1 kind="success">ProjectController creates/open/saves/closes projects through FileProjectRepository.</scenario-1>
       <scenario-2 kind="success">Controller emits projectOpened/projectClosed/stateChanged/errorOccurred Qt signals.</scenario-2>

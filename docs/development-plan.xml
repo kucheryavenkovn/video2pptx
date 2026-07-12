@@ -1173,10 +1173,10 @@
         ApplicationServices on the real console entry point. Architecture tests forbid legacy
         pipeline imports from adapter code. 51 module tests + full non-E2E suite pass.
       </step-7>
-      <step-8 name="GUIRefactoring" status="in_progress" verification="V-REF-GUI-ADAPTER">
+      <step-8 name="GUIRefactoring" status="done" verification="V-REF-GUI-ADAPTER">
         Extract ProjectController, PipelineController, TimelineController. Workers call use cases.
-        MainWindow below 600 LOC.
-        <step-8.5 name="GUIIntegrationRegressionGate" status="in_progress">
+        MainWindow below 600 LOC. Async pipeline, SlideId boundary, ArtifactRef frames, CI green.
+        <step-8.5 name="GUIIntegrationRegressionGate" status="done">
           Reproduce and fix asynchronous pipeline execution, operation-scoped progress/cancellation,
           canonical project-state and revision ownership, display-index to SlideId adaptation,
           canonical set-frame persistence, Qt button state, playback routing F-0058, MainWindow below
