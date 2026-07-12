@@ -23,10 +23,9 @@ Write-Host "  EXE: $Exe ($([math]::Round($exeSize, 1)) MB)" -ForegroundColor Gre
 
 # 1. Launch process with MCP port discovery
 Write-Host "`n1. Launching packaged executable..." -ForegroundColor Yellow
-$proc = Start-Process -FilePath $Exe -PassThru -NoNewWindow -EnvironmentVariables @{
-    "QT_QPA_PLATFORM" = "offscreen"
-    "VIDEO2PPTX_DISABLE_GPU" = "1"
-}
+$env:QT_QPA_PLATFORM = "offscreen"
+$env:VIDEO2PPTX_DISABLE_GPU = "1"
+$proc = Start-Process -FilePath $Exe -PassThru -NoNewWindow
 
 # 2. Wait for MCP discovery (via .mcp_port file or port 9812)
 Write-Host "`n2. Waiting for MCP port discovery..." -ForegroundColor Yellow

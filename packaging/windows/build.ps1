@@ -83,7 +83,8 @@ Write-Host "  commit_sha=$Sha  build_type=standalone"
 
 # 6. PyInstaller onedir
 Write-Host "`n[6/9] Running PyInstaller..." -ForegroundColor Yellow
-pyinstaller --clean --noconfirm "$PSScriptRoot\pyinstaller\video2pptx.spec"
+$env:REPO_ROOT = $RepoRoot
+pyinstaller --clean --noconfirm "$PSScriptRoot\pyinstaller\video2pptx.spec" --distpath "$DistDir"
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller build failed" }
 
 # 7. Validate standalone layout

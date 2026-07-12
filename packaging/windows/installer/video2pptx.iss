@@ -20,7 +20,6 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-LicenseFile=..\..\..\LICENSE
 OutputDir=..\..\..\dist\windows
 OutputBaseFilename=Video2PPTX-{#MyAppVersion}-Setup-x64
 Compression=lzma2/max
@@ -37,7 +36,6 @@ Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription
 
 [Files]
 Source: "..\..\..\dist\windows\Video2PPTX\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
