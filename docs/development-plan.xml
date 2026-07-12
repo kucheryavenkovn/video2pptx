@@ -1119,8 +1119,10 @@
         FileProjectRepository remains the canonical writer. GUI completion refresh and slide CRUD
         preserve schema 2.0 while projecting canonical state into the legacy Qt model.
       </step-6>
-      <step-7 name="CLItoApplication" status="in_progress" verification="V-REF-CLI-ADAPTER">
-        CLI commands call same services as MCP. Remove run_detect_slides call from cli.py.
+      <step-7 name="CLItoApplication" status="done" verification="V-REF-CLI-ADAPTER">
+        CLI commands call same services as MCP. preview/align/validate/auto dispatched through
+        ApplicationServices on the real console entry point. Architecture tests forbid legacy
+        pipeline imports from adapter code. 51 module tests + full non-E2E suite pass.
       </step-7>
       <step-8 name="GUIRefactoring" status="planned" verification="V-REF-GUI-ADAPTER">
         Extract ProjectController, PipelineController, TimelineController. Workers call use cases.
