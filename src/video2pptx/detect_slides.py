@@ -46,7 +46,7 @@ def run_detect_slides(
     #       cfg: AppConfig — merged config with detection parameters
     #   }
     #   OUTPUTS: SlidesDocument — saved to slides.json in out_dir, screenshots saved to out_dir/slides/
-    #   SIDE_EFFECTS: creates slides/*.png, writes slides.json, iterates video 3 times
+    #   SIDE_EFFECTS: creates slides/*.png, writes slides.json, iterates video 2 times
     #   LINKS: M-DETECT-SLIDES
     # END_CONTRACT: run_detect_slides
 
@@ -79,7 +79,7 @@ def run_detect_slides(
     sample_tolerance = 0.5 / max(cfg.video.sample_fps, 0.1)
 
     # START_BLOCK_DETECT_CHANGES
-    logger.info("[DetectSlides][run_detect_slides] Pass 1/3: detecting changes")
+    logger.info("[DetectSlides][run_detect_slides] Pass 1/2: detecting changes")
     frames_iter = ((f.timestamp, f.image) for f in decoder.iter_frames())
     if quick_mode:
         from video2pptx.frame_features import quick_extract as _extract
@@ -108,33 +108,34 @@ def run_detect_slides(
     )
     # END_BLOCK_BUILD_SEGMENTS
 
-    # START_BLOCK_DEDUPE
-    if cfg.detection.dedupe_enabled and len(segments) > 1:
-        logger.info("[DetectSlides][run_detect_slides] Pass 2/3: deduplicating segments")
-        rep_frames: dict[float, np.ndarray] = {}
-        for vf in decoder.iter_frames():
-            for s in segments:
-                ts = s.representative_timestamp
-                if ts not in rep_frames and abs(vf.timestamp - ts) < sample_tolerance:
-                    rep_frames[ts] = slide_region.process(vf.image)
-                    break
-        segments = deduplicate_segments(segments, rep_frames)
-    # END_BLOCK_DEDUPE
+    # START_BLOCK_DEDUPE_AND_SAVE_SCREENSHOTS
+    rep_frames: dict[float, np.ndarray] = {}
+    saved_frames: dict[float, np.ndarray] = {}
 
-    # START_BLOCK_SAVE_SCREENSHOTS
-    logger.info("[DetectSlides][run_detect_slides] Pass 3/3: saving screenshots")
-    saved_timestamps: set[float] = set()
+    if cfg.detection.dedupe_enabled and len(segments) > 1:
+        logger.info("[DetectSlides][run_detect_slides] Pass 2/2: deduplicating segments & saving screenshots")
+    else:
+        logger.info("[DetectSlides][run_detect_slides] Pass 2/2: saving screenshots")
+
     for vf in decoder.iter_frames():
-        for seg in segments:
-            ts = seg.representative_timestamp
-            if ts not in saved_timestamps and abs(vf.timestamp - ts) < sample_tolerance:
+        for s in segments:
+            ts = s.representative_timestamp
+            if ts not in rep_frames and abs(vf.timestamp - ts) < sample_tolerance:
                 cropped = slide_region.process(vf.image)
-                fname = f"slide_{seg.index:03d}.png"
-                cv2.imwrite(str(slides_dir / fname), cv2.cvtColor(cropped, cv2.COLOR_RGB2BGR))
-                seg.image = f"slides/{fname}"
-                saved_timestamps.add(ts)
+                rep_frames[ts] = cropped
+                saved_frames[ts] = cropped
                 break
-    # END_BLOCK_SAVE_SCREENSHOTS
+
+    if cfg.detection.dedupe_enabled and len(segments) > 1:
+        segments = deduplicate_segments(segments, rep_frames)
+
+    for seg in segments:
+        cropped = saved_frames.get(seg.representative_timestamp)
+        if cropped is not None:
+            fname = f"slide_{seg.index:03d}.png"
+            cv2.imwrite(str(slides_dir / fname), cv2.cvtColor(cropped, cv2.COLOR_RGB2BGR))
+            seg.image = f"slides/{fname}"
+    # END_BLOCK_DEDUPE_AND_SAVE_SCREENSHOTS
 
     # START_BLOCK_BUILD_DOCUMENT
     doc = SlidesDocument(

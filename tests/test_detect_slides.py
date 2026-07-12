@@ -87,6 +87,21 @@ class TestDetectSlides:
             cfg=cfg,
         )
         combined = " ".join(loguru_sink)
-        assert "Pass 1/3: detecting changes" in combined
-        assert "Pass 3/3: saving screenshots" in combined
+        assert "Pass 1/2: detecting changes" in combined
+        assert "Pass 2/2: saving screenshots" in combined
+        assert "Pass 3/3" not in combined
         assert "Document saved" in combined
+
+    def test_log_markers_dedupe_enabled(self, tmp_path, loguru_sink):
+        """Verify 2-pass markers when dedup is enabled with multiple segments."""
+        cfg = AppConfig()
+        cfg.detection.threshold = 5.0
+        run_detect_slides(
+            video_path=TEST_VIDEO,
+            out_dir=tmp_path,
+            cfg=cfg,
+        )
+        combined = " ".join(loguru_sink)
+        assert "Pass 1/2: detecting changes" in combined
+        assert "Pass 2/2" in combined
+        assert "Pass 3/3" not in combined

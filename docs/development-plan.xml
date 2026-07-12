@@ -5,7 +5,7 @@
     <non-goal>No ASR, no cloud processing, no web UI, no drag-to-reorder slides in MVP, no real-time streaming from network URLs.</non-goal>
     <risk-1>False slide splits due to cursor movement, webcam, or compression artifacts.</risk-1>
     <risk-2>GPU backend may not be available — CPU fallback must always work.</risk-2>
-    <risk-3>detect-slides is the longest step (2-3 video passes). Notes and export are fast.</risk-3>
+    <risk-3>detect-slides is the longest step (2 video passes). Notes and export are fast.</risk-3>
     <risk-4>PySide6 adds ~50MB dependency — must be optional via extras.</risk-4>
     <risk-5>QThread lifecycle bugs may cause crashes when switching projects mid-operation.</risk-5>
   </ArchitectureNotes>
@@ -1225,7 +1225,7 @@
     <Phase-18 name="DetectPerformanceAndQuality" status="in_progress">
       <goal>Measure and reduce Detect wall-clock time while preserving detector quality. Semantics-preserving optimizations first; algorithm-changing and GPU work are gated experiments.</goal>
       <step-1 name="PerformanceBaseline" status="in_progress" verification="V-PERF-DETECT-BASELINE"/>
-      <step-2 name="TwoPassDetection" status="planned" verification="V-PERF-DETECT-TWO-PASS"/>
+      <step-2 name="TwoPassDetection" status="done" verification="V-PERF-DETECT-TWO-PASS"/>
       <step-3 name="OrderedParallelFeatures" status="planned" verification="V-PERF-DETECT-PARALLEL"/>
       <step-4 name="FastFullCascadeExperiment" status="planned" verification="V-PERF-DETECT-CASCADE"/>
       <step-5 name="ChunkedDecodeExperiment" status="planned" verification="V-PERF-DETECT-CHUNKED"/>

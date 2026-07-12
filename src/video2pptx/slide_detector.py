@@ -100,7 +100,7 @@ def detect_changes(
             if progress_callback and video_duration:
                 progress_callback(
                     int(timestamp / video_duration * 100),
-                    f"Pass 1/3 — {len(changes)} changes at {timestamp:.0f}s",
+                    f"Pass 1/2 — {len(changes)} changes at {timestamp:.0f}s",
                 )
             next_progress += progress_step
 

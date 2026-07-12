@@ -820,6 +820,9 @@
     <CrossLink from="M-DETECT-SLIDES" to="M-SEGMENTER" relation="builds intervals" />
     <CrossLink from="M-DETECT-SLIDES" to="M-DEDUPE" relation="deduplicates" />
     <CrossLink from="M-DETECT-SLIDES" to="M-ROI" relation="crops and masks" />
+    <CrossLink from="M-DETECT-SLIDES" to="M-DETECT-METRICS" relation="Phase-18: instrumented with timers/counters" />
+    <CrossLink from="M-DETECT-METRICS" to="Phase-18/TwoPassDetection" relation="baseline identified redundant 3rd pass bottleneck" />
+    <CrossLink from="Phase-18/TwoPassDetection" to="M-DETECT-SLIDES" relation="3->2 passes, Pass 3 merged into Pass 2" />
     <CrossLink from="M-NOTES" to="M-SUBTITLES" relation="parses and aligns cues" />
     <CrossLink from="M-NOTES" to="M-NOTES-PROCESSOR" relation="cleans and formats notes" />
     <CrossLink from="M-ROI-TOOL" to="M-VIDEO-DECODE" relation="extracts frame" />
