@@ -528,7 +528,7 @@
 - Finding: `video_seek`, `video_play`, `video_pause` are in `_QT_WRITE_CMDS` and execute against `ProjectModel`, but the actual methods are on `VideoPlayerWidget`, not on `ProjectModel`. All three fail with `AttributeError: ProjectModel command not found`.
 - Symptom/Reproduction: real MCP `video_seek(position=3.0)` returns failed operation with `ProjectModel command not found: seek`.
 - Impact: E2E-005 Playback cannot be characterized through MCP.
-- Resolution/Status: Open. Playback commands must route to `MainWindow._video_player` or a dedicated bridge method on ProjectModel. Playback in offscreen Qt may also require a multimedia backend; deferred to Phase 8 GUI migration.
+- Resolution/Status: Resolved in Step 8.5. MCP queue routes play/pause to VideoPlayerWidget and seek to MainWindow's seek adapter; a real RPC-to-queue GUI regression test verifies routing.
 - LINKS: M-DEBUG-MCP, M-GUI-VIDEOPLAYER, V-REF-CHAR-TESTS
 
 ### F-0059 — Schema 2.0 persistence contract was unstable for application service consumption
@@ -573,7 +573,7 @@
 - Finding: MainWindow calls PipelineController.run_* directly and PipelineController executes services synchronously without a QThread replacement.
 - Symptom/Reproduction: A blocking fake detection service prevents a Qt timer from firing until run_detect returns.
 - Impact: Detect, Auto, Notes, and Export freeze the GUI.
-- Resolution/Status: Open for Step 8.5; reproduce with MainWindow integration test, then add QThread-owned execution.
+- Resolution/Status: Resolved in Step 8.5 with PipelineWorker and controller-owned QThread lifecycle; non-blocking regression test passes.
 - LINKS: M-GUI-PIPELINE-CTRL, M-GUI-PIPELINE-WORKER, V-REF-GUI-ADAPTER
 
 ### F-0064 — Pipeline operation context is constructed but not consumed
@@ -582,7 +582,7 @@
 - Finding: PipelineController creates SignalProgressObserver and CancellationToken but dispatches through services built with ApplicationServices' original context.
 - Symptom/Reproduction: Service progress is reported to the bootstrap context, while PipelineController.progress emits nothing.
 - Impact: GUI progress and cancellation are disconnected from real service execution.
-- Resolution/Status: Open for Step 8.5; build operation-scoped ApplicationServices with the GUI context and assert emitted progress.
+- Resolution/Status: Resolved. ApplicationServices.scoped builds services with the GUI ServiceContext; real ValidationService progress reaches PipelineController.progress.
 - LINKS: M-GUI-PIPELINE-CTRL, M-APP-SERVICE-CONTEXT, V-REF-GUI-ADAPTER
 
 ### F-0065 — Project-open signal precedes legacy GUI projection synchronization
@@ -591,7 +591,7 @@
 - Finding: ProjectController emits projectOpened before MainWindow opens ProjectModel, while _on_project_opened reads ProjectModel.project_data.
 - Symptom/Reproduction: create/open/recent-open signal handler sees stale or empty project data.
 - Impact: Labels, timeline, actions, and recent-project state can remain stale.
-- Resolution/Status: Open for Step 8.5; select ProjectController as canonical owner and emit one synchronized GUI event.
+- Resolution/Status: Resolved. ProjectController is canonical; MainWindow projects its loaded state before rendering, with a guarded one-way legacy MCP bridge.
 - LINKS: M-GUI-PROJECT-CTRL, M-GUI-MAIN, V-REF-GUI-ADAPTER
 
 ### F-0066 — Timeline display indexes cross the SlideId application boundary
@@ -600,7 +600,7 @@
 - Finding: MainWindow forwards timeline indexes into TimelineController methods whose contracts require SlideId.
 - Symptom/Reproduction: delete/move/resize/clear paths receive an integer instead of the displayed slide UID.
 - Impact: Wrong slide mutation or domain lookup failure after reorder/delete.
-- Resolution/Status: Open for Step 8.5; resolve index to SlideId only at the MainWindow adapter boundary.
+- Resolution/Status: Resolved. MainWindow._slide_id resolves the display index and all TimelineController mutations receive SlideId.
 - LINKS: M-GUI-TIMELINE-CTRL, M-GUI-MAIN, V-REF-GUI-ADAPTER
 
 ### F-0067 — Set-frame clears the canonical image reference after writing the file
@@ -609,7 +609,7 @@
 - Finding: MainWindow writes a frame with cv2.imwrite and then invokes clear_slide_image instead of a canonical set-image operation.
 - Symptom/Reproduction: Screenshot exists on disk but reopened project has no matching ArtifactRef.
 - Impact: Representative frame is lost from canonical project state.
-- Resolution/Status: Open for Step 8.5; add TimelineController set_slide_image/set_slide_frame using ArtifactRef.
+- Resolution/Status: Resolved. Domain Project.set_image and TimelineController.set_slide_image persist an existing project-relative ArtifactRef and survive reopen.
 - LINKS: M-GUI-TIMELINE-CTRL, M-DOMAIN-PROJECT, V-REF-GUI-ADAPTER
 
 ### F-0068 — GUI revision ownership is split across stale snapshots
@@ -618,7 +618,7 @@
 - Finding: ProjectController, ProjectModel, pipeline services, and TimelineController can independently load and save project revisions.
 - Symptom/Reproduction: Pipeline or timeline save followed by ProjectController.save uses a stale expected revision.
 - Impact: Valid GUI sequences can raise ProjectRevisionConflict or overwrite newer state.
-- Resolution/Status: Open for Step 8.5; ProjectController becomes canonical GUI owner and reloads after every external mutation.
+- Resolution/Status: Resolved. Pipeline/timeline completion reloads ProjectController and projection; stale save reloads instead of surfacing ProjectRevisionConflict.
 - LINKS: M-GUI-PROJECT-CTRL, M-GUI-PIPELINE-CTRL, M-GUI-TIMELINE-CTRL, V-REF-GUI-ADAPTER
 
 ### F-0069 — videoChanged assigns a Python attribute instead of Qt enabled state
@@ -627,7 +627,7 @@
 - Finding: MainWindow uses setattr(button, "enabled", value), which does not call QWidget.setEnabled.
 - Symptom/Reproduction: videoChanged leaves Detect and Quick Preview disabled.
 - Impact: Imported/opened video cannot reliably enable pipeline actions.
-- Resolution/Status: Open for Step 8.5; use setEnabled(bool) and cover the real signal path.
+- Resolution/Status: Resolved. Dedicated videoChanged handler calls QWidget.setEnabled(bool); GUI regression test passes.
 - LINKS: M-GUI-MAIN, V-REF-GUI-ADAPTER
 
 ### F-0070 — MainWindow Step 8 stop condition is unmet
@@ -636,7 +636,7 @@
 - Finding: Commit 88eaec4 leaves main_window.py above the approved 600-line stop condition.
 - Symptom/Reproduction: Physical line count is 793 at the audited commit.
 - Impact: Step 8 cannot be marked complete.
-- Resolution/Status: Open for Step 8.5; extract UI construction or host adapters structurally.
+- Resolution/Status: Resolved. UI construction and MCP/debug hosting moved to main_window_ui.py; main_window.py is 596 physical lines.
 - LINKS: M-GUI-MAIN, M-GUI-WINDOW-UI, V-REF-GUI-ADAPTER
 
 ### F-0071 — CI matrix omits the PySide6 dependency required during collection
@@ -645,7 +645,7 @@
 - Finding: PR #1 standard CI test jobs run GUI-importing tests without installing PySide6.
 - Symptom/Reproduction: GitHub run 29186796164 fails collection with ModuleNotFoundError: PySide6.
 - Impact: Linux and Windows matrix, GUI test, and dependent acceptance jobs are red.
-- Resolution/Status: CI_ENVIRONMENT; open for Step 8.5 workflow correction.
+- Resolution/Status: CI_ENVIRONMENT fixed locally by installing the gui extra in every matrix job; GitHub acceptance pending.
 - LINKS: M-CI, .github/workflows/ci.yml, V-REF-GUI-ADAPTER
 
 ### F-0072 — MCP workflows install obsolete Ubuntu Mesa package names
@@ -654,5 +654,14 @@
 - Finding: MCP workflows request libegl1-mesa and libgl1-mesa-glx, unavailable on the current GitHub Ubuntu image.
 - Symptom/Reproduction: Runs 29186795062 and 29186796133 fail apt with exit code 100 before tests.
 - Impact: MCP E2E smoke is skipped and required unit-tests remain red.
-- Resolution/Status: CI_ENVIRONMENT; open for Step 8.5 workflow correction using current runtime packages.
+- Resolution/Status: CI_ENVIRONMENT fixed locally by using libegl1/libgl1; GitHub acceptance pending.
 - LINKS: M-CI, .github/workflows/mcp-e2e.yml, V-REF-GUI-ADAPTER
+
+### F-0073 — E2E tooling package was absent from pytest import roots
+- Date: 2026-07-12
+- Area: tooling
+- Finding: Real MCP characterization imported tools.mcp_e2e_runner while pytest configured only src as its Python path and tools lacked a package marker.
+- Symptom/Reproduction: Direct characterization collection failed with ModuleNotFoundError: tools.
+- Impact: The required 11-test GUI+MCP gate could not run from the documented pytest command.
+- Resolution/Status: TEST_BUG resolved by adding the repository root to pytest pythonpath and tools/__init__.py.
+- LINKS: V-REF-GUI-ADAPTER, pyproject.toml, tools/__init__.py

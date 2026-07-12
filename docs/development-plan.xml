@@ -733,13 +733,13 @@
       <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
       <depends>M-APP-BOOTSTRAP, M-DOMAIN-PROJECT</depends>
     </M-GUI-TIMELINE-CTRL>
-    <M-GUI-PIPELINE-WORKER NAME="GuiPipelineWorker" TYPE="UTILITY" LAYER="1" ORDER="94" STATUS="planned">
+    <M-GUI-PIPELINE-WORKER NAME="GuiPipelineWorker" TYPE="UTILITY" LAYER="1" ORDER="94" STATUS="active">
       <contract><purpose>Own one QThread-bound pipeline operation and execute an operation-scoped ApplicationServices composition without blocking the Qt main thread.</purpose></contract>
       <target><source>src/video2pptx/gui/controllers/pipeline_worker.py</source><tests>tests/gui/test_pipeline_controller.py</tests></target>
       <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
       <depends>M-APP-BOOTSTRAP, M-APP-SERVICE-CONTEXT</depends>
     </M-GUI-PIPELINE-WORKER>
-    <M-GUI-WINDOW-UI NAME="MainWindowUiBuilder" TYPE="UI_COMPONENT" LAYER="0" ORDER="95" STATUS="planned">
+    <M-GUI-WINDOW-UI NAME="MainWindowUiBuilder" TYPE="UI_COMPONENT" LAYER="0" ORDER="95" STATUS="active">
       <contract><purpose>Construct and connect MainWindow toolbar, info row, central widgets, and optional MCP host adapter without project or pipeline business logic.</purpose></contract>
       <target><source>src/video2pptx/gui/main_window_ui.py</source><tests>tests/gui/test_main_window_integration.py</tests></target>
       <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
