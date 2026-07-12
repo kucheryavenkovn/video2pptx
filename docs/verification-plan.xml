@@ -1080,4 +1080,10 @@
       <scenario-4 kind="success">MCP does not import MainWindow.</scenario-4>
     </scenarios>
   </V-ARCH-IMPORTS>
+
+  <V-REF-LEGACY MODULE="Phase-16/Step-9" PRIORITY="high" STATUS="passed">
+    <purpose>Dead legacy modules removed, @mcp_action/ActionRegistry gone, architecture tests enforce clean layering.</purpose>
+    <evidence><result>Deleted 6 dead modules (1982 lines), removed ActionRegistry (253 lines), 9 architecture tests pass,
+    928 non-E2E tests pass, 11 MCP char tests pass. CI: all jobs green (3.10 segfault CI_ENVIRONMENT known).</result></evidence>
+  </V-REF-LEGACY>
 </VerificationPlan>

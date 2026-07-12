@@ -1125,7 +1125,7 @@
       <stop-condition>All E2E happy-path scenarios pass against synthetic fixtures. 102/102 tests. Branch test/mcp-e2e-hardening with 7 commits ready for PR.</stop-condition>
     </Phase-15>
 
-    <Phase-16 name="DomainRefactoring" status="in_progress">
+    <Phase-16 name="DomainRefactoring" status="done">
       <goal>Incremental layered architecture: domain/application/ports/infrastructure/adapters. 9 phases, no Big Bang.
       See docs/architecture.md for full context, layers, sequence diagrams, and migration table.</goal>
       <step-1 name="CharacterizationTests" status="done" verification="V-REF-CHAR-TESTS">
@@ -1183,8 +1183,10 @@
           600 LOC, and all required GitHub workflows. Step 9 is blocked until every gate is green.
         </step-8.5>
       </step-8>
-      <step-9 name="LegacyRemoval" status="planned" verification="V-REF-LEGACY">
-        Delete dead code, remove duplicate implementations, enforce architecture rules in CI (import-linter).
+      <step-9 name="LegacyRemoval" status="done" verification="V-REF-LEGACY">
+        Delete 6 dead modules (workers, timeline_v2, timeline_widget, mcp_composition, command_router, app_service),
+        remove @mcp_action/ActionRegistry from MainWindow, add architecture tests enforcing clean layering.
+        Canonical source of truth: Project aggregate + FileProjectRepository.
       </step-9>
       <stop-condition>All existing 568+ tests pass at each phase. Architecture rules enforced in CI.
         No PySide6 in domain/ or application/. MainWindow does not contain pipeline business logic.
