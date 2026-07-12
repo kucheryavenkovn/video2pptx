@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/domain/pipeline_state.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Pipeline stage state machine with transitions, invalidation, and legacy compatibility.
 #   SCOPE: StageStatus, StageState, PipelineState, transition validation, downstream invalidation
@@ -19,7 +19,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.1.0 - Allow SUCCEEDED to RUNNING transition for stage re-runs
+#   LAST_CHANGE: v1.2.0 - Parse canonical Z timestamps on Python 3.10
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -108,10 +108,16 @@ class StageState:
         return cls(
             status=status,
             operation_id=data.get("operation_id"),
-            started_at=datetime.fromisoformat(started) if started else None,
-            finished_at=datetime.fromisoformat(finished) if finished else None,
+            started_at=_parse_iso_datetime(started),
+            finished_at=_parse_iso_datetime(finished),
             error=data.get("error"),
         )
+
+
+def _parse_iso_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    return datetime.fromisoformat(value[:-1] + "+00:00" if value.endswith("Z") else value)
 
 
 class PipelineState:

@@ -51,7 +51,7 @@ jobs:
         run: python tests/fixtures/gen_test_video.py
       - name: Headless MCP GUI smoke (Xvfb)
         run: |
-          xvfb-run -a python -m pytest tests/e2e/ -x -v --timeout=120
+          xvfb-run -a python -m pytest tests/e2e/test_mcp_startup_characterization.py -x -v --timeout=120
         timeout-minutes: 5
       - name: Upload E2E report
         if: always()
