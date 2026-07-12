@@ -241,3 +241,28 @@ def test_cancel_sets_token(qtbot) -> None:
     assert ctrl._cancellation.is_cancelled
     qtbot.waitUntil(lambda: ctrl._thread is None, timeout=5000)
     assert ctrl.is_busy is False
+
+
+def test_main_window_detect_rejects_quick_preview(tmp_path: Path, qtbot) -> None:
+    from video2pptx.gui.controllers.pipeline_controller import PipelineStartResult
+    window = _window(qtbot)
+    project = Project(name="lifecycle-test", output_dir=str(tmp_path / "lifecycle"))
+    window._app_svcs.repository.create(tmp_path / "lifecycle", project)
+    window._project_ctrl.open(tmp_path / "lifecycle")
+    mock_detect = patch.object(window._pipeline_ctrl, "run_detect").start()
+    mock_preview = patch.object(window._pipeline_ctrl, "run_preview").start()
+    mock_detect.return_value = PipelineStartResult(
+        accepted=True, requested_stage="detect", active_stage="detect"
+    )
+    window._on_detect()
+    assert not window._btn_quick_preview.isEnabled()
+    mock_preview.return_value = PipelineStartResult(
+        accepted=False, requested_stage="preview", active_stage="detect"
+    )
+    mock_rejected = patch.object(window, "_on_operation_rejected").start()
+    window._on_quick_detect()
+    mock_rejected.assert_called_once()
+    assert "Pipeline failed" not in window.statusBar().currentMessage()
+    mock_detect.stop()
+    mock_preview.stop()
+    mock_rejected.stop()

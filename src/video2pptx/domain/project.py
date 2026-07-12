@@ -4,7 +4,7 @@
 #   PURPOSE: Project aggregate root — owns slides, enforces invariants, manages pipeline state.
 #   SCOPE: add_slide, remove_slide, move_slide, resize_slide, replace_detected_slides,
 #          invalidate_downstream_from, set_image, clear_image, to_slides_dict, from_slides_dict,
-#          validate, _validate_candidate_slides
+#          validate, _validate_candidate_slides, DetectionConfig
 #   DEPENDS: video2pptx.domain.slide, video2pptx.domain.identifiers, video2pptx.domain.time,
 #            video2pptx.domain.pipeline_state, video2pptx.domain.artifacts, video2pptx.domain.errors
 #   LINKS: M-DOMAIN-PROJECT
@@ -14,16 +14,18 @@
 #
 # START_MODULE_MAP
 #   Project - aggregate root controlling slide lifecycle and pipeline state
+#   DetectionConfig - typed detection settings for Project
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.3.0 - Add side-effect-free aggregate validation for persistence gates
+#   LAST_CHANGE: v1.4.0 - Add DetectionConfig with typed detection settings
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
 import math
 from collections.abc import Sequence
+from dataclasses import dataclass, field
 from typing import Any
 
 from video2pptx.domain.artifacts import ArtifactRef
@@ -39,6 +41,19 @@ from video2pptx.domain.identifiers import SlideId
 from video2pptx.domain.pipeline_state import PipelineState
 from video2pptx.domain.slide import Slide, SlideView
 from video2pptx.domain.time import TimeInterval
+
+
+@dataclass
+class DetectionConfig:
+    """Canonical detection settings for a Project. Replaces legacy extensions.detection."""
+    sample_fps: float = 2.0
+    decoder_backend: str = "auto"
+    slide_roi: str = "auto"
+    ignore_rois: list[str] = field(default_factory=list)
+    threshold: float | str = "auto"
+    min_slide_duration: float = 2.0
+    min_stable_duration: float = 2.0
+    dedupe_enabled: bool = True
 
 
 class Project:
@@ -69,6 +84,7 @@ class Project:
         self.score_values: list[float] = []
         self.artifacts: dict[str, ArtifactRef] = dict(artifacts or {})
         self.extensions: dict[str, Any] = dict(extensions or {})
+        self.detection: DetectionConfig = DetectionConfig()
 
     @property
     def slides(self) -> tuple[SlideView, ...]:

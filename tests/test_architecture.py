@@ -133,6 +133,26 @@ class TestArchitectureConstraints:
             violations = forbidden & imports
             assert not violations, f"{f.name} imports forbidden legacy pipeline: {violations}"
 
+    def test_qt_write_cmds_only_ui_ops(self):
+        """_QT_WRITE_CMDS must not contain project/slide CRUD — only UI transport ops."""
+        import ast
+        src = SRC / "debug" / "mcp_server.py"
+        tree = ast.parse(src.read_text("utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name) and target.id == "_QT_WRITE_CMDS":
+                        keys = []
+                        for k in node.value.keys:
+                            if isinstance(k, ast.Constant):
+                                keys.append(k.value)
+                        forbidden = {"project_save", "video_import", "subtitle_load",
+                                     "subtitle_import", "slide_add", "slide_delete",
+                                     "slide_move", "slide_resize", "slide_clear_image"}
+                        violations = set(keys) & forbidden
+                        assert not violations, f"_QT_WRITE_CMDS contains forbidden project/slide ops: {violations}"
+                        break
+
     def test_mcp_no_legacy_pipeline_at_module_level(self):
         """MCP debug modules must not import legacy pipeline at module level."""
         debug_dir = SRC / "debug"

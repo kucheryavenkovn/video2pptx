@@ -115,25 +115,14 @@ def _serialize_timeline(timeline: Timeline) -> dict:
 
 
 _QT_WRITE_CMDS: dict[str, tuple] = {
+    "project_create": ("create", "path", ""),  # bootstrap — no project open yet
     "project_open": ("open", "path", ""),
-    "project_close": ("close", None, None),
-    "project_create": ("create", "path", ""),
-    "project_save": ("save", None, None),
-    "video_import": ("import_video", "path", ""),
-    "subtitle_load": ("load_subtitles", "path", ""),
-    "subtitle_import": ("load_subtitles", "path", ""),
-    "slide_add": ("add_slide", "ts", 0.0),
-    "slide_delete": ("delete_slide", "index", 1),
-    "slide_move": ("move_slide", None, None),
-    "slide_resize": ("resize_slide", None, None),
-    "slide_set_frame": ("set_slide_frame", None, None),
-    "slide_clear_image": ("clear_slide_image", None, None),
+    "project_close": ("close", None, None),   # ProjectModel lifecycle
+    "slide_set_frame": ("set_slide_frame", None, None),  # UI transport — needs video player
     "video_seek": ("seek", "position", 0.0),
     "video_play": ("play", None, None),
     "video_pause": ("pause", None, None),
 }
-
-_QT_DESTRUCTIVE = {"project_close", "slide_delete", "slide_move"}
 
 
 def _is_qt_affine(tool: str) -> bool:
@@ -231,25 +220,6 @@ def _handle_rpc(method: str, params: dict, model, timeline: Timeline, main_windo
             if tool == "project_create":
                 cargs = (args.get("path", ""),)
                 ckwargs = {"name": args.get("name", "Untitled")}
-            elif tool in {
-                "slide_delete",
-                "slide_move",
-                "slide_resize",
-                "slide_set_frame",
-                "slide_clear_image",
-            }:
-                target = args.get("uid", args.get("index", 1))
-                if tool == "slide_move":
-                    cargs = (
-                        target,
-                        args.get("start", 0.0),
-                        args.get("end", 5.0),
-                    )
-                elif tool == "slide_resize":
-                    cargs = (target, args.get("end", 5.0))
-                else:
-                    cargs = (target,)
-                ckwargs = {}
             elif arg_name is not None and arg_name in args:
                 cargs = (args[arg_name],)
                 ckwargs = {}
@@ -283,10 +253,6 @@ def _handle_rpc(method: str, params: dict, model, timeline: Timeline, main_windo
         if not is_sync_tool(tool) and tool not in _QT_WRITE_CMDS:
             result = dispatch_write(tool, args, trace_id="")
             return {"content": [{"type": "text", "text": json.dumps(result, ensure_ascii=False, default=str)}]}
-
-        # -- action registry --
-            _ACTION_QUEUE.put(("__action__", (tool, args), {}))
-            return {"content": [{"type": "text", "text": json.dumps({"status": "queued", "tool": tool, "op_type": "action"})}]}
 
         return {"content": [{"type": "text", "text": json.dumps({"error": f"unknown tool: {tool}"})}]}
 
@@ -498,7 +464,7 @@ class _ThreadedServer(ThreadingMixIn, TCPServer):
 
 
 _CMD_QUEUE: Queue[tuple[str, str, str, tuple, dict]] = Queue()
-_ACTION_QUEUE: Queue[tuple[str, tuple, dict]] = Queue()
+# ACTION_QUEUE removed in Step 9.5
 _OP_RUNNER_THREAD: OpRunnerThread | None = None
 _INSTANCE_ID = ""
 _INSTANCE_STARTED_AT = ""
@@ -557,9 +523,6 @@ def mcp_process_queue(model, main_window=None) -> None:
             operation = registry.get(operation_id)
             if operation is not None and operation.status != "succeeded":
                 record_completed(operation_id)
-    while not _ACTION_QUEUE.empty():
-        name, args, kwargs = _ACTION_QUEUE.get_nowait()
-
     # Drain completed app_service operations and refresh GUI (F-0043 fix)
     from video2pptx.debug.mcp_operations import drain_completed_ops
     completed = drain_completed_ops()

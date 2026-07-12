@@ -1,13 +1,15 @@
 # FILE: src/video2pptx/cli.py
-# VERSION: 0.1.0
+# VERSION: 0.2.0
+# LEGACY_COMPATIBILITY
 # START_MODULE_CONTRACT
-#   PURPOSE: Typer CLI entry point for detect, export-md, debug, review commands
-#   SCOPE: CLI argument parsing, output directory setup, orchestrating pipeline
+#   PURPOSE: DEPRECATED legacy CLI. Canonical entry point is adapters.cli.app.
+#   SCOPE: Legacy command compatibility, delegates to adapters.cli.app for new commands.
 #   DEPENDS: typer, rich, config, pathlib
 #   LINKS: M-CLI
-#   ROLE: ENTRY_POINT
-#   MAP_MODE: EXPORTS
+#   ROLE: LEGACY_COMPATIBILITY
+#   MAP_MODE: NONE
 # END_MODULE_CONTRACT
+#   REMOVAL_TARGET: Phase 17 or later — migrate remaining users to adapters.cli.app
 #
 # START_MODULE_MAP
 #   app - main Typer application

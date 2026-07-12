@@ -71,6 +71,70 @@ class McpServiceAdapter:
         "auto": {"mode", "video_path", "subtitles_path", "sample_fps", "slide_roi", "ignore_rois", "threshold", "min_stable_duration", "min_slide_duration", "dedupe_enabled", "notes_mode", "export_format", "export_output_path", "dry_run"},
     }
 
+    @staticmethod
+    def _resolve_slide_id(project, kwargs: dict) -> str | None:
+        uid = kwargs.get("uid")
+        if uid:
+            return str(uid)
+        index = kwargs.get("index")
+        if index is not None:
+            if isinstance(index, int):
+                idx = index - 1 if index >= 1 else index
+                if 0 <= idx < len(project.slides):
+                    return str(project.slides[idx].slide_id)
+        return None
+
+    def _handle_crud(self, command: str, project_location: Path, **kwargs: Any) -> dict[str, Any] | None:
+        """Handle project/slide CRUD commands via repository. Returns None if command not recognized."""
+        _CRUD_COMMANDS = {"project_save", "video_import", "subtitle_import",
+                          "slide_add", "slide_delete", "slide_move", "slide_resize"}
+        if command not in _CRUD_COMMANDS:
+            return None
+        repo = self._services.repository
+        loaded = repo.load(project_location)
+        proj = loaded.project
+
+        if command == "project_save":
+            repo.save(proj, project_location, expected_revision=loaded.revision)
+            return {"success": True, "stage": command, "data": {"saved": True}}
+        elif command == "video_import":
+            path = str(kwargs.get("path", ""))
+            proj.video_path = path
+            repo.save(proj, project_location, expected_revision=loaded.revision)
+            return {"success": True, "stage": command, "data": {"video": path}}
+        elif command == "subtitle_import":
+            path = str(kwargs.get("path", ""))
+            proj.subtitle_path = path
+            repo.save(proj, project_location, expected_revision=loaded.revision)
+            return {"success": True, "stage": command, "data": {"subtitles": path}}
+        elif command == "slide_add":
+            ts = kwargs.get("ts", 0.0)
+            slide_id = proj.add_slide(ts)
+            repo.save(proj, project_location, expected_revision=loaded.revision)
+            return {"success": True, "stage": command, "data": {"uid": str(slide_id), "slide_id": str(slide_id)}, "uid": str(slide_id)}
+        elif command == "slide_delete":
+            uid = self._resolve_slide_id(proj, kwargs)
+            if uid is None:
+                return {"success": False, "error": "slide not found", "stage": command}
+            proj.remove_slide(uid)
+            repo.save(proj, project_location, expected_revision=loaded.revision)
+            return {"success": True, "stage": command, "data": {"deleted": True}}
+        elif command == "slide_move":
+            uid = self._resolve_slide_id(proj, kwargs)
+            if uid is None:
+                return {"success": False, "error": "slide not found", "stage": command}
+            proj.move_slide(uid, kwargs.get("start", 0.0), kwargs.get("end", 5.0))
+            repo.save(proj, project_location, expected_revision=loaded.revision)
+            return {"success": True, "stage": command, "data": {"moved": True}}
+        elif command == "slide_resize":
+            uid = self._resolve_slide_id(proj, kwargs)
+            if uid is None:
+                return {"success": False, "error": "slide not found", "stage": command}
+            proj.resize_slide(uid, kwargs.get("end", 5.0))
+            repo.save(proj, project_location, expected_revision=loaded.revision)
+            return {"success": True, "stage": command, "data": {"resized": True}}
+        return None
+
     def execute_command(self, command: str, project_location: Path, **kwargs: Any) -> dict[str, Any]:
         """Execute an MCP command through the appropriate Phase 16 service.
 
@@ -82,6 +146,10 @@ class McpServiceAdapter:
             dict matching the old contract (success, data fields, error, stage)
         """
         from video2pptx.application.errors import StageFailureError
+
+        crud_result = self._handle_crud(command, project_location, **kwargs)
+        if crud_result is not None:
+            return crud_result
 
         entry = self._SERVICE_MAP.get(command)
         if entry is None:

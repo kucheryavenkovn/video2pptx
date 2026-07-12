@@ -657,6 +657,23 @@
 - Resolution/Status: CI_ENVIRONMENT fixed locally by using libegl1/libgl1; GitHub acceptance pending.
 - LINKS: M-CI, .github/workflows/mcp-e2e.yml, V-REF-GUI-ADAPTER
 
+### F-0075 — Config propagation regression: detection settings lost after Phase 16 refactoring
+- Date: 2026-07-12
+- Area: detection, gui, application
+- Finding: DetectionService and all callers (PipelineController, MainWindow, CLI) use hardcoded defaults
+  (threshold=0.95, sample_fps=2.0) instead of project-persisted settings. Real project config stored in
+  extensions.legacy (sample_fps=0.5, threshold=auto, min_slide_duration=10) is ignored.
+  Users with real videos where max score < 0.95 get a single slide covering the entire video.
+- Symptom/Reproduction: Real 3655s video with max score 0.66 produces one slide [0, 3655.5] because
+  effective threshold=0.95 exceeds all scores. No ChangeEvent is generated.
+- Impact: All detection results are incorrect unless the user's video coincidentally matches hardcoded defaults.
+- Resolution/Status: Resolved. Added canonical DetectionConfig to domain/Project with typed settings.
+  DetectionService now reads project.detection as defaults and accepts None for "use project setting".
+  PipelineController.run_detect/run_preview use None defaults. MainWindow no longer passes explicit params.
+  Effective config is logged and returned in ServiceResult.
+  Legacy extensions.detection → canonical DetectionConfig migration in mapper.
+- LINKS: M-DOMAIN-PROJECT, M-APP-DETECT, M-GUI-PIPELINE-CTRL, M-GUI-MAIN
+
 ### F-0074 — GUI operation lifecycle: status destroyed by rejected second operation
 - Date: 2026-07-12
 - Area: ui
@@ -675,7 +692,11 @@
   8. Active Detect continues running but user has no visibility
 - Impact: User incorrectly believes Detect failed. No cancel UI for the running operation.
   Conflicting buttons (Quick Preview, Detect, Auto) remain enabled during operation.
-- Resolution/Status: Open for Step 9.5.
+- Resolution/Status: Resolved. PipelineController: PipelineStartResult return value, is_busy/active_stage properties,
+  operationStarted/operationRejected/busyChanged signals. StatusBarManager: operation_key identity rejects stale
+  cross-operation updates. MainWindow: status only after accepted start, pipeline buttons disabled during busy,
+  info dialog on rejection showing active operation name. 5 regression tests + 1 real MainWindow button-click test pass.
+- LINKS: M-GUI-PIPELINE-CTRL, M-GUI-MAIN, M-GUI-STATUS, V-REF-CANONICAL-ROUTE
 - LINKS: M-GUI-PIPELINE-CTRL, M-GUI-MAIN, M-GUI-STATUS
 
 ### F-0073 — E2E tooling package was absent from pytest import roots

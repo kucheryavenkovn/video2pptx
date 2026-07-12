@@ -93,12 +93,12 @@ class PipelineController(QObject):
         project_location: str | Path,
         *,
         video_path: str = "",
-        sample_fps: float = 2.0,
-        slide_roi: str = "",
+        sample_fps: float | str | None = None,
+        slide_roi: str | None = None,
         ignore_rois: list[str] | None = None,
-        threshold: float = 0.95,
-        min_stable_duration: float = 2.0,
-    ) -> None:
+        threshold: float | str | None = None,
+        min_stable_duration: float | None = None,
+    ) -> PipelineStartResult:
         return self._run(
             "preview",
             project_location,
@@ -115,14 +115,14 @@ class PipelineController(QObject):
         project_location: str | Path,
         *,
         video_path: str = "",
-        sample_fps: float = 2.0,
-        slide_roi: str = "",
+        sample_fps: float | str | None = None,
+        slide_roi: str | None = None,
         ignore_rois: list[str] | None = None,
-        threshold: float = 0.95,
-        min_stable_duration: float = 2.0,
-        min_slide_duration: float = 2.0,
-        dedupe_enabled: bool = True,
-    ) -> None:
+        threshold: float | str | None = None,
+        min_stable_duration: float | None = None,
+        min_slide_duration: float | None = None,
+        dedupe_enabled: bool | None = None,
+    ) -> PipelineStartResult:
         return self._run(
             "detect",
             project_location,

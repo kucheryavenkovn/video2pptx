@@ -312,16 +312,17 @@ class MainWindow(QMainWindow):
         if not project_dir:
             return
         result = getattr(self._pipeline_ctrl, f"run_{stage}")(project_dir, **params)
-        if result and result.accepted:
+        if result is None:
+            return
+        if result.accepted:
             self._status.start(stage, stage.capitalize())
+        else:
+            self._on_operation_rejected(stage, result.active_stage or "")
 
     def _on_operation_rejected(self, requested: str, active: str) -> None:
-        self.statusBar().showMessage(f"{active.capitalize()} is already running")
-        QMessageBox.information(
-            self,
-            "Operation in Progress",
-            f"{active.capitalize()} is already running. Wait for it to finish or cancel it.",
-        )
+        cap = active.capitalize()
+        self.statusBar().showMessage(f"{cap} is already running")
+        QMessageBox.information(self, "Operation in Progress", f"{cap} is already running. Wait for it to finish.")
 
     def _on_busy_changed(self, busy: bool) -> None:
         for btn in self._PIPELINE_BUTTONS:
@@ -351,7 +352,7 @@ class MainWindow(QMainWindow):
             return
         if proj.slides and not self._confirm("Re-detect?", "Overwrite slides.json and screenshots?"):
             return
-        self._run_pipeline("detect", video_path=proj.video or "")
+        self._run_pipeline("detect")
 
     def _on_quick_detect(self) -> None:
         proj = self._model.project_data
@@ -359,7 +360,7 @@ class MainWindow(QMainWindow):
             return
         if proj.slides and not self._confirm("Re-run?", "Overwrite slides?"):
             return
-        self._run_pipeline("preview", video_path=proj.video or "")
+        self._run_pipeline("preview")
 
     def _on_process_notes(self) -> None:
         proj = self._model.project_data
@@ -368,19 +369,19 @@ class MainWindow(QMainWindow):
         if proj.state.notes_done and not self._confirm("Re-process?", "Notes already processed."):
             return
         self._btn_process_notes.setEnabled(False)
-        self._run_pipeline("notes", subtitles_path=proj.subtitles or "")
+        self._run_pipeline("notes")
 
     def _on_auto_align(self) -> None:
         proj = self._model.project_data
         if not proj:
             return
-        self._run_pipeline("align", subtitles_path=proj.subtitles or "")
+        self._run_pipeline("align")
 
     def _on_auto(self) -> None:
         proj = self._model.project_data
         if not proj or not proj.video:
             return
-        self._run_pipeline("auto", video_path=proj.video, subtitles_path=proj.subtitles or "")
+        self._run_pipeline("auto")
 
     def _on_export_md(self) -> None:
         proj = self._model.project_data
