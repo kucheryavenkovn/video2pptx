@@ -92,6 +92,12 @@ class AboutDialog(QDialog):
             build_label.setStyleSheet("color: #888;")
             layout.addWidget(build_label)
 
+        # Author + License
+        author_label = QLabel(f"{identity.author}  |  License: {identity.license_name}")
+        author_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        author_label.setStyleSheet("color: #888;")
+        layout.addWidget(author_label)
+
         # Separator
         layout.addSpacing(8)
 
