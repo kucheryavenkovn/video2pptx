@@ -31,6 +31,10 @@ from loguru import logger
 from rich.console import Console
 from rich.table import Table
 
+from video2pptx.adapters.cli.errors import render_cli_error
+from video2pptx.adapters.cli.exit_codes import CliExitCode
+from video2pptx.adapters.cli.renderer import render_service_result
+from video2pptx.bootstrap import ApplicationServices
 from video2pptx.config import load_config
 from video2pptx.detect_slides import run_detect_slides
 from video2pptx.markdown_export import export_to_markdown
@@ -666,6 +670,115 @@ def _build_cli_overrides(**kwargs) -> dict:
         overrides.setdefault("debug", {})["save_contact_sheet"] = debug_flag
 
     return overrides
+
+
+_SERVICE_ATTR_MAP: dict[str, str] = {
+    "preview": "preview_service",
+    "detect": "detection_service",
+    "align": "alignment_service",
+    "notes": "notes_service",
+    "export-md": "export_service",
+    "export-pptx": "export_service",
+    "validate": "validation_service",
+    "auto": "auto_service",
+}
+
+
+def _run_service(
+    command: str,
+    project_dir: str,
+    **kwargs,
+) -> int:
+    """Run a project-based command through ApplicationServices."""
+    services = ApplicationServices()
+    attr = _SERVICE_ATTR_MAP.get(command, f"{command}_service")
+    try:
+        service = getattr(services, attr)
+        result = service.execute(Path(project_dir), **kwargs)
+        render_service_result(result, console)
+        pipeline_ok = result.data.get("success", True) if command == "auto" else result.success
+        return CliExitCode.SUCCESS if pipeline_ok else CliExitCode.GENERAL_APPLICATION_ERROR
+    except Exception as exc:
+        return render_cli_error(exc, console, project=project_dir, stage=command)
+
+
+def _is_project_dir(path: Path) -> bool:
+    """Check if path looks like a project directory (not a video file)."""
+    if path.is_dir():
+        return True
+    video_extensions = {".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v", ".mpg", ".mpeg"}
+    return path.suffix.lower() not in video_extensions
+
+
+@app.command()
+def preview(
+    project_dir: str = typer.Argument(..., help="Project directory"),
+    sample_fps: float = typer.Option(2.0, "--sample-fps"),
+    slide_roi: str = typer.Option("auto", "--slide-roi"),
+    threshold: float = typer.Option(0.95, "--threshold"),
+    min_stable_duration: float = typer.Option(2.0, "--min-stable-duration"),
+) -> None:
+    """Preview diff scores without creating slides."""
+    raise typer.Exit(
+        code=_run_service(
+            "preview", project_dir,
+            video_path="", sample_fps=sample_fps, slide_roi=slide_roi,
+            ignore_rois=[], threshold=threshold,
+            min_stable_duration=min_stable_duration,
+        )
+    )
+
+
+@app.command()
+def align(
+    project_dir: str = typer.Argument(..., help="Project directory"),
+    subtitles: str = typer.Option("", "--subtitles", help="Path to SRT/VTT file"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show alignment plan without applying"),
+) -> None:
+    """Align slide intervals to subtitle timestamps."""
+    raise typer.Exit(
+        code=_run_service(
+            "align", project_dir,
+            subtitles_path=subtitles, dry_run=dry_run,
+        )
+    )
+
+
+@app.command()
+def validate(
+    project_dir: str = typer.Argument(..., help="Project directory"),
+) -> None:
+    """Validate project storage and aggregate."""
+    raise typer.Exit(
+        code=_run_service("validate", project_dir)
+    )
+
+
+@app.command()
+def auto(
+    project_dir: str = typer.Argument(..., help="Project directory"),
+    mode: str = typer.Option("full", "--mode", help="Mode: full, resume, or force"),
+    video_path: str = typer.Option("", "--video-path", help="Video file path"),
+    subtitles: str = typer.Option("", "--subtitles", help="Path to SRT/VTT file"),
+    sample_fps: float = typer.Option(2.0, "--sample-fps"),
+    slide_roi: str = typer.Option("auto", "--slide-roi"),
+    threshold: float = typer.Option(0.95, "--threshold"),
+    notes_mode: str = typer.Option("basic", "--notes-mode"),
+    export_format: str = typer.Option("markdown", "--export-format"),
+) -> None:
+    """Run full pipeline: detect -> align -> notes -> export."""
+    raise typer.Exit(
+        code=_run_service(
+            "auto", project_dir,
+            mode=mode, video_path=video_path, subtitles_path=subtitles,
+            sample_fps=sample_fps, slide_roi=slide_roi,
+            ignore_rois=[], threshold=threshold,
+            min_stable_duration=2.0, min_slide_duration=2.0,
+            dedupe_enabled=True, notes_mode=notes_mode,
+            export_format=export_format, export_output_path="",
+            dry_run=False,
+        )
+    )
 
 
 def run():

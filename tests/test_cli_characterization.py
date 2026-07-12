@@ -39,6 +39,10 @@ EXPECTED_COMMANDS = (
     "llm-process",
     "project",
     "gui",
+    "preview",
+    "align",
+    "validate",
+    "auto",
 )
 
 HELP_CASES = (
@@ -54,6 +58,10 @@ HELP_CASES = (
     (["project", "open", "--help"], ("PROJECT_DIR",)),
     (["project", "info", "--help"], ("PROJECT_DIR",)),
     (["gui", "--help"], ()),
+    (["preview", "--help"], ("PROJECT_DIR", "--sample-fps", "--slide-roi")),
+    (["align", "--help"], ("PROJECT_DIR", "--subtitles", "--dry-run")),
+    (["validate", "--help"], ("PROJECT_DIR",)),
+    (["auto", "--help"], ("PROJECT_DIR", "--mode", "--notes-mode")),
 )
 
 
@@ -119,3 +127,18 @@ def test_detect_semantic_migration_is_explicit() -> None:
     assert "VIDEO" in legacy_help.stdout
     assert "--export-md" in legacy_help.stdout
     assert "--llm" in legacy_help.stdout
+
+
+def test_console_entry_point_shows_new_commands() -> None:
+    """Verify the console entry point (video2pptx.cli:run) exposes all Phase 16 Step 7 commands."""
+    result = runner.invoke(app, ["--help"])
+    assert result.exit_code == 0
+    output = result.stdout
+    for cmd in EXPECTED_COMMANDS:
+        assert cmd in output, f"Command '{cmd}' not found in entry point --help output"
+    # Verify new Step 7 commands are present
+    for cmd in ("preview", "align", "validate", "auto"):
+        assert cmd in output, f"Step 7 command '{cmd}' not found in entry point --help"
+    # Verify old legacy commands still present
+    for cmd in ("detect-slides", "roi-tool", "debug", "llm-process", "gui"):
+        assert cmd in output, f"Legacy command '{cmd}' missing from entry point"
