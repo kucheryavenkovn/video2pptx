@@ -12,7 +12,6 @@
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -35,75 +34,68 @@ def _ensure_app() -> None:
 @pytest.mark.skipif(not pyside_available, reason="PySide6 not installed")
 class TestProjectSettingsDialog:
     # START_CONTRACT: TestProjectSettingsDialog
-    #   PURPOSE: Smoke tests for ProjectSettingsDialog
+    #   PURPOSE: Smoke tests for ProjectSettingsDialog using canonical DetectionConfig
     #   LINKS: M-GUI-SETTINGS-PROJECT
     # END_CONTRACT: TestProjectSettingsDialog
 
     @pytest.fixture
-    def project(self, tmp_path: Path):
-        from video2pptx.project_manager import Project, save_project
-        proj = Project(
-            name="test",
-            video=str(tmp_path / "test.mp4"),
-            output_dir=str(tmp_path),
+    def config(self):
+        from video2pptx.domain.project import DetectionConfig
+        return DetectionConfig(
+            sample_fps=2.0, decoder_backend="auto",
+            slide_roi="auto", threshold="auto",
+            min_slide_duration=2.0, min_stable_duration=2.0,
+            dedupe_enabled=True,
         )
-        save_project(proj, tmp_path)
-        return proj
 
-    def test_dialog_creates_without_error(self, project) -> None:
+    def test_dialog_creates_without_error(self, config) -> None:
         _ensure_app()
         from video2pptx.gui.settings_project import ProjectSettingsDialog
-        dlg = ProjectSettingsDialog(project)
+        dlg = ProjectSettingsDialog(config)
         assert dlg.windowTitle() == "Project Settings"
         dlg.close()
 
-    def test_loads_project_values(self, project) -> None:
+    def test_loads_project_values(self, config) -> None:
         _ensure_app()
-        project.detection.slide_roi = "100,100,800,600"
-        project.video_config.sample_fps = 5.0
-        project.detection.min_slide_duration = 7.0
-        project.detection.dedupe_enabled = False
+        config.slide_roi = "100,100,800,600"
+        config.sample_fps = 5.0
+        config.min_slide_duration = 7.0
+        config.dedupe_enabled = False
 
         from video2pptx.gui.settings_project import ProjectSettingsDialog
-        dlg = ProjectSettingsDialog(project)
+        dlg = ProjectSettingsDialog(config)
 
-        roi_text = dlg._roi_edit.text()
-        assert "100" in roi_text
+        assert "100" in dlg._roi_edit.text()
         assert dlg._fps_spin.value() == 5.0
         assert dlg._min_dur_spin.value() == 7.0
         assert dlg._dedupe_check.isChecked() is False
         dlg.close()
 
-    def test_accept_saves_to_project(self, project, tmp_path) -> None:
+    def test_accept_returns_updated_config(self, config) -> None:
         _ensure_app()
         from video2pptx.gui.settings_project import ProjectSettingsDialog
-        dlg = ProjectSettingsDialog(project)
+        dlg = ProjectSettingsDialog(config)
         dlg._roi_edit.setText("200,200,900,700")
         dlg._threshold_edit.setText("0.15")
         dlg._fps_spin.setValue(3.0)
 
         dlg._on_accept()
 
-        assert project.detection.slide_roi == "200,200,900,700"
-        assert project.detection.threshold == 0.15
-        assert project.video_config.sample_fps == 3.0
+        result = dlg.result_config
+        assert result is not None
+        assert result.slide_roi == "200,200,900,700"
+        assert result.threshold == 0.15
+        assert result.sample_fps == 3.0
 
-        # Verify persisted
-        from video2pptx.project_manager import Project as ProjModel
-        loaded = ProjModel.model_validate_json(
-            (tmp_path / "project.json").read_text(encoding="utf-8")
-        )
-        assert loaded.detection.slide_roi == "200,200,900,700"
-
-    def test_cancel_does_not_save(self, project) -> None:
+    def test_cancel_does_not_return_config(self, config) -> None:
         _ensure_app()
         from video2pptx.gui.settings_project import ProjectSettingsDialog
-        dlg = ProjectSettingsDialog(project)
+        dlg = ProjectSettingsDialog(config)
         dlg._roi_edit.setText("300,300,600,400")
 
         with patch.object(dlg, "accept") as mock_accept:
             dlg.reject()
             mock_accept.assert_not_called()
 
-        assert project.detection.slide_roi != "300,300,600,400"
+        assert dlg.result_config is None
         dlg.close()
