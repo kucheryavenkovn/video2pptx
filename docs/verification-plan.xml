@@ -1039,6 +1039,22 @@
     </stop-conditions>
   </V-REF-CLI-ADAPTER>
 
+  <V-REF-GUI-ADAPTER MODULE="M-GUI-PROJECT-CTRL" PRIORITY="high" STATUS="in_progress">
+    <purpose>New GUI controller code must use ApplicationServices (not legacy pipeline modules), emit Qt signals for state changes, and pass architecture import checks.</purpose>
+    <scenarios>
+      <scenario-1 kind="success">ProjectController creates/open/saves/closes projects through FileProjectRepository.</scenario-1>
+      <scenario-2 kind="success">Controller emits projectOpened/projectClosed/stateChanged/errorOccurred Qt signals.</scenario-2>
+      <scenario-3 kind="success">Architecture test forbids legacy pipeline imports in gui/controllers/.</scenario-3>
+      <scenario-4 kind="success">PipelineController runs stage services through ApplicationServices in a QThread.</scenario-4>
+      <scenario-5 kind="success">TimelineController provides slide CRUD through ApplicationServices with revision-safe saves.</scenario-5>
+      <scenario-6 kind="error">Controller emits errorOccurred on create(already exists)/open(not found)/save(revision conflict).</scenario-6>
+    </scenarios>
+    <stop-conditions>
+      <condition-1>Stop if controller code imports video2pptx.project_manager, video2pptx.models, video2pptx.detect_slides, or any legacy pipeline module.</condition-1>
+      <condition-2>Stop if controller mutates domain objects without going through ApplicationServices.</condition-2>
+    </stop-conditions>
+  </V-REF-GUI-ADAPTER>
+
   <V-ARCH-IMPORTS MODULE="Phase-16" PRIORITY="medium" STATUS="planned">
     <scenarios>
       <scenario-1 kind="success">domain/ does not import application, infrastructure, adapters, PySide6.</scenario-1>

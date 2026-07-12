@@ -715,7 +715,7 @@
       <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
       <depends>M-APP-BOOTSTRAP, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-VALIDATE, M-APP-AUTO</depends>
     </M-CLI-ADAPTER>
-    <M-GUI-PROJECT-CTRL NAME="ProjectController" TYPE="CORE_LOGIC" LAYER="1" ORDER="91" STATUS="planned">
+    <M-GUI-PROJECT-CTRL NAME="ProjectController" TYPE="CORE_LOGIC" LAYER="1" ORDER="91" STATUS="active">
       <contract><purpose>Create, open, save, and query projects through ApplicationServices; signal state changes to MainWindow.</purpose></contract>
       <target><source>src/video2pptx/gui/controllers/project_controller.py</source><tests>tests/gui/test_project_controller.py</tests></target>
       <verification-ref>V-REF-GUI-ADAPTER</verification-ref>

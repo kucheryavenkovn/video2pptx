@@ -715,6 +715,24 @@
       </annotations>
     </M-CANONICAL-COMMANDS>
 
+    <M-GUI-PROJECT-CTRL NAME="ProjectController" TYPE="CORE_LOGIC" STATUS="active">
+      <purpose>QObject-based project lifecycle: create/open/save/close via ApplicationServices and FileProjectRepository. Emits projectOpened/Closed/stateChanged/errorOccurred signals.</purpose>
+      <path>src/video2pptx/gui/controllers/project_controller.py</path>
+      <depends>M-APP-BOOTSTRAP, M-DOMAIN-PROJECT</depends>
+      <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
+    </M-GUI-PROJECT-CTRL>
+    <M-GUI-PIPELINE-CTRL NAME="PipelineController" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run stage services (preview/detect/align/notes/export) through ApplicationServices in QThread with progress signals.</purpose>
+      <path>src/video2pptx/gui/controllers/pipeline_controller.py</path>
+      <depends>M-APP-BOOTSTRAP, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-AUTO</depends>
+      <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
+    </M-GUI-PIPELINE-CTRL>
+    <M-GUI-TIMELINE-CTRL NAME="TimelineController" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>CRUD slide intervals, representative timestamps, and notes through ApplicationServices with Qt signals for timeline widgets.</purpose>
+      <path>src/video2pptx/gui/controllers/timeline_controller.py</path>
+      <depends>M-APP-BOOTSTRAP, M-DOMAIN-PROJECT</depends>
+      <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
+    </M-GUI-TIMELINE-CTRL>
     <M-GUI-CANONICAL-BUTTONS NAME="CanonicalButtons" TYPE="UI_COMPONENT" STATUS="planned">
       <purpose>Rename/wire 5 distinct stages: Quick Preview / Detect / Auto Align / Process Notes / Auto. Each button slot delegates to app_service — no business logic in slots.</purpose>
       <path>src/video2pptx/gui/main_window.py</path>

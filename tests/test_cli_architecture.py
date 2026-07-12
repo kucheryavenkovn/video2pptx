@@ -43,6 +43,7 @@ FORBIDDEN_IMPORTS: list[str] = [
 TARGET_PACKAGES = [
     "src/video2pptx/adapters/cli",
     "src/video2pptx/bootstrap",
+    "src/video2pptx/gui/controllers",
 ]
 
 
