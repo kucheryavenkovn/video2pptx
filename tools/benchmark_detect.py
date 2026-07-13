@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # FILE: tools/benchmark_detect.py
-# VERSION: 2.0.0
+# VERSION: 2.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Benchmark canonical DetectionService runs and emit portable raw and derived evidence.
 #   SCOPE: Environment/config capture, metrics collection, complete output signature, summary/report,
@@ -20,6 +20,8 @@
 #   aggregate_signatures - run signature identity and historical match
 #   select_median_run - median run selection by detect_elapsed_seconds
 #   compute_stage_accounting - measured_stage_total, residual from metrics timers only
+#   extract_profile_supporting_evidence - parse selected cumulative cProfile entries
+#   resolve_recovered_master_base - validate claimed base against git merge-base
 #   sanitize_committed_path - strip absolute prefix, return portable identifier
 #   evaluate_invariants - explicit metric and output artifact checks
 #   rank_bottlenecks - rank measured non-overlapping detector stages
@@ -28,6 +30,10 @@
 #   build_aggregate_evidence - consume artifact sets and produce complete aggregate document
 #   main - CLI artifact writer
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.1.0 - Added validated provenance and parsed supporting profile evidence.
+# END_CHANGE_SUMMARY
 """Phase 18 canonical detect benchmark tool."""
 
 from __future__ import annotations
@@ -37,6 +43,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import shutil
 import statistics
 import subprocess
@@ -51,6 +58,25 @@ STAGE_NAMES = [
     "roi", "extract_features", "visual_distance", "threshold", "debounce",
     "pass2_collect", "pass2_dedupe", "pass2_screenshots",
 ]
+
+PROFILE_FUNCTION_MATCHERS = {
+    "Packet.decode": "decode' of 'av.packet.Packet' objects",
+    "pyav_iter_frames": "(pyav_iter_frames)",
+    "to_ndarray": "to_ndarray' of 'av.video.frame.VideoFrame' objects",
+    "extract_features": "(extract_features)",
+    "compute_histogram": "(compute_histogram)",
+    "cv2_calc_hist": "(cv2_calc_hist)",
+    "numpy histogram": "_histograms_impl.py:",
+    "cv2_to_gray": "(cv2_to_gray)",
+}
+
+_PROFILE_LINE = re.compile(
+    r"^\s*(?P<calls>\d+(?:/\d+)?)\s+"
+    r"(?P<self_seconds>\d+(?:\.\d+)?)\s+"
+    r"\d+(?:\.\d+)?\s+"
+    r"(?P<cumulative_seconds>\d+(?:\.\d+)?)\s+"
+    r"\d+(?:\.\d+)?\s+(?P<descriptor>.+?)\s*$"
+)
 
 
 def _find_git_head() -> str:
@@ -208,6 +234,73 @@ def compute_stage_accounting(
         "residual_percentage": residual / detect_elapsed * 100 if detect_elapsed else 0,
         "_profile_evidence_ignored": True,
     }
+
+
+# START_CONTRACT: extract_profile_supporting_evidence
+#   PURPOSE: Extract selected cumulative-time entries from deterministic cProfile text.
+#   INPUTS: { profile_text: str - pstats text sorted by cumulative time }
+#   OUTPUTS: { dict[str, dict[str, Any]] - supporting entries keyed by stable function label }
+#   SIDE_EFFECTS: none
+#   LINKS: M-DETECT-BENCHMARK, V-PERF-DETECT-SHORT-BENCHMARK
+# END_CONTRACT: extract_profile_supporting_evidence
+def extract_profile_supporting_evidence(profile_text: str) -> dict[str, dict[str, Any]]:
+    """Parse selected supporting entries without contributing to stage accounting."""
+    evidence: dict[str, dict[str, Any]] = {}
+    for line in profile_text.splitlines():
+        match = _PROFILE_LINE.match(line)
+        if not match:
+            continue
+        descriptor = match.group("descriptor")
+        for function, marker in PROFILE_FUNCTION_MATCHERS.items():
+            if marker not in descriptor:
+                continue
+            if function == "numpy histogram" and not descriptor.endswith("(histogram)"):
+                continue
+            evidence[function] = {
+                "function": function,
+                "cumulative_seconds": float(match.group("cumulative_seconds")),
+                "calls": int(match.group("calls").split("/", 1)[0]),
+                "self_seconds": float(match.group("self_seconds")),
+            }
+            break
+    return evidence
+
+
+# START_CONTRACT: resolve_recovered_master_base
+#   PURPOSE: Validate a claimed recovered base as a commit and exact measurement/upstream merge-base.
+#   INPUTS: { benchmark_code_head: str - measurement commit, claimed_base: str - provenance SHA,
+#             upstream_ref: str - comparison ref, repo_dir: Path | None - repository root }
+#   OUTPUTS: { str - validated full recovered-master-base SHA }
+#   SIDE_EFFECTS: invokes read-only git commands
+#   LINKS: M-DETECT-BENCHMARK, V-PERF-DETECT-SHORT-BENCHMARK
+# END_CONTRACT: resolve_recovered_master_base
+def resolve_recovered_master_base(
+    benchmark_code_head: str,
+    claimed_base: str,
+    upstream_ref: str = "origin/master",
+    repo_dir: Path | None = None,
+) -> str:
+    """Return claimed_base only when git proves it is the exact merge-base commit."""
+    cwd = repo_dir or Path(__file__).resolve().parent.parent
+    if not re.fullmatch(r"[0-9a-f]{40}", claimed_base):
+        raise ValueError("recovered master base must be a full lowercase commit SHA")
+    subprocess.run(
+        ["git", "cat-file", "-e", f"{claimed_base}^{{commit}}"],
+        cwd=cwd,
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    merge_base = subprocess.check_output(
+        ["git", "merge-base", benchmark_code_head, upstream_ref],
+        cwd=cwd,
+        text=True,
+    ).strip()
+    if merge_base != claimed_base:
+        raise ValueError(
+            f"claimed recovered master base {claimed_base} does not match merge-base {merge_base}"
+        )
+    return claimed_base
 
 
 def sanitize_committed_path(path: str, base_dir: str | None = None) -> str:
@@ -431,12 +524,14 @@ def build_aggregate_evidence(
     benchmark_sequence: str,
     branch: str,
     benchmark_code_head: str,
+    evidence_builder_head: str,
     benchmark_code_tree: str,
     recovered_master_base: str,
     clip: dict[str, Any],
     warmup_performed: bool,
     recorded_runs: list[dict[str, Any]],
     profile_run: dict[str, Any] | None,
+    profile_text: str = "",
     historical_canonical: str = HISTORICAL_CANONICAL_SIGNATURE,
 ) -> dict[str, Any]:
     """Build complete aggregate evidence document from artifact sets."""
@@ -470,6 +565,7 @@ def build_aggregate_evidence(
     return {
         "benchmark_sequence": benchmark_sequence,
         "benchmark_code_head": benchmark_code_head,
+        "evidence_builder_head": evidence_builder_head,
         "benchmark_code_tree": benchmark_code_tree,
         "recovered_master_base": recovered_master_base,
         "branch": branch,
@@ -525,7 +621,7 @@ def build_aggregate_evidence(
             "residual_seconds": accounting["residual_seconds"],
             "residual_percentage": accounting["residual_percentage"],
         },
-        "profile_supporting_evidence": {},
+        "profile_supporting_evidence": extract_profile_supporting_evidence(profile_text),
         "rss": {
             "availability": rss_available,
             "status": "SKIPPED_PSUTIL_UNAVAILABLE" if not rss_available else "AVAILABLE",

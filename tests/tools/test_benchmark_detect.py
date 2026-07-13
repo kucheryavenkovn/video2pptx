@@ -1,15 +1,25 @@
 # FILE: tests/tools/test_benchmark_detect.py
-# VERSION: 2.0.0
+# VERSION: 2.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for benchmark_detect.py pure helpers, derived metrics, aggregate evidence
 #   SCOPE: score distribution, bottleneck ranking, invariant evaluation, output signature,
 #          derived metric formulas, signature aggregation, median selection, stage accounting,
-#          path sanitization, change_count, select_backend integration, aggregate structure
+#          path sanitization, profile/provenance extraction, select_backend integration, aggregate structure
 #   DEPENDS: pytest, numpy, tools.benchmark_detect
 #   LINKS: V-PERF-DETECT-SHORT-BENCHMARK
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   TestProfileSupportingEvidence - verifies deterministic selected cProfile entry parsing
+#   TestRecoveredMasterBase - verifies exact merge-base provenance validation
+#   TestAggregateEvidence - verifies aggregate identity separation and evidence structure
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.1.0 - Covered profile extraction and separate validated evidence provenance.
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -22,7 +32,7 @@ _tools_dir = str(Path(__file__).resolve().parent.parent.parent / "tools")
 if _tools_dir not in sys.path:
     sys.path.insert(0, _tools_dir)
 
-from benchmark_detect import (
+from benchmark_detect import (  # noqa: E402
     HISTORICAL_CANONICAL_SIGNATURE,
     STAGE_NAMES,
     aggregate_signatures,
@@ -32,7 +42,9 @@ from benchmark_detect import (
     compute_score_distribution,
     compute_stage_accounting,
     evaluate_invariants,
+    extract_profile_supporting_evidence,
     rank_bottlenecks,
+    resolve_recovered_master_base,
     sanitize_committed_path,
     select_median_run,
 )
@@ -329,6 +341,56 @@ class TestStageAccounting:
         ]
 
 
+class TestProfileSupportingEvidence:
+    PROFILE_TEXT = """\
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    72004  114.854    0.002  114.854    0.002 {method 'decode' of 'av.packet.Packet' objects}
+     2404   10.469    0.004  135.128    0.056 pyav_backend.py:113(pyav_iter_frames)
+     1285    0.039    0.000   92.712    0.072 frame_features.py:49(extract_features)
+     2402    9.580    0.004    9.580    0.004 {method 'to_ndarray' of 'av.video.frame.VideoFrame' objects}
+"""
+
+    def test_packet_decode_line(self):
+        evidence = extract_profile_supporting_evidence(self.PROFILE_TEXT)
+        assert evidence["Packet.decode"]["cumulative_seconds"] == 114.854
+
+    def test_extract_features_line(self):
+        evidence = extract_profile_supporting_evidence(self.PROFILE_TEXT)
+        assert evidence["extract_features"]["cumulative_seconds"] == 92.712
+
+    def test_to_ndarray_line(self):
+        evidence = extract_profile_supporting_evidence(self.PROFILE_TEXT)
+        assert evidence["to_ndarray"]["cumulative_seconds"] == 9.580
+
+    def test_missing_optional_function(self):
+        evidence = extract_profile_supporting_evidence(self.PROFILE_TEXT)
+        assert "cv2_to_gray" not in evidence
+
+    def test_known_fixture_is_non_empty_and_numeric(self):
+        evidence = extract_profile_supporting_evidence(self.PROFILE_TEXT)
+        assert evidence
+        assert all(isinstance(entry["cumulative_seconds"], float) for entry in evidence.values())
+
+
+class TestRecoveredMasterBase:
+    BASE = "713ea07827f3efc9abec1b8db50768fe8ef9bad0"
+
+    def test_preserves_validated_exact_value(self, monkeypatch, tmp_path):
+        monkeypatch.setattr("benchmark_detect.subprocess.run", lambda *args, **kwargs: None)
+        monkeypatch.setattr(
+            "benchmark_detect.subprocess.check_output", lambda *args, **kwargs: f"{self.BASE}\n"
+        )
+        assert resolve_recovered_master_base("4" * 40, self.BASE, repo_dir=tmp_path) == self.BASE
+
+    def test_rejects_merge_base_mismatch(self, monkeypatch, tmp_path):
+        monkeypatch.setattr("benchmark_detect.subprocess.run", lambda *args, **kwargs: None)
+        monkeypatch.setattr(
+            "benchmark_detect.subprocess.check_output", lambda *args, **kwargs: f"{'5' * 40}\n"
+        )
+        with pytest.raises(ValueError, match="does not match merge-base"):
+            resolve_recovered_master_base("4" * 40, self.BASE, repo_dir=tmp_path)
+
+
 # =========================================================================
 # New tests: 4.5 Change count
 # =========================================================================
@@ -346,6 +408,7 @@ class TestChangeCount:
             benchmark_sequence="test",
             branch="test",
             benchmark_code_head="abc",
+            evidence_builder_head="def",
             benchmark_code_tree="abc",
             recovered_master_base="abc",
             clip={},
@@ -411,12 +474,17 @@ class TestEffectiveBackend:
 class TestAggregateEvidence:
     @pytest.fixture
     def basic_aggregate(self):
+        profile_text = """\
+    72004  114.854    0.002  114.854    0.002 {method 'decode' of 'av.packet.Packet' objects}
+     1285    0.039    0.000   92.712    0.072 frame_features.py:49(extract_features)
+"""
         return build_aggregate_evidence(
             benchmark_sequence="test-seq",
             branch="test-branch",
             benchmark_code_head="head123",
+            evidence_builder_head="builder456",
             benchmark_code_tree="tree123",
-            recovered_master_base="base123",
+            recovered_master_base="713ea07827f3efc9abec1b8db50768fe8ef9bad0",
             clip={"identifier": "abc", "sha256": "def", "duration_seconds": 600.0,
                   "resolution": "1920x1080", "codec": "H.264", "fps": 60},
             warmup_performed=True,
@@ -493,11 +561,12 @@ class TestAggregateEvidence:
                 "output_signature": {"canonical_sha256": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"},
                 "derived_metrics": {},
             },
+            profile_text=profile_text,
         )
 
     def test_required_top_level_keys(self, basic_aggregate):
         required = [
-            "benchmark_sequence", "benchmark_code_head", "benchmark_code_tree",
+            "benchmark_sequence", "benchmark_code_head", "evidence_builder_head", "benchmark_code_tree",
             "recovered_master_base", "branch", "clip", "warmup_performed",
             "recorded_run_count", "effective_config", "runs", "summary",
             "signatures", "quality", "median_run_stage_accounting",
@@ -573,6 +642,18 @@ class TestAggregateEvidence:
         assert isinstance(accounting["measured_stage_total"], float)
         assert isinstance(accounting["residual_seconds"], float)
         assert isinstance(accounting["residual_percentage"], float)
+
+    def test_profile_supporting_evidence_is_non_empty(self, basic_aggregate):
+        assert basic_aggregate["profile_supporting_evidence"]
+
+    def test_separate_code_and_builder_heads(self, basic_aggregate):
+        assert basic_aggregate["benchmark_code_head"] == "head123"
+        assert basic_aggregate["evidence_builder_head"] == "builder456"
+
+    def test_exact_recovered_master_base(self, basic_aggregate):
+        assert basic_aggregate["recovered_master_base"] == (
+            "713ea07827f3efc9abec1b8db50768fe8ef9bad0"
+        )
 
 
 class TestHistoricalConstant:
