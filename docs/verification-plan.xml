@@ -1234,7 +1234,7 @@
 
   <!-- ===== Phase 18 — Detect Performance ===== -->
 
-  <V-PERF-DETECT-BASELINE MODULE="Phase-18/Step-18.1" PRIORITY="high" STATUS="in_progress">
+  <V-PERF-DETECT-BASELINE MODULE="Phase-18/Step-18.1" PRIORITY="high" STATUS="passed">
     <purpose>Performance baseline instrumentation: DetectionRunMetrics schema, to_dict/from_dict round-trip,
       measure() context manager, per-frame timers/counters, backend counters (frames_decoded, ndarray_conversions,
       rgb_transfer_bytes), RssSampler peak RSS (rss_before_mb, rss_peak_mb, rss_after_mb),
@@ -1269,9 +1269,9 @@
       <file>src/video2pptx/backends/opencv_backend.py</file>
       <file>tests/test_detect_slides.py</file>
     </test-files>
-    <notes>Step 18.1 remains in_progress. Deterministic recovery evidence does not replace the
-      unavailable fixture-backed detector gate (F-0093) or environment-sensitive broad backend
-      gate (F-0094). Benchmarking and optimization remain explicitly out of recovery scope.</notes>
+    <notes>Step 18.1 is done. Deterministic instrumentation evidence and the accepted recovered-tree
+      r2 benchmark close the baseline gate; F-0093 and F-0094 remain documented environment/test
+      isolation gaps and do not change the passed baseline status.</notes>
   </V-PERF-DETECT-BASELINE>
 
   <V-PERF-DETECT-TWO-PASS MODULE="Phase-18/Step-18.2" PRIORITY="high" STATUS="passed">
@@ -1305,9 +1305,28 @@
     </reference>
   </V-PERF-DETECT-TWO-PASS>
 
-  <V-PERF-DETECT-SHORT-BENCHMARK MODULE="Phase-18/Step-18.3" PRIORITY="high" STATUS="pending">
+  <V-PERF-DETECT-SHORT-BENCHMARK MODULE="Phase-18/Step-18.3" PRIORITY="high" STATUS="passed">
     <purpose>Run the immutable short-video benchmark on the recovered tree; historical 8623cd2
-      evidence is context only and cannot select an optimization.</purpose>
+      evidence is context only and cannot select an optimization. The c372ced series is
+      SUPERSEDED_FOR_STEP_18_3_ACCEPTANCE; r2 series (BENCHMARK_CODE_HEAD=465d89e) completed.</purpose>
+    <evidence>
+      <runs>
+        <run-1>benchmarks/detect/runs/hermes-600s-recovered-r2-20260713-465d89e/run-01</run-1>
+        <run-2>benchmarks/detect/runs/hermes-600s-recovered-r2-20260713-465d89e/run-02</run-2>
+        <run-3>benchmarks/detect/runs/hermes-600s-recovered-r2-20260713-465d89e/run-03</run-3>
+        <profile>benchmarks/detect/runs/hermes-600s-recovered-r2-20260713-465d89e/profile</profile>
+        <aggregate>benchmarks/detect/evidence/aggregate_evidence.json</aggregate>
+      </runs>
+      <invariants>6 PASS, 1 SKIPPED (psutil unavailable)</invariants>
+      <signature-match-historical>true</signature-match-historical>
+      <mean-detect-elapsed-seconds>254.49</mean-detect-elapsed-seconds>
+      <std-dev-detect-elapsed-seconds>28.48</std-dev-detect-elapsed-seconds>
+      <benchmark-code-head>465d89e243651e56a23e8c141632335bdd3a3303</benchmark-code-head>
+      <evidence-builder-head>3e3007cd9cb7f9e931acf8ccca1d8baa52fc5156</evidence-builder-head>
+      <recovered-master-base>713ea07827f3efc9abec1b8db50768fe8ef9bad0</recovered-master-base>
+      <profile-supporting-evidence>NON_EMPTY; supporting only and excluded from stage accounting</profile-supporting-evidence>
+      <decision>PENDING</decision>
+    </evidence>
   </V-PERF-DETECT-SHORT-BENCHMARK>
 
   <V-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="pending">

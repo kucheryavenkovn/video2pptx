@@ -1,0 +1,13 @@
+{
+  "video_identifier": "hermes-0000-1000.mp4",
+  "sample_fps": 2.0,
+  "configured_backend": "auto",
+  "slide_roi": "auto",
+  "ignore_rois": [],
+  "threshold": "auto",
+  "min_slide_duration": 2.0,
+  "min_stable_duration": 2.0,
+  "dedupe_enabled": true,
+  "quick_mode": false,
+  "effective_backend": "pyav"
+}

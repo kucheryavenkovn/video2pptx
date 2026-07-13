@@ -959,3 +959,12 @@
 - Impact: The broad backend regression command is environment-sensitive and cannot serve as clean recovery evidence here. Exact OpenCV and PyAV telemetry tests are deterministic and pass independently.
 - Resolution/Status: Open pre-existing test isolation gap; no backend selection policy or unrelated tests changed during historical recovery.
 - LINKS: M-BACKENDS, M-VIDEO-DECODE, V-M-BACKENDS, tests/test_backends.py, tests/test_video_decode.py
+
+### F-0095 — Local warmup directory blocked immutable-tree preflight
+- Date: 2026-07-13
+- Area: tooling
+- Finding: An untracked local-only `warmup/` directory existed inside the accepted r2 artifact path even though it was not part of the committed raw evidence tree.
+- Symptom/Reproduction: `git status --short` reported the untracked directory, preventing the required clean-worktree preflight while `git ls-tree` excluded it from the tracked artifact listing.
+- Impact: Step 18.3 evidence correction could not begin without explicitly preserving and relocating the local data.
+- Resolution/Status: Resolved with user authorization by moving the directory intact to `C:/Users/tux/AppData/Local/Temp/opencode/video2pptx-phase18-short-benchmark-warmup-preflight`; no tracked raw artifact changed.
+- LINKS: M-DETECT-BENCHMARK, V-PERF-DETECT-SHORT-BENCHMARK, benchmarks/detect/runs/hermes-600s-recovered-r2-20260713-465d89e

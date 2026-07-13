@@ -1,0 +1,258 @@
+{
+  "benchmark_sequence": "hermes-600s-recovered-r2-20260713",
+  "benchmark_code_head": "465d89e243651e56a23e8c141632335bdd3a3303",
+  "evidence_builder_head": "3e3007cd9cb7f9e931acf8ccca1d8baa52fc5156",
+  "benchmark_code_tree": "66f9a5d50d7b97a34bfc151623d726fee2d03365",
+  "recovered_master_base": "713ea07827f3efc9abec1b8db50768fe8ef9bad0",
+  "branch": "perf/phase18-short-benchmark-recovered",
+  "clip": {
+    "identifier": "hermes-0000-1000.mp4",
+    "sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+    "duration_seconds": 600.016667,
+    "resolution": "1920x1080",
+    "codec": "H.264",
+    "fps": 60
+  },
+  "warmup_performed": true,
+  "recorded_run_count": 3,
+  "effective_config": {
+    "video_identifier": "hermes-0000-1000.mp4",
+    "sample_fps": 2.0,
+    "configured_backend": "auto",
+    "slide_roi": "auto",
+    "ignore_rois": [],
+    "threshold": "auto",
+    "min_slide_duration": 2.0,
+    "min_stable_duration": 2.0,
+    "dedupe_enabled": true,
+    "quick_mode": false,
+    "effective_backend": "pyav"
+  },
+  "runs": [
+    {
+      "id": "run-01",
+      "detect_elapsed_seconds": 276.1155335000003,
+      "wall_clock_seconds": 276.18224740000005,
+      "real_time_multiplier": 0.4601797730618599,
+      "processing_x_realtime": 2.173063786238111,
+      "effective_sampled_fps": 2.001611066359268,
+      "canonical_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
+    },
+    {
+      "id": "run-02",
+      "detect_elapsed_seconds": 222.22499099999914,
+      "wall_clock_seconds": 222.28747569999905,
+      "real_time_multiplier": 0.370364697091746,
+      "processing_x_realtime": 2.7000413588347,
+      "effective_sampled_fps": 2.001611066359268,
+      "canonical_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
+    },
+    {
+      "id": "run-03",
+      "detect_elapsed_seconds": 265.1246777999986,
+      "wall_clock_seconds": 265.18782160000046,
+      "real_time_multiplier": 0.44186218905030183,
+      "processing_x_realtime": 2.2631490649817954,
+      "effective_sampled_fps": 2.001611066359268,
+      "canonical_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
+    }
+  ],
+  "summary": {
+    "min_detect_elapsed_seconds": 222.22499099999914,
+    "median_detect_elapsed_seconds": 265.1246777999986,
+    "max_detect_elapsed_seconds": 276.1155335000003,
+    "mean_detect_elapsed_seconds": 254.48840076666602,
+    "std_dev_seconds": 28.476225778418335,
+    "median_run_id": "run-03"
+  },
+  "signatures": {
+    "run_signatures": [
+      "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
+      "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
+      "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
+    ],
+    "signature_identity": true,
+    "historical_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
+    "historical_signature_match": true,
+    "profile_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
+    "profile_signature_match": true
+  },
+  "quality": {
+    "slides_count": 28,
+    "screenshots_written": 6,
+    "actual_png_count": 6,
+    "change_count": "NOT_EXPOSED",
+    "score_distribution": {
+      "count": 1200,
+      "p50": 0.0017778914188966155,
+      "p90": 0.0049317822791636,
+      "p95": 0.006335227238014339,
+      "p99": 0.014790588701143857,
+      "max": 0.11906921863555908
+    }
+  },
+  "median_run_stage_accounting": {
+    "stages": [
+      {
+        "rank": 1,
+        "stage": "extract_features",
+        "elapsed_seconds": 101.68870530002096,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 38.35505096840951,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 2,
+        "stage": "pass2_collect",
+        "elapsed_seconds": 65.21966319999774,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 24.59961997547332,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 3,
+        "stage": "pass2_dedupe",
+        "elapsed_seconds": 9.902207399998588,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 3.7349248218487188,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 4,
+        "stage": "roi",
+        "elapsed_seconds": 0.33742250004434027,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 0.1272693673196581,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 5,
+        "stage": "visual_distance",
+        "elapsed_seconds": 0.27503910009909305,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 0.10373953205011475,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 6,
+        "stage": "threshold",
+        "elapsed_seconds": 0.1707810000552854,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 0.0644153541165704,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 7,
+        "stage": "pass2_screenshots",
+        "elapsed_seconds": 0.13893839999946067,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 0.05240492931566003,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 8,
+        "stage": "debounce",
+        "elapsed_seconds": 0.005431400000816211,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 0.0020486210660908308,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 9,
+        "stage": "unattributed_residual",
+        "elapsed_seconds": 87.38648949978233,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 32.96052643040036,
+        "measurement_type": "derived residual",
+        "notes": "decode/open/service/persistence and other uninstrumented work; not a measured timer"
+      }
+    ],
+    "measured_stage_total": 177.73818830021628,
+    "residual_seconds": 87.38648949978233,
+    "residual_percentage": 32.96052643040036
+  },
+  "profile_supporting_evidence": {
+    "pyav_iter_frames": {
+      "function": "pyav_iter_frames",
+      "cumulative_seconds": 135.128,
+      "calls": 2404,
+      "self_seconds": 10.469
+    },
+    "Packet.decode": {
+      "function": "Packet.decode",
+      "cumulative_seconds": 114.854,
+      "calls": 72004,
+      "self_seconds": 114.854
+    },
+    "extract_features": {
+      "function": "extract_features",
+      "cumulative_seconds": 92.712,
+      "calls": 1285,
+      "self_seconds": 0.039
+    },
+    "compute_histogram": {
+      "function": "compute_histogram",
+      "cumulative_seconds": 48.842,
+      "calls": 1285,
+      "self_seconds": 0.887
+    },
+    "cv2_calc_hist": {
+      "function": "cv2_calc_hist",
+      "cumulative_seconds": 47.946,
+      "calls": 3855,
+      "self_seconds": 0.311
+    },
+    "numpy histogram": {
+      "function": "numpy histogram",
+      "cumulative_seconds": 40.567,
+      "calls": 3855,
+      "self_seconds": 36.744
+    },
+    "cv2_to_gray": {
+      "function": "cv2_to_gray",
+      "cumulative_seconds": 34.049,
+      "calls": 1285,
+      "self_seconds": 32.438
+    },
+    "to_ndarray": {
+      "function": "to_ndarray",
+      "cumulative_seconds": 9.58,
+      "calls": 2402,
+      "self_seconds": 9.58
+    }
+  },
+  "rss": {
+    "availability": false,
+    "status": "SKIPPED_PSUTIL_UNAVAILABLE",
+    "rss_before_mb": 0,
+    "rss_peak_mb": 0,
+    "rss_after_mb": 0
+  },
+  "counter_invariants": {
+    "features_full": 1201,
+    "features_quick": 0,
+    "frames_sampled": 1201,
+    "frames_decoded": 72002,
+    "ndarray_conversions": 2402,
+    "pass2_frames_sampled": 1201,
+    "representative_frames": 84,
+    "representative_frame_bytes": 522547200,
+    "screenshots_written": 6,
+    "rgb_transfer_bytes": 14942361600
+  },
+  "f0088": {
+    "observed": true,
+    "exact_fact": "slides_count=28 > png_count=6",
+    "finding_status": "OPEN"
+  },
+  "decision": "PENDING",
+  "optimization_selected": false
+}

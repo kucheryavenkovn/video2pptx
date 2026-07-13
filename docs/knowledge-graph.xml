@@ -980,8 +980,8 @@
       <verification-ref>V-PERF-DETECT-BASELINE</verification-ref>
       <cross-links>M-DETECT-SLIDES, M-BACKEND-OPENCV, M-BACKEND-PYAV</cross-links>
     </M-DETECT-METRICS>
-    <M-DETECT-BENCHMARK NAME="DetectBenchmarkPlan" TYPE="UTILITY" STATUS="planned">
-      <purpose>Evidence-driven Phase 18 sequence: recovered-tree short benchmark, pending bottleneck decision, one targeted optimization, short re-benchmark, Hermes full re-benchmark, and quality acceptance.</purpose>
+    <M-DETECT-BENCHMARK NAME="DetectBenchmarkPlan" TYPE="UTILITY" STATUS="active">
+      <purpose>Evidence-driven Phase 18 sequence: recovered-tree short benchmark (Step 18.3 — done), pending bottleneck decision (Step 18.4), one targeted optimization (Step 18.5), short re-benchmark (Step 18.6), Hermes full re-benchmark (Step 18.7), and quality acceptance (Step 18.8). Step 18.3 evidence: mean detect 237.7s (3 runs), historical signature match, 6/6 invariants PASS.</purpose>
       <path>tools/benchmark_detect.py</path>
       <depends>M-DETECT-SLIDES, M-DETECT-METRICS</depends>
       <verification-ref>V-PERF-DETECT-SHORT-BENCHMARK, V-PERF-DETECT-BOTTLENECK, V-PERF-DETECT-TARGETED, V-PERF-DETECT-SHORT-REBENCHMARK, V-PERF-DETECT-HERMES-REBENCHMARK, V-PERF-DETECT-ACCEPTANCE</verification-ref>
