@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "step": "18.4",
+  "phase": "18",
+  "decision_id": "BD-001",
+  "decision_status": "final",
+  "evidence_source": "accepted Step 18.3 recovered-tree short benchmark",
+  "benchmark_run_id": "hermes-600s-recovered-r2-20260713-465d89e",
+  "median_run_id": "run-03",
+  "median_total_elapsed": 265.1246777999986,
+  "bottleneck_classification": {
+    "primary_class": "FEATURE_EXTRACTION_CPU",
+    "primary_wall_clock_seconds": 101.744,
+    "primary_wall_clock_pct": 38.4,
+    "resolution_method": "wall-clock stage timers as primary, cProfile cumulative hierarchy as secondary"
+  },
+  "candidate_classes_assessed": [
+    {
+      "class": "FEATURE_EXTRACTION_CPU",
+      "wall_clock_seconds": 101.744,
+      "wall_clock_pct": 38.4,
+      "cprofile_cumulative_seconds": 107.3,
+      "code_boundaries": "frame_features.extract_features — compute_histogram (48.8s cumulative), cv2_to_gray (34.0s cumulative), phash, dhash",
+      "ruling": "PRIMARY — largest measured wall-clock stage; subsystem compute_histogram+cv2_to_gray accounts for 82.8s (78%) of this class"
+    },
+    {
+      "class": "DECODE_FRAME_PIPELINE",
+      "wall_clock_seconds": null,
+      "wall_clock_pct": null,
+      "cprofile_cumulative_seconds": 114.854,
+      "code_boundaries": "pyav_backend.Packet.decode (114.854s cumulative), to_ndarray (9.58s cumulative)",
+      "ruling": "NOT_PRIMARY — cProfile cumulative is inflated; Packet.decode overlaps with extract_features in producer-consumer pipeline. Decode produces 18018 frames in 265s ≈ 68 fps, not a bottleneck at current HW (RTX 4090 + CUDA decode)."
+    },
+    {
+      "class": "PASS2_COLLECTION",
+      "wall_clock_seconds": 10.9,
+      "wall_clock_pct": 4.1,
+      "cprofile_cumulative_seconds": null,
+      "code_boundaries": "detect_slides — pass2_collect, dedupe, screenshots (measure_collect_slides)",
+      "ruling": "NOT_PRIMARY — only 4.1% of wall-clock; not worth optimizing before FEATURE_EXTRACTION_CPU"
+    },
+    {
+      "class": "THRESHOLD_OR_DECISION_LOGIC",
+      "wall_clock_seconds": null,
+      "wall_clock_pct": null,
+      "cprofile_cumulative_seconds": null,
+      "code_boundaries": "slide_detector — visual_distance, threshold, debounce",
+      "ruling": "NOT_PRIMARY — visual_distance ~12.4s (4.7%); threshold and debounce are negligible (<1s)"
+    },
+    {
+      "class": "MIXED_OR_UNRESOLVED",
+      "wall_clock_seconds": null,
+      "wall_clock_pct": null,
+      "cprofile_cumulative_seconds": null,
+      "code_boundaries": "N/A",
+      "ruling": "NOT_SELECTED — wall-clock evidence clearly isolates FEATURE_EXTRACTION_CPU"
+    }
+  ],
+  "optimization_selected": {
+    "name": "opencv-accelerated-histogram-gray",
+    "target_module": "M-FRAME-FEATURES",
+    "target_file": "src/video2pptx/frame_features.py",
+    "target_function": "extract_features",
+    "subsystem": "compute_histogram (48.8s) + cv2_to_gray (34.0s)",
+    "optimization_hypothesis": "Replace per-frame custom histogram computation with cv2.calcHist vectorized path; fuse grayscale conversion and histogram into a single pre-processing pass. Estimated wall-clock reduction: 30-50% of compute_histogram + cv2_to_gray subsystem (25-41s), translating to 9-15% of total pipeline.",
+    "acceleration_type": "opencv-native"
+  },
+  "acceptance_gates_for_step_18_6": {
+    "wall_clock_reduction_pct_min": 15.0,
+    "missed_slide_rate_max": 0.05,
+    "false_split_rate_max": 0.10,
+    "timestamp_error_seconds_max": 1.5,
+    "benchmark_integrity": "immutable short video, same HW (RTX 4090), same measurement protocol",
+    "min_run_count": 3,
+    "comparison_baseline": "median run-03 (265.1s) from accepted Step 18.3"
+  },
+  "classification_timestamp": "2026-07-13T12:00:00Z",
+  "classifier": "BD-001-analysis",
+  "findings_links": ["F-0087", "F-0088"]
+}

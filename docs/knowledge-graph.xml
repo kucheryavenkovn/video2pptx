@@ -987,6 +987,13 @@
       <verification-ref>V-PERF-DETECT-SHORT-BENCHMARK, V-PERF-DETECT-BOTTLENECK, V-PERF-DETECT-TARGETED, V-PERF-DETECT-SHORT-REBENCHMARK, V-PERF-DETECT-HERMES-REBENCHMARK, V-PERF-DETECT-ACCEPTANCE</verification-ref>
       <cross-links>M-DETECT-SLIDES, M-DETECT-METRICS</cross-links>
     </M-DETECT-BENCHMARK>
+    <M-DETECT-PERF-DECISION NAME="BottleneckDecision" TYPE="DECISION" STATUS="in_progress">
+      <purpose>Step 18.4 decision: primary bottleneck = FEATURE_EXTRACTION_CPU (101.7s/265.1s = 38.4%). Extract features compute_histogram (48.8s) + cv2_to_gray (34.0s) = 82.8s subsystem. Targeted optimization: OpenCV-accelerated histogram computation within extract_features. Acceptance gates: short-video wall-clock reduction &gt;= 15%, missed_slide_rate unchanged.</purpose>
+      <path>benchmarks/detect/evidence/bottleneck_decision.json</path>
+      <depends>M-DETECT-BENCHMARK</depends>
+      <verification-ref>V-PERF-DETECT-BOTTLENECK</verification-ref>
+      <cross-links>M-DETECT-SLIDES, M-SLIDE-DETECTOR, M-FRAME-FEATURES, M-BACKEND-PYAV</cross-links>
+    </M-DETECT-PERF-DECISION>
     <!-- ===== DETECT PERFORMANCE (Phase-18) ===== -->
     <M-ARCH-OVERVIEW NAME="ArchitectureOverview" TYPE="UTILITY" STATUS="planned">
       <purpose>Target layered architecture: domain/application/infrastructure/adapters with ports and dependency rules. See docs/architecture.md for full context.</purpose>

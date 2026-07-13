@@ -1288,9 +1288,11 @@
         median_run_id=run-03, measured_stage_total=177.7s, residual=87.4s (33.0%)
         Invariants: 6 PASS, 1 SKIPPED (psutil). F-0088 observed: 28 slides, 6 PNGs.
       </step-18.3>
-      <step-18.4 name="BottleneckDecision" status="pending" verification="V-PERF-DETECT-BOTTLENECK">
+      <step-18.4 name="BottleneckDecision" status="in_progress" verification="V-PERF-DETECT-BOTTLENECK">
         Classify the current bottleneck only from the recovered-tree short benchmark. Do not
         carry DECODE_PROFILE forward as an accepted decision from the regressed benchmark.
+        Decision: FEATURE_EXTRACTION_CPU — 101.7s (38.4%) median wall-clock. Optimize via
+        OpenCV-accelerated histogram and grayscale within extract_features.
       </step-18.4>
       <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
         Select exactly one optimization only after Step 18.4 supplies accepted bottleneck evidence.

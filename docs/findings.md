@@ -968,3 +968,12 @@
 - Impact: Step 18.3 evidence correction could not begin without explicitly preserving and relocating the local data.
 - Resolution/Status: Resolved with user authorization by moving the directory intact to `C:/Users/tux/AppData/Local/Temp/opencode/video2pptx-phase18-short-benchmark-warmup-preflight`; no tracked raw artifact changed.
 - LINKS: M-DETECT-BENCHMARK, V-PERF-DETECT-SHORT-BENCHMARK, benchmarks/detect/runs/hermes-600s-recovered-r2-20260713-465d89e
+
+### F-0096 — extract_features (38.4%) confirmed as primary bottleneck; DECODE_PROFILE superseded
+- Date: 2026-07-13
+- Area: detection
+- Finding: Wall-clock stage timers from the accepted recovered-tree short benchmark (median run-03) show extract_features at 101.7s/265.1s (38.4%) as the primary bottleneck, not decode. The cProfile cumulative hierarchy (Packet.decode 114.854s) is inflated by producer-consumer overlap. The earlier DECODE_PROFILE hypothesis (from the regressed benchmark) does not apply to the recovered tree.
+- Symptom/Reproduction: Stage timer measure('extract_features') consistently reports 38-42% across all 3 runs. Packet.decode is not independently wall-clock-measured due to pipelining.
+- Impact: Step 18.4 decision classifies FEATURE_EXTRACTION_CPU. Optimization target: compute_histogram (48.8s) + cv2_to_gray (34.0s) in frame_features.extract_features. DECODE_PROFILE is superseded for the recovered tree.
+- Resolution/Status: Documented in bottleneck_decision.json and bottleneck_decision.md. Optimization selected: opencv-accelerated-histogram-gray.
+- LINKS: M-DETECT-PERF-DECISION, V-PERF-DETECT-BOTTLENECK, M-FRAME-FEATURES, M-BACKEND-PYAV
