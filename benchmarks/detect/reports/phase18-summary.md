@@ -1,6 +1,6 @@
 # Phase 18 — Detect Performance & Quality
 
-## Status: In Progress (Steps 18.1–18.2 complete)
+## Status: In Progress (Steps 18.1–18.4 complete)
 
 ### Step 18.1 — PerformanceBaseline
 
@@ -59,10 +59,38 @@ After:  `decoder.iter_frames()` called 2 times (detect → dedup+screenshots)
 - `test_log_markers_present`: asserts no `Pass 3/3` markers
 - Full test suite: all detection/metrics tests pass
 
+### Step 18.3 — ShortVideoBenchmark (completed)
+
+Fixed interval: first 600 seconds of the same local Hermes source, stream-copied without re-encoding.
+The clip is H.264 1920x1080 at 60 fps, actual duration 600.016667 seconds, SHA-256
+`dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4`.
+
+Canonical active config loaded through `FileProjectRepository`: sample_fps 2.0, backend auto
+(resolved to PyAV), ROI auto, no ignored ROIs, threshold auto, min slide 2.0 seconds,
+min stable 2.0 seconds, dedupe enabled, full mode.
+
+One warm-up and three recorded DetectionService runs completed. Recorded detect elapsed:
+242.126841, 245.960049, and 247.533700 seconds; median 245.960049 seconds. All canonical
+output signatures equal `8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85`.
+
+### Step 18.4 — BottleneckDecision (completed)
+
+Decision: **DECODE_PROFILE**. Median measured feature extraction is 88.616671 seconds
+(36.029% of median detect elapsed), Pass 2 collect is 53.669377 seconds (21.820%), and
+the derived unattributed residual is 96.728170 seconds (39.327%). The separate profile
+shows 128.832 seconds cumulative in packet decode and 10.218 seconds in `to_ndarray`.
+Threshold is only 0.127240 seconds (0.052%). Recommended next branch:
+`perf/phase18-decode-profile`. No optimization was implemented in Step 18.3.
+
+Immutable evidence: `benchmarks/detect/runs/hermes-600s-20260713-8623cd2/`.
+
 ### Next Steps
 
 | Step | Description | Status |
 |------|-------------|--------|
-| 18.3 | Short-video benchmark for quick iteration | Pending |
-| 18.4 | Full Hermes re-benchmark | Pending |
-| 18.5 | Additional optimizations (parallel features, lazy decode, etc.) | Planned |
+| 18.3 | Fixed short-video benchmark | Done |
+| 18.4 | Evidence-driven bottleneck decision | Done: DECODE_PROFILE |
+| 18.5 | Targeted optimization selected by evidence | Planned |
+| 18.6 | Short-video re-benchmark | Planned |
+| 18.7 | Full Hermes re-benchmark | Planned |
+| 18.8 | Quality acceptance | Planned |

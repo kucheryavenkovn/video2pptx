@@ -869,3 +869,39 @@
 - Impact: The documented marker-filtered command conflates E2E and non-E2E results and can report eight unrelated failures.
 - Resolution/Status: Open classification defect. Verification reports marker-filtered and directory-excluded suites separately; no marker redesign was included in this integration hygiene patch.
 - LINKS: tests/e2e/test_mcp_gui_workflow.py, pyproject.toml, V-REF-GUI-ADAPTER
+
+### F-0085 — OpenCV decoded-frame telemetry counted each source read twice
+- Date: 2026-07-13
+- Area: detection
+- Finding: `opencv_iter_frames()` incremented `frames_decoded` twice after each successful `cap.read()`, while ndarray conversion correctly counted only sampled BGR-to-RGB conversions.
+- Symptom/Reproduction: Seven successful mocked source reads at a 5-frame sampling interval reported 14 decoded frames before the fix instead of 7.
+- Impact: OpenCV benchmark decode volume was overstated by 2x and could misdirect bottleneck decisions.
+- Resolution/Status: Resolved. Removed the duplicate increment and added `TestOpenCVMetrics::test_successful_source_reads_counted_once`.
+- LINKS: M-BACKEND-OPENCV, M-DETECT-METRICS, V-PERF-DETECT-SHORT-BENCHMARK, src/video2pptx/backends/opencv_backend.py
+
+### F-0086 — Canonical out11 config differs from retained legacy extension values
+- Date: 2026-07-13
+- Area: tooling
+- Finding: Raw `out11/project.json` retains `sample_fps=0.5`, min slide 10 seconds, and min stable 5 seconds only under `extensions.legacy`; canonical `FileProjectRepository.load()` resolves active v2 defaults of 2.0, 2.0, and 2.0.
+- Symptom/Reproduction: Reading the legacy JSON extension disagrees with `tools/benchmark_detect.py` effective configuration loaded through the repository.
+- Impact: A benchmark assembled from raw legacy fields would not reproduce the canonical DetectionService route.
+- Resolution/Status: Resolved for Step 18.3 by cloning the canonically loaded project and recording exact effective configuration. Schema/migration behavior was not changed.
+- LINKS: M-DETECT-BENCHMARK, M-PROJECT-REPOSITORY, V-PERF-DETECT-SHORT-BENCHMARK
+
+### F-0087 — Hermes short benchmark is decode-heavy and selects decode profiling
+- Date: 2026-07-13
+- Area: detection
+- Finding: Three deterministic 600-second runs had median detect elapsed 245.960049 seconds. Median feature extraction was 88.616671 seconds, Pass 2 collect 53.669377 seconds, and derived residual 96.728170 seconds. The profile attributes 128.832 seconds cumulative to packet decode and 10.218 seconds to RGB ndarray conversion.
+- Symptom/Reproduction: Run the immutable protocol documented under `benchmarks/detect/runs/hermes-600s-20260713-8623cd2/` with effective PyAV backend, 72,002 decoded frames, and 14,942,361,600 RGB transfer bytes.
+- Impact: Threshold work is not justified (median 0.127240 seconds); feature work is substantial but producer-side decode requires isolation before worker implementation.
+- Resolution/Status: Decision gate passed with DECODE_PROFILE. Recommended next branch is `perf/phase18-decode-profile`; no optimization was implemented here.
+- LINKS: M-DETECT-BENCHMARK, M-VIDEO-DECODE, V-PERF-DETECT-SHORT-BENCHMARK
+
+### F-0088 — Short benchmark writes fewer screenshots than detected slides
+- Date: 2026-07-13
+- Area: detection
+- Finding: Each deterministic short benchmark run detected 28 slides and collected 84 representative frames but wrote only 6 PNG screenshots.
+- Symptom/Reproduction: `screenshots_written=6` equals the actual output PNG count, while `slides_detected=28` and the canonical signature contains 28 segments.
+- Impact: Performance evidence remains comparable, but short-video quality acceptance cannot be inferred from this benchmark.
+- Resolution/Status: Open quality defect for later scoped investigation. Phase 18 QualityAcceptance remains planned; Step 18.3 does not alter detector behavior.
+- LINKS: M-DETECT-SLIDES, V-PERF-DETECT-SHORT-BENCHMARK, V-PERF-DETECT-ACCEPTANCE

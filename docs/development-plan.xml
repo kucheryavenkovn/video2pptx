@@ -1259,7 +1259,7 @@
     </Phase-17>
     <Phase-18 name="DetectPerformance" status="in_progress">
       <goal>Measure, analyze, and optimize slide detection throughput without degrading quality. Baseline → bottleneck analysis → targeted optimizations → re-benchmark on Hermes.</goal>
-      <step-18.1 name="PerformanceBaseline" status="in_progress" verification="V-PERF-DETECT-BASELINE">
+      <step-18.1 name="PerformanceBaseline" status="done" verification="V-PERF-DETECT-BASELINE">
         M-DETECT-METRICS module (detection_metrics.py), instrument detector/detect_slides/pyav_backend,
         tools/benchmark_detect.py, initial Hermes run (partial — timeout during Pass 3).
         Key finding: 3-pass structure redundant (Pass 3 only saves screenshots).
@@ -1271,19 +1271,26 @@
         Log markers updated from Pass X/3 to Pass X/2.
         Verified: all detect_slides tests pass, no "Pass 3/3" markers remain.
       </step-18.2>
-      <step-18.3 name="ShortVideoBenchmark" status="pending">
-        Create or find a medium-length video (~10 min) for quick iteration.
-        Run baseline benchmark, apply optimization, compare.
+      <step-18.3 name="ShortVideoBenchmark" status="done" verification="V-PERF-DETECT-SHORT-BENCHMARK">
+        Run a fixed 600-second Hermes clip through DetectionService with one warm-up,
+        three recorded runs, and a separate profile run. Preserve compact immutable evidence.
       </step-18.3>
-      <step-18.4 name="HermesReBenchmark" status="pending">
-        Re-run full Hermes benchmark after optimization chain.
-        Compare vs partial baseline metrics.
+      <step-18.4 name="BottleneckDecision" status="done" verification="V-PERF-DETECT-SHORT-BENCHMARK">
+        DECODE_PROFILE selected from median stage timers and cProfile support.
+        Next hypothesis branch: perf/phase18-decode-profile. No optimization implemented in this step.
       </step-18.4>
-      <step-18.5 name="AdditionalOptimizations" status="planned">
-        Candidate: parallel feature extraction, skip PHash when FrameDiff is low,
-        frame-level vs segment-level dedup order, lazy screenshot decode,
-        selective ROI compute.
+      <step-18.5 name="TargetedOptimization" status="planned">
+        Implement only the optimization selected by Step 18.4 evidence; no implementation preselected.
       </step-18.5>
+      <step-18.6 name="ShortVideoReBenchmark" status="planned">
+        Repeat the immutable short-video benchmark protocol after the targeted optimization.
+      </step-18.6>
+      <step-18.7 name="HermesFullReBenchmark" status="planned">
+        Re-run full Hermes after the optimization chain and compare with historical context.
+      </step-18.7>
+      <step-18.8 name="QualityAcceptance" status="planned" verification="V-PERF-DETECT-ACCEPTANCE">
+        Validate throughput and quality gates on the full canonical workload.
+      </step-18.8>
     </Phase-18>
   </ImplementationOrder>
 

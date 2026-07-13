@@ -1,0 +1,16 @@
+{
+  "head_sha": "8623cd235bbdfc5bd3f91ad3642c4e6409b7da19",
+  "branch": "perf/phase18-short-benchmark",
+  "python_version": "3.14.6",
+  "python_implementation": "CPython",
+  "platform": "Windows",
+  "platform_release": "11",
+  "platform_machine": "AMD64",
+  "cpu_count_logical": 32,
+  "numpy_version": "2.4.4",
+  "project_description": "hermes-600s",
+  "opencv_version": "5.0.0",
+  "pyav_version": "18.0.0",
+  "qt_version": "6.11.0",
+  "ram_total_gb": null
+}

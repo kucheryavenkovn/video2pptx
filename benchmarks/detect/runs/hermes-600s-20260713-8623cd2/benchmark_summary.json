@@ -1,0 +1,208 @@
+{
+  "benchmark_id": "hermes-600s-20260713-8623cd2",
+  "source_description": "Hermes training video, local source media",
+  "clip_start_seconds": 0.0,
+  "clip_requested_duration_seconds": 600.0,
+  "clip_actual_duration_seconds": 600.0166666666667,
+  "clip_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "clip_codec": "h264",
+  "clip_resolution": "1920x1080",
+  "source_fps": 60.0,
+  "clip_fps": 60.0,
+  "clip_size_bytes": 48653686,
+  "head_sha": "8623cd235bbdfc5bd3f91ad3642c4e6409b7da19",
+  "branch": "perf/phase18-short-benchmark",
+  "warmup_performed": true,
+  "recorded_runs": 3,
+  "runs": [
+    {
+      "run": 1,
+      "wall_clock_seconds": 242.18957189999992,
+      "detect_elapsed_seconds": 242.12684100000024,
+      "real_time_multiplier": 0.40353352573539664,
+      "rss_peak_mb": 0,
+      "canonical_output_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
+    },
+    {
+      "run": 2,
+      "wall_clock_seconds": 246.02361109999993,
+      "detect_elapsed_seconds": 245.9600488000001,
+      "real_time_multiplier": 0.4099220279436684,
+      "rss_peak_mb": 0,
+      "canonical_output_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
+    },
+    {
+      "run": 3,
+      "wall_clock_seconds": 247.6018435000001,
+      "detect_elapsed_seconds": 247.5336997999998,
+      "real_time_multiplier": 0.41254470675814525,
+      "rss_peak_mb": 0,
+      "canonical_output_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
+    }
+  ],
+  "wall_clock_seconds": 246.02361109999993,
+  "detect_elapsed_seconds": 245.9600488000001,
+  "detect_elapsed_min_seconds": 242.12684100000024,
+  "detect_elapsed_max_seconds": 247.5336997999998,
+  "video_duration_seconds": 600.0166666666667,
+  "real_time_multiplier": 0.4099220279436684,
+  "processing_x_realtime": 2.439488321758157,
+  "effective_sampled_fps": 2.001611066359268,
+  "effective_backend": "pyav",
+  "slides_count": 28,
+  "change_count": null,
+  "change_count_note": "not directly exposed by the canonical DetectionService result",
+  "score_distribution": {
+    "count": 1200,
+    "p50": 0.0017778914188966155,
+    "p90": 0.0049317822791636,
+    "p95": 0.006335227238014339,
+    "p99": 0.014790588701143857,
+    "max": 0.11906921863555908
+  },
+  "invariants": {
+    "features_equal_frames_sampled": {
+      "status": "PASS",
+      "detail": "features_full + features_quick == frames_sampled"
+    },
+    "decoded_at_least_conversions": {
+      "status": "PASS",
+      "detail": "frames_decoded >= ndarray_conversions"
+    },
+    "conversions_cover_sampled_passes": {
+      "status": "PASS",
+      "detail": "valid for current OpenCV/PyAV full-frame sampling implementations"
+    },
+    "representative_frames_positive": {
+      "status": "PASS",
+      "detail": "representative_frames > 0"
+    },
+    "representative_bytes_positive": {
+      "status": "PASS",
+      "detail": "representative_frame_bytes > 0 when representative frames exist"
+    },
+    "screenshots_match_png_count": {
+      "status": "PASS",
+      "detail": "screenshots_written == PNG count (6)"
+    },
+    "rss_peak_bounds": {
+      "status": "SKIPPED",
+      "detail": "psutil unavailable"
+    }
+  },
+  "metrics_representative_run": "run-02",
+  "counters": {
+    "frames_decoded": 72002,
+    "frames_sampled": 1201,
+    "features_full": 1201,
+    "features_quick": 0,
+    "slides_detected": 28,
+    "screenshots_written": 6,
+    "ndarray_conversions": 2402,
+    "representative_frames": 84,
+    "pass2_frames_sampled": 1201,
+    "representative_frame_bytes": 522547200
+  },
+  "gauges": {
+    "rgb_transfer_bytes": 14942361600,
+    "rss_before_mb": 0,
+    "rss_peak_mb": 0,
+    "rss_after_mb": 0,
+    "peak_in_flight": 0
+  },
+  "ranked_bottlenecks": [
+    {
+      "rank": 1,
+      "stage": "unattributed_residual",
+      "elapsed_seconds": 96.72816990000729,
+      "denominator": "median_detect_elapsed_seconds",
+      "percentage": 39.32678106543263,
+      "measurement_type": "derived residual",
+      "notes": "not a measured timer; includes decode/open/service/persistence"
+    },
+    {
+      "rank": 2,
+      "stage": "extract_features",
+      "elapsed_seconds": 88.61667080000507,
+      "denominator": "median_detect_elapsed_seconds",
+      "percentage": 36.028888119168826,
+      "measurement_type": "median accumulated stage timer",
+      "notes": "median across three recorded runs"
+    },
+    {
+      "rank": 3,
+      "stage": "pass2_collect",
+      "elapsed_seconds": 53.66937710000002,
+      "denominator": "median_detect_elapsed_seconds",
+      "percentage": 21.820363657368084,
+      "measurement_type": "median accumulated stage timer",
+      "notes": "median across three recorded runs"
+    },
+    {
+      "rank": 4,
+      "stage": "pass2_dedupe",
+      "elapsed_seconds": 6.235529000000042,
+      "denominator": "median_detect_elapsed_seconds",
+      "percentage": 2.5351796075916373,
+      "measurement_type": "median accumulated stage timer",
+      "notes": "median across three recorded runs"
+    },
+    {
+      "rank": 5,
+      "stage": "roi",
+      "elapsed_seconds": 0.25366979999262185,
+      "denominator": "median_detect_elapsed_seconds",
+      "percentage": 0.10313455426205857,
+      "measurement_type": "median accumulated stage timer",
+      "notes": "median across three recorded runs"
+    },
+    {
+      "rank": 6,
+      "stage": "visual_distance",
+      "elapsed_seconds": 0.24178739999160825,
+      "denominator": "median_detect_elapsed_seconds",
+      "percentage": 0.0983035257844721,
+      "measurement_type": "median accumulated stage timer",
+      "notes": "median across three recorded runs"
+    },
+    {
+      "rank": 7,
+      "stage": "threshold",
+      "elapsed_seconds": 0.12724030000299535,
+      "denominator": "median_detect_elapsed_seconds",
+      "percentage": 0.05173210064958944,
+      "measurement_type": "median accumulated stage timer",
+      "notes": "median across three recorded runs"
+    },
+    {
+      "rank": 8,
+      "stage": "pass2_screenshots",
+      "elapsed_seconds": 0.08570970000027955,
+      "denominator": "median_detect_elapsed_seconds",
+      "percentage": 0.03484700072977035,
+      "measurement_type": "median accumulated stage timer",
+      "notes": "median across three recorded runs"
+    },
+    {
+      "rank": 9,
+      "stage": "debounce",
+      "elapsed_seconds": 0.001894800000172836,
+      "denominator": "median_detect_elapsed_seconds",
+      "percentage": 0.0007703690129422495,
+      "measurement_type": "median accumulated stage timer",
+      "notes": "median across three recorded runs"
+    }
+  ],
+  "output_signature_deterministic": true,
+  "canonical_output_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
+  "percentile_method": "numpy.percentile linear method (NumPy environment default)",
+  "profile_evidence": {
+    "packet_decode_cumulative_seconds": 128.832,
+    "to_ndarray_cumulative_seconds": 10.218,
+    "profile_elapsed_seconds": 246.743,
+    "binary_profile": "retained locally only; profile.pstats omitted from repository"
+  },
+  "decision": "DECODE_PROFILE",
+  "recommended_next_branch": "perf/phase18-decode-profile",
+  "decision_evidence": "Median unattributed residual is a material share of detect elapsed; profile packet.decode cumulative time exceeds feature extraction, while decoded-frame and RGB-transfer volumes are high."
+}

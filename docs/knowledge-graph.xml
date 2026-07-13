@@ -822,6 +822,9 @@
     <CrossLink from="M-DETECT-SLIDES" to="M-ROI" relation="crops and masks" />
     <CrossLink from="M-DETECT-SLIDES" to="Phase-18/TwoPassDetection" relation="Phase-18: 3→2 passes, Pass 3 merged into Pass 2" />
     <CrossLink from="Phase-18/TwoPassDetection" to="M-DETECT-METRICS" relation="baseline identified redundant Pass 3 bottleneck" />
+    <CrossLink from="M-DETECT-BENCHMARK" to="M-APP-DETECT" relation="benchmarks the canonical application route" />
+    <CrossLink from="Phase-18/ShortVideoBenchmark" to="M-DETECT-BENCHMARK" relation="immutable 600-second Hermes evidence" />
+    <CrossLink from="Phase-18/BottleneckDecision" to="M-VIDEO-DECODE" relation="DECODE_PROFILE selected as next hypothesis" />
     <CrossLink from="M-NOTES" to="M-SUBTITLES" relation="parses and aligns cues" />
     <CrossLink from="M-NOTES" to="M-NOTES-PROCESSOR" relation="cleans and formats notes" />
     <CrossLink from="M-ROI-TOOL" to="M-VIDEO-DECODE" relation="extracts frame" />
@@ -975,6 +978,12 @@
       <depends>none</depends>
       <verification-ref>V-PERF-DETECT-BASELINE</verification-ref>
     </M-DETECT-METRICS>
+    <M-DETECT-BENCHMARK NAME="DetectBenchmark" TYPE="SCRIPT" STATUS="active">
+      <purpose>Run DetectionService benchmarks and emit portable raw metrics, deterministic output signatures, and derived reports.</purpose>
+      <path>tools/benchmark_detect.py</path>
+      <depends>M-DETECT-METRICS, M-DETECT-SLIDES, M-APP-DETECT</depends>
+      <verification-ref>V-PERF-DETECT-SHORT-BENCHMARK</verification-ref>
+    </M-DETECT-BENCHMARK>
     <!-- ===== DETECT PERFORMANCE (Phase-18) ===== -->
     <M-ARCH-OVERVIEW NAME="ArchitectureOverview" TYPE="UTILITY" STATUS="planned">
       <purpose>Target layered architecture: domain/application/infrastructure/adapters with ports and dependency rules. See docs/architecture.md for full context.</purpose>

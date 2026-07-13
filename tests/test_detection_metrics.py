@@ -1,5 +1,5 @@
 # FILE: tests/test_detection_metrics.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for DetectionRunMetrics schema, round-trip, measure(), collect(),
 #            RssSampler, InstrumentedIterator, benchmark contract invariants
@@ -13,6 +13,19 @@
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   TestMetricsSchema - canonical metrics schema and serialization
+#   TestMeasure - collection and timer behavior
+#   TestRssSampler - optional RSS sampling behavior
+#   TestInstrumentedIterator - sampled-frame counter behavior
+#   TestOpenCVMetrics - OpenCV source-read and ndarray conversion semantics
+#   TestBenchmarkContract - end-to-end detector telemetry invariants
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Regress OpenCV one-read/one-decode count and sampled RGB conversion count.
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -178,6 +191,41 @@ class TestInstrumentedIterator:
         items = list(InstrumentedIterator(iter([]), c))
         assert items == []
         assert c.value == 0
+
+
+class TestOpenCVMetrics:
+    def test_successful_source_reads_counted_once(self, monkeypatch):
+        import numpy as np
+
+        from video2pptx.backends import opencv_backend
+
+        source_frames = [np.zeros((2, 3, 3), dtype=np.uint8) for _ in range(7)]
+
+        class FakeCapture:
+            def __init__(self, _path):
+                self.frames = iter(source_frames)
+
+            def isOpened(self):
+                return True
+
+            def get(self, prop):
+                return 10.0 if prop == opencv_backend.cv2.CAP_PROP_FPS else 0.0
+
+            def read(self):
+                try:
+                    return True, next(self.frames)
+                except StopIteration:
+                    return False, None
+
+            def release(self):
+                pass
+
+        monkeypatch.setattr(opencv_backend.cv2, "VideoCapture", FakeCapture)
+        with collect() as metrics:
+            sampled = list(opencv_backend.opencv_iter_frames("unused.mp4", sample_fps=2.0))
+
+        assert metrics.counter_frames_decoded.value == len(source_frames)
+        assert metrics.counter_ndarray_conversions.value == len(sampled) == 2
 
 
 class TestBenchmarkContract:

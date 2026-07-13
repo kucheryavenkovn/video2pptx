@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/backends/opencv_backend.py
-# VERSION: 0.1.0
+# VERSION: 0.1.1
 # START_MODULE_CONTRACT
 #   PURPOSE: OpenCV-based video decoder (CPU fallback)
 #   SCOPE: Decode video and yield frames at requested sample rate via cv2.VideoCapture
@@ -13,6 +13,10 @@
 #   opencv_iter_frames - OpenCV frame iterator, yields VideoFrame at sample_fps
 #   opencv_video_info - extract VideoInfo from cv2.VideoCapture
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.1.1 - Count each successful cap.read() exactly once in benchmark telemetry.
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -119,10 +123,6 @@ def opencv_iter_frames(
             ret, frame = cap.read()
             if not ret:
                 break
-
-            m = _get_metrics()
-            if m is not None:
-                m.counter_frames_decoded.increment()
 
             m = _get_metrics()
             if m is not None:

@@ -1219,7 +1219,7 @@
 
   <!-- ===== Phase 18 — Detect Performance ===== -->
 
-  <V-PERF-DETECT-BASELINE MODULE="Phase-18/Step-18.1" PRIORITY="high" STATUS="in_progress">
+  <V-PERF-DETECT-BASELINE MODULE="Phase-18/Step-18.1" PRIORITY="high" STATUS="passed">
     <purpose>Performance baseline instrumentation: DetectionRunMetrics schema, to_dict/from_dict round-trip,
       measure() context manager, per-frame timers/counters, backend counters (frames_decoded, ndarray_conversions,
       rgb_transfer_bytes), RssSampler peak RSS (rss_before_mb, rss_peak_mb, rss_after_mb),
@@ -1247,7 +1247,7 @@
       <file>src/video2pptx/backends/pyav_backend.py</file>
       <file>src/video2pptx/backends/opencv_backend.py</file>
     </test-files>
-    <notes>Step 18.1 remains in_progress until a full Hermes or equivalent medium-length benchmark produces usable metrics artifacts. The 30-min timeout on the initial run means complete stage timing isolation is pending.</notes>
+    <notes>Passed by the complete fixed 600-second Hermes benchmark evidence at benchmarks/detect/runs/hermes-600s-20260713-8623cd2/. Full-Hermes performance and quality acceptance remain separate pending gates.</notes>
   </V-PERF-DETECT-BASELINE>
 
   <V-PERF-DETECT-TWO-PASS MODULE="Phase-18/Step-18.2" PRIORITY="high" STATUS="passed">
@@ -1280,6 +1280,37 @@
       <parity-test>tests/test_twopass_parity.py::test_two_pass_matches_pre_twopass</parity-test>
     </reference>
   </V-PERF-DETECT-TWO-PASS>
+
+  <V-PERF-DETECT-SHORT-BENCHMARK MODULE="M-DETECT-BENCHMARK" PRIORITY="high" STATUS="passed">
+    <purpose>Fixed-interval 600-second Hermes benchmark through DetectionService: telemetry integrity,
+      one warm-up, three deterministic recorded runs, separate profile evidence, stage ranking,
+      and one evidence-based next optimization hypothesis.</purpose>
+    <phase-ref>Phase-18/Step-18.3, Phase-18/Step-18.4</phase-ref>
+    <scenarios>
+      <scenario-1 kind="success">One successful OpenCV source-frame read increments frames_decoded exactly once</scenario-1>
+      <scenario-2 kind="success">Three recorded output signatures match exactly</scenario-2>
+      <scenario-3 kind="success">Complete scores, counters, timers, gauges, invariants, and RSS evidence are retained</scenario-3>
+      <scenario-4 kind="success">Bottleneck decision uses measured non-overlapping stage costs and profile support</scenario-4>
+    </scenarios>
+    <test-files>
+      <file>tests/test_detection_metrics.py</file>
+      <file>tests/test_benchmark_detect.py</file>
+      <file>tools/benchmark_detect.py</file>
+      <file>tools/aggregate_detect_benchmark.py</file>
+    </test-files>
+    <evidence><result>
+      Fixed clip SHA-256 dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4.
+      Warm-up plus three recorded runs completed through DetectionService; signatures match exactly.
+      Median detect elapsed 245.960049 seconds for 600.016667 seconds of video.
+      Decision: DECODE_PROFILE; recommended next branch perf/phase18-decode-profile.
+      RSS invariant SKIPPED because psutil is unavailable in the benchmark environment.
+    </result></evidence>
+    <reference>
+      <artifact>benchmarks/detect/runs/hermes-600s-20260713-8623cd2/benchmark_summary.json</artifact>
+      <report>benchmarks/detect/runs/hermes-600s-20260713-8623cd2/benchmark_report.md</report>
+      <aggregate>benchmarks/detect/runs/hermes-600s-20260713-8623cd2/aggregate.json</aggregate>
+    </reference>
+  </V-PERF-DETECT-SHORT-BENCHMARK>
 
   <V-PERF-DETECT-PARALLEL MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
     <purpose>In-frame parallel feature extraction (PHash + FrameDiff computed concurrently).</purpose>
