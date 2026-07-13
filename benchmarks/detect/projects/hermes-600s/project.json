@@ -1,0 +1,53 @@
+{
+  "schema_version": "2.0",
+  "revision": "1",
+  "name": "hermes-600s-benchmark",
+  "video_path": "D:\\git\\worktrees\\video2pptx-phase18-short-benchmark\\hermes-0000-1000.mp4",
+  "slides": [],
+  "pipeline": {
+    "stages": {
+      "preview": {
+        "status": "not_started"
+      },
+      "detect": {
+        "status": "not_started"
+      },
+      "align": {
+        "status": "not_started"
+      },
+      "notes": {
+        "status": "not_started"
+      },
+      "llm": {
+        "status": "not_started"
+      },
+      "markdown_export": {
+        "status": "not_started"
+      },
+      "pptx_export": {
+        "status": "not_started"
+      },
+      "auto": {
+        "status": "not_started"
+      }
+    }
+  },
+  "scores": {
+    "timestamps": [],
+    "values": []
+  },
+  "artifacts": {
+    "items": {}
+  },
+  "detection": {
+    "sample_fps": 2.0,
+    "decoder_backend": "auto",
+    "slide_roi": "auto",
+    "ignore_rois": [],
+    "threshold": "auto",
+    "min_slide_duration": 2.0,
+    "min_stable_duration": 2.0,
+    "dedupe_enabled": true
+  },
+  "extensions": {}
+}
