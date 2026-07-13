@@ -985,7 +985,7 @@
 - Symptom/Reproduction: Step 18.4 re-evaluation from corrected evidence yields BLOCKED_INSUFFICIENT_DISCRIMINATION.
 - Impact: Step 18.4 cannot proceed to acceptance. Additional wall-clock instrumentation is needed to isolate first-pass and second-pass decode wall-clock from feature extraction and collection overhead.
 - Resolution/Status: RESOLVED. Three canonical non-overlapping timers implemented and benchmark-validated. Residual dropped from 87.39s (33.0%) to 0.53s (0.19%). Total decode pipeline accurately measured as the primary bottleneck.
-- LINKS: M-DETECT-PERF-DECISION, V-PERF-DETECT-BOTTLENECK, Phase-18/Step-18.4
+- LINKS: M-DETECT-PERF-DECISION, V-PERF-DETECT-BOTTLENECK, Phase-18/Step-18.4, acb424f
 - INSTRUMENTATION:
   - InstrumentedIterator: optional timer= parameter measures wall-clock inside next(self._it), including finally on StopIteration/exception. Counter increments only on successful yield.
   - Timer boundaries:

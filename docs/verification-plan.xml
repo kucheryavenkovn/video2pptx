@@ -1329,10 +1329,10 @@
     </evidence>
   </V-PERF-DETECT-SHORT-BENCHMARK>
 
-  <V-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="in_progress">
+  <V-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="passed">
     <purpose>Select a bottleneck class only from accepted recovered-tree benchmark evidence, or honestly report insufficient discrimination.</purpose>
     <verification-contract>
-      1. Wall-clock stage timers from median run (run-03, 265.1s) are the primary evidence.
+      1. Wall-clock stage timers from median run (run-01, 272.57s) are the primary evidence.
       2. cProfile cumulative hierarchy is secondary — must resolve wall-clock overlap regions.
       3. Candidate bottleneck classes (mutually exclusive, collectively exhaustive):
          - FEATURE_EXTRACTION_CPU
@@ -1348,6 +1348,30 @@
       7. Verification artifacts: bottleneck_decision.json (machine-parseable),
          bottleneck_decision.md (human-readable rationale).
     </verification-contract>
+    <evidence><result>
+      Decision: DECODE_FRAME_PIPELINE — SAFELY DISCRIMINATED. Confidence: HIGH.
+      Selected optimization: PYAV_HWACCEL_CUDA.
+      Median run (run-01): 272.57s detect elapsed.
+      Residual: 0.53s (0.19%) — down from 87.39s (33.0%) pre-instrumentation.
+      Total decode pipeline (pass1 + pass2): 172.46s (63.27%).
+      Timer boundaries (median run):
+        - pass1_decode_or_frame_advance: 96.36s (35.35%)
+        - extract_features: 92.62s (33.98%)
+        - pass2_decode_or_frame_advance: 76.09s (27.92%)
+        - pass2_match_and_collect: 0.04s (0.02%)
+      Gap decode pipeline vs extract_features: 79.83s (29.29%) — directionally stable across 3 runs.
+      Canonical signature: 8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85 ✓
+      Benchmark series: hermes-600s-f0097-instrumented-20260713-acb424f/run-{01,02,03}
+      Benchmark code HEAD: acb424f904bc4b3459f6ad2ceb9f8c701cedb69b
+      Evidence builder HEAD: acb424f904bc4b3459f6ad2ceb9f8c701cedb69b
+      Recovered master base: 836a456eee0312646747d755dfe838052eaa6752
+      Step 18.6 gates: mean_detect_elapsed &lt; baseline_mean=272.57s (or same ±std_dev),
+        residual &lt;= 5%, missed_slide_rate &lt;= 5%, false_split_rate &lt;= 10%.
+      Artifacts:
+        - benchmarks/detect/evidence/aggregate_evidence.json
+        - benchmarks/detect/evidence/bottleneck_decision.json
+        - benchmarks/detect/evidence/bottleneck_decision.md
+    </result></evidence>
   </V-PERF-DETECT-BOTTLENECK>
 
   <V-PERF-DETECT-TARGETED MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
