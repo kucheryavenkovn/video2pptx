@@ -1303,15 +1303,14 @@
         Step 18.6 output parity gates defined in bottleneck_decision.json step18_6_output_parity_gates.
         See F-0097 and F-0098 for full evidence.
       </step-18.4>
-      <step-18.4a name="HwAccelRuntimeEvidence" status="done" verification="V-PERF-DETECT-BOTTLENECK">
-        Added minimal internal HWAccel runtime evidence observer to pyav_iter_frames.
-        Two-independent-open probe against test fixture (canonical Hermes clip unavailable).
-        Direct observation: stream.codec_context.is_hwaccel=True (working API).
-        hw_config_device_type=null and hw_config_format=null for MPEG-4 codec
-        (no CUDA decoder for MPEG-4; software fallback inferred).
-        F-0098 partially resolved: observability gap closed.
-        F-0099 created for remaining optimization-discrimination gap.
-        Selected optimization remains NONE. Step 18.4 remains in_progress.
+      <step-18.4a name="HwAccelRuntimeEvidence" status="in_progress">
+        Evidence mechanism implemented and corrected. Separates raw codec_context_is_hwaccel from
+        actual_hardware_decode_active. Includes creation-error capture, deterministic generator
+        cleanup, provenance-validated probe with --canonical-mode and --accepted-base.
+        17/17 tests pass. However, the canonical Hermes H.264 benchmark clip
+        (examples/hermes-0000-1000.mp4, SHA256 dd9da344...) is NOT available on this workstation.
+        Step 18.4A remains blocked on the canonical evidence object until the clip is obtained.
+        F-0098 remains OPEN. No targeted optimization selected.
       </step-18.4a>
       <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
         Blocked: Step 18.4 has not selected a targeted optimization. Step 18.5 remains planned
