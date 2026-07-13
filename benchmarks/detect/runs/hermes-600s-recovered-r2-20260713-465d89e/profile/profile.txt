@@ -1,0 +1,48 @@
+         3230362 function calls (3201825 primitive calls) in 229.750 seconds
+
+   Ordered by: cumulative time
+   List reduced from 2760 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.002    0.002  229.750  229.750 benchmark_detect.py:327(run_benchmark)
+        1    0.000    0.000  229.651  229.651 detection_service.py:63(execute)
+        1    0.044    0.044  229.630  229.630 legacy_detector.py:38(detect)
+        1    0.341    0.341  229.585  229.585 detect_slides.py:54(run_detect_slides)
+        1    0.640    0.640  168.634  168.634 slide_detector.py:49(detect_changes)
+13514/13506    0.013    0.000  135.222    0.010 {built-in method builtins.next}
+     2404    0.002    0.000  135.195    0.056 detection_metrics.py:274(__next__)
+     2404    0.061    0.000  135.188    0.056 video_decode.py:96(iter_frames)
+     2404   10.469    0.004  135.128    0.056 pyav_backend.py:113(pyav_iter_frames)
+    72004  114.854    0.002  114.854    0.002 {method 'decode' of 'av.packet.Packet' objects}
+     1285    0.039    0.000   92.712    0.072 frame_features.py:49(extract_features)
+     1202    0.002    0.000   80.839    0.067 detect_slides.py:93(<genexpr>)
+     1285    0.887    0.001   48.842    0.038 frame_features.py:189(compute_histogram)
+     3855    0.311    0.000   47.946    0.012 frame_features.py:212(cv2_calc_hist)
+     3855   36.744    0.010   40.567    0.011 _histograms_impl.py:685(histogram)
+     1285   32.438    0.025   34.049    0.026 frame_features.py:199(cv2_to_gray)
+     2402    9.580    0.004    9.580    0.004 {method 'to_ndarray' of 'av.video.frame.VideoFrame' objects}
+   379083    8.087    0.000    8.087    0.000 {method 'astype' of 'numpy.ndarray' objects}
+        1    0.026    0.026    6.152    6.152 dedupe.py:24(deduplicate_segments)
+     1285    0.120    0.000    3.898    0.003 __init__.py:261(phash)
+     2570    0.012    0.000    3.580    0.001 Image.py:1018(convert)
+     2570    3.540    0.001    3.540    0.001 {method 'convert' of 'ImagingCore' objects}
+     1285    0.103    0.000    3.130    0.002 __init__.py:304(dhash)
+     9003    2.673    0.000    2.673    0.000 {method 'ravel' of 'numpy.ndarray' objects}
+     2570    0.016    0.000    2.577    0.001 Image.py:2328(resize)
+     2570    2.543    0.001    2.543    0.001 {method 'resize' of 'ImagingCore' objects}
+     1285    0.004    0.000    2.365    0.002 frame_features.py:258(array_to_pil)
+     1285    0.018    0.000    2.361    0.002 Image.py:3374(fromarray)
+     1285    0.003    0.000    2.341    0.002 Image.py:3290(frombuffer)
+     1285    0.009    0.000    2.336    0.002 Image.py:3244(frombytes)
+     1285    0.006    0.000    1.519    0.001 Image.py:3195(new)
+     1285    1.497    0.001    1.497    0.001 {built-in method PIL._imaging.fill}
+       39    0.001    0.000    1.250    0.032 __init__.py:1(<module>)
+   127215    1.066    0.000    1.079    0.000 _histograms_impl.py:328(_unsigned_subtract)
+     1285    0.006    0.000    0.806    0.001 Image.py:932(frombytes)
+     1285    0.781    0.001    0.781    0.001 {method 'decode' of 'ImagingDecoder' objects}
+        4    0.000    0.000    0.460    0.115 _basic.py:1(<module>)
+   422/10    0.001    0.000    0.405    0.041 <frozen importlib._bootstrap>:1360(_find_and_load)
+   416/10    0.002    0.000    0.405    0.040 <frozen importlib._bootstrap>:1308(_find_and_load_unlocked)
+  1137/19    0.000    0.000    0.402    0.021 <frozen importlib._bootstrap>:483(_call_with_frames_removed)
+
+

@@ -1260,12 +1260,13 @@
     </Phase-17>
     <Phase-18 name="DetectPerformance" status="in_progress">
       <goal>Measure, analyze, and optimize slide detection throughput without degrading quality. Baseline → bottleneck analysis → targeted optimizations → re-benchmark on Hermes.</goal>
-      <step-18.1 name="PerformanceBaseline" status="in_progress" verification="V-PERF-DETECT-BASELINE">
+      <step-18.1 name="PerformanceBaseline" status="done" verification="V-PERF-DETECT-BASELINE">
         M-DETECT-METRICS module (detection_metrics.py), instrument detector/detect_slides/pyav_backend,
         tools/benchmark_detect.py, initial Hermes run (partial — timeout during Pass 3).
         Recovery requires deterministic RSS lifecycle/max tests and exact OpenCV/PyAV telemetry tests
         before baseline evidence can be trusted; no benchmark or optimization is part of recovery.
         Key finding: 3-pass structure redundant (Pass 3 only saves screenshots).
+        Step closed after r2 benchmark (465d89e) with signature-match=true, invariants=6PASS/1SKIP.
       </step-18.1>
       <step-18.2 name="TwoPassDetection" status="done">
         Collapse Pass 3 (save screenshots) into Pass 2 (dedup frame grab).
@@ -1274,16 +1275,18 @@
         Log markers updated from Pass X/3 to Pass X/2.
         Verified: all detect_slides tests pass, no "Pass 3/3" markers remain.
       </step-18.2>
-      <step-18.3 name="ShortVideoBenchmark" status="in_progress" verification="V-PERF-DETECT-SHORT-BENCHMARK">
+      <step-18.3 name="ShortVideoBenchmark" status="done" verification="V-PERF-DETECT-SHORT-BENCHMARK">
         Re-run the immutable short-video benchmark on the recovered tree before making any
         bottleneck or optimization decision. The historical 8623cd2 result is regressed-tree
         context only and is not accepted as current evidence.
         The c372ced series (3 runs: mean 237.7s) is credible recovered-tree measurement
         evidence but SUPERSEDED_FOR_STEP_18_3_ACCEPTANCE due to incomplete reporting and
-        aggregate evidence contract (B-18.3-02, B-18.3-03). New r2 series in progress
-        with corrected tooling APIs and tested aggregation.
-        Evidence (pending): benchmarks/detect/runs/hermes-600s-recovered-r2-20260713-&lt;SHA&gt;/
-        tool: tools/benchmark_detect.py
+        aggregate evidence contract (B-18.3-02, B-18.3-03). New r2 series completed with
+        corrected tooling APIs (BENCHMARK_CODE_HEAD=465d89e) and tested aggregation.
+        3 recorded runs: mean 254.5s (276.1s/222.2s/265.1s), std dev 28.2s
+        Output signature 8cc06c6accb055fb matches historical — no quality regression.
+        median_run_id=run-03, measured_stage_total=177.7s, residual=87.4s (33.0%)
+        Invariants: 6 PASS, 1 SKIPPED (psutil). F-0088 observed: 28 slides, 6 PNGs.
       </step-18.3>
       <step-18.4 name="BottleneckDecision" status="pending" verification="V-PERF-DETECT-BOTTLENECK">
         Classify the current bottleneck only from the recovered-tree short benchmark. Do not

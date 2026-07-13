@@ -1,0 +1,33 @@
+{
+  "timers": {
+    "total": 276.0622164000015,
+    "decoder_wait": 0.0,
+    "roi": 0.36982869997882517,
+    "extract_features": 117.37422199999492,
+    "visual_distance": 0.30713979994834517,
+    "threshold": 0.20145900006900774,
+    "debounce": 0.005533700001251418,
+    "pass2_collect": 62.91107320000083,
+    "pass2_dedupe": 6.0758686999979545,
+    "pass2_screenshots": 0.08495120000225143
+  },
+  "counters": {
+    "frames_decoded": 72002,
+    "frames_sampled": 1201,
+    "features_full": 1201,
+    "features_quick": 0,
+    "slides_detected": 28,
+    "screenshots_written": 6,
+    "ndarray_conversions": 2402,
+    "representative_frames": 84,
+    "pass2_frames_sampled": 1201,
+    "representative_frame_bytes": 522547200
+  },
+  "gauges": {
+    "rgb_transfer_bytes": 14942361600,
+    "rss_before_mb": 0,
+    "rss_peak_mb": 0,
+    "rss_after_mb": 0,
+    "peak_in_flight": 0
+  }
+}

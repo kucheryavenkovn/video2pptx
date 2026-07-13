@@ -1,89 +1,208 @@
 {
-  "benchmark_sequence": "Phase 18 Step 18.3 ShortVideoBenchmark",
+  "benchmark_sequence": "hermes-600s-recovered-r2-20260713",
+  "benchmark_code_head": "465d89e243651e56a23e8c141632335bdd3a3303",
+  "benchmark_code_tree": "66f9a5d50d7b97a34bfc151623d726fee2d03365",
+  "recovered_master_base": "713ea074f4f702835820df2725e067d8b87e2744",
   "branch": "perf/phase18-short-benchmark-recovered",
-  "benchmark_code_head": "c372ced",
   "clip": {
-    "source": "Hermes 0000-1000 stream-copy (no audio)",
+    "identifier": "hermes-0000-1000.mp4",
     "sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
     "duration_seconds": 600.016667,
     "resolution": "1920x1080",
     "codec": "H.264",
     "fps": 60
   },
-  "detection_config": {
+  "warmup_performed": true,
+  "recorded_run_count": 3,
+  "effective_config": {
+    "video_identifier": "hermes-0000-1000.mp4",
     "sample_fps": 2.0,
-    "decoder_backend": "auto",
-    "effective_backend": "pyav",
+    "configured_backend": "auto",
+    "slide_roi": "auto",
+    "ignore_rois": [],
     "threshold": "auto",
     "min_slide_duration": 2.0,
     "min_stable_duration": 2.0,
-    "dedupe_enabled": true
-  },
-  "quality": {
-    "output_signature_sha256": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
-    "slides_count": 28,
-    "png_count": 6,
-    "historical_signature_match": true,
-    "notes": "Output signature matches historical 81875bc — no quality regression from recovery"
-  },
-  "invariants": {
-    "features_equal_frames_sampled": "PASS",
-    "decoded_at_least_conversions": "PASS",
-    "conversions_cover_sampled_passes": "PASS",
-    "representative_frames_positive": "PASS",
-    "representative_bytes_positive": "PASS",
-    "screenshots_match_png_count": "PASS",
-    "rss_peak_bounds": "SKIPPED (psutil unavailable)"
+    "dedupe_enabled": true,
+    "quick_mode": false,
+    "effective_backend": "pyav"
   },
   "runs": [
     {
-      "id": "hermes-600s-run-1",
-      "detect_elapsed_seconds": 236.67,
-      "wall_clock_seconds": 236.73,
-      "real_time_multiplier": 0.39,
-      "processing_x_realtime": 2.53
+      "id": "run-01",
+      "detect_elapsed_seconds": 276.1155335000003,
+      "wall_clock_seconds": 276.18224740000005,
+      "real_time_multiplier": 0.4601797730618599,
+      "processing_x_realtime": 2.173063786238111,
+      "effective_sampled_fps": 2.001611066359268,
+      "canonical_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
     },
     {
-      "id": "hermes-600s-run-2",
-      "detect_elapsed_seconds": 237.21,
-      "wall_clock_seconds": 237.27,
-      "real_time_multiplier": 0.40,
-      "processing_x_realtime": 2.53
+      "id": "run-02",
+      "detect_elapsed_seconds": 222.22499099999914,
+      "wall_clock_seconds": 222.28747569999905,
+      "real_time_multiplier": 0.370364697091746,
+      "processing_x_realtime": 2.7000413588347,
+      "effective_sampled_fps": 2.001611066359268,
+      "canonical_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
     },
     {
-      "id": "hermes-600s-run-3",
-      "detect_elapsed_seconds": 239.22,
-      "wall_clock_seconds": 239.28,
-      "real_time_multiplier": 0.40,
-      "processing_x_realtime": 2.51
+      "id": "run-03",
+      "detect_elapsed_seconds": 265.1246777999986,
+      "wall_clock_seconds": 265.18782160000046,
+      "real_time_multiplier": 0.44186218905030183,
+      "processing_x_realtime": 2.2631490649817954,
+      "effective_sampled_fps": 2.001611066359268,
+      "canonical_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
     }
   ],
-  "profile_run": {
-    "id": "hermes-600s-profile",
-    "detect_elapsed_seconds": 242.79,
-    "overhead_seconds": 5.6,
-    "overhead_note": "cProfile overhead ~5.6s from the three recorded run mean"
-  },
   "summary": {
-    "run_count": 3,
-    "mean_detect_elapsed_seconds": 237.70,
-    "median_detect_elapsed_seconds": 237.21,
-    "min_detect_elapsed_seconds": 236.67,
-    "max_detect_elapsed_seconds": 239.22,
-    "std_dev_seconds": 1.30,
-    "mean_processing_x_realtime": 2.52,
-    "historical_acceptance_threshold": "None (Step 18.4 decision not yet made)",
-    "bottleneck_ranking": [
-      {"rank": 1, "stage": "extract_features", "elapsed_seconds": 85.5, "percentage": 36.0},
-      {"rank": 2, "stage": "pass2_collect", "elapsed_seconds": 53.3, "percentage": 22.5},
-      {"rank": 3, "stage": "pass2_dedupe", "elapsed_seconds": 6.1, "percentage": 2.6},
-      {"rank": 4, "stage": "roi", "elapsed_seconds": 0.3, "percentage": 0.1},
-      {"rank": 5, "stage": "visual_distance", "elapsed_seconds": 0.2, "percentage": 0.1},
-      {"rank": 6, "stage": "threshold", "elapsed_seconds": 0.1, "percentage": 0.0},
-      {"rank": 7, "stage": "pass2_screenshots", "elapsed_seconds": 0.1, "percentage": 0.0},
-      {"rank": 8, "stage": "debounce", "elapsed_seconds": 0.0, "percentage": 0.0},
-      {"rank": 9, "stage": "unattributed_residual", "elapsed_seconds": 92.2, "percentage": 38.8}
+    "min_detect_elapsed_seconds": 222.22499099999914,
+    "median_detect_elapsed_seconds": 265.1246777999986,
+    "max_detect_elapsed_seconds": 276.1155335000003,
+    "mean_detect_elapsed_seconds": 254.48840076666602,
+    "std_dev_seconds": 28.476225778418335,
+    "median_run_id": "run-03"
+  },
+  "signatures": {
+    "run_signatures": [
+      "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
+      "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
+      "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
     ],
-    "decision": "PENDING_AGGREGATE"
-  }
+    "signature_identity": true,
+    "historical_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
+    "historical_signature_match": true,
+    "profile_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
+    "profile_signature_match": true
+  },
+  "quality": {
+    "slides_count": 28,
+    "screenshots_written": 6,
+    "actual_png_count": 6,
+    "change_count": "NOT_EXPOSED",
+    "score_distribution": {
+      "count": 1200,
+      "p50": 0.0017778914188966155,
+      "p90": 0.0049317822791636,
+      "p95": 0.006335227238014339,
+      "p99": 0.014790588701143857,
+      "max": 0.11906921863555908
+    }
+  },
+  "median_run_stage_accounting": {
+    "stages": [
+      {
+        "rank": 1,
+        "stage": "extract_features",
+        "elapsed_seconds": 101.68870530002096,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 38.35505096840951,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 2,
+        "stage": "pass2_collect",
+        "elapsed_seconds": 65.21966319999774,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 24.59961997547332,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 3,
+        "stage": "pass2_dedupe",
+        "elapsed_seconds": 9.902207399998588,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 3.7349248218487188,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 4,
+        "stage": "roi",
+        "elapsed_seconds": 0.33742250004434027,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 0.1272693673196581,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 5,
+        "stage": "visual_distance",
+        "elapsed_seconds": 0.27503910009909305,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 0.10373953205011475,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 6,
+        "stage": "threshold",
+        "elapsed_seconds": 0.1707810000552854,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 0.0644153541165704,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 7,
+        "stage": "pass2_screenshots",
+        "elapsed_seconds": 0.13893839999946067,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 0.05240492931566003,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 8,
+        "stage": "debounce",
+        "elapsed_seconds": 0.005431400000816211,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 0.0020486210660908308,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 9,
+        "stage": "unattributed_residual",
+        "elapsed_seconds": 87.38648949978233,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 32.96052643040036,
+        "measurement_type": "derived residual",
+        "notes": "decode/open/service/persistence and other uninstrumented work; not a measured timer"
+      }
+    ],
+    "measured_stage_total": 177.73818830021628,
+    "residual_seconds": 87.38648949978233,
+    "residual_percentage": 32.96052643040036
+  },
+  "profile_supporting_evidence": {},
+  "rss": {
+    "availability": false,
+    "status": "SKIPPED_PSUTIL_UNAVAILABLE",
+    "rss_before_mb": 0,
+    "rss_peak_mb": 0,
+    "rss_after_mb": 0
+  },
+  "counter_invariants": {
+    "features_full": 1201,
+    "features_quick": 0,
+    "frames_sampled": 1201,
+    "frames_decoded": 72002,
+    "ndarray_conversions": 2402,
+    "pass2_frames_sampled": 1201,
+    "representative_frames": 84,
+    "representative_frame_bytes": 522547200,
+    "screenshots_written": 6,
+    "rgb_transfer_bytes": 14942361600
+  },
+  "f0088": {
+    "observed": true,
+    "exact_fact": "slides_count=28 > png_count=6",
+    "finding_status": "OPEN"
+  },
+  "decision": "PENDING",
+  "optimization_selected": false
 }

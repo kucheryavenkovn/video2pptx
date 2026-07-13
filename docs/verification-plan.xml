@@ -1234,7 +1234,7 @@
 
   <!-- ===== Phase 18 — Detect Performance ===== -->
 
-  <V-PERF-DETECT-BASELINE MODULE="Phase-18/Step-18.1" PRIORITY="high" STATUS="in_progress">
+  <V-PERF-DETECT-BASELINE MODULE="Phase-18/Step-18.1" PRIORITY="high" STATUS="passed">
     <purpose>Performance baseline instrumentation: DetectionRunMetrics schema, to_dict/from_dict round-trip,
       measure() context manager, per-frame timers/counters, backend counters (frames_decoded, ndarray_conversions,
       rgb_transfer_bytes), RssSampler peak RSS (rss_before_mb, rss_peak_mb, rss_after_mb),
@@ -1305,22 +1305,22 @@
     </reference>
   </V-PERF-DETECT-TWO-PASS>
 
-  <V-PERF-DETECT-SHORT-BENCHMARK MODULE="Phase-18/Step-18.3" PRIORITY="high" STATUS="in_progress">
+  <V-PERF-DETECT-SHORT-BENCHMARK MODULE="Phase-18/Step-18.3" PRIORITY="high" STATUS="passed">
     <purpose>Run the immutable short-video benchmark on the recovered tree; historical 8623cd2
       evidence is context only and cannot select an optimization. The c372ced series is
-      SUPERSEDED_FOR_STEP_18_3_ACCEPTANCE; new r2 series with corrected aggregator in progress.</purpose>
+      SUPERSEDED_FOR_STEP_18_3_ACCEPTANCE; r2 series (BENCHMARK_CODE_HEAD=465d89e) completed.</purpose>
     <evidence>
       <runs>
-        <run-1>benchmarks/detect/runs/hermes-600s-recovered-r2-20260713/run-01</run-1>
-        <run-2>benchmarks/detect/runs/hermes-600s-recovered-r2-20260713/run-02</run-2>
-        <run-3>benchmarks/detect/runs/hermes-600s-recovered-r2-20260713/run-03</run-3>
-        <profile>benchmarks/detect/runs/hermes-600s-recovered-r2-20260713/profile</profile>
+        <run-1>benchmarks/detect/runs/hermes-600s-recovered-r2-20260713-465d89e/run-01</run-1>
+        <run-2>benchmarks/detect/runs/hermes-600s-recovered-r2-20260713-465d89e/run-02</run-2>
+        <run-3>benchmarks/detect/runs/hermes-600s-recovered-r2-20260713-465d89e/run-03</run-3>
+        <profile>benchmarks/detect/runs/hermes-600s-recovered-r2-20260713-465d89e/profile</profile>
         <aggregate>benchmarks/detect/evidence/aggregate_evidence.json</aggregate>
       </runs>
-      <invariants>TBD</invariants>
-      <signature-match-historical>TBD</signature-match-historical>
-      <mean-detect-elapsed-seconds>TBD</mean-detect-elapsed-seconds>
-      <decision>TBD</decision>
+      <invariants>6 PASS, 1 SKIPPED (psutil unavailable)</invariants>
+      <signature-match-historical>true</signature-match-historical>
+      <mean-detect-elapsed-seconds>254.49</mean-detect-elapsed-seconds>
+      <decision>PENDING</decision>
     </evidence>
   </V-PERF-DETECT-SHORT-BENCHMARK>
 
