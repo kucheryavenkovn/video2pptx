@@ -1,13 +1,26 @@
 # FILE: tests/test_slide_detector.py
-# VERSION: 0.1.0
+# VERSION: 0.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for slide change detection
-#   SCOPE: Change detection, debounce, threshold handling
+#   SCOPE: Change detection, debounce, threshold handling, governed anchor preservation
 #   DEPENDS: pytest, numpy, video2pptx.slide_detector
 #   LINKS: V-M-SLIDE-DETECTOR
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   TestDetectChanges - frame comparison and threshold behavior checks
+#   TestChangeEvent - detected-change value checks
+#   TestDebounce - debounce behavior checks
+#   test_governed_contracts_and_blocks_are_paired_and_ordered - semantic anchor preservation gate
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.2.0 - Added governed contract and navigation anchor preservation coverage
+# END_CHANGE_SUMMARY
+
+from pathlib import Path
 
 import numpy as np
 
@@ -105,3 +118,22 @@ class TestDebounce:
             iter(frames), threshold=0.1, min_stable_duration=1.0, sample_fps=2.0
         )
         assert len(changes) >= 1
+
+
+def test_governed_contracts_and_blocks_are_paired_and_ordered():
+    source = (Path(__file__).parents[1] / "src/video2pptx/slide_detector.py").read_text(
+        encoding="utf-8"
+    )
+    names = [
+        "CONTRACT: ChangeEvent",
+        "CONTRACT: detect_changes",
+        "BLOCK_DETECT_INIT",
+        "BLOCK_PROCESS_FRAMES",
+        "BLOCK_DEBOUNCE",
+    ]
+    for name in names:
+        start = f"START_{name}"
+        end = f"END_{name}"
+        assert source.count(start) == 1
+        assert source.count(end) == 1
+        assert source.index(start) < source.index(end)

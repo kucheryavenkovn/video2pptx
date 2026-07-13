@@ -47,9 +47,9 @@
 
     <M-BACKENDS NAME="Backends" TYPE="INTEGRATION" LAYER="0" ORDER="4" STATUS="implemented">
       <contract>
-        <purpose>Video decoder backends: OpenCV (CPU), PyAV (CUDA). Auto-select best available.</purpose>
+        <purpose>Video decoder backends: OpenCV (CPU), PyAV (CUDA). Auto-select best available and report exact decoded-frame, ndarray-conversion, and RGB-transfer telemetry.</purpose>
       </contract>
-      <target><source>src/video2pptx/backends/</source><tests>tests/test_backends.py</tests></target>
+      <target><source>src/video2pptx/backends/</source><tests>tests/test_backends.py, tests/test_detection_metrics.py</tests></target>
       <verification-ref>V-M-BACKENDS</verification-ref>
       <depends>none</depends>
     </M-BACKENDS>
@@ -83,11 +83,11 @@
 
     <M-SLIDE-DETECTOR NAME="SlideDetector" TYPE="CORE_LOGIC" LAYER="2" ORDER="8" STATUS="implemented">
       <contract>
-        <purpose>Compare consecutive frames, detect changes, apply debounce.</purpose>
+        <purpose>Compare consecutive frames, detect changes, and apply debounce while preserving the governed ChangeEvent/detect_changes contracts and detect-init/process/debounce anchors.</purpose>
       </contract>
       <target><source>src/video2pptx/slide_detector.py</source><tests>tests/test_slide_detector.py</tests></target>
       <verification-ref>V-M-SLIDE-DETECTOR</verification-ref>
-      <depends>M-FRAME-FEATURES, M-ROI</depends>
+      <depends>M-FRAME-FEATURES, M-ROI, M-DETECT-METRICS</depends>
     </M-SLIDE-DETECTOR>
 
     <M-SEGMENTER NAME="Segmenter" TYPE="CORE_LOGIC" LAYER="3" ORDER="9" STATUS="implemented">
@@ -191,14 +191,14 @@
 
     <M-DETECT-SLIDES NAME="DetectSlides" TYPE="CORE_LOGIC" LAYER="5" ORDER="20" STATUS="implemented">
       <contract>
-        <purpose>Standalone slide detection pipeline: video → slides.json + screenshots. No subtitles required.</purpose>
+        <purpose>Standalone two-pass slide detection pipeline: video → slides.json + screenshots. Document construction and persistence remain inside the RSS sampler lifecycle; cleanup is unconditional and peak RSS is max(before, sampled, after).</purpose>
         <inputs><param name="video_path" type="Path" /><param name="out_dir" type="Path" /><param name="config" type="AppConfig" /></inputs>
         <outputs><param name="slides.json" type="Path — slides.json with intervals + images" /></outputs>
       </contract>
       <target><source>src/video2pptx/detect_slides.py</source><tests>tests/test_detect_slides.py</tests></target>
       <observability><log-prefix>[DetectSlides]</log-prefix></observability>
       <verification-ref>V-M-DETECT-SLIDES</verification-ref>
-      <depends>M-VIDEO-DECODE, M-SLIDE-DETECTOR, M-SEGMENTER, M-DEDUPE, M-ROI, M-MODELS</depends>
+      <depends>M-VIDEO-DECODE, M-SLIDE-DETECTOR, M-SEGMENTER, M-DEDUPE, M-ROI, M-MODELS, M-DETECT-METRICS</depends>
     </M-DETECT-SLIDES>
 
     <M-NOTES NAME="Notes" TYPE="CORE_LOGIC" LAYER="5" ORDER="21" STATUS="implemented">
@@ -1244,7 +1244,8 @@
       </step-5.5>
       <step-6 name="CleanMachineVerification" status="pending" verification="V-REF-CLEAN-WINDOWS"/>
       <step-7 name="Installer" status="done" verification="V-REF-WIN-INSTALLER">
-        Fixed: removed --uninstall hook, removed .v2pp association, canonical onedir layout.
+        Recover accepted README payload and exactly one canonical SetupIconFile directive; retain the
+        canonical onedir layout and absence of the invalid --uninstall hook and dead .v2pp association.
       </step-7>
       <step-8 name="PackagedMCP" status="done" verification="V-REF-PACKAGED-MCP">
         Real MCP smoke test: port discovery, initialize, tools/list, state read, shutdown.
@@ -1262,6 +1263,8 @@
       <step-18.1 name="PerformanceBaseline" status="in_progress" verification="V-PERF-DETECT-BASELINE">
         M-DETECT-METRICS module (detection_metrics.py), instrument detector/detect_slides/pyav_backend,
         tools/benchmark_detect.py, initial Hermes run (partial — timeout during Pass 3).
+        Recovery requires deterministic RSS lifecycle/max tests and exact OpenCV/PyAV telemetry tests
+        before baseline evidence can be trusted; no benchmark or optimization is part of recovery.
         Key finding: 3-pass structure redundant (Pass 3 only saves screenshots).
       </step-18.1>
       <step-18.2 name="TwoPassDetection" status="done">
@@ -1271,19 +1274,27 @@
         Log markers updated from Pass X/3 to Pass X/2.
         Verified: all detect_slides tests pass, no "Pass 3/3" markers remain.
       </step-18.2>
-      <step-18.3 name="ShortVideoBenchmark" status="pending">
-        Create or find a medium-length video (~10 min) for quick iteration.
-        Run baseline benchmark, apply optimization, compare.
+      <step-18.3 name="ShortVideoBenchmark" status="pending" verification="V-PERF-DETECT-SHORT-BENCHMARK">
+        Re-run the immutable short-video benchmark on the recovered tree before making any
+        bottleneck or optimization decision. The historical 8623cd2 result is regressed-tree
+        context only and is not accepted as current evidence.
       </step-18.3>
-      <step-18.4 name="HermesReBenchmark" status="pending">
-        Re-run full Hermes benchmark after optimization chain.
-        Compare vs partial baseline metrics.
+      <step-18.4 name="BottleneckDecision" status="pending" verification="V-PERF-DETECT-BOTTLENECK">
+        Classify the current bottleneck only from the recovered-tree short benchmark. Do not
+        carry DECODE_PROFILE forward as an accepted decision from the regressed benchmark.
       </step-18.4>
-      <step-18.5 name="AdditionalOptimizations" status="planned">
-        Candidate: parallel feature extraction, skip PHash when FrameDiff is low,
-        frame-level vs segment-level dedup order, lazy screenshot decode,
-        selective ROI compute.
+      <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
+        Select exactly one optimization only after Step 18.4 supplies accepted bottleneck evidence.
       </step-18.5>
+      <step-18.6 name="ShortVideoReBenchmark" status="planned" verification="V-PERF-DETECT-SHORT-REBENCHMARK">
+        Repeat the immutable short-video protocol and compare performance and quality evidence.
+      </step-18.6>
+      <step-18.7 name="HermesFullReBenchmark" status="planned" verification="V-PERF-DETECT-HERMES-REBENCHMARK">
+        Run the full Hermes benchmark only after the short-video re-benchmark passes.
+      </step-18.7>
+      <step-18.8 name="QualityAcceptance" status="planned" verification="V-PERF-DETECT-ACCEPTANCE">
+        Accept performance work only when the recovered-tree quality and timing gates pass.
+      </step-18.8>
     </Phase-18>
   </ImplementationOrder>
 

@@ -13,6 +13,10 @@
 #   ChangeEvent - detected change with timestamp and score
 #   detect_changes - scan frames, produce ChangeEvents
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.1.0 - Restored accepted contracts and detection navigation anchors
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -29,6 +33,13 @@ from video2pptx.roi import SlideRegion
 
 
 class ChangeEvent:
+    # START_CONTRACT: ChangeEvent
+    #   PURPOSE: Represent a detected change point between frames
+    #   INPUTS: { timestamp: float, score: float, features: FrameFeatures }
+    #   OUTPUTS: { ChangeEvent }
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-SLIDE-DETECTOR
+    # END_CONTRACT: ChangeEvent
     def __init__(self, timestamp: float, score: float, features: FrameFeatures):
         self.timestamp = timestamp
         self.score = score
@@ -47,13 +58,24 @@ def detect_changes(
     distance_fn: Callable | None = None,
     quick_mode: bool = False,
 ) -> tuple[list[ChangeEvent], list[FrameFeatures], list[float]]:
+    # START_CONTRACT: detect_changes
+    #   PURPOSE: Scan consecutive frames and identify debounced slide changes
+    #   INPUTS: { frames: timestamp/image iterator, slide_region: SlideRegion|None, threshold: float|str, min_stable_duration: float, sample_fps: float, video_duration: float|None, progress_callback: Callable|None, extract_fn: Callable|None, distance_fn: Callable|None, quick_mode: bool }
+    #   OUTPUTS: { tuple[list[ChangeEvent], list[FrameFeatures], list[float]] }
+    #   SIDE_EFFECTS: emits progress logs and optional progress callbacks
+    #   LINKS: M-SLIDE-DETECTOR, M-DETECT-METRICS
+    # END_CONTRACT: detect_changes
+
+    # START_BLOCK_DETECT_INIT
     slide_region = slide_region or SlideRegion(roi=None)
     changes: list[ChangeEvent] = []
     all_features: list[FrameFeatures] = []
     all_scores: list[float] = []
     _extract = extract_fn or extract_features
     _dist = distance_fn or visual_distance
+    # END_BLOCK_DETECT_INIT
 
+    # START_BLOCK_PROCESS_FRAMES
     prev_features: FrameFeatures | None = None
     progress_step: float = max(30.0, (video_duration or 600.0) * 0.1)
     next_progress: float = progress_step
@@ -102,10 +124,13 @@ def detect_changes(
             next_progress += progress_step
 
         prev_features = ff
+    # END_BLOCK_PROCESS_FRAMES
 
+    # START_BLOCK_DEBOUNCE
     with measure("debounce"):
         stable_frames = max(1, int(round(sample_fps * min_stable_duration)))
         changes = _debounce_changes(changes, stable_frames)
+    # END_BLOCK_DEBOUNCE
 
     logger.info(
         f"[SlideDetector][detect_changes] Detection complete | "

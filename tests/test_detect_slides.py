@@ -1,22 +1,35 @@
 # FILE: tests/test_detect_slides.py
-# VERSION: 0.1.0
+# VERSION: 0.3.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for standalone detect-slides pipeline (no subtitles, no export)
-#   SCOPE: run_detect_slides on synthetic video, verify SlidesDocument fields and screenshots
+#   SCOPE: Pipeline output, two-pass decode, and deterministic RSS lifecycle/peak semantics
 #   DEPENDS: pytest, video2pptx.detect_slides, video2pptx.config, loguru
 #   LINKS: V-M-DETECT-SLIDES
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   TestDetectSlides - integration and two-pass pipeline regression checks
+#   TestRssLifecycle - deterministic sampler ordering, peak, and exception cleanup checks
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.3.0 - Completed RSS maximum branches and detector-work cleanup evidence
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 
+import numpy as np
 import pytest
 
+from video2pptx import detect_slides
 from video2pptx.config import AppConfig
 from video2pptx.detect_slides import run_detect_slides
+from video2pptx.detection_metrics import collect
 from video2pptx.video_decode import VideoDecoder
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -171,3 +184,130 @@ class TestDetectSlides:
             # Verify PNG header
             header = img_path.read_bytes()[:4]
             assert header == b"\x89PNG", f"Not a valid PNG: {img_path}"
+
+
+class TestRssLifecycle:
+    @staticmethod
+    def _patch_pipeline(monkeypatch, events, sampled_peak):
+        class FakeSampler:
+            def __init__(self, interval):
+                self.peak_mb = sampled_peak
+
+            def start(self):
+                events.append("sampler_start")
+
+            def stop(self):
+                events.append("sampler_stop")
+
+        class FakeDecoder:
+            def __init__(self, **kwargs):
+                pass
+
+            def get_info(self):
+                return SimpleNamespace(duration=1.0, width=2, height=2, fps=10.0)
+
+            def iter_frames(self):
+                yield SimpleNamespace(
+                    timestamp=0.0,
+                    image=np.zeros((2, 2, 3), dtype=np.uint8),
+                )
+
+        class FakeDocument:
+            def __init__(self, **kwargs):
+                events.append("document")
+
+            def model_dump_json(self, indent):
+                return "{}"
+
+        segment = SimpleNamespace(index=0, representative_timestamp=0.0, image=None)
+        monkeypatch.setattr(detect_slides, "RssSampler", FakeSampler)
+        monkeypatch.setattr(detect_slides, "VideoDecoder", FakeDecoder)
+        monkeypatch.setattr(detect_slides, "SlidesDocument", FakeDocument)
+        monkeypatch.setattr(
+            detect_slides,
+            "detect_changes",
+            lambda **kwargs: ([], [], []),
+        )
+        monkeypatch.setattr(detect_slides, "build_segments", lambda **kwargs: [segment])
+        monkeypatch.setattr(detect_slides.cv2, "cvtColor", lambda image, code: image)
+        monkeypatch.setattr(detect_slides.cv2, "imwrite", lambda path, image: True)
+
+    @pytest.mark.parametrize(
+        ("rss_values", "sampled_peak", "expected_peak"),
+        [
+            pytest.param([200.0, 175.0], 150.0, 200.0, id="before-highest"),
+            pytest.param([100.0, 120.0], 140.0, 140.0, id="sampled-highest"),
+            pytest.param([100.0, 120.0], 80.0, 120.0, id="after-highest"),
+        ],
+    )
+    def test_persistence_precedes_stop_and_peak_is_max(
+        self, tmp_path, monkeypatch, rss_values, sampled_peak, expected_peak
+    ):
+        events = []
+        self._patch_pipeline(monkeypatch, events, sampled_peak)
+        rss_iter = iter(rss_values)
+        monkeypatch.setattr(detect_slides, "_rss_now_mb", lambda: next(rss_iter))
+        original_write_text = Path.write_text
+
+        def recording_write_text(path, data, encoding=None):
+            events.append("persist")
+            return original_write_text(path, data, encoding=encoding)
+
+        monkeypatch.setattr(Path, "write_text", recording_write_text)
+        with collect() as metrics:
+            run_detect_slides(tmp_path / "video.mp4", tmp_path, AppConfig())
+
+        assert events == ["sampler_start", "document", "persist", "sampler_stop"]
+        assert metrics.gauge_rss_peak_mb.value == expected_peak
+        assert metrics.gauge_rss_after_mb.value == rss_values[1]
+
+    def test_detector_work_exception_still_stops_sampler(self, tmp_path, monkeypatch):
+        events = []
+        self._patch_pipeline(monkeypatch, events, sampled_peak=150.0)
+        rss_iter = iter([200.0, 175.0])
+        monkeypatch.setattr(detect_slides, "_rss_now_mb", lambda: next(rss_iter))
+
+        def failing_detect_changes(**kwargs):
+            events.append("detector_work_exception")
+            raise RuntimeError("detector work failed")
+
+        def unexpected_persistence(path, data, encoding=None):
+            events.append("persist")
+            raise AssertionError("persistence must not execute")
+
+        monkeypatch.setattr(detect_slides, "detect_changes", failing_detect_changes)
+        monkeypatch.setattr(Path, "write_text", unexpected_persistence)
+        with collect() as metrics, pytest.raises(
+            RuntimeError, match="detector work failed"
+        ):
+            run_detect_slides(tmp_path / "video.mp4", tmp_path, AppConfig())
+
+        assert events == [
+            "sampler_start",
+            "detector_work_exception",
+            "sampler_stop",
+        ]
+        assert events.count("sampler_stop") == 1
+        assert "document" not in events
+        assert "persist" not in events
+        assert metrics.gauge_rss_after_mb.value == 175.0
+        assert metrics.gauge_rss_peak_mb.value == 200.0
+
+    def test_persistence_exception_still_stops_sampler(self, tmp_path, monkeypatch):
+        events = []
+        self._patch_pipeline(monkeypatch, events, sampled_peak=90.0)
+        rss_iter = iter([100.0, 120.0])
+        monkeypatch.setattr(detect_slides, "_rss_now_mb", lambda: next(rss_iter))
+
+        def failing_write_text(path, data, encoding=None):
+            events.append("persist")
+            raise OSError("persistence failed")
+
+        monkeypatch.setattr(Path, "write_text", failing_write_text)
+        with collect() as metrics, pytest.raises(OSError, match="persistence failed"):
+            run_detect_slides(tmp_path / "video.mp4", tmp_path, AppConfig())
+
+        assert events == ["sampler_start", "document", "persist", "sampler_stop"]
+        assert events.count("sampler_stop") == 1
+        assert metrics.gauge_rss_after_mb.value == 120.0
+        assert metrics.gauge_rss_peak_mb.value == 120.0

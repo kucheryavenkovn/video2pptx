@@ -1,5 +1,5 @@
 # FILE: tests/test_detection_metrics.py
-# VERSION: 1.1.0
+# VERSION: 1.3.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for DetectionRunMetrics schema, round-trip, measure(), collect(),
 #            RssSampler, InstrumentedIterator, benchmark contract invariants
@@ -7,12 +7,22 @@
 #          RssSampler lifecycle (start/stop/peak), InstrumentedIterator counting,
 #          benchmark invariants: features_full+features_quick==frames_sampled,
 #          frames_decoded>=ndarray_conversions>=frames_sampled+pass2_frames_sampled,
-#          RSS gauges, representative frame evidence
+#          RSS gauges, representative frame evidence, exact OpenCV/PyAV telemetry
 #   DEPENDS: pytest, video2pptx.detection_metrics
 #   LINKS: V-PERF-DETECT-BASELINE
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   TestOpenCVMetrics - exact successful-read and yielded-frame telemetry checks
+#   TestPyAVMetrics - exact telemetry and normal/exception container cleanup checks
+#   TestBenchmarkContract - end-to-end metrics invariants for the synthetic fixture
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.3.0 - Added deterministic PyAV decode-failure cleanup coverage
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
@@ -180,6 +190,141 @@ class TestInstrumentedIterator:
         assert c.value == 0
 
 
+class TestOpenCVMetrics:
+    def test_successful_source_reads_counted_once(self, monkeypatch):
+        import numpy as np
+
+        from video2pptx.backends import opencv_backend
+
+        source_frames = [np.zeros((2, 3, 3), dtype=np.uint8) for _ in range(7)]
+
+        class FakeCapture:
+            def __init__(self, _path):
+                self.frames = iter(source_frames)
+
+            def isOpened(self):
+                return True
+
+            def get(self, prop):
+                return 10.0 if prop == opencv_backend.cv2.CAP_PROP_FPS else 0.0
+
+            def read(self):
+                return next(((True, frame) for frame in self.frames), (False, None))
+
+            def release(self):
+                pass
+
+        monkeypatch.setattr(opencv_backend.cv2, "VideoCapture", FakeCapture)
+        with collect() as metrics:
+            sampled = list(opencv_backend.opencv_iter_frames("unused.mp4", sample_fps=2.0))
+
+        assert metrics.counter_frames_decoded.value == len(source_frames)
+        assert metrics.counter_ndarray_conversions.value == len(sampled) == 2
+        assert metrics.gauge_rgb_transfer_bytes.value == sum(
+            frame.image.nbytes for frame in sampled
+        )
+
+
+class TestPyAVMetrics:
+    @staticmethod
+    def _install_fake_av(monkeypatch, key_frames):
+        import sys
+        from types import SimpleNamespace
+
+        import numpy as np
+
+        from video2pptx.backends import pyav_backend
+
+        class FakeFrame:
+            def __init__(self, key_frame):
+                self.key_frame = key_frame
+                self.conversions = 0
+
+            def to_ndarray(self, format):
+                assert format == "rgb24"
+                self.conversions += 1
+                return np.zeros((2, 3, 3), dtype=np.uint8)
+
+        frames = [FakeFrame(key_frame) for key_frame in key_frames]
+
+        class FakePacket:
+            def decode(self):
+                return frames
+
+        class FakeContainer:
+            def __init__(self):
+                stream = SimpleNamespace(average_rate=10.0)
+                self.streams = SimpleNamespace(video=[stream])
+                self.closed = False
+
+            def demux(self, stream):
+                return [FakePacket()]
+
+            def close(self):
+                self.closed = True
+
+        container = FakeContainer()
+        fake_av = SimpleNamespace(open=lambda path, hwaccel=None: container)
+        monkeypatch.setitem(sys.modules, "av", fake_av)
+        monkeypatch.setattr(pyav_backend, "_pick_hw_device", lambda: None)
+        return pyav_backend, frames, container
+
+    @pytest.mark.parametrize(
+        ("keyframes_only", "key_frames", "expected_yields"),
+        [(False, [True] * 7, 2), (True, [True, False, True, False], 2)],
+    )
+    def test_exact_decode_conversion_and_transfer_metrics(
+        self, monkeypatch, keyframes_only, key_frames, expected_yields
+    ):
+        backend, frames, container = self._install_fake_av(monkeypatch, key_frames)
+        with collect() as metrics:
+            sampled = list(
+                backend.pyav_iter_frames(
+                    "unused.mp4", sample_fps=2.0, keyframes_only=keyframes_only
+                )
+            )
+
+        assert metrics.counter_frames_decoded.value == len(frames)
+        assert metrics.counter_ndarray_conversions.value == len(sampled) == expected_yields
+        assert sum(frame.conversions for frame in frames) == expected_yields
+        assert metrics.gauge_rgb_transfer_bytes.value == sum(
+            frame.image.nbytes for frame in sampled
+        )
+        assert container.closed
+
+    def test_decode_failure_closes_container_and_propagates(self, monkeypatch):
+        import sys
+        from types import SimpleNamespace
+
+        from video2pptx.backends import pyav_backend
+
+        class FakePacket:
+            def decode(self):
+                raise RuntimeError("decode failed")
+
+        class FakeContainer:
+            def __init__(self):
+                stream = SimpleNamespace(average_rate=10.0)
+                self.streams = SimpleNamespace(video=[stream])
+                self.close_calls = 0
+
+            def demux(self, stream):
+                return [FakePacket()]
+
+            def close(self):
+                self.close_calls += 1
+
+        container = FakeContainer()
+        fake_av = SimpleNamespace(open=lambda path, hwaccel=None: container)
+        monkeypatch.setitem(sys.modules, "av", fake_av)
+        monkeypatch.setattr(pyav_backend, "_pick_hw_device", lambda: None)
+
+        with pytest.raises(RuntimeError, match="decode failed"):
+            list(pyav_backend.pyav_iter_frames("unused.mp4", sample_fps=2.0))
+
+        assert container.close_calls == 1
+
+
 class TestBenchmarkContract:
     def _run_detect(self, tmp_path, cfg_override=None):
         from pathlib import Path
@@ -220,6 +365,7 @@ class TestBenchmarkContract:
         if psutil_ok:
             assert d["gauges"]["rss_before_mb"] > 0
             assert d["gauges"]["rss_peak_mb"] >= d["gauges"]["rss_before_mb"]
+            assert d["gauges"]["rss_peak_mb"] >= d["gauges"]["rss_after_mb"]
         else:
             assert d["gauges"]["rss_before_mb"] == 0
 

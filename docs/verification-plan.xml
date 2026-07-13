@@ -123,9 +123,15 @@
       <module-checks><check-1>pytest tests/test_cli.py -v</check-1></module-checks>
     </V-M-CLI>
 
-    <V-M-BACKENDS MODULE="M-BACKENDS" PRIORITY="high" STATUS="passed">
-      <test-files><file>tests/test_backends.py</file></test-files>
-      <module-checks><check-1>pytest tests/test_backends.py -v</check-1></module-checks>
+    <V-M-BACKENDS MODULE="M-BACKENDS" PRIORITY="high" STATUS="in_progress">
+      <test-files><file>tests/test_backends.py</file><file>tests/test_detection_metrics.py</file></test-files>
+      <module-checks><check-1>pytest tests/test_backends.py tests/test_detection_metrics.py -v</check-1></module-checks>
+      <scenarios>
+        <scenario-1 kind="regression">Each successful OpenCV read increments frames_decoded exactly once.</scenario-1>
+        <scenario-2 kind="telemetry">OpenCV conversions and RGB bytes equal yielded RGB frames exactly.</scenario-2>
+        <scenario-3 kind="telemetry">PyAV counts every decoded frame while conversions and RGB bytes equal yielded frames exactly.</scenario-3>
+        <scenario-4 kind="telemetry">PyAV keyframe filtering does not suppress decoded-frame counts.</scenario-4>
+      </scenarios>
     </V-M-BACKENDS>
 
     <V-M-VIDEO-DECODE MODULE="M-VIDEO-DECODE" PRIORITY="high" STATUS="passed">
@@ -146,6 +152,7 @@
     <V-M-SLIDE-DETECTOR MODULE="M-SLIDE-DETECTOR" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_slide_detector.py</file></test-files>
       <module-checks><check-1>pytest tests/test_slide_detector.py -v</check-1></module-checks>
+      <scenarios><scenario-1 kind="structure">Governed ChangeEvent/detect_changes contracts and detect-init/process/debounce anchors remain uniquely paired and ordered.</scenario-1></scenarios>
     </V-M-SLIDE-DETECTOR>
 
     <V-M-SEGMENTER MODULE="M-SEGMENTER" PRIORITY="high" STATUS="passed">
@@ -203,13 +210,16 @@
       <module-checks><check-1>pytest tests/test_llm_orchestrator.py -v</check-1></module-checks>
     </V-M-LLM-ORCHESTRATOR>
 
-    <V-M-DETECT-SLIDES MODULE="M-DETECT-SLIDES" PRIORITY="high" STATUS="passed">
+    <V-M-DETECT-SLIDES MODULE="M-DETECT-SLIDES" PRIORITY="high" STATUS="in_progress">
       <test-files><file>tests/test_detect_slides.py</file></test-files>
       <module-checks><check-1>pytest tests/test_detect_slides.py -v</check-1></module-checks>
       <scenarios>
         <scenario-1 kind="success">detect_slides with video produces slides.json with intervals and images, no transcript.</scenario-1>
         <scenario-2 kind="success">detect_slides with synthetic video returns correct segment count.</scenario-2>
         <scenario-3 kind="success">detect_slides output can be loaded by notes command later.</scenario-3>
+        <scenario-4 kind="lifecycle">RSS sampler start precedes document construction and persistence, and stop follows persistence.</scenario-4>
+        <scenario-5 kind="failure">Persistence exceptions propagate after unconditional RSS sampler cleanup.</scenario-5>
+        <scenario-6 kind="telemetry">rss_peak_mb equals max(rss_before_mb, sampled peak, rss_after_mb).</scenario-6>
       </scenarios>
     </V-M-DETECT-SLIDES>
 
@@ -1112,7 +1122,8 @@
     <purpose>Application identity, version consistency, About dialog, Help menu, diagnostic info.</purpose>
     <evidence><result>ApplicationIdentity with version/build/repository. AboutDialog shows version, build SHA, runtime.
     Help menu has About/Logs/GitHub. __version__ is single source. MainWindow under 600 LOC.</result></evidence>
-    <test-files><file>tests/gui/test_main_window_integration.py</file></test-files>
+    <test-files><file>tests/gui/test_main_window_integration.py</file><file>tests/test_branding.py</file></test-files>
+    <scenarios><scenario-1 kind="runtime">AboutDialog and MainWindow construct with canonical runtime branding imports and visible logo wiring.</scenario-1></scenarios>
   </V-REF-PRODUCT-IDENTITY>
 
   <V-REF-PACKAGING-INVENTORY MODULE="Phase-17/Step-1" PRIORITY="high" STATUS="passed">
@@ -1195,12 +1206,16 @@
   </V-REF-CLEAN-WINDOWS>
 
   <V-REF-WIN-INSTALLER MODULE="Phase-17/Step-7" PRIORITY="high" STATUS="passed">
-    <purpose>Inno Setup installer: canonical layout, no dead .v2pp association, no invalid --uninstall hook.</purpose>
-    <test-files><file>packaging/windows/installer/video2pptx.iss</file></test-files>
+    <purpose>Inno Setup installer: canonical layout and icon, accepted README payload, no dead .v2pp association, no invalid --uninstall hook.</purpose>
+    <test-files><file>packaging/windows/installer/video2pptx.iss</file><file>tests/test_windows_installer.py</file></test-files>
+    <module-checks><check-1>pytest tests/test_windows_installer.py -v</check-1></module-checks>
+    <evidence><result>Static installer recovery checks pass: accepted README payload once, one canonical SetupIconFile, canonical bundle source, and no invalid legacy sections.</result></evidence>
     <scenarios>
       <scenario-1 kind="success">Installer sources from dist/windows/Video2PPTX/*</scenario-1>
       <scenario-2 kind="success">No [UninstallRun] section (removed invalid --uninstall)</scenario-2>
       <scenario-3 kind="success">No [Registry] section for .v2pp (removed dead file association)</scenario-3>
+      <scenario-4 kind="payload">Repository README.md is installed exactly once.</scenario-4>
+      <scenario-5 kind="configuration">SetupIconFile occurs exactly once and names the canonical Video2PPTX.ico asset.</scenario-5>
     </scenarios>
   </V-REF-WIN-INSTALLER>
 
@@ -1227,15 +1242,21 @@
     <evidence><result>
       Metrics typed round-trip PASS: to_dict() → from_dict() → exact values.
       measure() records time, inactive overhead negligible.
-      RssSampler lifecycle PASS: start/stop/peak, thread terminates cleanly.
-      Benchmark contract test PASS:
+       RssSampler lifecycle recovery PASS requires deterministic start/document/persist/stop ordering,
+       separate before-highest, sampled-highest, and after-highest peak cases, detector-work
+       exception cleanup before document construction, and persistence-exception cleanup.
+       Backend telemetry recovery PASS requires exact OpenCV and PyAV decoded-frame, conversion,
+       RGB-transfer-byte, and PyAV keyframe-filter semantics plus container close on normal and
+       decode/iteration failure paths.
+       Fixture-backed benchmark contract evidence is not claimed in this recovery because F-0093
+       blocks execution. When the fixture is restored, the pending gate must verify:
         - timer_total &gt; 0, timer_extract_features &gt; 0
         - frames_sampled (Pass 1 only) &gt; 0
         - pass2_frames_sampled (Pass 2) &gt; 0
         - features_full + features_quick == frames_sampled invariant
         - frames_decoded >= ndarray_conversions >= frames_sampled + pass2_frames_sampled
         - representative_frames &gt; 0, representative_frame_bytes &gt; 0
-        - rss_before_mb &gt; 0 (when psutil available), rss_peak_mb >= rss_before_mb
+         - rss_before_mb &gt; 0 (when psutil available), rss_peak_mb >= max(rss_before_mb, rss_after_mb)
         - screenshots_written == actual PNG count
         - rgb_transfer_bytes &gt; 0
     </result></evidence>
@@ -1246,8 +1267,11 @@
       <file>src/video2pptx/slide_detector.py</file>
       <file>src/video2pptx/backends/pyav_backend.py</file>
       <file>src/video2pptx/backends/opencv_backend.py</file>
+      <file>tests/test_detect_slides.py</file>
     </test-files>
-    <notes>Step 18.1 remains in_progress until a full Hermes or equivalent medium-length benchmark produces usable metrics artifacts. The 30-min timeout on the initial run means complete stage timing isolation is pending.</notes>
+    <notes>Step 18.1 remains in_progress. Deterministic recovery evidence does not replace the
+      unavailable fixture-backed detector gate (F-0093) or environment-sensitive broad backend
+      gate (F-0094). Benchmarking and optimization remain explicitly out of recovery scope.</notes>
   </V-PERF-DETECT-BASELINE>
 
   <V-PERF-DETECT-TWO-PASS MODULE="Phase-18/Step-18.2" PRIORITY="high" STATUS="passed">
@@ -1281,23 +1305,29 @@
     </reference>
   </V-PERF-DETECT-TWO-PASS>
 
-  <V-PERF-DETECT-PARALLEL MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
-    <purpose>In-frame parallel feature extraction (PHash + FrameDiff computed concurrently).</purpose>
-  </V-PERF-DETECT-PARALLEL>
+  <V-PERF-DETECT-SHORT-BENCHMARK MODULE="Phase-18/Step-18.3" PRIORITY="high" STATUS="pending">
+    <purpose>Run the immutable short-video benchmark on the recovered tree; historical 8623cd2
+      evidence is context only and cannot select an optimization.</purpose>
+  </V-PERF-DETECT-SHORT-BENCHMARK>
 
-  <V-PERF-DETECT-CASCADE MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
-    <purpose>Fast-full cascade: skip PHash when FrameDiff is below skip threshold.</purpose>
-  </V-PERF-DETECT-CASCADE>
+  <V-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="pending">
+    <purpose>Select a bottleneck class only from accepted recovered-tree benchmark evidence.</purpose>
+  </V-PERF-DETECT-BOTTLENECK>
 
-  <V-PERF-DETECT-CHUNKED MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
-    <purpose>Chunked decode: decode video in chunks, process each chunk independently.</purpose>
-  </V-PERF-DETECT-CHUNKED>
+  <V-PERF-DETECT-TARGETED MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
+    <purpose>Verify the single targeted optimization selected by Step 18.4; no optimization is
+      selected while the bottleneck decision is pending.</purpose>
+  </V-PERF-DETECT-TARGETED>
 
-  <V-PERF-DETECT-GPU MODULE="Phase-18/Step-18.5" PRIORITY="low" STATUS="planned">
-    <purpose>GPU-resident feature extraction (CuPy or CUDA kernels for PHash).</purpose>
-  </V-PERF-DETECT-GPU>
+  <V-PERF-DETECT-SHORT-REBENCHMARK MODULE="Phase-18/Step-18.6" PRIORITY="high" STATUS="planned">
+    <purpose>Compare immutable short-video performance and quality before and after optimization.</purpose>
+  </V-PERF-DETECT-SHORT-REBENCHMARK>
 
-  <V-PERF-DETECT-ACCEPTANCE MODULE="Phase-18" PRIORITY="high" STATUS="planned">
+  <V-PERF-DETECT-HERMES-REBENCHMARK MODULE="Phase-18/Step-18.7" PRIORITY="high" STATUS="planned">
+    <purpose>Run the full Hermes benchmark only after short-video re-benchmark acceptance.</purpose>
+  </V-PERF-DETECT-HERMES-REBENCHMARK>
+
+  <V-PERF-DETECT-ACCEPTANCE MODULE="Phase-18/Step-18.8" PRIORITY="high" STATUS="planned">
     <purpose>Detect performance acceptance gate: Hermes full run &lt; 30 min, missed_slide_rate &lt;= 5%,
       false_split_rate &lt;= 10%, timestamp_error &lt;= 1.5s.</purpose>
   </V-PERF-DETECT-ACCEPTANCE>
