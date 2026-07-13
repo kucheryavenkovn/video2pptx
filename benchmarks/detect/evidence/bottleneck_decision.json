@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "step": "18.4",
   "phase": "18",
-  "status": "DECISION_MADE",
+  "status": "BLOCKED_TARGET_OPTIMIZATION_NOT_DISCRIMINATED",
   "decision_evidence_head": "acb424f904bc4b3459f6ad2ceb9f8c701cedb69b",
   "source_benchmark": {
     "benchmark_sequence": "hermes-600s-f0097-instrumented-20260713-acb424f",
@@ -353,60 +353,94 @@
   "selected_bottleneck_class": "DECODE_FRAME_PIPELINE",
   "decision_confidence": "HIGH",
   "confidence_rationale": "Total decode pipeline wall-clock (172.46s, 63.27%) dominates all other work by a factor of ~1.86x over the next largest component (extract_features, 92.62s). The gap (79.84s) is directionally stable across all three runs. Residual has dropped from 87.39s (33.0%) to 0.53s (0.19%), confirming full attribution. The decode pipeline runs identical code (Packet.decode + generator advancement + to_ndarray) in both passes. Profile evidence corroborates Packet.decode (114.85s self) as the largest single function.",
-  "selected_optimization": "PYAV_HWACCEL_CUDA",
-  "step18_5_hypothesis": {
-    "name": "PYAV_HWACCEL_CUDA",
-    "target_bottleneck_class": "DECODE_FRAME_PIPELINE",
-    "exact_code_boundaries": "src/video2pptx/backends/pyav_backend.py \u2014 pyav_iter_functions(): the for packet in container.demux(): ... packet.decode() ... VideoFrame.to_ndarray(format='rgb') loop. Specifically, the container = av.open(video_path, ...) call and its options dict.",
-    "mechanistic_hypothesis": "PyAV's default H.264 decoder runs an unaccelerated software decoder (FFmpeg h264) on CPU. By adding hwaccel=cuda to the av.open options dict, PyAV will instruct FFmpeg to use the NVIDIA CUVID/CUDA decoder via FFmpeg's h264_cuvid or equivalent. This offloads the ~115s of Packet.decode self time from CPU to GPU (RTX 4090). The decoded frames are transferred back to CPU via to_ndarray (still needed, ~9.6s). GPU decode throughput is expected to be 5-10x faster than software decode for H.264 1920x1080@60fps.",
-    "expected_affected_timers": [
-      "pass1_decode_or_frame_advance",
-      "pass2_decode_or_frame_advance"
-    ],
-    "expected_unaffected_timers": [
-      "extract_features",
-      "roi",
-      "visual_distance",
-      "threshold",
-      "debounce",
-      "pass2_match_and_collect",
-      "pass2_dedupe",
-      "pass2_screenshots"
-    ],
-    "quality_parity_risks": "GPU hardware decode may produce slightly different decoded pixel values vs software decoder due to different rounding/optimization paths. This could cause visual_distance scores to drift, potentially altering slide boundary detection positions or introducing false splits/missed transitions. A deterministic parity test must compare per-frame scores between software and HW decode on a known test clip.",
-    "memory_resource_risks": "GPU VRAM consumption for decode surfaces. RTX 4090 has 24GB VRAM \u2014 should not be a practical constraint for H.264 1920x1080. However, PyAV may keep decoded frames in GPU memory until explicitly released; to_ndarray copies to CPU. No additional CPU memory pressure expected.",
-    "backend_compatibility_risks": "Requires: (1) NVIDIA GPU with CUDA support (RTX 4090 confirmed), (2) NVIDIA driver compatible with CUDA 12.x, (3) FFmpeg/PyAV built with CUDA/CUVID support (must verify \ffmpeg -hwaccels shows cuda). Fallback to software decode must be implemented if CUDA hwaccel is unavailable or fails at runtime.",
-    "cancellation_progress_risks": "No change to cancellation semantics (generator-based iteration preserved). No change to progress reporting (callback-based still works). Standard KeyboardInterrupt/GeneratorExit propagation unchanged.",
-    "step18_6_acceptance_gates": {
-      "canonical_signature_required": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
-      "slides_count_required": 28,
-      "score_count_required": 1200,
-      "screenshots_written_required": 6,
-      "actual_png_count_required": 6,
-      "sample_fps": 2.0,
-      "threshold": "auto",
-      "dedupe": true,
-      "clip_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
-      "two_pass_semantics": "preserved",
-      "cancellation": "preserved",
-      "progress": "preserved",
-      "gui_mcp_cli_public_semantics": "preserved",
-      "benchmark_protocol": "one warmup, three recorded runs",
-      "optimization_parity_gate": "exact canonical signature match required \u2014 quality regression is not permitted as a shortcut",
-      "performance_hypothesis": "pass1_decode_or_frame_advance and pass2_decode_or_frame_advance should decrease proportionally to GPU decode speedup (expected 3-10x reduction). extract_features, visual_distance, threshold, debounce, pass2_match_and_collect, pass2_dedupe, pass2_screenshots should remain unchanged within run-to-run variance (~12% std dev). residual may slightly increase if HW\u2192SW frame value differences trigger different code paths.",
-      "performance_gate": "pass1_decode_or_frame_advance + pass2_decode_or_frame_advance total must decrease by at least 40% (from ~172.46s to <103.47s) while all quality gates pass exactly."
+  "selected_optimization": "NONE",
+  "rejected_optimizations": [
+    {
+      "name": "PYAV_HWACCEL_CUDA",
+      "rejection_status": "REJECTED_SOURCE_MODEL_MISMATCH",
+      "rejection_reason": "The hypothesized optimization claimed PyAV defaults to software H.264 decode and Step 18.5 should add hwaccel=cuda to av.open(). Source audit at candidate HEAD proves the current pyav_iter_frames already: (1) prefers 'cuda' first in _HW_PREFERRED, (2) calls _pick_hw_device(), (3) calls _create_hwaccel(), (4) passes hwaccel=hwaccel to av.open(str(video_path), hwaccel=hwaccel). The hypothesis target already exists in source. No committed benchmark evidence proves whether hardware decode was actually active at runtime (see F-0098).",
+      "false_source_assumptions": [
+        "PyAV defaults to software H.264 decoder",
+        "Step 18.5 needs to add hwaccel=cuda to av.open() options dict",
+        "Existing benchmark decode is definitely software-only"
+      ],
+      "current_source_evidence": "pyav_backend.py line 28: _HW_PREFERRED = ['cuda', ...], line 113-123: pyav_iter_frames calls _pick_hw_device(), _create_hwaccel(), passes hwaccel to av.open()",
+      "historical_context_preserved": "This hypothesis was the initial Step 18.4 decision before source audit. It is preserved in git history and in bottleneck_decision.md under REJECTED_HYPOTHESIS."
     }
-  },
-  "rejected_candidates": [
-    "FEATURE_EXTRACTION_CPU",
-    "PASS2_COLLECTION",
-    "THRESHOLD_OR_DECISION_LOGIC",
-    "MIXED_OR_UNRESOLVED"
   ],
-  "historical_f0087_carried_forward": false,
-  "step18_5_implementation_started": false,
-  "evidence_gap_description": "RESOLVED. F-0097 gap (unattributed residual of 87.39s, 33.0%) was closed by adding three new non-overlapping wall-clock timers: pass1_decode_or_frame_advance, pass2_decode_or_frame_advance, and pass2_match_and_collect. The residual is now 0.53s (0.19%), confirming all decode work is captured. The primary bottleneck (DECODE_FRAME_PIPELINE) is SAFELY DISCRIMINATED.",
-  "f0097_link": "F-0097 \u2014 RESOLVED by instrumentation: pass1_decode_or_frame_advance + pass2_decode_or_frame_advance + pass2_match_and_collect timers",
-  "classification_timestamp": "2026-07-13T18:30:00Z",
-  "replaces_draft": "acb424f (PENDING_F0097_INSTRUMENTATION)"
+  "optimization_candidate_evaluation": [
+    {
+      "candidate": "HWACCEL_RUNTIME_OBSERVABILITY_AND_FALLBACK",
+      "current_source_boundary": "pyav_backend.py lines 27-28 (_HW_PREFERRED), 39-41 (_available_hw_devices), 51-57 (_pick_hw_device), 67-73 (_create_hwaccel), 113-123 (pyav_iter_frames av.open)",
+      "current_behavior": "HWAccel is requested via _pick_hw_device() -> _create_hwaccel() -> av.open(hwaccel=hwaccel). No runtime telemetry records whether HWAccel was created successfully, which device was selected, whether the decoder actually uses hardware acceleration, or whether a software fallback occurred.",
+      "mechanistic_cost_targeted": "Observability gap: cannot determine if hardware decode is active. This is an evidence/observability candidate, not an optimization.",
+      "supporting_evidence": "None required — this is an evidence gap, not a performance hypothesis.",
+      "counter_evidence": "N/A — observability does not change decode performance.",
+      "missing_evidence": "Runtime HWAccel state: requested_hw_device, hwaccel_object_created, container_opened_with_hwaccel, runtime_hwaccel_active, software_fallback_detected, codec_name, hardware decoder identity.",
+      "quality_risks": "None.",
+      "resource_risks": "Minimal log/telemetry overhead.",
+      "backend_compatibility_risks": "None — observability only.",
+      "step18_5_viability": "Observability-only. Cannot be the sole optimization for Step 18.5."
+    },
+    {
+      "candidate": "PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX",
+      "current_source_boundary": "Same as HWACCEL_RUNTIME_OBSERVABILITY_AND_FALLBACK.",
+      "current_behavior": "Same — HWAccel is requested but runtime activation state is unknown.",
+      "mechanistic_cost_targeted": "If runtime evidence proves CUDA was requested but not active or software fallback occurred, fix the activation/fallback defect to enable hardware decode.",
+      "supporting_evidence": "NONE — no committed benchmark evidence proves hardware decode was inactive or that a software fallback occurred.",
+      "counter_evidence": "N/A — no evidence either way.",
+      "missing_evidence": "F-0098 documents the HWAccel runtime evidence gap. Without this evidence, cannot determine whether a fallback fix is needed.",
+      "quality_risks": "Hardware decode may produce slightly different pixel values vs software decode.",
+      "resource_risks": "GPU VRAM for decode surfaces.",
+      "backend_compatibility_risks": "Requires FFmpeg/PyAV built with CUDA/CUVID support.",
+      "step18_5_viability": "Not viable without F-0098 evidence first."
+    },
+    {
+      "candidate": "SECOND_PASS_DECODE_ELIMINATION_OR_REUSE",
+      "current_source_boundary": "detect_slides.run_detect_slides: Pass 1 and Pass 2 both call decoder.iter_frames() which triggers pyav_iter_frames, paying the full decoder/frame advancement pipeline twice (172.46s total).",
+      "current_behavior": "The same decoder/frame advancement pipeline is executed twice. Pass 1 samples 1201 frames for feature extraction and change detection. Pass 2 samples 1201 frames for representative timestamp matching and screenshot capture.",
+      "mechanistic_cost_targeted": "Eliminate the second full decode pass by reusing Pass 1 frame data or by decoding only the frames needed for Pass 2 representative timestamps.",
+      "supporting_evidence": "Total decoder/frame advancement pipeline = 172.46s (63.27%). Pass 2 accounts for 76.09s (27.92%) of total. A successful elimination would save the full pass2_decode_or_frame_advance time.",
+      "counter_evidence": "Representative timestamps become known only after Pass 1 completes (change detection determines segment boundaries). The second pass must re-decode to retrieve frames at specific representative timestamps. Memory cost of retaining all 1201 sampled 1920x1080 RGB frames: 1201 * 1920 * 1080 * 3 = ~7.0 GB. Current representative_frames = 84 (522547200 bytes). Retaining all 1201 frames is infeasible. An alternative design would need to cache decoded frames at sample timestamps during Pass 1 or use a frame index for targeted re-decode.",
+      "missing_evidence": "Exact memory vs time tradeoff analysis. Feasibility of caching 1201 frames or a subset. Whether segment representative timestamps always correspond to sampled frame timestamps.",
+      "quality_risks": "Frame reuse may produce different pixel values if decoder state differs between passes (e.g., HW vs SW decode).",
+      "resource_risks": "Memory: retaining all 1201 RGB frames = ~7 GB. Retaining 84 representative frames = ~0.5 GB (current post-dedup cost). Intermediate strategies possible.",
+      "backend_compatibility_risks": "Caching strategy must work for both OpenCV and PyAV backends.",
+      "cancellation_progress_risks": "Caching during Pass 1 increases per-frame memory and latency. Progress reporting unchanged.",
+      "step18_5_viability": "Requires detailed design analysis of memory constraints, representative timestamp semantics, and exact signature preservation. Not a bounded single intervention without prior analysis."
+    },
+    {
+      "candidate": "PYAV_DECODE_CONFIGURATION_TUNING",
+      "current_source_boundary": "pyav_backend.py lines 113-157: pyav_iter_frames generator. av.open(str(video_path), hwaccel=hwaccel) call, container.demux(stream), packet.decode() loop.",
+      "current_behavior": "Default PyAV/FFmpeg decoder configuration. No explicit codec, thread count, or decoder option overrides.",
+      "mechanistic_cost_targeted": "FFmpeg decoder configuration options (threads, flags, skip_frame, etc.) may reduce decode time without changing output pixels.",
+      "supporting_evidence": "NONE — no committed benchmark evidence measures decode time under alternative configurations.",
+      "counter_evidence": "Hardware acceleration (if already active) may already saturate GPU decode pipelines. Software decode tuning gains are typically modest (10-30% for thread count tuning on modern CPUs with 32 logical cores). The Packet.decode self time of 114.85s on 72002 frames = ~1.6ms/frame, which is already aggressive for software H.264 decode at 1920x1080.",
+      "missing_evidence": "Which FFmpeg decoder options are available via PyAV. Whether thread count, flags, or skip_frame are applicable to hardware decode paths. Baseline decode time under alternative configurations.",
+      "quality_risks": "Decoder option changes may alter output pixels (e.g., skip_frame may skip non-reference frames).",
+      "resource_risks": "Thread count increase may increase CPU usage without proportional decode speedup.",
+      "backend_compatibility_risks": "Options specific to PyAV/FFmpeg — not applicable to OpenCV backend.",
+      "step18_5_viability": "Undetermined without evidence. Not a bounded single intervention without knowing which option and expected effect."
+    },
+    {
+      "candidate": "MIXED_OR_INSUFFICIENT_OPTIMIZATION_DISCRIMINATION",
+      "current_source_boundary": "N/A — this is the honest fallback.",
+      "current_behavior": "The bottleneck class (DECODE_FRAME_PIPELINE) is known with HIGH confidence, but the exact targeted optimization has not been discriminated. Multiple plausible candidates exist (observability gap, second-pass elimination, decoder tuning) but none is sufficiently supported by committed evidence to satisfy the V-PERF-DETECT-BOTTLENECK contract requiring exactly one selected optimization with name, code boundaries, and hypothesis.",
+      "mechanistic_cost_targeted": "N/A — no optimization selected.",
+      "supporting_evidence": "DECODE_FRAME_PIPELINE is the confirmed bottleneck class. F-0097 resolved. F-0098 documents the current discrimination gap.",
+      "counter_evidence": "N/A — this is the honest outcome when evidence does not support one optimization.",
+      "missing_evidence": "F-0098 documents the evidence gap preventing optimization selection.",
+      "quality_risks": "N/A — no optimization implemented.",
+      "resource_risks": "N/A — no optimization implemented.",
+      "backend_compatibility_risks": "N/A — no optimization implemented.",
+      "step18_5_viability": "Step 18.5 remains planned but blocked. No optimization to implement."
+    }
+  ],
+  "step18_5_hypothesis": "NONE",
+  "step18_5_hypothesis_detail": "Step 18.4 has selected DECODE_FRAME_PIPELINE with HIGH confidence, but the proposed PYAV_HWACCEL_CUDA optimization is invalid because current source already requests HWAccel. Accepted benchmark evidence does not record actual HWAccel activation or software fallback state. Multiple candidate optimizations were evaluated (see optimization_candidate_evaluation) but none is sufficiently supported by committed evidence to satisfy the V-PERF-DETECT-BOTTLENECK contract requiring exactly one selected optimization with name, code boundaries, and hypothesis. Step 18.5 remains planned but blocked until Step 18.4 selects a targeted optimization.",
+  "evidence_gap_description": "PARTIALLY_RESOLVED. F-0097 gap (unattributed residual of 87.39s, 33.0%) was closed. The primary bottleneck (DECODE_FRAME_PIPELINE) is SAFELY DISCRIMINATED. However, F-0098 documents a new evidence gap: accepted benchmark evidence does not record actual HWAccel runtime activation or software fallback state, preventing a targeted decoder optimization from being safely selected.",
+  "f0097_link": "F-0097 — RESOLVED by instrumentation: pass1_decode_or_frame_advance + pass2_decode_or_frame_advance + pass2_match_and_collect timers. Decoder/frame advancement pipeline wall-clock is captured.",
+  "f0098_link": "F-0098 — OPEN: accepted benchmark evidence does not record actual HWAccel runtime activation or software fallback state. A targeted decoder optimization cannot yet be selected safely.",
+  "classification_timestamp": "2026-07-13T19:30:00Z",
+  "replaces_draft": "acb424f (PENDING_INVALID_HWACCEL_HYPOTHESIS_CORRECTION)"
 }
