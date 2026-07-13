@@ -1,0 +1,16 @@
+assets/branding/.gitkeep
+assets/branding/Video2PPTX-clean.ico
+assets/branding/Video2PPTX-icon-clean.png
+assets/branding/Video2PPTX-logo-clean.png
+benchmarks/detect/reports/phase18-summary.md
+docs/development-plan.xml
+docs/findings.md
+docs/knowledge-graph.xml
+docs/verification-plan.xml
+packaging/windows/installer/video2pptx.iss
+packaging/windows/pyinstaller/video2pptx.spec
+scripts/check_branding_sync.py
+src/video2pptx/gui/resources/__init__.py
+src/video2pptx/gui/resources/branding.qrc
+src/video2pptx/gui/resources/branding_rc.py
+tests/test_branding.py
