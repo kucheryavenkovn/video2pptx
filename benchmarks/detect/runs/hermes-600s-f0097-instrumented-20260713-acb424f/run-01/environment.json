@@ -1,0 +1,16 @@
+{
+  "head_sha": "acb424f904bc4b3459f6ad2ceb9f8c701cedb69b",
+  "branch": "perf/phase18-bottleneck-instrumentation",
+  "python_version": "3.14.6",
+  "python_implementation": "CPython",
+  "platform": "Windows",
+  "platform_release": "11",
+  "platform_machine": "AMD64",
+  "cpu_count_logical": 32,
+  "numpy_version": "2.4.4",
+  "project_description": "hermes-600s",
+  "opencv_version": "5.0.0",
+  "pyav_version": "18.0.0",
+  "qt_version": "6.11.0",
+  "ram_total_gb": null
+}

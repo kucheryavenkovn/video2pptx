@@ -19,9 +19,9 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.1.0 — Canonical {timers/counters/gauges} schema; measure() context manager;
-#                from_dict round-trip; gauge_rgb_transfer_bytes, gauge_peak_ram_mb,
-#                counter_ndarray_conversions, counter_representative_frames
+#   LAST_CHANGE: v1.2.0 — Added pass1_decode_or_frame_advance, pass2_decode_or_frame_advance,
+#                pass2_match_and_collect timers; InstrumentedIterator supports optional MetricsTimer
+#                for wall-clock timing of next() including StopIteration exhaustion and exceptions
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -130,6 +130,9 @@ class DetectionRunMetrics:
     # Timers (seconds)
     timer_total: MetricsTimer = field(default_factory=MetricsTimer)
     timer_decoder_wait: MetricsTimer = field(default_factory=MetricsTimer)
+    timer_pass1_decode_or_frame_advance: MetricsTimer = field(default_factory=MetricsTimer)
+    timer_pass2_decode_or_frame_advance: MetricsTimer = field(default_factory=MetricsTimer)
+    timer_pass2_match_and_collect: MetricsTimer = field(default_factory=MetricsTimer)
     timer_roi: MetricsTimer = field(default_factory=MetricsTimer)
     timer_extract_features: MetricsTimer = field(default_factory=MetricsTimer)
     timer_visual_distance: MetricsTimer = field(default_factory=MetricsTimer)
@@ -264,14 +267,20 @@ def measure(name: str) -> Generator[None, None, None]:
 
 
 class InstrumentedIterator:
-    def __init__(self, iterator, counter: MetricsCounter):
+    def __init__(self, iterator, counter: MetricsCounter, timer: MetricsTimer | None = None):
         self._it = iter(iterator)
         self._counter = counter
+        self._timer = timer
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        item = next(self._it)
+        start = time.perf_counter()
+        try:
+            item = next(self._it)
+        finally:
+            if self._timer is not None:
+                self._timer.elapsed += time.perf_counter() - start
         self._counter.increment()
         return item

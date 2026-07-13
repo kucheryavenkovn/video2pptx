@@ -1,10 +1,10 @@
 {
-  "benchmark_sequence": "hermes-600s-recovered-r2-20260713",
-  "benchmark_code_head": "465d89e243651e56a23e8c141632335bdd3a3303",
-  "evidence_builder_head": "3e3007cd9cb7f9e931acf8ccca1d8baa52fc5156",
-  "benchmark_code_tree": "66f9a5d50d7b97a34bfc151623d726fee2d03365",
-  "recovered_master_base": "713ea07827f3efc9abec1b8db50768fe8ef9bad0",
-  "branch": "perf/phase18-short-benchmark-recovered",
+  "benchmark_sequence": "hermes-600s-f0097-instrumented-20260713-acb424f",
+  "benchmark_code_head": "acb424f904bc4b3459f6ad2ceb9f8c701cedb69b",
+  "evidence_builder_head": "acb424f904bc4b3459f6ad2ceb9f8c701cedb69b",
+  "benchmark_code_tree": "6a7a596b802fa77465288136d4ea309a50557f2a",
+  "recovered_master_base": "836a456eee0312646747d755dfe838052eaa6752",
+  "branch": "perf/phase18-bottleneck-instrumentation",
   "clip": {
     "identifier": "hermes-0000-1000.mp4",
     "sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
@@ -31,39 +31,39 @@
   "runs": [
     {
       "id": "run-01",
-      "detect_elapsed_seconds": 276.1155335000003,
-      "wall_clock_seconds": 276.18224740000005,
-      "real_time_multiplier": 0.4601797730618599,
-      "processing_x_realtime": 2.173063786238111,
+      "detect_elapsed_seconds": 272.56575189999785,
+      "wall_clock_seconds": 272.63349590000144,
+      "real_time_multiplier": 0.454263634732365,
+      "processing_x_realtime": 2.2013648541097997,
       "effective_sampled_fps": 2.001611066359268,
       "canonical_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
     },
     {
       "id": "run-02",
-      "detect_elapsed_seconds": 222.22499099999914,
-      "wall_clock_seconds": 222.28747569999905,
-      "real_time_multiplier": 0.370364697091746,
-      "processing_x_realtime": 2.7000413588347,
+      "detect_elapsed_seconds": 311.79313550000006,
+      "wall_clock_seconds": 311.85610240000096,
+      "real_time_multiplier": 0.5196407913669066,
+      "processing_x_realtime": 1.924406275668845,
       "effective_sampled_fps": 2.001611066359268,
       "canonical_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
     },
     {
       "id": "run-03",
-      "detect_elapsed_seconds": 265.1246777999986,
-      "wall_clock_seconds": 265.18782160000046,
-      "real_time_multiplier": 0.44186218905030183,
-      "processing_x_realtime": 2.2631490649817954,
+      "detect_elapsed_seconds": 247.2935010000001,
+      "wall_clock_seconds": 247.35562210000353,
+      "real_time_multiplier": 0.4121443865448184,
+      "processing_x_realtime": 2.4263341504743643,
       "effective_sampled_fps": 2.001611066359268,
       "canonical_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
     }
   ],
   "summary": {
-    "min_detect_elapsed_seconds": 222.22499099999914,
-    "median_detect_elapsed_seconds": 265.1246777999986,
-    "max_detect_elapsed_seconds": 276.1155335000003,
-    "mean_detect_elapsed_seconds": 254.48840076666602,
-    "std_dev_seconds": 28.476225778418335,
-    "median_run_id": "run-03"
+    "min_detect_elapsed_seconds": 247.2935010000001,
+    "median_detect_elapsed_seconds": 272.56575189999785,
+    "max_detect_elapsed_seconds": 311.79313550000006,
+    "mean_detect_elapsed_seconds": 277.21746279999934,
+    "std_dev_seconds": 32.50045420269216,
+    "median_run_id": "run-01"
   },
   "signatures": {
     "run_signatures": [
@@ -74,8 +74,8 @@
     "signature_identity": true,
     "historical_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
     "historical_signature_match": true,
-    "profile_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
-    "profile_signature_match": true
+    "profile_signature": "",
+    "profile_signature_match": false
   },
   "quality": {
     "slides_count": 28,
@@ -95,140 +95,109 @@
     "stages": [
       {
         "rank": 1,
-        "stage": "extract_features",
-        "elapsed_seconds": 101.68870530002096,
+        "stage": "pass1_decode_or_frame_advance",
+        "elapsed_seconds": 96.36347230006504,
         "denominator": "detect_elapsed_seconds",
-        "percentage": 38.35505096840951,
+        "percentage": 35.354211462128234,
         "measurement_type": "accumulated stage timer",
         "notes": "non-overlapping with the other listed detector stage timers"
       },
       {
         "rank": 2,
-        "stage": "pass2_collect",
-        "elapsed_seconds": 65.21966319999774,
+        "stage": "extract_features",
+        "elapsed_seconds": 92.61781430006886,
         "denominator": "detect_elapsed_seconds",
-        "percentage": 24.59961997547332,
+        "percentage": 33.97998965550506,
         "measurement_type": "accumulated stage timer",
         "notes": "non-overlapping with the other listed detector stage timers"
       },
       {
         "rank": 3,
-        "stage": "pass2_dedupe",
-        "elapsed_seconds": 9.902207399998588,
+        "stage": "pass2_decode_or_frame_advance",
+        "elapsed_seconds": 76.09364630002165,
         "denominator": "detect_elapsed_seconds",
-        "percentage": 3.7349248218487188,
+        "percentage": 27.91753761049913,
         "measurement_type": "accumulated stage timer",
         "notes": "non-overlapping with the other listed detector stage timers"
       },
       {
         "rank": 4,
-        "stage": "roi",
-        "elapsed_seconds": 0.33742250004434027,
+        "stage": "pass2_dedupe",
+        "elapsed_seconds": 6.093868599997222,
         "denominator": "detect_elapsed_seconds",
-        "percentage": 0.1272693673196581,
+        "percentage": 2.235742589638706,
         "measurement_type": "accumulated stage timer",
         "notes": "non-overlapping with the other listed detector stage timers"
       },
       {
         "rank": 5,
-        "stage": "visual_distance",
-        "elapsed_seconds": 0.27503910009909305,
+        "stage": "roi",
+        "elapsed_seconds": 0.31751939995228895,
         "denominator": "detect_elapsed_seconds",
-        "percentage": 0.10373953205011475,
+        "percentage": 0.11649277201516653,
         "measurement_type": "accumulated stage timer",
         "notes": "non-overlapping with the other listed detector stage timers"
       },
       {
         "rank": 6,
-        "stage": "threshold",
-        "elapsed_seconds": 0.1707810000552854,
+        "stage": "visual_distance",
+        "elapsed_seconds": 0.26155560002007405,
         "denominator": "detect_elapsed_seconds",
-        "percentage": 0.0644153541165704,
+        "percentage": 0.0959605519757437,
         "measurement_type": "accumulated stage timer",
         "notes": "non-overlapping with the other listed detector stage timers"
       },
       {
         "rank": 7,
-        "stage": "pass2_screenshots",
-        "elapsed_seconds": 0.13893839999946067,
+        "stage": "threshold",
+        "elapsed_seconds": 0.14400439998644288,
         "denominator": "detect_elapsed_seconds",
-        "percentage": 0.05240492931566003,
+        "percentage": 0.052832903247241755,
         "measurement_type": "accumulated stage timer",
         "notes": "non-overlapping with the other listed detector stage timers"
       },
       {
         "rank": 8,
-        "stage": "debounce",
-        "elapsed_seconds": 0.005431400000816211,
+        "stage": "pass2_screenshots",
+        "elapsed_seconds": 0.09095540000271285,
         "denominator": "detect_elapsed_seconds",
-        "percentage": 0.0020486210660908308,
+        "percentage": 0.03337007652967481,
         "measurement_type": "accumulated stage timer",
         "notes": "non-overlapping with the other listed detector stage timers"
       },
       {
         "rank": 9,
-        "stage": "unattributed_residual",
-        "elapsed_seconds": 87.38648949978233,
+        "stage": "pass2_match_and_collect",
+        "elapsed_seconds": 0.04362679996120278,
         "denominator": "detect_elapsed_seconds",
-        "percentage": 32.96052643040036,
+        "percentage": 0.016005972744957735,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 10,
+        "stage": "debounce",
+        "elapsed_seconds": 0.009959099999832688,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 0.003653833957645053,
+        "measurement_type": "accumulated stage timer",
+        "notes": "non-overlapping with the other listed detector stage timers"
+      },
+      {
+        "rank": 11,
+        "stage": "unattributed_residual",
+        "elapsed_seconds": 0.5293296999225277,
+        "denominator": "detect_elapsed_seconds",
+        "percentage": 0.19420257175844102,
         "measurement_type": "derived residual",
         "notes": "decode/open/service/persistence and other uninstrumented work; not a measured timer"
       }
     ],
-    "measured_stage_total": 177.73818830021628,
-    "residual_seconds": 87.38648949978233,
-    "residual_percentage": 32.96052643040036
+    "measured_stage_total": 272.0364222000753,
+    "residual_seconds": 0.5293296999225277,
+    "residual_percentage": 0.19420257175844102
   },
-  "profile_supporting_evidence": {
-    "pyav_iter_frames": {
-      "function": "pyav_iter_frames",
-      "cumulative_seconds": 135.128,
-      "calls": 2404,
-      "self_seconds": 10.469
-    },
-    "Packet.decode": {
-      "function": "Packet.decode",
-      "cumulative_seconds": 114.854,
-      "calls": 72004,
-      "self_seconds": 114.854
-    },
-    "extract_features": {
-      "function": "extract_features",
-      "cumulative_seconds": 92.712,
-      "calls": 1285,
-      "self_seconds": 0.039
-    },
-    "compute_histogram": {
-      "function": "compute_histogram",
-      "cumulative_seconds": 48.842,
-      "calls": 1285,
-      "self_seconds": 0.887
-    },
-    "cv2_calc_hist": {
-      "function": "cv2_calc_hist",
-      "cumulative_seconds": 47.946,
-      "calls": 3855,
-      "self_seconds": 0.311
-    },
-    "numpy histogram": {
-      "function": "numpy histogram",
-      "cumulative_seconds": 40.567,
-      "calls": 3855,
-      "self_seconds": 36.744
-    },
-    "cv2_to_gray": {
-      "function": "cv2_to_gray",
-      "cumulative_seconds": 34.049,
-      "calls": 1285,
-      "self_seconds": 32.438
-    },
-    "to_ndarray": {
-      "function": "to_ndarray",
-      "cumulative_seconds": 9.58,
-      "calls": 2402,
-      "self_seconds": 9.58
-    }
-  },
+  "profile_supporting_evidence": {},
   "rss": {
     "availability": false,
     "status": "SKIPPED_PSUTIL_UNAVAILABLE",

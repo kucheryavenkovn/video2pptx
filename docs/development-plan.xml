@@ -1289,15 +1289,23 @@
         Invariants: 6 PASS, 1 SKIPPED (psutil). F-0088 observed: 28 slides, 6 PNGs.
       </step-18.3>
       <step-18.4 name="BottleneckDecision" status="in_progress" verification="V-PERF-DETECT-BOTTLENECK">
-        Re-evaluated from corrected evidence: BLOCKED_INSUFFICIENT_DISCRIMINATION.
-        The accepted benchmark does not independently instrument first-pass decode wall-clock.
-        Extract_features (101.7s, 38.4%) is the largest measured timer but residual (87.4s, 33.0%)
-        and mixed pass2_collect (65.2s, 24.6%) prevent safe discrimination between
-        FEATURE_EXTRACTION_CPU and DECODE_FRAME_PIPELINE. No optimization selected.
-        See F-0097 for the evidence gap.
+        Instrumented pass1_decode_or_frame_advance, pass2_decode_or_frame_advance, and
+        pass2_match_and_collect via InstrumentedIterator. 3-run benchmark series
+        (hermes-600s-f0097-instrumented-20260713-acb424f) with corrected aggregate evidence.
+        Canonical signature 8cc06c6accb055fb — no quality regression.
+        Residual dropped from 87.39s (33.0%) to 0.53s (0.19%).
+        Decision: DECODE_FRAME_PIPELINE (172.46s, 63.27%), HIGH confidence.
+        F-0097 resolved. F-0098 open.
+        Selected optimization: NONE — PYAV_HWACCEL_CUDA was REJECTED_SOURCE_MODEL_MISMATCH
+        because existing source already requests HWAccel. No replacement optimization is sufficiently
+        supported by committed evidence. Step 18.4 remains in_progress until V-PERF-DETECT-BOTTLENECK
+        contract is satisfied (exactly one targeted optimization with name, code boundaries, hypothesis).
+        Step 18.6 output parity gates defined in bottleneck_decision.json step18_6_output_parity_gates.
+        See F-0097 and F-0098 for full evidence.
       </step-18.4>
       <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
-        Select exactly one optimization only after Step 18.4 supplies accepted bottleneck evidence.
+        Blocked: Step 18.4 has not selected a targeted optimization. Step 18.5 remains planned
+        and must not start implementation until Step 18.4 selects exactly one optimization.
       </step-18.5>
       <step-18.6 name="ShortVideoReBenchmark" status="planned" verification="V-PERF-DETECT-SHORT-REBENCHMARK">
         Repeat the immutable short-video protocol and compare performance and quality evidence.

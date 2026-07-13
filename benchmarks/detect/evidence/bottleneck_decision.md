@@ -1,53 +1,57 @@
-# Step 18.4 Bottleneck Decision — Corrected Evidence Reconstruction
+# Step 18.4 Bottleneck Decision — Corrected
 
-## Status: BLOCKED_INSUFFICIENT_DISCRIMINATION
+## Status: BLOCKED_TARGET_OPTIMIZATION_NOT_DISCRIMINATED
 
-**This corrected decision replaces the rejected draft at 27a28bf.**
+**Selected bottleneck class:** DECODE_FRAME_PIPELINE
+**Decision confidence:** HIGH
+**Selected optimization:** NONE
 
-No bottleneck class is accepted. No optimization is selected.
+**F-0097:** RESOLVED — decoder/frame advancement pipeline wall-clock captured.
+**F-0098:** OPEN — HWAccel runtime activation evidence gap; no targeted optimization selected.
 
 ---
 
-## 1. Evidence Source
+## 1. Evidence Source (unchanged from previous decision)
 
-- **Accepted benchmark:** `hermes-600s-recovered-r2-20260713-465d89e`
+- **Benchmark sequence:** `hermes-600s-f0097-instrumented-20260713-acb424f`
 - **Evidence identities:**
-  - `benchmark_code_head` = `465d89e243651e56a23e8c141632335bdd3a3303`
-  - `benchmark_code_tree` = `66f9a5d50d7b97a34bfc151623d726fee2d03365`
-  - `evidence_builder_head` = `3e3007cd9cb7f9e931acf8ccca1d8baa52fc5156`
-  - `recovered_master_base` = `713ea07827f3efc9abec1b8db50768fe8ef9bad0`
-- **Median run:** run-03 — 265.1246777999986s total
-- **Mean:** 254.48840076666602s
-- **Std dev:** 28.476225778418335s
+  - `benchmark_code_head` = `acb424f904bc4b3459f6ad2ceb9f8c701cedb69b`
+  - `benchmark_code_tree` = `6a7a596b802fa77465288136d4ea309a50557f2a`
+  - `evidence_builder_head` = `acb424f904bc4b3459f6ad2ceb9f8c701cedb69b`
+  - `recovered_master_base` = `836a456eee0312646747d755dfe838052eaa6752`
+- **Median run:** run-01 — 272.5658s
+- **Mean:** 277.2175s
+- **Std dev:** 32.5005s
 
 ---
 
-## 2. Wall-Clock Stage Accounting (median run-03)
+## 2. Wall-Clock Stage Accounting (unchanged)
 
 | Stage | Seconds | % | Notes |
 |-------|---------|---|-------|
-| extract_features | 101.6887 | 38.36% | Largest instrumented non-overlapping timer |
-| pass2_collect | 65.2197 | 24.60% | Mixed: second decode + decode + segment matching + ROI + collection |
-| unattributed_residual | 87.3865 | 32.96% | First-pass decode + service/metadata/persistence (not measured) |
-| pass2_dedupe | 9.9022 | 3.73% | deduplicate_segments including extract_features on 84 reps |
-| roi | 0.3374 | 0.13% | SlideRegion.process only |
-| visual_distance | 0.2750 | 0.10% | Feature comparison only |
-| threshold | 0.1708 | 0.06% | _resolve_threshold + compute_threshold |
-| pass2_screenshots | 0.1389 | 0.05% | Screenshot output |
-| debounce | 0.0054 | <0.01% | _debounce_changes |
-| **Measured total** | **177.7382** | **67.04%** | |
-| **Residual** | **87.3865** | **32.96%** | |
+| pass1_decode_or_frame_advance | 96.3635 | 35.35% | Pass 1 generator advancement (demux + Packet.decode + to_ndarray) |
+| extract_features | 92.6178 | 33.98% | Feature extraction on ROI-cropped frames |
+| pass2_decode_or_frame_advance | 76.0936 | 27.92% | Pass 2 generator advancement (same decode pipeline, second pass) |
+| pass2_dedupe | 6.0939 | 2.24% | deduplicate_segments including extract_features on 84 reps |
+| roi | 0.3175 | 0.12% | SlideRegion.process only |
+| visual_distance | 0.2616 | 0.10% | Feature comparison only |
+| threshold | 0.1440 | 0.05% | _resolve_threshold + compute_threshold |
+| pass2_screenshots | 0.0910 | 0.03% | cv2.cvtColor + cv2.imwrite for 6 PNGs (no to_ndarray call) |
+| pass2_match_and_collect | 0.0436 | 0.02% | Segment scanning, rep matching, rep_frames insertion |
+| debounce | 0.0100 | <0.01% | _debounce_changes |
+| **Measured total** | **272.0364** | **99.81%** | Sum of all canonical non-overlapping stage timers |
+| **Residual** | **0.5293** | **0.19%** | Container setup, metadata, service overhead, timer overhead |
+
+**F-0097 impact:** Residual dropped from 87.39s (33.0%) to 0.53s (0.19%). All decoder/frame advancement pipeline work is now captured by non-overlapping wall-clock timers. Note: the measured region is the "decoder/frame advancement pipeline" — it includes generator advancement, demux/decode, Packet.decode, sampling logic before yield, and VideoFrame.to_ndarray for sampled frames. It is NOT pure Packet.decode wall-clock.
 
 ---
 
-## 3. Pipeline Execution Model: SYNCHRONOUS
-
-The current detection pipeline uses **synchronous generator consumption**:
+## 3. Pipeline Execution Model (unchanged)
 
 ```
 decoder.iter_frames()       # generator — yields VideoFrame on .__next__()
     → pyav_iter_frames()    # for packet in container.demux(): packet.decode()
-                              #   for frame: optional test, yield if sampled
+                              #   for frame: test_sample, to_ndarray, yield if sampled
     ↓
 for timestamp, image in frames:   # detect_changes loop
     roi()                          # measure("roi")
@@ -57,93 +61,46 @@ for timestamp, image in frames:   # detect_changes loop
     # loop body done → next advance
 ```
 
-- **No producer thread:** The generator runs in the same thread as the consumer.
-- **No feature worker pool:** All processing is single-threaded.
-- **No async queue:** No bounded buffer between decode and feature extraction.
-- **No overlap:** Packet.decode and extract_features execute serially. Each sampled frame is fully processed before the next decode advance.
-
-**Therefore:** Claims in the 27a28bf draft about "producer-consumer overlap", "asynchronous overlap", or "decode occurring in parallel with feature extraction" are **false** for the current accepted source code.
+- Single-threaded generator consumption. No producer thread, no worker pool, no async queue.
+- `Packet.decode` and `extract_features` are serial — no overlap.
 
 ---
 
-## 4. cProfile Evidence (profile run: 229.750s)
+## 4. Directional Stability (unchanged)
 
-### Key Entries
+| Run | pass1_decode_advance | pass2_decode_advance | Decode Pipeline Total | extract_features | Gap |
+|-----|---------------------|---------------------|---------------------|-----------------|-----|
+| run-01 | 96.36s (35.35%) | 76.09s (27.92%) | **172.46s (63.27%)** | 92.62s (33.98%) | **79.84s (29.29%)** |
+| run-02 | 114.76s (36.81%) | 52.90s (16.97%) | **167.65s (53.77%)** | 136.39s (43.75%) | **31.26s (10.03%)** |
+| run-03 | 97.14s (39.28%) | 53.78s (21.75%) | **150.91s (61.03%)** | 88.43s (35.76%) | **62.49s (25.27%)** |
 
-| Function | Cumulative (s) | Self (s) | Calls |
-|----------|-------|----------|-------|
-| pyav_iter_frames | 135.128 | 10.469 | 2404 |
-| Packet.decode | 114.854 | 114.854 | 72004 |
-| extract_features | 92.712 | 0.039 | 1285 |
-| compute_histogram | 48.842 | 0.887 | 1285 |
-| cv2_calc_hist | 47.946 | 0.311 | 3855 |
-| numpy histogram | 40.567 | 36.744 | 3855 |
-| cv2_to_gray | 34.049 | 32.438 | 1285 |
-| to_ndarray | 9.580 | 9.580 | 2402 |
-| phash | 3.898 | — | 1285 |
-| dhash | 3.130 | — | 1285 |
-
-### Overlap Rules
-
-All parent/child pairs are **nested cumulative contexts** — do NOT add their cumulative times:
-
-- `pyav_iter_frames` → `Packet.decode` — decode is subset of iter_frames
-- `pyav_iter_frames` → `to_ndarray` — to_ndarray is subset of iter_frames
-- `extract_features` → `compute_histogram` → `cv2_calc_hist` → `numpy histogram` — all subsets
-- `extract_features` → `cv2_to_gray` — subset
-
-### Call Reconciliation
-
-- `extract_features` calls: **1285**
-- Pass 1 sampled frames (features_full): **1201**
-- Representative frames (extract_features from dedupe): **84**
-- **1201 + 84 = 1285** ✓  (not 18018 — feature extraction is on sampled frames only, not every decoded frame)
+**Stability:** Decode pipeline total exceeds extract_features in ALL runs. Gap is directionally stable (31.26s–79.84s).
 
 ---
 
-## 5. Counter-Invariants
+## 5. Counter-Invariants (unchanged)
 
 | Counter | Value |
 |---------|-------|
 | frames_decoded | 72002 |
-| frames_sampled | 1201 |
-| features_full | 1201 |
-| pass2_frames_sampled | 1201 |
+| frames_sampled (per pass) | 1201 |
 | ndarray_conversions | 2402 (1201 Pass 1 + 1201 Pass 2) |
 | representative_frames | 84 |
 | screenshots_written | 6 |
+| slides_detected | 28 |
+| Canonical signature | `8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85` |
 
 ---
 
-## 6. Candidate Evaluation
+## 6. Candidate Evaluation (unchanged)
 
-### FEATURE_EXTRACTION_CPU
-- **Wall-clock:** 101.69s (38.36%) — largest instrumented timer
-- **Profile:** 92.712s cumulative; subsystem compute_histogram (48.842s) + cv2_to_gray (34.049s)
-- **For:** Largest measured stage by wide margin. Sub-components are well-understood pixel ops.
-- **Against:** Residual (87.39s, 32.96%) is nearly as large and likely contains first-pass decode (aggregate note: decode/open/service/persistence and other uninstrumented work). Without isolating decode wall-clock, cannot confirm extract_features exceeds decode.
-- **Confidence: MEDIUM** — possible primary but unconfirmed
+### DECODE_FRAME_PIPELINE — PRIMARY
+- **Wall-clock:** 172.46s (63.27%) — pass1 (35.35%) + pass2 (27.92%) decode advancement.
+- **Evidence:** Directly measured by new non-overlapping timers. Residual near zero (0.19%) confirms full capture.
+- **Profile:** Packet.decode 114.85s self — largest single function.
+- **Ruling: PRIMARY.** Dominant bottleneck. Decode runs identical code in both passes.
 
-### DECODE_FRAME_PIPELINE
-- **Wall-clock:** No independent timer. Decode lives in residual (87.39s, 32.96%).
-- **Profile:** Packet.decode 114.854s self (larger than extract_features 92.712s cumulative)
-- **For:** Profile suggests decode work exceeds feature extraction. Residual is large.
-- **Against:** The profile run (229.750s) is a separate instrumented run with a different elapsed time from the median recorded run (265.125s); cProfile is supporting evidence and cannot substitute for isolated median wall-clock stage timers. No wall-clock timer validates this.
-- **Confidence: MEDIUM** — possible primary but no direct wall-clock evidence
-
-### PASS2_COLLECTION
-- **Wall-clock:** 65.22s (24.60%) — mixed timer with second decode + collection
-- **For:** Second-largest measured stage.
-- **Against:** Pure collection overhead is NOT independently measured — it is entangled with second-pass decode/frame advancement within the same mixed timer. The internal proportion between collection cost and decode cost is UNKNOWN. Cannot select as primary because no wall-clock timer isolates collection from decode.
-- **Confidence: LOW** — not primary; mixed timer cannot isolate pure collection
-
-### THRESHOLD_OR_DECISION_LOGIC
-- Combined: <0.5s (<0.2%) — negligible
-- **Confidence: HIGH** — clearly not a bottleneck
-
-### MIXED_OR_UNRESOLVED
-- This is the honest fallback. Neither FEATURE_EXTRACTION_CPU nor DECODE_FRAME_PIPELINE can be safely discriminated with current instrumentation.
-- **Confidence: HIGH**
+Other candidates (FEATURE_EXTRACTION_CPU, PASS2_COLLECTION, THRESHOLD_OR_DECISION_LOGIC, MIXED_OR_UNRESOLVED) all ruled NOT_PRIMARY as before.
 
 ---
 
@@ -151,55 +108,137 @@ All parent/child pairs are **nested cumulative contexts** — do NOT add their c
 
 | Field | Value |
 |-------|-------|
-| **Status** | `BLOCKED_INSUFFICIENT_DISCRIMINATION` |
-| **Selected class** | `NONE` |
+| **Status** | `BLOCKED_TARGET_OPTIMIZATION_NOT_DISCRIMINATED` |
+| **Selected bottleneck class** | `DECODE_FRAME_PIPELINE` |
+| **Decision confidence** | HIGH |
 | **Selected optimization** | `NONE` |
-| **Decision confidence** | LOW |
-| **Evidence gap** | Missing independent wall-clock timers for pass1_decode, pass2_decode, pass2_match_and_collect. Without these, residual (87.4s, 33%) cannot be attributed, and FEATURE_EXTRACTION_CPU vs DECODE_FRAME_PIPELINE cannot be safely discriminated. |
-| **F-0097** | Documents this evidence gap |
+| **F-0097** | RESOLVED — decoder/frame advancement pipeline wall-clock captured. |
+| **F-0098** | OPEN — HWAccel runtime activation evidence gap. |
 
 ---
 
-## 8. Run Variance Analysis
+## 8. Rejected Optimization: PYAV_HWACCEL_CUDA
 
-| Run | Total (s) | extract_features (s) | pass2_collect (s) | pass2_dedupe (s) | Residual (s) |
-|-----|-----------|---------------------|-------------------|------------------|-------------|
-| run-01 | 276.12 | 117.37 (42.5%) | 62.91 (22.8%) | 6.08 (2.2%) | 88.77 (32.1%) |
-| run-02 | 222.22 | 85.77 (38.6%) | 52.98 (23.8%) | 6.19 (2.8%) | 76.49 (34.4%) |
-| run-03 | 265.12 | 101.69 (38.4%) | 65.22 (24.6%) | 9.90 (3.7%) | 87.39 (33.0%) |
+**Status:** REJECTED_SOURCE_MODEL_MISMATCH
 
-**Directional stability:** extract_features is consistently the largest measured stage (38-43%), pass2_collect is consistently second (23-25%), residual is consistently ~32-34%. The stage structure is stable across runs, but the absolute values vary significantly (std dev 28.5s).
+**Hypothesis (rejected):** Add `hwaccel=cuda` to PyAV `av.open()` to offload H.264 Packet.decode from CPU to GPU.
 
-**Variance impact:** High run-to-run variance (std dev 28.48s, ~11% of mean) reduces confidence in any single-run-based classification. The 85.8s–117.4s range for extract_features spans ~27% variation. The cause of this variance is not established by available evidence — the committed metrics record timers, counters, and gauges but do not measure GPU clock, memory bandwidth contention, or OS scheduling. The variance is observed but unattributed.
+**Why rejected:** Source audit at candidate HEAD proves the existing `pyav_iter_frames` already:
+1. Prefers `"cuda"` first in `_HW_PREFERRED` (`pyav_backend.py:28`)
+2. Calls `_pick_hw_device()` which selects the best available HW device
+3. Calls `_create_hwaccel(hw_device)` to create a `HWAccel` object
+4. Passes `hwaccel=hwaccel` to `av.open(str(video_path), hwaccel=hwaccel)` (`pyav_backend.py:123`)
 
----
+The hypothesized intervention already exists in source. No committed benchmark evidence proves whether hardware decode was actually active at runtime (see F-0098).
 
-## 9. F-0088 Status
+**False source assumptions:**
+- "PyAV defaults to software H.264 decoder" — contradicted by `_HW_PREFERRED = ["cuda", ...]`
+- "Step 18.5 needs to add hwaccel=cuda to av.open()" — already present
+- "Existing benchmark decode is definitely software-only" — no runtime evidence supports this
 
-OPEN — 28 slides detected, 6 PNG screenshots written. This is a pre-existing quality observation, not run variance as incorrectly stated in the 27a28bf draft.
-
----
-
-## 10. What the 27a28bf Draft Got Wrong
-
-| Issue | 27a28bf claim | Correct evidence |
-|-------|---------------|------------------|
-| pass2_collect value | 10.9s (4.1%) | 65.22s (24.6%) |
-| visual_distance value | ~12.4s (~4.7%) | 0.275s (0.1%) |
-| extract_features cProfile | 107.3s cumulative | 92.712s cumulative |
-| phash cProfile | ~9.9s cumulative | 3.898s cumulative |
-| dhash cProfile | ~8.5s cumulative | 3.130s cumulative |
-| Pipeline model | Async producer-consumer overlap | Synchronous generator consumption |
-| Frame count | 18018 frames feature-extracted | 1201 sampled + 84 dedupe = 1285 calls |
-| Decode/extract overlap | Claimed "asynchronous" | Serial execution in for loop |
-| F-0088 meaning | Run variance | 28 slides / 6 PNGs |
-| Acceptance gates | Quality tolerance (5%/10%/1.5s) | Exact canonical signature parity |
+**Historical context:** This hypothesis was the initial Step 18.4 decision before source audit. It is preserved in git history for traceability.
 
 ---
 
-## 11. Historical Context
+## 9. Optimization Candidate Evaluation
 
-- **F-0087 (DECODE_PROFILE):** From the regressed benchmark. Not carried forward to this decision.
+### HWACCEL_RUNTIME_OBSERVABILITY_AND_FALLBACK
+- **Type:** Evidence/observability, not optimization.
+- **Current behavior:** HWAccel is requested via `_pick_hw_device() → _create_hwaccel() → av.open(hwaccel=...)`. No runtime telemetry records whether HWAccel was created or active.
+- **Verdict:** Cannot be the sole optimization for Step 18.5.
+
+### PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX
+- **Type:** Conditional optimization (requires prior runtime evidence).
+- **Current evidence:** NONE — no committed benchmark evidence proves hardware decode was inactive.
+- **Verdict:** Not viable without F-0098 evidence first.
+
+### SECOND_PASS_DECODE_ELIMINATION_OR_REUSE
+- **Target:** Save ~76s (27.92%) from pass2_decode_or_frame_advance.
+- **Challenge:** Representative timestamps become known only after Pass 1. Retaining all 1201 sampled frames costs ~7 GB. Current representative_frames = 84 (522547200 bytes).
+- **Verdict:** Requires detailed design analysis. Not a bounded single intervention.
+
+### PYAV_DECODE_CONFIGURATION_TUNING
+- **Current evidence:** NONE — no committed benchmark evidence under alternative configs.
+- **Challenge:** Baseline 1.6ms/frame Packet.decode may already use hardware path.
+- **Verdict:** Undetermined without evidence.
+
+### MIXED_OR_INSUFFICIENT_OPTIMIZATION_DISCRIMINATION
+- **This is the honest outcome.** Bottleneck class known; exact optimization not yet discriminated.
+- **Step 18.5 remains planned but blocked.**
+
+---
+
+## 10. Step 18.6 Gate Parity
+
+No optimization-specific performance gate is selected. The following exact output parity requirements are immutable regardless of optimization choice:
+
+| Gate | Requirement | Source |
+|------|-------------|--------|
+| Canonical signature | `8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85` | Decision JSON |
+| Slides count | 28 | Decision JSON |
+| Score count | 1200 | Decision JSON |
+| Screenshots written | 6 | Decision JSON |
+| Actual PNG count | 6 | Decision JSON |
+| sample_fps | 2.0 | Decision JSON |
+| Two-pass semantics | Preserved | Decision JSON |
+| Cancellation | Preserved | Decision JSON |
+| Progress | Preserved | Decision JSON |
+| GUI/MCP/CLI public semantics | Preserved | Decision JSON |
+
+Step 18.8 broad tolerances (missed_slide_rate <= 5%, false_split_rate <= 10%, timestamp_error <= 1.5s) remain under V-PERF-DETECT-ACCEPTANCE only.
+
+---
+
+## 11. F-0097 Status
+
+**RESOLVED**
+
+F-0097 documented the evidence gap where decoder/frame advancement pipeline work was hidden in the unattributed residual (87.39s, 33.0%). Three new InstrumentedIterator-based wall-clock timers were added:
+
+- `pass1_decode_or_frame_advance` — measures Pass 1 generator advancement (demux + Packet.decode + to_ndarray + sampling logic)
+- `pass2_decode_or_frame_advance` — measures Pass 2 generator advancement
+- `pass2_match_and_collect` — measures Pass 2 loop body (non-decode collection overhead)
+
+All three timers use `time.perf_counter()` before/after `self._it.__next__()`, including StopIteration exhaustion and exception paths.
+
+**Terminology correction:** The measured region is the "decoder/frame advancement pipeline" — it includes generator advancement, demux iteration, Packet.decode work, sampling logic before yield, and VideoFrame.to_ndarray for sampled frames. It is NOT pure Packet.decode wall-clock.
+
+**Result:** Residual reduced from 87.39s (33.0%) to 0.53s (0.19%).
+
+---
+
+## 12. F-0098 — New Evidence Gap
+
+**Status:** OPEN
+
+**Problem:** Step 18.4 has selected DECODE_FRAME_PIPELINE with HIGH confidence, but the proposed PYAV_HWACCEL_CUDA optimization is invalid because current source already requests HWAccel. Accepted benchmark evidence does not record actual HWAccel activation or software fallback state, so a targeted decoder optimization cannot yet be selected safely.
+
+**Required evidence:**
+- `requested_hw_device`
+- `hwaccel_object_created`
+- `container_opened_with_hwaccel`
+- `runtime_hwaccel_active`
+- `software_fallback_detected`
+- `software_fallback_reason`
+- `codec_name`
+- `codec_long_name`
+- Hardware decoder/device identity (where PyAV exposes it)
+
+**Planned evidence step:** Step 18.4A / HwAccelRuntimeEvidence — add minimal runtime HWAccel state logging to `pyav_iter_frames`.
+
+---
+
+## 13. F-0088 Status
+
+**OPEN** — 28 slides detected, 6 PNG screenshots written. Pre-existing quality observation, unchanged by this decision.
+
+---
+
+## 14. Historical Context
+
+- **F-0087:** Previous profile-based bottleneck from regressed benchmark. Not carried forward.
 - **F-0088:** 28 slides / 6 PNGs — remains OPEN.
-- **F-0096:** 27a28bf draft documented as rejected; corrected in this commit.
-- **F-0097:** Evidence gap — missing instrumentation for first-pass and second-pass decode wall-clock.
+- **F-0096:** Previous rejected draft at incorrect HEAD. Historical.
+- **F-0097:** RESOLVED — decoder/frame advancement pipeline wall-clock captured.
+- **F-0098:** OPEN — HWAccel runtime activation evidence gap.
+- **PYAV_HWACCEL_CUDA:** REJECTED_SOURCE_MODEL_MISMATCH. Source already requests HWAccel.

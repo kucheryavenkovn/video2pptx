@@ -984,5 +984,43 @@
 - Finding: The accepted recovered-tree short benchmark does not independently measure first-pass decoder iteration wall-clock (Packet.decode, pyav_iter_frames overhead). Extract_features (101.7s, 38.4%) is the largest instrumented non-overlapping timer, but the unattributed residual (87.4s, 33.0%) likely contains first-pass decode time plus uninstrumented service/persistence/metadata overhead. The pass2_collect timer (65.2s, 24.6%) is a mixed timer containing second-pass decoder iteration + decode + segment matching + ROI + collection. Without separate non-overlapping wall-clock timers for pass1_decode, pass2_decode, and pass2_match_and_collect, the evidence cannot safely discriminate whether the primary bottleneck is FEATURE_EXTRACTION_CPU or DECODE_FRAME_PIPELINE.
 - Symptom/Reproduction: Step 18.4 re-evaluation from corrected evidence yields BLOCKED_INSUFFICIENT_DISCRIMINATION.
 - Impact: Step 18.4 cannot proceed to acceptance. Additional wall-clock instrumentation is needed to isolate first-pass and second-pass decode wall-clock from feature extraction and collection overhead.
-- Resolution/Status: Open. No optimization selected. No Step 18.5 started.
-- LINKS: M-DETECT-PERF-DECISION, V-PERF-DETECT-BOTTLENECK, Phase-18/Step-18.4
+- Resolution/Status: RESOLVED. Three canonical non-overlapping timers implemented and benchmark-validated. Residual dropped from 87.39s (33.0%) to 0.53s (0.19%). Decoder/frame advancement pipeline wall-clock captured as the primary bottleneck.
+- LINKS: M-DETECT-PERF-DECISION, V-PERF-DETECT-BOTTLENECK, Phase-18/Step-18.4, acb424f904bc4b3459f6ad2ceb9f8c701cedb69b
+- INSTRUMENTATION:
+  - InstrumentedIterator: optional timer= parameter measures wall-clock inside next(self._it), including finally on StopIteration/exception. Counter increments only on successful yield.
+  - Timer boundaries:
+    - pass1_decode_or_frame_advance: Pass 1 decoder iterator advancement (InstrumentedIterator with timer=metrics.timer_pass1_decode_or_frame_advance). Includes generator advancement, demux/decode, to_ndarray, sampling logic. Excludes ROI, extract_features, visual_distance, threshold, debounce.
+    - pass2_decode_or_frame_advance: Pass 2 decoder iterator advancement (InstrumentedIterator with timer=metrics.timer_pass2_decode_or_frame_advance). Same semantics as Pass 1 variant.
+    - pass2_match_and_collect: Pass 2 consumer body after yield. Includes segment scanning, representative_timestamp matching, SlideRegion.process, rep_frames insertion. Excludes decoder iterator advancement.
+  - Legacy mixed pass2_collect: No longer accumulated by run_detect_slides. Retained in DetectionRunMetrics schema at default 0.0 for historical compatibility.
+  - Canonical STAGE_NAMES: pass1_decode_or_frame_advance, roi, extract_features, visual_distance, threshold, debounce, pass2_decode_or_frame_advance, pass2_match_and_collect, pass2_dedupe, pass2_screenshots.
+  - pass2_collect deliberately excluded from STAGE_NAMES to prevent double-count.
+- BENCHMARK_PROTOCOL: One warmup, 3 recorded runs. cProfile run optional.
+- FINAL_EVIDENCE (2026-07-13):
+  - Sequence: hermes-600s-f0097-instrumented-20260713-acb424f
+  - benchmark_code_head: acb424f904bc4b3459f6ad2ceb9f8c701cedb69b
+  - benchmark_code_tree: 6a7a596b802fa77465288136d4ea309a50557f2a
+  - evidence_builder_head: acb424f904bc4b3459f6ad2ceb9f8c701cedb69b
+  - recovered_master_base: 836a456eee0312646747d755dfe838052eaa6752
+  - 3 runs, all canonical signature 8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85 ✓
+  - Median run (run-01): 272.57s detect elapsed
+  - Residual: 0.53s (0.19%) — down from 87.39s (33.0%)
+  - Stage accounting (median):
+    - pass1_decode_or_frame_advance: 96.36s (35.35%)
+    - extract_features: 92.62s (33.98%)
+    - pass2_decode_or_frame_advance: 76.09s (27.92%)
+    - pass2_match_and_collect: 0.04s (0.02%)
+    - Others combined: ~7.0s (2.57%)
+  - Total decoder/frame advancement pipeline (pass1 + pass2): 172.46s (63.27%)
+  - Bottleneck selection: DECODE_FRAME_PIPELINE — SAFELY DISCRIMINATED
+  - Gap vs extract_features: 79.83s (29.29%) — directionally stable across all 3 runs
+  - Confidence: HIGH
+
+### F-0098 — HWAccel runtime activation evidence gap; Step 18.4 cannot select targeted optimization
+- Date: 2026-07-13
+- Area: detection
+- Finding: Step 18.4 has selected DECODE_FRAME_PIPELINE with HIGH confidence, but the proposed PYAV_HWACCEL_CUDA optimization is invalid because current source already requests HWAccel via _pick_hw_device() → _create_hwaccel() → av.open(hwaccel=...). Accepted benchmark evidence (hermes-600s-f0097-instrumented-20260713-acb424f) does not record actual HWAccel activation state (requested_hw_device, hwaccel_object_created, container_opened_with_hwaccel, runtime_hwaccel_active, software_fallback_detected, software_fallback_reason, codec_name, codec_long_name, hardware decoder/device identity where PyAV exposes it). Without this evidence, a targeted decoder optimization cannot yet be selected safely. Multiple candidates exist (observability, second-pass elimination, decoder tuning) but none is sufficiently supported.
+- Symptom/Reproduction: Source audit at candidate HEAD proves existing source already: (1) _HW_PREFERRED begins with "cuda", (2) pyav_iter_frames calls _pick_hw_device() → _create_hwaccel() → av.open(hwaccel=hwaccel). No committed benchmark artifact records whether hardware decode was actually active at runtime. Previous decision (PYAV_HWACCEL_CUDA) was based on a false model of existing source state.
+- Impact: Step 18.4 decision contract (V-PERF-DETECT-BOTTLENECK) cannot complete because it requires exactly one selected optimization with name, code boundaries, and hypothesis. Step 18.5 remains planned but blocked.
+- Resolution/Status: OPEN. Planned evidence step: Step 18.4A / HwAccelRuntimeEvidence — add minimal runtime HWAccel state observability to pyav_iter_frames (log requested device, HWAccel creation result, container HWAccel status, actual codec name, software fallback if any). Do NOT rerun 600-second benchmark unless a later accepted step requires it.
+- LINKS: M-DETECT-PERF-DECISION, V-PERF-DETECT-BOTTLENECK, Phase-18/Step-18.4, pyav_backend.py

@@ -1,0 +1,36 @@
+{
+  "timers": {
+    "total": 272.5064949999978,
+    "decoder_wait": 0.0,
+    "pass1_decode_or_frame_advance": 96.36347230006504,
+    "pass2_decode_or_frame_advance": 76.09364630002165,
+    "pass2_match_and_collect": 0.04362679996120278,
+    "roi": 0.31751939995228895,
+    "extract_features": 92.61781430006886,
+    "visual_distance": 0.26155560002007405,
+    "threshold": 0.14400439998644288,
+    "debounce": 0.009959099999832688,
+    "pass2_collect": 0.0,
+    "pass2_dedupe": 6.093868599997222,
+    "pass2_screenshots": 0.09095540000271285
+  },
+  "counters": {
+    "frames_decoded": 72002,
+    "frames_sampled": 1201,
+    "features_full": 1201,
+    "features_quick": 0,
+    "slides_detected": 28,
+    "screenshots_written": 6,
+    "ndarray_conversions": 2402,
+    "representative_frames": 84,
+    "pass2_frames_sampled": 1201,
+    "representative_frame_bytes": 522547200
+  },
+  "gauges": {
+    "rgb_transfer_bytes": 14942361600,
+    "rss_before_mb": 0,
+    "rss_peak_mb": 0,
+    "rss_after_mb": 0,
+    "peak_in_flight": 0
+  }
+}
