@@ -14,6 +14,7 @@
 # START_MODULE_MAP
 #   HISTORICAL_CANONICAL_SIGNATURE - accepted sha256 from the historical recovered-tree run
 #   STAGE_NAMES - canonical non-overlapping detector stage timer names
+#   PROFILE_FUNCTION_MATCHERS - stable labels and cProfile descriptor markers
 #   compute_output_signature - hash complete detector scores and segments
 #   compute_score_distribution - NumPy percentiles over the complete score series
 #   compute_derived_metrics - real_time_multiplier, processing_x_realtime, effective_sampled_fps
@@ -268,8 +269,7 @@ def extract_profile_supporting_evidence(profile_text: str) -> dict[str, dict[str
 
 # START_CONTRACT: resolve_recovered_master_base
 #   PURPOSE: Validate a claimed recovered base as a commit and exact measurement/upstream merge-base.
-#   INPUTS: { benchmark_code_head: str - measurement commit, claimed_base: str - provenance SHA,
-#             upstream_ref: str - comparison ref, repo_dir: Path | None - repository root }
+#   INPUTS: { benchmark_code_head: str - measurement commit, claimed_base: str - provenance SHA, upstream_ref: str - comparison ref, repo_dir: Path | None - repository root }
 #   OUTPUTS: { str - validated full recovered-master-base SHA }
 #   SIDE_EFFECTS: invokes read-only git commands
 #   LINKS: M-DETECT-BENCHMARK, V-PERF-DETECT-SHORT-BENCHMARK
