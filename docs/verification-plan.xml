@@ -1242,11 +1242,14 @@
     <evidence><result>
       Metrics typed round-trip PASS: to_dict() → from_dict() → exact values.
       measure() records time, inactive overhead negligible.
-       RssSampler lifecycle recovery PASS: deterministic start/document/persist/stop ordering,
-       persistence-exception cleanup, and max(before, sampled, after) peak semantics.
-       Backend telemetry recovery PASS: exact OpenCV and PyAV decoded-frame, conversion,
-       RGB-transfer-byte, and PyAV keyframe-filter semantics.
-      Benchmark contract test PASS:
+       RssSampler lifecycle recovery PASS requires deterministic start/document/persist/stop ordering,
+       separate before-highest, sampled-highest, and after-highest peak cases, detector-work
+       exception cleanup before document construction, and persistence-exception cleanup.
+       Backend telemetry recovery PASS requires exact OpenCV and PyAV decoded-frame, conversion,
+       RGB-transfer-byte, and PyAV keyframe-filter semantics plus container close on normal and
+       decode/iteration failure paths.
+       Fixture-backed benchmark contract evidence is not claimed in this recovery because F-0093
+       blocks execution. When the fixture is restored, the pending gate must verify:
         - timer_total &gt; 0, timer_extract_features &gt; 0
         - frames_sampled (Pass 1 only) &gt; 0
         - pass2_frames_sampled (Pass 2) &gt; 0
@@ -1266,7 +1269,9 @@
       <file>src/video2pptx/backends/opencv_backend.py</file>
       <file>tests/test_detect_slides.py</file>
     </test-files>
-    <notes>Step 18.1 remains in_progress. Historical recovery must first prove deterministic RSS lifecycle/failure semantics and exact OpenCV/PyAV telemetry. Benchmarking and optimization remain explicitly out of recovery scope.</notes>
+    <notes>Step 18.1 remains in_progress. Deterministic recovery evidence does not replace the
+      unavailable fixture-backed detector gate (F-0093) or environment-sensitive broad backend
+      gate (F-0094). Benchmarking and optimization remain explicitly out of recovery scope.</notes>
   </V-PERF-DETECT-BASELINE>
 
   <V-PERF-DETECT-TWO-PASS MODULE="Phase-18/Step-18.2" PRIORITY="high" STATUS="passed">
@@ -1300,23 +1305,29 @@
     </reference>
   </V-PERF-DETECT-TWO-PASS>
 
-  <V-PERF-DETECT-PARALLEL MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
-    <purpose>In-frame parallel feature extraction (PHash + FrameDiff computed concurrently).</purpose>
-  </V-PERF-DETECT-PARALLEL>
+  <V-PERF-DETECT-SHORT-BENCHMARK MODULE="Phase-18/Step-18.3" PRIORITY="high" STATUS="pending">
+    <purpose>Run the immutable short-video benchmark on the recovered tree; historical 8623cd2
+      evidence is context only and cannot select an optimization.</purpose>
+  </V-PERF-DETECT-SHORT-BENCHMARK>
 
-  <V-PERF-DETECT-CASCADE MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
-    <purpose>Fast-full cascade: skip PHash when FrameDiff is below skip threshold.</purpose>
-  </V-PERF-DETECT-CASCADE>
+  <V-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="pending">
+    <purpose>Select a bottleneck class only from accepted recovered-tree benchmark evidence.</purpose>
+  </V-PERF-DETECT-BOTTLENECK>
 
-  <V-PERF-DETECT-CHUNKED MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
-    <purpose>Chunked decode: decode video in chunks, process each chunk independently.</purpose>
-  </V-PERF-DETECT-CHUNKED>
+  <V-PERF-DETECT-TARGETED MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
+    <purpose>Verify the single targeted optimization selected by Step 18.4; no optimization is
+      selected while the bottleneck decision is pending.</purpose>
+  </V-PERF-DETECT-TARGETED>
 
-  <V-PERF-DETECT-GPU MODULE="Phase-18/Step-18.5" PRIORITY="low" STATUS="planned">
-    <purpose>GPU-resident feature extraction (CuPy or CUDA kernels for PHash).</purpose>
-  </V-PERF-DETECT-GPU>
+  <V-PERF-DETECT-SHORT-REBENCHMARK MODULE="Phase-18/Step-18.6" PRIORITY="high" STATUS="planned">
+    <purpose>Compare immutable short-video performance and quality before and after optimization.</purpose>
+  </V-PERF-DETECT-SHORT-REBENCHMARK>
 
-  <V-PERF-DETECT-ACCEPTANCE MODULE="Phase-18" PRIORITY="high" STATUS="planned">
+  <V-PERF-DETECT-HERMES-REBENCHMARK MODULE="Phase-18/Step-18.7" PRIORITY="high" STATUS="planned">
+    <purpose>Run the full Hermes benchmark only after short-video re-benchmark acceptance.</purpose>
+  </V-PERF-DETECT-HERMES-REBENCHMARK>
+
+  <V-PERF-DETECT-ACCEPTANCE MODULE="Phase-18/Step-18.8" PRIORITY="high" STATUS="planned">
     <purpose>Detect performance acceptance gate: Hermes full run &lt; 30 min, missed_slide_rate &lt;= 5%,
       false_split_rate &lt;= 10%, timestamp_error &lt;= 1.5s.</purpose>
   </V-PERF-DETECT-ACCEPTANCE>

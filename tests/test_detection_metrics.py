@@ -1,5 +1,5 @@
 # FILE: tests/test_detection_metrics.py
-# VERSION: 1.2.0
+# VERSION: 1.3.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for DetectionRunMetrics schema, round-trip, measure(), collect(),
 #            RssSampler, InstrumentedIterator, benchmark contract invariants
@@ -16,12 +16,12 @@
 #
 # START_MODULE_MAP
 #   TestOpenCVMetrics - exact successful-read and yielded-frame telemetry checks
-#   TestPyAVMetrics - exact decode, conversion, transfer, and keyframe telemetry checks
+#   TestPyAVMetrics - exact telemetry and normal/exception container cleanup checks
 #   TestBenchmarkContract - end-to-end metrics invariants for the synthetic fixture
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.2.0 - Added exact OpenCV and PyAV telemetry regression coverage
+#   LAST_CHANGE: v1.3.0 - Added deterministic PyAV decode-failure cleanup coverage
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -291,6 +291,38 @@ class TestPyAVMetrics:
             frame.image.nbytes for frame in sampled
         )
         assert container.closed
+
+    def test_decode_failure_closes_container_and_propagates(self, monkeypatch):
+        import sys
+        from types import SimpleNamespace
+
+        from video2pptx.backends import pyav_backend
+
+        class FakePacket:
+            def decode(self):
+                raise RuntimeError("decode failed")
+
+        class FakeContainer:
+            def __init__(self):
+                stream = SimpleNamespace(average_rate=10.0)
+                self.streams = SimpleNamespace(video=[stream])
+                self.close_calls = 0
+
+            def demux(self, stream):
+                return [FakePacket()]
+
+            def close(self):
+                self.close_calls += 1
+
+        container = FakeContainer()
+        fake_av = SimpleNamespace(open=lambda path, hwaccel=None: container)
+        monkeypatch.setitem(sys.modules, "av", fake_av)
+        monkeypatch.setattr(pyav_backend, "_pick_hw_device", lambda: None)
+
+        with pytest.raises(RuntimeError, match="decode failed"):
+            list(pyav_backend.pyav_iter_frames("unused.mp4", sample_fps=2.0))
+
+        assert container.close_calls == 1
 
 
 class TestBenchmarkContract:

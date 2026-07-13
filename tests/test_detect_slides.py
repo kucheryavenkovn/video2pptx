@@ -1,5 +1,5 @@
 # FILE: tests/test_detect_slides.py
-# VERSION: 0.2.0
+# VERSION: 0.3.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for standalone detect-slides pipeline (no subtitles, no export)
 #   SCOPE: Pipeline output, two-pass decode, and deterministic RSS lifecycle/peak semantics
@@ -15,7 +15,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.2.0 - Added deterministic recovered RSS lifecycle coverage
+#   LAST_CHANGE: v0.3.0 - Completed RSS maximum branches and detector-work cleanup evidence
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -194,10 +194,10 @@ class TestRssLifecycle:
                 self.peak_mb = sampled_peak
 
             def start(self):
-                events.append("start")
+                events.append("sampler_start")
 
             def stop(self):
-                events.append("stop")
+                events.append("sampler_stop")
 
         class FakeDecoder:
             def __init__(self, **kwargs):
@@ -234,7 +234,11 @@ class TestRssLifecycle:
 
     @pytest.mark.parametrize(
         ("rss_values", "sampled_peak", "expected_peak"),
-        [([100.0, 120.0], 80.0, 120.0), ([100.0, 120.0], 140.0, 140.0)],
+        [
+            pytest.param([200.0, 175.0], 150.0, 200.0, id="before-highest"),
+            pytest.param([100.0, 120.0], 140.0, 140.0, id="sampled-highest"),
+            pytest.param([100.0, 120.0], 80.0, 120.0, id="after-highest"),
+        ],
     )
     def test_persistence_precedes_stop_and_peak_is_max(
         self, tmp_path, monkeypatch, rss_values, sampled_peak, expected_peak
@@ -253,9 +257,41 @@ class TestRssLifecycle:
         with collect() as metrics:
             run_detect_slides(tmp_path / "video.mp4", tmp_path, AppConfig())
 
-        assert events == ["start", "document", "persist", "stop"]
+        assert events == ["sampler_start", "document", "persist", "sampler_stop"]
         assert metrics.gauge_rss_peak_mb.value == expected_peak
-        assert metrics.gauge_rss_after_mb.value == 120.0
+        assert metrics.gauge_rss_after_mb.value == rss_values[1]
+
+    def test_detector_work_exception_still_stops_sampler(self, tmp_path, monkeypatch):
+        events = []
+        self._patch_pipeline(monkeypatch, events, sampled_peak=150.0)
+        rss_iter = iter([200.0, 175.0])
+        monkeypatch.setattr(detect_slides, "_rss_now_mb", lambda: next(rss_iter))
+
+        def failing_detect_changes(**kwargs):
+            events.append("detector_work_exception")
+            raise RuntimeError("detector work failed")
+
+        def unexpected_persistence(path, data, encoding=None):
+            events.append("persist")
+            raise AssertionError("persistence must not execute")
+
+        monkeypatch.setattr(detect_slides, "detect_changes", failing_detect_changes)
+        monkeypatch.setattr(Path, "write_text", unexpected_persistence)
+        with collect() as metrics, pytest.raises(
+            RuntimeError, match="detector work failed"
+        ):
+            run_detect_slides(tmp_path / "video.mp4", tmp_path, AppConfig())
+
+        assert events == [
+            "sampler_start",
+            "detector_work_exception",
+            "sampler_stop",
+        ]
+        assert events.count("sampler_stop") == 1
+        assert "document" not in events
+        assert "persist" not in events
+        assert metrics.gauge_rss_after_mb.value == 175.0
+        assert metrics.gauge_rss_peak_mb.value == 200.0
 
     def test_persistence_exception_still_stops_sampler(self, tmp_path, monkeypatch):
         events = []
@@ -271,6 +307,7 @@ class TestRssLifecycle:
         with collect() as metrics, pytest.raises(OSError, match="persistence failed"):
             run_detect_slides(tmp_path / "video.mp4", tmp_path, AppConfig())
 
-        assert events == ["start", "document", "persist", "stop"]
+        assert events == ["sampler_start", "document", "persist", "sampler_stop"]
+        assert events.count("sampler_stop") == 1
         assert metrics.gauge_rss_after_mb.value == 120.0
         assert metrics.gauge_rss_peak_mb.value == 120.0

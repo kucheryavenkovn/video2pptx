@@ -974,12 +974,19 @@
     </M-DESKTOP-BOOTSTRAP>
     <!-- ===== DETECT PERFORMANCE (Phase-18) ===== -->
     <M-DETECT-METRICS NAME="DetectMetrics" TYPE="UTILITY" STATUS="active">
-      <purpose>Low-overhead aggregated performance telemetry (timers, counters, gauges) for detector runs. JSON serializable, zero-cost when disabled.</purpose>
+      <purpose>Low-overhead aggregated performance telemetry with deterministic RSS lifecycle and backend cleanup evidence. Phase 18 baseline remains in progress until recovered-tree benchmark evidence exists.</purpose>
       <path>src/video2pptx/detection_metrics.py</path>
       <depends>none</depends>
       <verification-ref>V-PERF-DETECT-BASELINE</verification-ref>
       <cross-links>M-DETECT-SLIDES, M-BACKEND-OPENCV, M-BACKEND-PYAV</cross-links>
     </M-DETECT-METRICS>
+    <M-DETECT-BENCHMARK NAME="DetectBenchmarkPlan" TYPE="UTILITY" STATUS="planned">
+      <purpose>Evidence-driven Phase 18 sequence: recovered-tree short benchmark, pending bottleneck decision, one targeted optimization, short re-benchmark, Hermes full re-benchmark, and quality acceptance.</purpose>
+      <path>tools/benchmark_detect.py</path>
+      <depends>M-DETECT-SLIDES, M-DETECT-METRICS</depends>
+      <verification-ref>V-PERF-DETECT-SHORT-BENCHMARK, V-PERF-DETECT-BOTTLENECK, V-PERF-DETECT-TARGETED, V-PERF-DETECT-SHORT-REBENCHMARK, V-PERF-DETECT-HERMES-REBENCHMARK, V-PERF-DETECT-ACCEPTANCE</verification-ref>
+      <cross-links>M-DETECT-SLIDES, M-DETECT-METRICS</cross-links>
+    </M-DETECT-BENCHMARK>
     <!-- ===== DETECT PERFORMANCE (Phase-18) ===== -->
     <M-ARCH-OVERVIEW NAME="ArchitectureOverview" TYPE="UTILITY" STATUS="planned">
       <purpose>Target layered architecture: domain/application/infrastructure/adapters with ports and dependency rules. See docs/architecture.md for full context.</purpose>

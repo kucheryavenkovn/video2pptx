@@ -1274,19 +1274,27 @@
         Log markers updated from Pass X/3 to Pass X/2.
         Verified: all detect_slides tests pass, no "Pass 3/3" markers remain.
       </step-18.2>
-      <step-18.3 name="ShortVideoBenchmark" status="pending">
-        Create or find a medium-length video (~10 min) for quick iteration.
-        Run baseline benchmark, apply optimization, compare.
+      <step-18.3 name="ShortVideoBenchmark" status="pending" verification="V-PERF-DETECT-SHORT-BENCHMARK">
+        Re-run the immutable short-video benchmark on the recovered tree before making any
+        bottleneck or optimization decision. The historical 8623cd2 result is regressed-tree
+        context only and is not accepted as current evidence.
       </step-18.3>
-      <step-18.4 name="HermesReBenchmark" status="pending">
-        Re-run full Hermes benchmark after optimization chain.
-        Compare vs partial baseline metrics.
+      <step-18.4 name="BottleneckDecision" status="pending" verification="V-PERF-DETECT-BOTTLENECK">
+        Classify the current bottleneck only from the recovered-tree short benchmark. Do not
+        carry DECODE_PROFILE forward as an accepted decision from the regressed benchmark.
       </step-18.4>
-      <step-18.5 name="AdditionalOptimizations" status="planned">
-        Candidate: parallel feature extraction, skip PHash when FrameDiff is low,
-        frame-level vs segment-level dedup order, lazy screenshot decode,
-        selective ROI compute.
+      <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
+        Select exactly one optimization only after Step 18.4 supplies accepted bottleneck evidence.
       </step-18.5>
+      <step-18.6 name="ShortVideoReBenchmark" status="planned" verification="V-PERF-DETECT-SHORT-REBENCHMARK">
+        Repeat the immutable short-video protocol and compare performance and quality evidence.
+      </step-18.6>
+      <step-18.7 name="HermesFullReBenchmark" status="planned" verification="V-PERF-DETECT-HERMES-REBENCHMARK">
+        Run the full Hermes benchmark only after the short-video re-benchmark passes.
+      </step-18.7>
+      <step-18.8 name="QualityAcceptance" status="planned" verification="V-PERF-DETECT-ACCEPTANCE">
+        Accept performance work only when the recovered-tree quality and timing gates pass.
+      </step-18.8>
     </Phase-18>
   </ImplementationOrder>
 

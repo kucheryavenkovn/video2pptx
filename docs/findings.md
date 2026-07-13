@@ -870,7 +870,79 @@
 - Resolution/Status: Open classification defect. Verification reports marker-filtered and directory-excluded suites separately; no marker redesign was included in this integration hygiene patch.
 - LINKS: tests/e2e/test_mcp_gui_workflow.py, pyproject.toml, V-REF-GUI-ADAPTER
 
-### F-0086 — Recovery worktree lacks synthetic video fixture
+### F-0085 — OpenCV decoded-frame telemetry counted each source read twice
+- Date: 2026-07-13
+- Area: detection
+- Finding: `opencv_iter_frames()` incremented `frames_decoded` twice after each successful `cap.read()`.
+- Symptom/Reproduction: Seven successful mocked source reads reported 14 decoded frames before the accepted fix instead of 7.
+- Impact: OpenCV benchmark decode volume was overstated by 2x and could misdirect bottleneck decisions.
+- Resolution/Status: Resolved by A-002 recovery and `TestOpenCVMetrics::test_successful_source_reads_counted_once`; no duplicate OpenCV defect finding was created.
+- LINKS: A-002, audits/phase17-phase18-history/accepted-change-loss-register.md, M-BACKEND-OPENCV, V-PERF-DETECT-BASELINE
+
+### F-0086 — Canonical out11 config differs from retained legacy extension values
+- Date: 2026-07-13
+- Area: tooling
+- Finding: Raw `out11/project.json` legacy extension values differ from the active v2 defaults resolved by `FileProjectRepository.load()`.
+- Symptom/Reproduction: Reading raw legacy fields disagrees with the effective configuration loaded through the canonical repository route.
+- Impact: A benchmark assembled from raw legacy fields would not reproduce the canonical DetectionService route.
+- Resolution/Status: Historical benchmark finding retained; no benchmark evidence is imported into recovery.
+- LINKS: M-DETECT-BENCHMARK, M-PROJECT-REPOSITORY, V-PERF-DETECT-SHORT-BENCHMARK
+
+### F-0087 — Hermes short benchmark is decode-heavy and selects decode profiling
+- Date: 2026-07-13
+- Area: detection
+- Finding: The historical short benchmark attributed substantial cumulative time to packet decode and selected DECODE_PROFILE.
+- Symptom/Reproduction: Evidence was recorded from commit 8623cd2 before accepted recovery changes were restored.
+- Impact: The result is regressed-tree context and cannot select the current targeted optimization.
+- Resolution/Status: Historical meaning retained. Step 18.3 must rerun the benchmark on the recovered tree; BottleneckDecision remains pending.
+- LINKS: M-DETECT-BENCHMARK, V-PERF-DETECT-SHORT-BENCHMARK, V-PERF-DETECT-BOTTLENECK
+
+### F-0088 — Short benchmark writes fewer screenshots than detected slides
+- Date: 2026-07-13
+- Area: detection
+- Finding: Each historical short benchmark run detected 28 slides but wrote only 6 PNG screenshots.
+- Symptom/Reproduction: `screenshots_written=6` while `slides_detected=28` in the retained historical result.
+- Impact: Short-video quality acceptance cannot be inferred from that benchmark.
+- Resolution/Status: Open historical quality defect; Phase 18 QualityAcceptance remains planned.
+- LINKS: M-DETECT-SLIDES, V-PERF-DETECT-SHORT-BENCHMARK, V-PERF-DETECT-ACCEPTANCE
+
+### F-0089 — Accepted RSS lifecycle was lost during integration
+- Date: 2026-07-13
+- Area: detection
+- Finding: Integration moved document construction and persistence outside the protected sampler lifecycle and stopped computing peak RSS from before, sampled, and after values.
+- Symptom/Reproduction: A-001 identifies the first regressed merge and accepted source/blob provenance.
+- Impact: Exceptions could bypass complete lifecycle evidence and reported peak RSS could understate process memory.
+- Resolution/Status: Resolved by A-001 recovery with deterministic success, all-three-maxima, detector-work failure, and persistence-failure tests.
+- LINKS: A-001, audits/phase17-phase18-history/accepted-change-loss-register.md, M-DETECT-SLIDES, V-PERF-DETECT-BASELINE
+
+### F-0090 — Accepted slide detector semantic anchors were lost during integration
+- Date: 2026-07-13
+- Area: detection
+- Finding: Integration removed accepted ChangeEvent/detection contracts and process/debounce semantic anchors.
+- Symptom/Reproduction: A-003 records accepted blob `8e1c7488` and first missing blob `3902427c`.
+- Impact: Deterministic GRACE navigation and contract review of detector behavior regressed.
+- Resolution/Status: Resolved by A-003 contract/anchor recovery and preservation test.
+- LINKS: A-003, audits/phase17-phase18-history/accepted-change-loss-register.md, M-SLIDE-DETECTOR, V-M-SLIDE-DETECTOR
+
+### F-0091 — Accepted installer README payload was lost during integration
+- Date: 2026-07-13
+- Area: tooling
+- Finding: Integration dropped the accepted installer `[Files]` directive for repository `README.md`.
+- Symptom/Reproduction: A-004 traces the accepted and first-missing installer blobs.
+- Impact: Installed distributions omitted accepted user-facing documentation.
+- Resolution/Status: Resolved by A-004 installer recovery and static installer verification.
+- LINKS: A-004, audits/phase17-phase18-history/accepted-change-loss-register.md, M-WIN-INSTALLER, V-REF-WIN-INSTALLER
+
+### F-0092 — Duplicate SetupIconFile survived integration
+- Date: 2026-07-13
+- Area: tooling
+- Finding: A duplicate identical `SetupIconFile` directive survived the Phase 17/18 integration.
+- Symptom/Reproduction: A-007 records the canonical single directive and duplicate integration state.
+- Impact: Installer configuration retained stale duplicate setup metadata.
+- Resolution/Status: Resolved by A-007 cleanup and uniqueness assertion.
+- LINKS: A-007, audits/phase17-phase18-history/accepted-change-loss-register.md, M-WIN-INSTALLER, V-REF-WIN-INSTALLER
+
+### F-0093 — Recovery worktree lacks synthetic video fixture
 - Date: 2026-07-13
 - Area: tooling
 - Finding: The recovery worktree does not contain `tests/fixtures/test_slides.mp4`, although existing detector and benchmark-contract tests reference it.
@@ -879,7 +951,7 @@
 - Resolution/Status: Open environment/repository fixture gap. Recovery verification separates deterministic scoped evidence from the unavailable fixture-dependent gate.
 - LINKS: M-DETECT-SLIDES, M-BACKENDS, V-M-DETECT-SLIDES, V-PERF-DETECT-BASELINE, tests/test_detect_slides.py, tests/test_detection_metrics.py
 
-### F-0087 — Backend tests assume PyAV is unavailable
+### F-0094 — Backend tests assume PyAV is unavailable
 - Date: 2026-07-13
 - Area: tooling
 - Finding: The active Python 3.14 environment has PyAV installed, so automatic and fallback backend selection legitimately chooses `pyav`, while four existing tests hard-code `opencv` expectations.
