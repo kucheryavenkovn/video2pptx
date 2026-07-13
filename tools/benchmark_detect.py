@@ -53,7 +53,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 HISTORICAL_CANONICAL_SIGNATURE = "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
 
@@ -276,6 +276,39 @@ def extract_profile_supporting_evidence(profile_text: str) -> dict[str, dict[str
     return evidence
 
 
+# START_CONTRACT: _validate_provenance_sha
+#   PURPOSE: Validate a full lowercase 40-char SHA against expected git object type
+#   INPUTS: { sha: str - the SHA to validate, expected_type: str - 'commit' | 'tree' | None }
+#   OUTPUTS: str - the validated full SHA
+#   SIDE_EFFECTS: may invoke read-only git cat-file when expected_type is set and repo context available
+#   LINKS: M-DETECT-BENCHMARK
+# END_CONTRACT: _validate_provenance_sha
+def _validate_provenance_sha(
+    sha: str,
+    expected_type: Literal["commit", "tree"] | None = None,
+    repo_dir: Path | None = None,
+) -> str:
+    if not re.fullmatch(r"[0-9a-f]{40}", sha):
+        raise ValueError(
+            f"Provenance SHA must be a full lowercase 40-character hex string, got {sha!r}"
+        )
+    if expected_type is not None and repo_dir is not None:
+        try:
+            obj_type = subprocess.check_output(
+                ["git", "cat-file", "-t", sha],
+                cwd=repo_dir,
+                stderr=subprocess.DEVNULL,
+                text=True,
+            ).strip()
+        except subprocess.CalledProcessError as _exc:
+            raise ValueError(f"Git object not found: {sha}") from _exc
+        if obj_type != expected_type:
+            raise ValueError(
+                f"Expected git object type {expected_type!r} for {sha}, got {obj_type!r}"
+            )
+    return sha
+
+
 # START_CONTRACT: resolve_recovered_master_base
 #   PURPOSE: Validate a claimed recovered base as a commit and exact measurement/upstream merge-base.
 #   INPUTS: { benchmark_code_head: str - measurement commit, claimed_base: str - provenance SHA, upstream_ref: str - comparison ref, repo_dir: Path | None - repository root }
@@ -291,15 +324,8 @@ def resolve_recovered_master_base(
 ) -> str:
     """Return claimed_base only when git proves it is the exact merge-base commit."""
     cwd = repo_dir or Path(__file__).resolve().parent.parent
-    if not re.fullmatch(r"[0-9a-f]{40}", claimed_base):
-        raise ValueError("recovered master base must be a full lowercase commit SHA")
-    subprocess.run(
-        ["git", "cat-file", "-e", f"{claimed_base}^{{commit}}"],
-        cwd=cwd,
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    _validate_provenance_sha(claimed_base, expected_type="commit", repo_dir=cwd)
+    _validate_provenance_sha(benchmark_code_head, expected_type="commit", repo_dir=cwd)
     merge_base = subprocess.check_output(
         ["git", "merge-base", benchmark_code_head, upstream_ref],
         cwd=cwd,
@@ -546,6 +572,12 @@ def build_aggregate_evidence(
     """Build complete aggregate evidence document from artifact sets."""
     if not recorded_runs:
         return {"error": "no recorded runs provided"}
+
+    repo_dir = Path(__file__).resolve().parent.parent
+    _validate_provenance_sha(benchmark_code_head, expected_type="commit", repo_dir=repo_dir)
+    _validate_provenance_sha(evidence_builder_head, expected_type="commit", repo_dir=repo_dir)
+    _validate_provenance_sha(benchmark_code_tree, expected_type="tree", repo_dir=repo_dir)
+    _validate_provenance_sha(recovered_master_base, expected_type="commit", repo_dir=repo_dir)
 
     run_elapsed = [r.get("detect_elapsed_seconds", 0) for r in recorded_runs]
     median_run = select_median_run(recorded_runs)
