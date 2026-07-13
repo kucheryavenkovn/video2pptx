@@ -981,14 +981,14 @@
       <cross-links>M-DETECT-SLIDES, M-BACKEND-OPENCV, M-BACKEND-PYAV</cross-links>
     </M-DETECT-METRICS>
     <M-DETECT-BENCHMARK NAME="DetectBenchmarkPlan" TYPE="UTILITY" STATUS="active">
-      <purpose>Evidence-driven Phase 18 sequence: recovered-tree short benchmark (Step 18.3 — done), bottleneck decision (Step 18.4 — in_progress: DECODE_FRAME_PIPELINE, HIGH confidence, PYAV_HWACCEL_CUDA REJECTED_SOURCE_MODEL_MISMATCH, no replacement optimization selected), one targeted optimization (Step 18.5 — blocked pending Step 18.4), short re-benchmark (Step 18.6), Hermes full re-benchmark (Step 18.7), and quality acceptance (Step 18.8). Step 18.3 evidence: mean detect 237.7s (3 runs), historical signature match, 6/6 invariants PASS.</purpose>
+      <purpose>Evidence-driven Phase 18 sequence: recovered-tree short benchmark (Step 18.3 — done), bottleneck decision (Step 18.4 — in_progress: DECODE_FRAME_PIPELINE, HIGH confidence, PYAV_HWACCEL_CUDA REJECTED_SOURCE_MODEL_MISMATCH, no replacement optimization selected), HWAccel runtime evidence (Step 18.4A — in_progress: collecting production PyAV HWAccel activation state from two-independent-open probe), one targeted optimization (Step 18.5 — blocked pending Step 18.4), short re-benchmark (Step 18.6), Hermes full re-benchmark (Step 18.7), and quality acceptance (Step 18.8). Step 18.3 evidence: mean detect 237.7s (3 runs), historical signature match, 6/6 invariants PASS.</purpose>
       <path>tools/benchmark_detect.py</path>
       <depends>M-DETECT-SLIDES, M-DETECT-METRICS</depends>
       <verification-ref>V-PERF-DETECT-SHORT-BENCHMARK, V-PERF-DETECT-BOTTLENECK, V-PERF-DETECT-TARGETED, V-PERF-DETECT-SHORT-REBENCHMARK, V-PERF-DETECT-HERMES-REBENCHMARK, V-PERF-DETECT-ACCEPTANCE</verification-ref>
       <cross-links>M-DETECT-SLIDES, M-DETECT-METRICS</cross-links>
     </M-DETECT-BENCHMARK>
     <M-DETECT-PERF-DECISION NAME="BottleneckDecision" TYPE="DECISION" STATUS="in_progress">
-      <purpose>Step 18.4: DECODE_FRAME_PIPELINE (172.46s, 63.27%) - SAFELY DISCRIMINATED with HIGH confidence. F-0097 resolved. PYAV_HWACCEL_CUDA rejected (REJECTED_SOURCE_MODEL_MISMATCH - existing source already requests HWAccel). No replacement optimization selected. F-0098 open: HWAccel runtime activation evidence gap. Step 18.4 remains in_progress until exactly one targeted optimization selected.</purpose>
+      <purpose>Step 18.4: DECODE_FRAME_PIPELINE (172.46s, 63.27%) - SAFELY DISCRIMINATED with HIGH confidence. F-0097 resolved. PYAV_HWACCEL_CUDA rejected (REJECTED_SOURCE_MODEL_MISMATCH - existing source already requests HWAccel). No replacement optimization selected. F-0098 open: HWAccel runtime activation evidence gap. Step 18.4A (HwAccelRuntimeEvidence) in_progress: collecting production PyAV HWAccel activation state from two-independent-open probe. Step 18.4 remains in_progress until exactly one targeted optimization selected.</purpose>
       <path>benchmarks/detect/evidence/bottleneck_decision.json</path>
       <depends>M-DETECT-BENCHMARK</depends>
       <verification-ref>V-PERF-DETECT-BOTTLENECK</verification-ref>

@@ -1303,6 +1303,12 @@
         Step 18.6 output parity gates defined in bottleneck_decision.json step18_6_output_parity_gates.
         See F-0097 and F-0098 for full evidence.
       </step-18.4>
+      <step-18.4a name="HwAccelRuntimeEvidence" status="in_progress" verification="V-PERF-DETECT-BOTTLENECK">
+        Add minimal internal HWAccel runtime evidence observer to pyav_iter_frames.
+        Two-independent-open probe against canonical Hermes short clip to determine
+        actual production HWAccel activation state. Structured runtime_evidence.json
+        artifact. Intended to close or refine F-0098.
+      </step-18.4a>
       <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
         Blocked: Step 18.4 has not selected a targeted optimization. Step 18.5 remains planned
         and must not start implementation until Step 18.4 selects exactly one optimization.

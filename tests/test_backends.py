@@ -17,6 +17,11 @@ import numpy as np
 import pytest
 
 from video2pptx.backends import _resolve_backend, iter_frames, video_info
+from video2pptx.backends import pyav_backend as _pyav_backend
+from video2pptx.backends.pyav_backend import (
+    _build_hwaccel_evidence,
+    _register_hwaccel_evidence_observer,
+)
 from video2pptx.models import VideoFrame, VideoInfo
 
 logger = logging.getLogger(__name__)
@@ -115,3 +120,523 @@ class TestIterFrames:
         video_path = make_test_video(tmp_path)
         frames = list(iter_frames(video_path, sample_fps=5.0))
         assert len(frames) > 0
+
+
+# START_BLOCK_HWACCEL_EVIDENCE_TESTS
+class TestHwaccelEvidence:
+    """Tests for PyAV HWAccel runtime evidence observer (disabled by default)."""
+
+    def test_observer_disabled_by_default(self):
+        assert _pyav_backend._hwaccel_evidence_observer is None
+
+    def test_register_and_unregister(self):
+        def dummy(evidence):
+            pass
+        _register_hwaccel_evidence_observer(dummy)
+        assert _pyav_backend._hwaccel_evidence_observer is dummy
+        _register_hwaccel_evidence_observer(None)
+        assert _pyav_backend._hwaccel_evidence_observer is None
+
+    def test_build_evidence_minimal(self):
+        ev = _build_hwaccel_evidence(
+            video_path="test.mp4",
+            sample_fps=2.0,
+            available_hw_devices=["cuda"],
+            requested_hw_device="cuda",
+            hwaccel_requested=True,
+            hwaccel_object_created=True,
+            hwaccel_creation_error=None,
+            container_opened=True,
+            container_opened_with_hwaccel=True,
+            container_open_error=None,
+            allow_software_fallback=True,
+            runtime_hwaccel_active=True,
+            runtime_hwaccel_observation_method="stream.codec_context.is_hwaccel",
+            software_fallback_detected=False,
+            software_fallback_reason="",
+            codec_name="h264",
+            codec_long_name="H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            hw_config_device_type="cuda",
+            hw_config_format="cuda",
+            hardware_decoder_or_device_identity="HWAccel(cuda, 0)",
+            first_frame_yielded=True,
+            first_frame_timestamp=0.0,
+            first_frame_shape=[1080, 1920, 3],
+        )
+        assert ev["schema_version"] == "1.0.0"
+        assert ev["backend"] == "pyav"
+        assert ev["requested_hw_device"] == "cuda"
+        assert ev["hwaccel_requested"] is True
+        assert ev["hwaccel_object_created"] is True
+        assert ev["runtime_hwaccel_active"] is True
+        assert ev["codec_name"] == "h264"
+        assert ev["first_frame_yielded"] is True
+        assert ev["first_frame_shape"] == [1080, 1920, 3]
+
+    def test_build_evidence_no_hw(self):
+        ev = _build_hwaccel_evidence(
+            video_path="test.mp4",
+            sample_fps=2.0,
+            available_hw_devices=[],
+            requested_hw_device=None,
+            hwaccel_requested=False,
+            hwaccel_object_created=False,
+            hwaccel_creation_error=None,
+            container_opened=True,
+            container_opened_with_hwaccel=False,
+            container_open_error=None,
+            allow_software_fallback="NOT_APPLICABLE",
+            runtime_hwaccel_active=False,
+            runtime_hwaccel_observation_method="stream.codec_context.is_hwaccel",
+            software_fallback_detected="UNKNOWN_NOT_EXPOSED",
+            software_fallback_reason="",
+            codec_name=None,
+            codec_long_name=None,
+            hw_config_device_type=None,
+            hw_config_format=None,
+            hardware_decoder_or_device_identity=None,
+            first_frame_yielded=True,
+            first_frame_timestamp=1.5,
+            first_frame_shape=[480, 640, 3],
+        )
+        assert ev["requested_hw_device"] is None
+        assert ev["hwaccel_requested"] is False
+        assert ev["container_opened_with_hwaccel"] is False
+        assert ev["runtime_hwaccel_active"] is False
+        assert ev["software_fallback_detected"] == "UNKNOWN_NOT_EXPOSED"
+        assert ev["allow_software_fallback"] == "NOT_APPLICABLE"
+
+    def test_build_evidence_unknown_active(self):
+        ev = _build_hwaccel_evidence(
+            video_path="test.mp4",
+            sample_fps=2.0,
+            available_hw_devices=["cuda"],
+            requested_hw_device="cuda",
+            hwaccel_requested=True,
+            hwaccel_object_created=True,
+            hwaccel_creation_error=None,
+            container_opened=True,
+            container_opened_with_hwaccel=True,
+            container_open_error=None,
+            allow_software_fallback=True,
+            runtime_hwaccel_active="UNKNOWN_NOT_EXPOSED",
+            runtime_hwaccel_observation_method="no_direct_api",
+            software_fallback_detected="UNKNOWN_NOT_EXPOSED",
+            software_fallback_reason="",
+            codec_name=None,
+            codec_long_name=None,
+            hw_config_device_type=None,
+            hw_config_format=None,
+            hardware_decoder_or_device_identity=None,
+            first_frame_yielded=False,
+            first_frame_timestamp=None,
+            first_frame_shape=None,
+        )
+        assert ev["runtime_hwaccel_active"] == "UNKNOWN_NOT_EXPOSED"
+        assert ev["runtime_hwaccel_observation_method"] == "no_direct_api"
+        assert ev["first_frame_yielded"] is False
+
+    def test_build_evidence_not_reached(self):
+        ev = _build_hwaccel_evidence(
+            video_path="test.mp4",
+            sample_fps=2.0,
+            available_hw_devices=["cuda"],
+            requested_hw_device="cuda",
+            hwaccel_requested=True,
+            hwaccel_object_created=True,
+            hwaccel_creation_error=None,
+            container_opened=False,
+            container_opened_with_hwaccel=False,
+            container_open_error="File not found",
+            allow_software_fallback="NOT_REACHED",
+            runtime_hwaccel_active="NOT_REACHED",
+            runtime_hwaccel_observation_method="NOT_REACHED",
+            software_fallback_detected="NOT_REACHED",
+            software_fallback_reason="",
+            codec_name=None,
+            codec_long_name=None,
+            hw_config_device_type=None,
+            hw_config_format=None,
+            hardware_decoder_or_device_identity=None,
+            first_frame_yielded=False,
+            first_frame_timestamp=None,
+            first_frame_shape=None,
+        )
+        assert ev["container_opened"] is False
+        assert ev["container_open_error"] == "File not found"
+        assert ev["allow_software_fallback"] == "NOT_REACHED"
+        assert ev["runtime_hwaccel_active"] == "NOT_REACHED"
+
+    def test_observer_does_not_alter_decoder(self, monkeypatch):
+        """L. Observer/evidence mechanism does not alter yielded frame data."""
+        import sys
+        from types import SimpleNamespace
+
+        import numpy as np
+
+        from video2pptx.backends import pyav_backend
+
+        class FakeFrame:
+            def __init__(self, key_frame=True):
+                self.key_frame = key_frame
+                self._converted = False
+            def to_ndarray(self, format):
+                self._converted = True
+                return np.full((2, 3, 3), 42, dtype=np.uint8)
+
+        class FakePacket:
+            def __init__(self):
+                self._called = False
+            def decode(self):
+                if not self._called:
+                    self._called = True
+                    return [FakeFrame() for _ in range(3)]
+                return []
+
+        codec_ctx = SimpleNamespace(
+            is_hwaccel=False,
+            codec=SimpleNamespace(name="mpeg4", long_name="MPEG-4 part 2"),
+            hwaccel=None,
+        )
+
+        class FakeContainer:
+            def __init__(self):
+                stream = SimpleNamespace(average_rate=10.0)
+                self.streams = SimpleNamespace(video=[stream])
+                self.streams.video[0].codec_context = codec_ctx
+                self.closed = False
+                self._demuxed = False
+
+            def demux(self, stream):
+                if not self._demuxed:
+                    self._demuxed = True
+                    return [FakePacket()]
+                return []
+
+            def close(self):
+                self.closed = True
+
+        container = FakeContainer()
+        fake_av = SimpleNamespace(open=lambda path, hwaccel=None: container)
+        monkeypatch.setitem(sys.modules, "av", fake_av)
+        monkeypatch.setattr(pyav_backend, "_pick_hw_device", lambda: None)
+
+        _register_hwaccel_evidence_observer(None)
+        result_disabled = list(pyav_backend.pyav_iter_frames("unused.mp4", sample_fps=10.0))
+        _register_hwaccel_evidence_observer(None)
+
+        assert len(result_disabled) == 3
+        for vf in result_disabled:
+            assert vf.image.shape == (2, 3, 3)
+
+    def test_observer_receives_evidence(self, monkeypatch):
+        """B-F, K. Observer receives evidence with correct fields."""
+        import sys
+        from types import SimpleNamespace
+
+        import numpy as np
+
+        from video2pptx.backends import pyav_backend
+
+        class FakeFrame:
+            def __init__(self, key_frame=True):
+                self.key_frame = key_frame
+            def to_ndarray(self, format):
+                return np.zeros((2, 3, 3), dtype=np.uint8)
+
+        class FakePacket:
+            def decode(self):
+                return [FakeFrame()]
+
+        codec_ctx = SimpleNamespace(
+            is_hwaccel=False,
+            codec=SimpleNamespace(name="mpeg4", long_name="MPEG-4 part 2"),
+            hwaccel=None,
+        )
+
+        class FakeContainer:
+            def __init__(self):
+                stream = SimpleNamespace(average_rate=10.0)
+                self.streams = SimpleNamespace(video=[stream])
+                self.streams.video[0].codec_context = codec_ctx
+                self.closed = False
+
+            def demux(self, stream):
+                return [FakePacket()]
+
+            def close(self):
+                self.closed = True
+
+        container = FakeContainer()
+        fake_av = SimpleNamespace(open=lambda path, hwaccel=None: container)
+        monkeypatch.setitem(sys.modules, "av", fake_av)
+        monkeypatch.setattr(pyav_backend, "_pick_hw_device", lambda: None)
+
+        observed = []
+        def collector(ev):
+            observed.append(ev)
+
+        _register_hwaccel_evidence_observer(collector)
+
+        try:
+            result = list(pyav_backend.pyav_iter_frames("unused.mp4", sample_fps=10.0))
+        finally:
+            _register_hwaccel_evidence_observer(None)
+
+        assert len(observed) == 1
+        ev = observed[0]
+        assert ev["schema_version"] == "1.0.0"
+        assert ev["backend"] == "pyav"
+        assert ev["requested_hw_device"] is None
+        assert ev["hwaccel_requested"] is False
+        assert ev["hwaccel_object_created"] is False
+        assert ev["container_opened"] is True
+        assert ev["container_opened_with_hwaccel"] is False
+        assert ev["runtime_hwaccel_active"] is False
+        assert ev["runtime_hwaccel_observation_method"] == "stream.codec_context.is_hwaccel"
+        assert ev["codec_name"] == "mpeg4"
+        assert ev["codec_long_name"] == "MPEG-4 part 2"
+        assert ev["hwaccel_creation_error"] is None
+        assert ev["first_frame_yielded"] is True
+        assert ev["first_frame_timestamp"] == 0.0
+        assert ev["first_frame_shape"] == [2, 3, 3]
+        assert ev["allow_software_fallback"] == "NOT_APPLICABLE"
+
+    def test_observer_with_hwaccel(self, monkeypatch):
+        """D, F, G. HWAccel creation succeeds, container opened with hwaccel, runtime active true."""
+        import sys
+        from types import SimpleNamespace
+
+        import numpy as np
+
+        from video2pptx.backends import pyav_backend
+
+        class FakeFrame:
+            def __init__(self, key_frame=True):
+                self.key_frame = key_frame
+            def to_ndarray(self, format):
+                return np.zeros((2, 3, 3), dtype=np.uint8)
+
+        class FakePacket:
+            def __init__(self):
+                self._called = False
+            def decode(self):
+                if not self._called:
+                    self._called = True
+                    return [FakeFrame()]
+                return []
+
+        hwaccel_obj = SimpleNamespace(
+            allow_software_fallback=True,
+            config=SimpleNamespace(device_type="cuda", format="cuda"),
+            codec=None,
+            is_hw_owned=True,
+        )
+        codec_ctx = SimpleNamespace(
+            is_hwaccel=True,
+            codec=SimpleNamespace(name="h264", long_name="H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10"),
+            hwaccel=hwaccel_obj,
+        )
+
+        class FakeContainer:
+            def __init__(self):
+                stream = SimpleNamespace(average_rate=10.0)
+                self.streams = SimpleNamespace(video=[stream])
+                self.streams.video[0].codec_context = codec_ctx
+                self.closed = False
+                self._demuxed = False
+
+            def demux(self, stream):
+                if not self._demuxed:
+                    self._demuxed = True
+                    return [FakePacket()]
+                return []
+
+            def close(self):
+                self.closed = True
+
+        container = FakeContainer()
+        fake_av = SimpleNamespace(open=lambda path, hwaccel=None: container)
+        hwaccel_for_create = SimpleNamespace(
+            allow_software_fallback=True,
+            config=SimpleNamespace(device_type="cuda", format="cuda"),
+        )
+
+        monkeypatch.setitem(sys.modules, "av", fake_av)
+        monkeypatch.setattr(pyav_backend, "_pick_hw_device", lambda: "cuda")
+        monkeypatch.setattr(pyav_backend, "_create_hwaccel", lambda dt, di=0: hwaccel_for_create)
+
+        observed = []
+        def collector(ev):
+            observed.append(ev)
+
+        _register_hwaccel_evidence_observer(collector)
+
+        try:
+            result = list(pyav_backend.pyav_iter_frames("unused.mp4", sample_fps=10.0))
+        finally:
+            _register_hwaccel_evidence_observer(None)
+
+        assert len(observed) == 1
+        ev = observed[0]
+        assert ev["hwaccel_requested"] is True
+        assert ev["requested_hw_device"] == "cuda"
+        assert ev["hwaccel_object_created"] is True
+        assert ev["container_opened"] is True
+        assert ev["container_opened_with_hwaccel"] is True
+        assert ev["runtime_hwaccel_active"] is True
+        assert ev["codec_name"] == "h264"
+        assert ev["codec_long_name"] == "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10"
+        assert ev["first_frame_yielded"] is True
+        assert ev["allow_software_fallback"] is True
+        assert ev["hw_config_device_type"] == "cuda"
+
+    def test_observer_json_serializable(self):
+        """N. Observation values are JSON serializable."""
+        import json
+
+        ev = _build_hwaccel_evidence(
+            video_path="test.mp4",
+            sample_fps=2.0,
+            available_hw_devices=["cuda", "dxva2"],
+            requested_hw_device="cuda",
+            hwaccel_requested=True,
+            hwaccel_object_created=True,
+            hwaccel_creation_error=None,
+            container_opened=True,
+            container_opened_with_hwaccel=True,
+            container_open_error=None,
+            allow_software_fallback=True,
+            runtime_hwaccel_active=True,
+            runtime_hwaccel_observation_method="stream.codec_context.is_hwaccel",
+            software_fallback_detected=False,
+            software_fallback_reason="",
+            codec_name="h264",
+            codec_long_name="H.264 / AVC",
+            hw_config_device_type="cuda",
+            hw_config_format="cuda",
+            hardware_decoder_or_device_identity="HWAccel(cuda,0)",
+            first_frame_yielded=True,
+            first_frame_timestamp=0.0,
+            first_frame_shape=[1080, 1920, 3],
+        )
+        loaded = json.loads(json.dumps(ev))
+        assert loaded["schema_version"] == "1.0.0"
+        assert loaded["hwaccel_requested"] is True
+        assert loaded["first_frame_shape"] == [1080, 1920, 3]
+
+    def test_observer_exception_does_not_break_decoder(self, monkeypatch):
+        """Observer exception is caught and does not affect frame decoding."""
+        import sys
+        from types import SimpleNamespace
+
+        import numpy as np
+
+        from video2pptx.backends import pyav_backend
+
+        class FakeFrame:
+            def __init__(self, key_frame=True):
+                self.key_frame = key_frame
+            def to_ndarray(self, format):
+                return np.zeros((2, 3, 3), dtype=np.uint8)
+
+        class FakePacket:
+            def decode(self):
+                return [FakeFrame()]
+
+        codec_ctx = SimpleNamespace(
+            is_hwaccel=False,
+            codec=SimpleNamespace(name="mpeg4", long_name="MPEG-4 part 2"),
+            hwaccel=None,
+        )
+
+        class FakeContainer:
+            def __init__(self):
+                stream = SimpleNamespace(average_rate=10.0)
+                self.streams = SimpleNamespace(video=[stream])
+                self.streams.video[0].codec_context = codec_ctx
+                self.closed = False
+
+            def demux(self, stream):
+                return [FakePacket()]
+
+            def close(self):
+                self.closed = True
+
+        container = FakeContainer()
+        fake_av = SimpleNamespace(open=lambda path, hwaccel=None: container)
+        monkeypatch.setitem(sys.modules, "av", fake_av)
+        monkeypatch.setattr(pyav_backend, "_pick_hw_device", lambda: None)
+
+        def failing_observer(ev):
+            raise RuntimeError("observer failure")
+
+        _register_hwaccel_evidence_observer(failing_observer)
+
+        try:
+            result = list(pyav_backend.pyav_iter_frames("unused.mp4", sample_fps=10.0))
+        finally:
+            _register_hwaccel_evidence_observer(None)
+
+        assert len(result) > 0
+        assert container.closed
+
+    def test_generator_close_preserved(self, monkeypatch):
+        """M. Existing container.close behavior preserved."""
+        import sys
+        from types import SimpleNamespace
+
+        import numpy as np
+
+        from video2pptx.backends import pyav_backend
+
+        class FakeFrame:
+            def __init__(self, key_frame=True):
+                self.key_frame = key_frame
+            def to_ndarray(self, format):
+                return np.zeros((2, 3, 3), dtype=np.uint8)
+
+        class FakePacket:
+            def __init__(self):
+                self._called = False
+            def decode(self):
+                if not self._called:
+                    self._called = True
+                    return [FakeFrame()]
+                return []
+
+        codec_ctx = SimpleNamespace(
+            is_hwaccel=False,
+            codec=SimpleNamespace(name="mpeg4", long_name="MPEG-4 part 2"),
+            hwaccel=None,
+        )
+
+        class FakeContainer:
+            def __init__(self):
+                stream = SimpleNamespace(average_rate=10.0)
+                self.streams = SimpleNamespace(video=[stream])
+                self.streams.video[0].codec_context = codec_ctx
+                self.closed = False
+                self._demuxed = False
+
+            def demux(self, stream):
+                if not self._demuxed:
+                    self._demuxed = True
+                    return [FakePacket()]
+                return []
+
+            def close(self):
+                self.closed = True
+
+        container = FakeContainer()
+        fake_av = SimpleNamespace(open=lambda path, hwaccel=None: container)
+        monkeypatch.setitem(sys.modules, "av", fake_av)
+        monkeypatch.setattr(pyav_backend, "_pick_hw_device", lambda: None)
+
+        gen = pyav_backend.pyav_iter_frames("unused.mp4", sample_fps=10.0)
+        first = next(gen)
+        assert first is not None
+        assert not container.closed
+        gen.close()
+        assert container.closed
+# END_BLOCK_HWACCEL_EVIDENCE_TESTS
