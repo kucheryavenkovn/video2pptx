@@ -56,8 +56,8 @@
       <depends>none</depends>
       <verification-ref>V-M-BACKENDS</verification-ref>
       <submodules>
-        <M-BACKEND-OPENCV NAME="OpenCVBackend" STATUS="implemented" />
-        <M-BACKEND-PYAV NAME="PyAVBackend" STATUS="implemented" />
+        <M-BACKEND-OPENCV NAME="OpenCVBackend" STATUS="implemented" PURPOSE="Count each successful source read once; count conversions and RGB bytes only for yielded frames." />
+        <M-BACKEND-PYAV NAME="PyAVBackend" STATUS="implemented" PURPOSE="Count every decoded frame; count conversions and RGB bytes only for yielded frames, including keyframe filtering." />
       </submodules>
     </M-BACKENDS>
 
@@ -85,8 +85,12 @@
     <M-SLIDE-DETECTOR NAME="SlideDetector" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Slide change detection via frame comparison with threshold and debounce</purpose>
       <path>src/video2pptx/slide_detector.py</path>
-      <depends>M-FRAME-FEATURES, M-ROI</depends>
+      <depends>M-FRAME-FEATURES, M-ROI, M-DETECT-METRICS</depends>
       <verification-ref>V-M-SLIDE-DETECTOR</verification-ref>
+      <annotations>
+        <type-ChangeEvent PURPOSE="Governed detected-change value contract." />
+        <fn-detect_changes PURPOSE="Governed detection contract with detect-init, process-frames, and debounce navigation blocks." />
+      </annotations>
     </M-SLIDE-DETECTOR>
 
     <M-SEGMENTER NAME="Segmenter" TYPE="CORE_LOGIC" STATUS="implemented">
@@ -167,9 +171,9 @@
     </M-PIPELINE>
 
     <M-DETECT-SLIDES NAME="DetectSlides" TYPE="CORE_LOGIC" STATUS="implemented">
-      <purpose>Standalone slide detection: video → slides.json + screenshots, no subtitles. Phase-18: 2 passes (detect + dedupe/save).</purpose>
+      <purpose>Standalone two-pass slide detection with protected RSS lifecycle through document persistence and peak=max(before, sampled, after).</purpose>
       <path>src/video2pptx/detect_slides.py</path>
-      <depends>M-VIDEO-DECODE, M-SLIDE-DETECTOR, M-SEGMENTER, M-DEDUPE, M-ROI, M-MODELS</depends>
+      <depends>M-VIDEO-DECODE, M-SLIDE-DETECTOR, M-SEGMENTER, M-DEDUPE, M-ROI, M-MODELS, M-DETECT-METRICS</depends>
       <verification-ref>V-M-DETECT-SLIDES</verification-ref>
     </M-DETECT-SLIDES>
 
@@ -974,6 +978,7 @@
       <path>src/video2pptx/detection_metrics.py</path>
       <depends>none</depends>
       <verification-ref>V-PERF-DETECT-BASELINE</verification-ref>
+      <cross-links>M-DETECT-SLIDES, M-BACKEND-OPENCV, M-BACKEND-PYAV</cross-links>
     </M-DETECT-METRICS>
     <!-- ===== DETECT PERFORMANCE (Phase-18) ===== -->
     <M-ARCH-OVERVIEW NAME="ArchitectureOverview" TYPE="UTILITY" STATUS="planned">

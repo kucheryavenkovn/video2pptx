@@ -869,3 +869,21 @@
 - Impact: The documented marker-filtered command conflates E2E and non-E2E results and can report eight unrelated failures.
 - Resolution/Status: Open classification defect. Verification reports marker-filtered and directory-excluded suites separately; no marker redesign was included in this integration hygiene patch.
 - LINKS: tests/e2e/test_mcp_gui_workflow.py, pyproject.toml, V-REF-GUI-ADAPTER
+
+### F-0086 — Recovery worktree lacks synthetic video fixture
+- Date: 2026-07-13
+- Area: tooling
+- Finding: The recovery worktree does not contain `tests/fixtures/test_slides.mp4`, although existing detector and benchmark-contract tests reference it.
+- Symptom/Reproduction: `python -m pytest tests/test_detect_slides.py tests/test_detection_metrics.py -v` fails 11 pre-existing video-backed tests with `av.error.FileNotFoundError` before detector behavior is exercised.
+- Impact: Fixture-dependent detector regression evidence cannot pass in this worktree; deterministic recovery tests and fixture-independent backend tests remain runnable.
+- Resolution/Status: Open environment/repository fixture gap. Recovery verification separates deterministic scoped evidence from the unavailable fixture-dependent gate.
+- LINKS: M-DETECT-SLIDES, M-BACKENDS, V-M-DETECT-SLIDES, V-PERF-DETECT-BASELINE, tests/test_detect_slides.py, tests/test_detection_metrics.py
+
+### F-0087 — Backend tests assume PyAV is unavailable
+- Date: 2026-07-13
+- Area: tooling
+- Finding: The active Python 3.14 environment has PyAV installed, so automatic and fallback backend selection legitimately chooses `pyav`, while four existing tests hard-code `opencv` expectations.
+- Symptom/Reproduction: `python -m pytest tests/test_backends.py tests/test_video_decode.py -v` reports 4 failures and 19 passes; failures expect `opencv` from `auto` or unavailable-backend fallback.
+- Impact: The broad backend regression command is environment-sensitive and cannot serve as clean recovery evidence here. Exact OpenCV and PyAV telemetry tests are deterministic and pass independently.
+- Resolution/Status: Open pre-existing test isolation gap; no backend selection policy or unrelated tests changed during historical recovery.
+- LINKS: M-BACKENDS, M-VIDEO-DECODE, V-M-BACKENDS, tests/test_backends.py, tests/test_video_decode.py
