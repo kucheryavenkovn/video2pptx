@@ -224,7 +224,21 @@ All three timers use `time.perf_counter()` before/after `self._it.__next__()`, i
 - `codec_long_name`
 - Hardware decoder/device identity (where PyAV exposes it)
 
-**Planned evidence step:** Step 18.4A / HwAccelRuntimeEvidence — add minimal runtime HWAccel state logging to `pyav_iter_frames`.
+**Step 18.4A correction state (2026-07-13):**
+
+Evidence mechanism **implemented and corrected**:
+- Private observer with corrected schema: `codec_context_is_hwaccel` separated from `actual_hardware_decode_active`
+- Creation-error capture via `_create_hwaccel_with_evidence()`
+- Explicit `gen.close()` in probe
+- Provenance-validated probe tool (`--accepted-base`, `--canonical-mode`)
+- Deterministic hardware identity (no Python object repr)
+- 17/17 evidence tests pass
+
+**Blocked:** exact canonical Hermes H.264 clip (`examples/hermes-0000-1000.mp4`, SHA256 `dd9da344...`) not available on this workstation.
+
+**F-0098 remains OPEN.** The evidence mechanism is ready but cannot be exercised on the canonical H.264 clip without the file. See F-0100.
+
+**MPEG-4 diagnostic probe** (at `benchmarks/detect/evidence/hwaccel-runtime-evidence/`) classified as `DIAGNOSTIC_NON_CANONICAL_FIXTURE_PROBE` — does not constitute accepted Step 18.4A evidence.
 
 ---
 

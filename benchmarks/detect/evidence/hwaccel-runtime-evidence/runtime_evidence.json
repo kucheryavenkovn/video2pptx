@@ -1,8 +1,12 @@
 {
   "schema_version": "1.0.0",
+  "classification": "DIAGNOSTIC_NON_CANONICAL_FIXTURE_PROBE",
+  "accepted_for_step_18_4a": false,
+  "rejection_reason": "NON_CANONICAL_EVIDENCE_OBJECT — MPEG-4 fixture cannot close Hermes H.264 runtime-state gap",
+  "replaced_by": "CANONICAL_HERMES_H264_PROBE (not executed — clip unavailable)",
   "step": "18.4A",
   "evidence_type": "PYAV_HWACCEL_RUNTIME_STATE",
-  "status": "OBSERVATION_COMPLETE",
+  "status": "OBSERVATION_INCOMPLETE",
   "branch": "perf/phase18-hwaccel-runtime-evidence",
   "evidence_code_head": "a4cd8a916567ab9bb4b8f77c31bee0be0d11791a",
   "evidence_code_tree": "7cc48d2d78e6aaea3c87473ca242ff69676d4c81",

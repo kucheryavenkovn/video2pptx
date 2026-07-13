@@ -300,6 +300,9 @@ def main():
         },
     }
 
+    if args.output_dir:
+        evidence["_output_dir"] = str(Path(args.output_dir).resolve())
+
     print("\n" + "=" * 60)
     print("RUNTIME EVIDENCE SUMMARY")
     print("=" * 60)
