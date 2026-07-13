@@ -1305,9 +1305,22 @@
     </reference>
   </V-PERF-DETECT-TWO-PASS>
 
-  <V-PERF-DETECT-SHORT-BENCHMARK MODULE="Phase-18/Step-18.3" PRIORITY="high" STATUS="pending">
+  <V-PERF-DETECT-SHORT-BENCHMARK MODULE="Phase-18/Step-18.3" PRIORITY="high" STATUS="passed">
     <purpose>Run the immutable short-video benchmark on the recovered tree; historical 8623cd2
       evidence is context only and cannot select an optimization.</purpose>
+    <evidence>
+      <runs>
+        <run-1>benchmarks/detect/runs/hermes-600s-run-1</run-1>
+        <run-2>benchmarks/detect/runs/hermes-600s-run-2</run-2>
+        <run-3>benchmarks/detect/runs/hermes-600s-run-3</run-3>
+        <profile>benchmarks/detect/runs/hermes-600s-profile</profile>
+        <aggregate>benchmarks/detect/evidence/aggregate_evidence.json</aggregate>
+      </runs>
+      <invariants>6 PASS, 1 SKIPPED (psutil unavailable)</invariants>
+      <signature-match-historical>true</signature-match-historical>
+      <mean-detect-elapsed-seconds>237.70</mean-detect-elapsed-seconds>
+      <decision>PENDING_AGGREGATE</decision>
+    </evidence>
   </V-PERF-DETECT-SHORT-BENCHMARK>
 
   <V-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="pending">
