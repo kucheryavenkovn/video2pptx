@@ -1,5 +1,5 @@
 # FILE: src/video2pptx/desktop.py
-# VERSION: 1.1.0
+# VERSION: 1.1.1
 # START_MODULE_CONTRACT
 #   PURPOSE: Canonical desktop GUI entry point for packaged and source mode.
 #   SCOPE: Create QApplication, build ApplicationServices, instantiate MainWindow, enter event loop.
@@ -18,12 +18,13 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.1.0 - Added --diagnostics for packaged runtime verification
+#   LAST_CHANGE: v1.1.1 - Restore pathlib.Path import used by frozen diagnostics output
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
 # Register Qt resources (branding PNGs via :/branding/ prefix)
 import video2pptx.gui.resources.branding_rc  # noqa: F401

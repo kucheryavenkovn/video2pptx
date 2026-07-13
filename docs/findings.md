@@ -851,3 +851,21 @@
 - Impact: Confirms the detector produced non-trivial segmentation on Hermes; quality acceptance remains pending.
 - Resolution/Status: Resolved by 18.2 TwoPassDetection. Full metrics and quality signature pending re-benchmark.
 - LINKS: M-DETECT-SLIDES
+
+### F-0083 — Packaged build metadata leaked into the integration source tree
+- Date: 2026-07-13
+- Area: packaging
+- Finding: Phase 18 integration carried generated standalone BUILD_META values (fixed commit SHA, pyinstaller build type/tool, and build time) into the normal source tree.
+- Symptom/Reproduction: Importing video2pptx.build_meta in source mode reported a packaged build instead of empty SHA, build_type=source, and an empty packaging tool.
+- Impact: About/diagnostics output falsely identified source runs as a specific packaged build and made build metadata stale immediately after commit.
+- Resolution/Status: Resolved. Restored the current-master GRACE contract and source defaults; packaging/build workflows remain responsible for temporary metadata injection.
+- LINKS: M-APP-BUILD-META, M-APP-IDENTITY, src/video2pptx/build_meta.py, packaging/windows/build.ps1
+
+### F-0084 — pytest marker filter does not exclude the tests/e2e directory
+- Date: 2026-07-13
+- Area: tooling
+- Finding: `pytest -m "not e2e"` excludes only tests carrying the `e2e` marker; eight MCP GUI tests under tests/e2e use unregistered order1..order8 marks and are not marked e2e.
+- Symptom/Reproduction: `pytest -m "not e2e"` executes the eight MCP GUI workflow tests and reports their environment-dependent failures. `pytest tests/ --ignore=tests/e2e` runs the actual directory-excluded non-E2E suite.
+- Impact: The documented marker-filtered command conflates E2E and non-E2E results and can report eight unrelated failures.
+- Resolution/Status: Open classification defect. Verification reports marker-filtered and directory-excluded suites separately; no marker redesign was included in this integration hygiene patch.
+- LINKS: tests/e2e/test_mcp_gui_workflow.py, pyproject.toml, V-REF-GUI-ADAPTER

@@ -1259,7 +1259,7 @@
     </Phase-17>
     <Phase-18 name="DetectPerformance" status="in_progress">
       <goal>Measure, analyze, and optimize slide detection throughput without degrading quality. Baseline → bottleneck analysis → targeted optimizations → re-benchmark on Hermes.</goal>
-      <step-18.1 name="PerformanceBaseline" status="done" verification="V-PERF-DETECT-BASELINE">
+      <step-18.1 name="PerformanceBaseline" status="in_progress" verification="V-PERF-DETECT-BASELINE">
         M-DETECT-METRICS module (detection_metrics.py), instrument detector/detect_slides/pyav_backend,
         tools/benchmark_detect.py, initial Hermes run (partial — timeout during Pass 3).
         Key finding: 3-pass structure redundant (Pass 3 only saves screenshots).
