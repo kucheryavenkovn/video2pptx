@@ -984,7 +984,7 @@
 - Finding: The accepted recovered-tree short benchmark does not independently measure first-pass decoder iteration wall-clock (Packet.decode, pyav_iter_frames overhead). Extract_features (101.7s, 38.4%) is the largest instrumented non-overlapping timer, but the unattributed residual (87.4s, 33.0%) likely contains first-pass decode time plus uninstrumented service/persistence/metadata overhead. The pass2_collect timer (65.2s, 24.6%) is a mixed timer containing second-pass decoder iteration + decode + segment matching + ROI + collection. Without separate non-overlapping wall-clock timers for pass1_decode, pass2_decode, and pass2_match_and_collect, the evidence cannot safely discriminate whether the primary bottleneck is FEATURE_EXTRACTION_CPU or DECODE_FRAME_PIPELINE.
 - Symptom/Reproduction: Step 18.4 re-evaluation from corrected evidence yields BLOCKED_INSUFFICIENT_DISCRIMINATION.
 - Impact: Step 18.4 cannot proceed to acceptance. Additional wall-clock instrumentation is needed to isolate first-pass and second-pass decode wall-clock from feature extraction and collection overhead.
-- Resolution/Status: Instrumentation implemented. Three new canonical non-overlapping timers added: pass1_decode_or_frame_advance, pass2_decode_or_frame_advance, pass2_match_and_collect. Legacy mixed pass2_collect retained for schema compatibility but excluded from canonical STAGE_NAMES. InstrumentedIterator extended with optional MetricsTimer for wall-clock timing of underlying next() calls, including StopIteration exhaustion and exception advancement. Deterministic timer boundary tests pass. Benchmark evidence pending.
+- Resolution/Status: RESOLVED. Three canonical non-overlapping timers implemented and benchmark-validated. Residual dropped from 87.39s (33.0%) to 0.53s (0.19%). Total decode pipeline accurately measured as the primary bottleneck.
 - LINKS: M-DETECT-PERF-DECISION, V-PERF-DETECT-BOTTLENECK, Phase-18/Step-18.4
 - INSTRUMENTATION:
   - InstrumentedIterator: optional timer= parameter measures wall-clock inside next(self._it), including finally on StopIteration/exception. Counter increments only on successful yield.
@@ -996,3 +996,18 @@
   - Canonical STAGE_NAMES: pass1_decode_or_frame_advance, roi, extract_features, visual_distance, threshold, debounce, pass2_decode_or_frame_advance, pass2_match_and_collect, pass2_dedupe, pass2_screenshots.
   - pass2_collect deliberately excluded from STAGE_NAMES to prevent double-count.
 - BENCHMARK_PROTOCOL: One warmup, 3 recorded runs. cProfile run optional.
+- FINAL_EVIDENCE (2026-07-13):
+  - Sequence: hermes-600s-f0097-instrumented-20260713-acb424f
+  - 3 runs, all canonical signature 8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85 ✓
+  - Median run (run-01): 272.57s detect elapsed
+  - Residual: 0.53s (0.19%) — down from 87.39s (33.0%)
+  - Stage accounting (median):
+    - pass1_decode_or_frame_advance: 96.36s (35.35%)
+    - extract_features: 92.62s (33.98%)
+    - pass2_decode_or_frame_advance: 76.09s (27.92%)
+    - pass2_match_and_collect: 0.04s (0.02%)
+    - Others combined: ~7.0s (2.57%)
+  - Total decode pipeline (pass1 + pass2): 172.46s (63.27%)
+  - Bottleneck selection: DECODE_FRAME_PIPELINE — SAFELY DISCRIMINATED
+  - Gap vs extract_features: 79.83s (29.29%) — directionally stable across all 3 runs
+  - Confidence: HIGH
