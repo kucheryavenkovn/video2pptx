@@ -121,20 +121,20 @@ All parent/child pairs are **nested cumulative contexts** — do NOT add their c
 - **Wall-clock:** 101.69s (38.36%) — largest instrumented timer
 - **Profile:** 92.712s cumulative; subsystem compute_histogram (48.842s) + cv2_to_gray (34.049s)
 - **For:** Largest measured stage by wide margin. Sub-components are well-understood pixel ops.
-- **Against:** Residual (87.39s, 32.96%) is nearly as large and likely dominated by decode. Without isolating decode wall-clock, cannot confirm extract_features exceeds decode.
+- **Against:** Residual (87.39s, 32.96%) is nearly as large and likely contains first-pass decode (aggregate note: decode/open/service/persistence and other uninstrumented work). Without isolating decode wall-clock, cannot confirm extract_features exceeds decode.
 - **Confidence: MEDIUM** — possible primary but unconfirmed
 
 ### DECODE_FRAME_PIPELINE
 - **Wall-clock:** No independent timer. Decode lives in residual (87.39s, 32.96%).
 - **Profile:** Packet.decode 114.854s self (larger than extract_features 92.712s cumulative)
 - **For:** Profile suggests decode work exceeds feature extraction. Residual is large.
-- **Against:** Profile run (229.8s) differs from median (265.1s). No wall-clock timer validates this. Pass2_collect (65.22s) + residual decode estimate could exceed extract_features.
+- **Against:** The profile run (229.750s) is a separate instrumented run with a different elapsed time from the median recorded run (265.125s); cProfile is supporting evidence and cannot substitute for isolated median wall-clock stage timers. No wall-clock timer validates this.
 - **Confidence: MEDIUM** — possible primary but no direct wall-clock evidence
 
 ### PASS2_COLLECTION
 - **Wall-clock:** 65.22s (24.60%) — mixed timer with second decode + collection
 - **For:** Second-largest measured stage.
-- **Against:** Pure collection overhead is unknown and likely small (<5%). Majority is second-pass decode. Cannot select as primary bottleneck.
+- **Against:** Pure collection overhead is NOT independently measured — it is entangled with second-pass decode/frame advancement within the same mixed timer. The internal proportion between collection cost and decode cost is UNKNOWN. Cannot select as primary because no wall-clock timer isolates collection from decode.
 - **Confidence: LOW** — not primary; mixed timer cannot isolate pure collection
 
 ### THRESHOLD_OR_DECISION_LOGIC

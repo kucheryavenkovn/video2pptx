@@ -163,7 +163,7 @@
     "feature_worker_pool": false,
     "async_queue": false,
     "decode_extract_overlap": false,
-    "description": "pyav_iter_frames is a Python generator. detect_changes consumes it in a for loop. Each iteration: (1) the generator yields the next sampled VideoFrame, (2) ROI + extract_features + visual_distance + threshold execute synchronously, (3) the loop body completes before the next generator advance via builtins.next. No producer/consumer buffering, no threads, no async overlap."
+    "description": "pyav_iter_frames is a Python generator. detect_changes consumes it in a synchronous for loop. Each iteration: (1) the generator yields the next sampled VideoFrame via builtins.next, (2) ROI + extract_features + visual_distance + threshold execute in the same thread, (3) the loop body completes before the next generator advance. All processing is single-threaded: no worker pool, no queue, no concurrent decode/extract."
   },
   "counter_invariants": {
     "frames_decoded": 72002,
@@ -191,8 +191,8 @@
       "wall_clock_evidence": "No independent non-overlapping timer exists. First-pass decode lives in unattributed_residual (87.39s, 32.96%).",
       "profile_evidence": "Packet.decode 114.854s self/cumulative (profile run). pyav_iter_frames 135.128s cumulative, 10.469s self.",
       "source_boundary": "pyav_backend.pyav_iter_frames — Packet.decode loop + sampling + to_ndarray for selected frames. Called from video_decode.iter_frames wrapped in InstrumentedIterator.",
-      "strongest_supporting": "Profile shows Packet.decode (114.854s) larger than extract_features (92.712s cumulative). Residual (87.39s) is large and likely dominated by decode work.",
-      "strongest_counter": "Profile is a slower instrumented run (229.8s vs median 265.1s). No non-overlapping wall-clock timer isolates decode. Pass2_collect (65.22s, 24.6%) includes second-pass decode + collection and is still smaller than extract_features.",
+      "strongest_supporting": "Profile shows Packet.decode (114.854s) larger than extract_features (92.712s cumulative). Residual (87.39s) is large and likely contains first-pass decode work (aggregate note: decode/open/service/persistence and other uninstrumented work).",
+      "strongest_counter": "The profile run is a separate instrumented run (229.750s) with a different elapsed time from the median recorded run (265.125s); cProfile values are supporting evidence and cannot substitute for independently isolated median wall-clock stage timers. No non-overlapping wall-clock timer isolates decode. Pass2_collect (65.22s, 24.6%) includes second-pass decode + collection and is still smaller than extract_features.",
       "confidence": "MEDIUM",
       "ruling": "POSSIBLE_PRIMARY — profile suggests decode is comparable to feature extraction, but no wall-clock timer independently validates this"
     },
@@ -202,7 +202,7 @@
       "profile_evidence": "Pass 2 iterates decoder again (1201 frames sampled, 2402 ndarray conversions = Pass 1 + Pass 2). Second decoder iteration is included in this timer.",
       "source_boundary": "Mixed timer: second decoder iteration (Packet.decode + to_ndarray) + segment loop + representative matching + ROI processing + rep_frames insertion",
       "strongest_supporting": "Second-largest measured stage at 24.6% of total.",
-      "strongest_counter": "This is a MIXED timer. The pure collection overhead (segment scanning, matching, dict insertion) is unknown and likely small (<5%). The majority is second-pass decode. Cannot be selected as primary because the decode portion is entangled with collection.",
+      "strongest_counter": "This is a MIXED timer. The pure collection overhead (segment scanning, matching, dict insertion) is NOT independently measured — it is entangled with second-pass decode/frame advancement (Packet.decode, to_ndarray) within the same timer. The internal proportion between collection cost and decode cost is UNKNOWN. Cannot be selected as primary because the timer does not isolate collection from decode.",
       "confidence": "LOW",
       "ruling": "NOT_PRIMARY — mixed timer; decode portion is entangled with collection overhead; cannot isolate pure collection cost"
     },
