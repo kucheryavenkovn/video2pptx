@@ -103,3 +103,6 @@ mcp_stderr*.log
 
 # zread output
 /zread/
+
+# Phase 18 benchmark artifacts
+.benchmarks/

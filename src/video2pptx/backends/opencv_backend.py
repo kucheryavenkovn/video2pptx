@@ -23,6 +23,7 @@ from pathlib import Path
 import cv2
 from loguru import logger
 
+from video2pptx.detection_metrics import get as _get_metrics
 from video2pptx.models import VideoFrame, VideoInfo
 
 
@@ -33,6 +34,7 @@ def _win_short_path(path: str | Path) -> str:
         return p
     try:
         import ctypes
+
         buf = ctypes.create_unicode_buffer(260)
         n = ctypes.windll.kernel32.GetShortPathNameW(p, buf, 260)
         if n > 0:
@@ -104,7 +106,9 @@ def opencv_iter_frames(
         video_fps = 30.0
 
     if keyframes_only:
-        logger.info("[OpenCV][iter_frames] keyframes_only requested — falling back to normal sampling (OpenCV has no keyframe API)")
+        logger.info(
+            "[OpenCV][iter_frames] keyframes_only requested — falling back to normal sampling (OpenCV has no keyframe API)"
+        )
 
     frame_interval = max(1, int(round(video_fps / sample_fps)))
     current_frame_idx = 0
@@ -112,15 +116,24 @@ def opencv_iter_frames(
 
     try:
         while True:
-            # START_BLOCK_READ_FRAME
             ret, frame = cap.read()
             if not ret:
                 break
-            # END_BLOCK_READ_FRAME
+
+            m = _get_metrics()
+            if m is not None:
+                m.counter_frames_decoded.increment()
+
+            m = _get_metrics()
+            if m is not None:
+                m.counter_frames_decoded.increment()
 
             if current_frame_idx % frame_interval == 0:
                 timestamp = current_frame_idx / video_fps
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                if m is not None:
+                    m.counter_ndarray_conversions.increment()
+                    m.gauge_rgb_transfer_bytes.value += frame_rgb.nbytes
                 yield VideoFrame(timestamp=timestamp, image=frame_rgb)
 
             current_frame_idx += 1

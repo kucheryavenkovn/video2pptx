@@ -833,3 +833,39 @@
 - Impact: The required 11-test GUI+MCP gate could not run from the documented pytest command.
 - Resolution/Status: TEST_BUG resolved by adding the repository root to pytest pythonpath and tools/__init__.py.
 - LINKS: V-REF-GUI-ADAPTER, pyproject.toml, tools/__init__.py
+
+### F-0078 — Hermes baseline benchmark exceeds 30-minute timeout mid-Pass 3
+- Date: 2026-07-12
+- Area: detection
+- Finding: Full Hermes baseline benchmark (3655s video, 60fps source, sample_fps=2 = ~7310 sampled frames) was killed after 30 min during Pass 3 (screenshot saving). The redundant third full sequential decode is a confirmed architectural cost and a strong optimization target. An estimated 60+ minutes would be needed for completion.
+- Symptom/Reproduction: Run `python tools/benchmark_detect.py --project out11 --output .benchmarks/phase18/baseline-hermes` on 60-min Hermes video. Process terminates without metrics.json or output_signature.json after 1800s.
+- Impact: Baseline run incomplete; full stage timings not isolated because metrics were lost. Efficient optimization iteration requires shorter test video (<10 min).
+- Resolution/Status: Resolved by 18.2 TwoPassDetection. decoder.iter_frames() reduced from 3 to 2 by merging screenshot writing into Pass 2. Step 18.3 short-video benchmark needed for remaining optimization iteration.
+- LINKS: M-DETECT-SLIDES, tools/benchmark_detect.py, Phase-18/TwoPassDetection
+
+### F-0077 — 414 deduplicated segments were reported before timeout
+- Date: 2026-07-12
+- Area: detection
+- Finding: Despite incomplete run, the detector reported 414 deduplicated segments from the 3655s Hermes video (avg duration ~8.8s per segment). Output was not written to slides.json before timeout.
+- Symptom/Reproduction: Stdout from killed benchmark shows "[SlideDetector] ... 414 deduplicated segments". bench-project/slides.json contains 1 slide (pre-existing copy).
+- Impact: Confirms the detector produced non-trivial segmentation on Hermes; quality acceptance remains pending.
+- Resolution/Status: Resolved by 18.2 TwoPassDetection. Full metrics and quality signature pending re-benchmark.
+- LINKS: M-DETECT-SLIDES
+
+### F-0083 — Packaged build metadata leaked into the integration source tree
+- Date: 2026-07-13
+- Area: packaging
+- Finding: Phase 18 integration carried generated standalone BUILD_META values (fixed commit SHA, pyinstaller build type/tool, and build time) into the normal source tree.
+- Symptom/Reproduction: Importing video2pptx.build_meta in source mode reported a packaged build instead of empty SHA, build_type=source, and an empty packaging tool.
+- Impact: About/diagnostics output falsely identified source runs as a specific packaged build and made build metadata stale immediately after commit.
+- Resolution/Status: Resolved. Restored the current-master GRACE contract and source defaults; packaging/build workflows remain responsible for temporary metadata injection.
+- LINKS: M-APP-BUILD-META, M-APP-IDENTITY, src/video2pptx/build_meta.py, packaging/windows/build.ps1
+
+### F-0084 — pytest marker filter does not exclude the tests/e2e directory
+- Date: 2026-07-13
+- Area: tooling
+- Finding: `pytest -m "not e2e"` excludes only tests carrying the `e2e` marker; eight MCP GUI tests under tests/e2e use unregistered order1..order8 marks and are not marked e2e.
+- Symptom/Reproduction: `pytest -m "not e2e"` executes the eight MCP GUI workflow tests and reports their environment-dependent failures. `pytest tests/ --ignore=tests/e2e` runs the actual directory-excluded non-E2E suite.
+- Impact: The documented marker-filtered command conflates E2E and non-E2E results and can report eight unrelated failures.
+- Resolution/Status: Open classification defect. Verification reports marker-filtered and directory-excluded suites separately; no marker redesign was included in this integration hygiene patch.
+- LINKS: tests/e2e/test_mcp_gui_workflow.py, pyproject.toml, V-REF-GUI-ADAPTER

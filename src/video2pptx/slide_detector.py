@@ -3,7 +3,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Slide change detection via frame comparison with threshold and debounce
 #   SCOPE: Compare consecutive frames, detect significant changes, apply debounce via min_stable_duration
-#   DEPENDS: frame_features, roi, models, numpy, loguru
+#   DEPENDS: frame_features, roi, models, numpy, loguru, detection_metrics
 #   LINKS: M-SLIDE-DETECTOR
 #   ROLE: RUNTIME
 #   MAP_MODE: EXPORTS
@@ -21,19 +21,14 @@ from collections.abc import Callable, Iterator
 import numpy as np
 from loguru import logger
 
+from video2pptx.detection_metrics import get as _get_metrics
+from video2pptx.detection_metrics import measure
 from video2pptx.frame_features import compute_threshold, extract_features, visual_distance
 from video2pptx.models import FrameFeatures
 from video2pptx.roi import SlideRegion
 
 
 class ChangeEvent:
-    # START_CONTRACT: ChangeEvent
-    #   PURPOSE: A detected change point between frames
-    #   INPUTS: { timestamp: float, score: float, features: FrameFeatures }
-    #   OUTPUTS: ChangeEvent
-    #   SIDE_EFFECTS: none
-    #   LINKS: M-SLIDE-DETECTOR
-    # END_CONTRACT: ChangeEvent
     def __init__(self, timestamp: float, score: float, features: FrameFeatures):
         self.timestamp = timestamp
         self.score = score
@@ -50,40 +45,42 @@ def detect_changes(
     progress_callback: Callable[[int, str], None] | None = None,
     extract_fn: Callable | None = None,
     distance_fn: Callable | None = None,
+    quick_mode: bool = False,
 ) -> tuple[list[ChangeEvent], list[FrameFeatures], list[float]]:
-    # START_CONTRACT: detect_changes
-    #   PURPOSE: Scan frames, compare consecutive, detect slide changes
-    #   INPUTS: { frames: timestamp+image iterator, slide_region, threshold,
-    #             min_stable_duration, sample_fps, video_duration }
-    #   OUTPUTS: (changes: list[ChangeEvent], all_features: list[FrameFeatures], all_scores: list[float])
-    #   SIDE_EFFECTS: none
-    #   LINKS: M-SLIDE-DETECTOR
-    # END_CONTRACT: detect_changes
-
-    # START_BLOCK_DETECT_INIT
     slide_region = slide_region or SlideRegion(roi=None)
     changes: list[ChangeEvent] = []
     all_features: list[FrameFeatures] = []
     all_scores: list[float] = []
-    # END_BLOCK_DETECT_INIT
+    _extract = extract_fn or extract_features
+    _dist = distance_fn or visual_distance
 
-    # START_BLOCK_PROCESS_FRAMES
     prev_features: FrameFeatures | None = None
     progress_step: float = max(30.0, (video_duration or 600.0) * 0.1)
     next_progress: float = progress_step
     for timestamp, image in frames:
-        cropped = slide_region.process(image)
-        _extract = extract_fn or extract_features
-        _dist = distance_fn or visual_distance
-        ff = _extract(cropped)
+        m = _get_metrics()
+
+        with measure("roi"):
+            cropped = slide_region.process(image)
+
+        with measure("extract_features"):
+            ff = _extract(cropped)
         ff.timestamp = timestamp
         all_features.append(ff)
 
+        if m is not None:
+            if quick_mode:
+                m.counter_features_quick.increment()
+            else:
+                m.counter_features_full.increment()
+
         if prev_features is not None:
-            score = _dist(prev_features, ff)
+            with measure("visual_distance"):
+                score = _dist(prev_features, ff)
             all_scores.append(score)
 
-            actual_threshold = _resolve_threshold(threshold, all_scores, timestamp)
+            with measure("threshold"):
+                actual_threshold = _resolve_threshold(threshold, all_scores, timestamp)
             if score > actual_threshold:
                 changes.append(ChangeEvent(timestamp=timestamp, score=score, features=ff))
                 logger.debug(
@@ -100,17 +97,15 @@ def detect_changes(
             if progress_callback and video_duration:
                 progress_callback(
                     int(timestamp / video_duration * 100),
-                    f"Pass 1/3 — {len(changes)} changes at {timestamp:.0f}s",
+                    f"Pass 1/2 — {len(changes)} changes at {timestamp:.0f}s",
                 )
             next_progress += progress_step
 
         prev_features = ff
-    # END_BLOCK_PROCESS_FRAMES
 
-    # START_BLOCK_DEBOUNCE
-    stable_frames = max(1, int(round(sample_fps * min_stable_duration)))
-    changes = _debounce_changes(changes, stable_frames)
-    # END_BLOCK_DEBOUNCE
+    with measure("debounce"):
+        stable_frames = max(1, int(round(sample_fps * min_stable_duration)))
+        changes = _debounce_changes(changes, stable_frames)
 
     logger.info(
         f"[SlideDetector][detect_changes] Detection complete | "
@@ -126,15 +121,13 @@ def _resolve_threshold(threshold: float | str, scores: list[float], timestamp: f
 
 
 def _debounce_changes(changes: list[ChangeEvent], min_stable_frames: int) -> list[ChangeEvent]:
-    """Remove changes that are too close together (debounce)."""
     if len(changes) < 2:
         return changes
-
     result: list[ChangeEvent] = [changes[0]]
     for i in range(1, len(changes)):
         gap_frames = int(round(
             (changes[i].timestamp - result[-1].timestamp)
-            / max(0.5, 1.0 / 30.0)  # approximate frame duration
+            / max(0.5, 1.0 / 30.0)
         ))
         if gap_frames >= min_stable_frames:
             result.append(changes[i])

@@ -19,7 +19,6 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
-from typing import Any
 
 
 def capture_snapshot(mcp_client, snapshot_dir: str | Path, label: str = "") -> Path:
