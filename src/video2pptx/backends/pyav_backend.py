@@ -14,6 +14,7 @@
 #   pyav_iter_frames - iterate frames using PyAV with hardware-accelerated decode
 #   _hwaccel_evidence_observer - private optional observer for HWAccel runtime state
 #   _register_hwaccel_evidence_observer - set observer (disabled by default)
+#   _create_hwaccel_with_evidence - create HWAccel with structured error capture
 # END_MODULE_MAP
 
 from __future__ import annotations
@@ -48,20 +49,23 @@ def _build_hwaccel_evidence(
     requested_hw_device: str | None,
     hwaccel_requested: bool,
     hwaccel_object_created: bool,
-    hwaccel_creation_error: str | None,
-    container_opened: bool,
+    hwaccel_creation_error_type: str | None,
+    hwaccel_creation_error_message: str | None,
     container_opened_with_hwaccel: bool,
     container_open_error: str | None,
     allow_software_fallback: bool | str,
-    runtime_hwaccel_active: bool | str,
-    runtime_hwaccel_observation_method: str,
+    codec_context_hwaccel_present: bool,
+    codec_context_is_hwaccel: bool | None,
+    hw_config_present: bool,
+    hw_config_device_type: str | None,
+    hw_config_format: str | None,
+    actual_hardware_decode_active: bool | str,
+    actual_hardware_decode_observation_method: str,
     software_fallback_detected: bool | str,
     software_fallback_reason: str,
     codec_name: str | None,
     codec_long_name: str | None,
-    hw_config_device_type: str | None,
-    hw_config_format: str | None,
-    hardware_decoder_or_device_identity: str | None,
+    deterministic_hardware_identity: str,
     first_frame_yielded: bool,
     first_frame_timestamp: float | None,
     first_frame_shape: list[int] | None,
@@ -69,32 +73,30 @@ def _build_hwaccel_evidence(
 ) -> dict:
     return {
         "schema_version": "1.0.0",
-        "observation_id": "",
         "backend": "pyav",
-        "pyav_version": "",
-        "python_version": "",
-        "platform": "",
-        "video_identifier": str(video_path),
-        "video_sha256": "",
         "sample_fps": sample_fps,
+        "video_identifier": str(video_path),
         "available_hw_devices": available_hw_devices,
         "requested_hw_device": requested_hw_device,
         "hwaccel_requested": hwaccel_requested,
         "hwaccel_object_created": hwaccel_object_created,
-        "hwaccel_creation_error": hwaccel_creation_error,
-        "container_opened": container_opened,
+        "hwaccel_creation_error_type": hwaccel_creation_error_type,
+        "hwaccel_creation_error_message": hwaccel_creation_error_message,
         "container_opened_with_hwaccel": container_opened_with_hwaccel,
         "container_open_error": container_open_error,
         "allow_software_fallback": allow_software_fallback,
-        "runtime_hwaccel_active": runtime_hwaccel_active,
-        "runtime_hwaccel_observation_method": runtime_hwaccel_observation_method,
+        "codec_context_hwaccel_present": codec_context_hwaccel_present,
+        "codec_context_is_hwaccel": codec_context_is_hwaccel,
+        "hw_config_present": hw_config_present,
+        "hw_config_device_type": hw_config_device_type,
+        "hw_config_format": hw_config_format,
+        "actual_hardware_decode_active": actual_hardware_decode_active,
+        "actual_hardware_decode_observation_method": actual_hardware_decode_observation_method,
         "software_fallback_detected": software_fallback_detected,
         "software_fallback_reason": software_fallback_reason,
         "codec_name": codec_name,
         "codec_long_name": codec_long_name,
-        "hw_config_device_type": hw_config_device_type,
-        "hw_config_format": hw_config_format,
-        "hardware_decoder_or_device_identity": hardware_decoder_or_device_identity,
+        "deterministic_hardware_identity": deterministic_hardware_identity,
         "first_frame_yielded": first_frame_yielded,
         "first_frame_timestamp": first_frame_timestamp,
         "first_frame_shape": first_frame_shape,
@@ -147,6 +149,16 @@ def _create_hwaccel(device_type: str, device_id: int = 0):
         return None
 
 
+def _create_hwaccel_with_evidence(device_type: str, device_id: int = 0):
+    from av.codec.hwaccel import HWAccel
+    try:
+        obj = HWAccel(device_type, device_id)
+        return obj, None, None
+    except Exception as e:
+        logger.warning(f"[PyAV][_create_hwaccel] Failed device={device_type}: {e}")
+        return None, type(e).__name__, str(e)
+
+
 # START_CONTRACT: pyav_video_info
 #   PURPOSE: Extract VideoInfo from video file via PyAV (software decode, no HW needed)
 #   INPUTS: { video_path: str|Path }
@@ -194,8 +206,15 @@ def pyav_iter_frames(
 
     hw_device = _pick_hw_device()
     hwaccel_requested = hw_device is not None
-    hwaccel = _create_hwaccel(hw_device) if hw_device else None
+    hwaccel_creation_error_type = None
+    hwaccel_creation_error_message = None
+    hwaccel = None
+    if hw_device is not None:
+        hwaccel, hwaccel_creation_error_type, hwaccel_creation_error_message = _create_hwaccel_with_evidence(hw_device)
     hwaccel_object_created = hwaccel is not None
+    if not hwaccel_requested:
+        hwaccel_creation_error_type = "NOT_APPLICABLE"
+        hwaccel_creation_error_message = "NOT_APPLICABLE"
 
     open_error = None
     container = None
@@ -248,6 +267,8 @@ def pyav_iter_frames(
                         cfg = hwaccel_obj.config if hwaccel_obj is not None else None
 
                         from av.codec.hwaccel import hwdevices_available as _hwdevices_available
+                        is_hw = codec_ctx.is_hwaccel
+                        hw_config_present = cfg is not None
                         evidence = _build_hwaccel_evidence(
                             video_path=video_path,
                             sample_fps=sample_fps,
@@ -255,20 +276,27 @@ def pyav_iter_frames(
                             requested_hw_device=hw_device,
                             hwaccel_requested=hwaccel_requested,
                             hwaccel_object_created=hwaccel_object_created,
-                            hwaccel_creation_error=None,
-                            container_opened=container is not None,
+                            hwaccel_creation_error_type=hwaccel_creation_error_type,
+                            hwaccel_creation_error_message=hwaccel_creation_error_message,
                             container_opened_with_hwaccel=container is not None and hwaccel is not None,
                             container_open_error=open_error,
                             allow_software_fallback=asf,
-                            runtime_hwaccel_active=codec_ctx.is_hwaccel,
-                            runtime_hwaccel_observation_method="stream.codec_context.is_hwaccel",
-                            software_fallback_detected="UNKNOWN_NOT_EXPOSED",
+                            codec_context_hwaccel_present=hwaccel_obj is not None,
+                            codec_context_is_hwaccel=is_hw,
+                            hw_config_present=hw_config_present,
+                            hw_config_device_type=getattr(cfg, "device_type", None) if cfg else None,
+                            hw_config_format=getattr(cfg, "format", None) if cfg else None,
+                            actual_hardware_decode_active="UNKNOWN_NOT_PROVEN",
+                            actual_hardware_decode_observation_method="installed API does not directly expose actual hardware decode vs configured HWAccel",
+                            software_fallback_detected="UNKNOWN_NOT_PROVEN",
                             software_fallback_reason="",
                             codec_name=codec_ctx.codec.name if codec_ctx.codec else None,
                             codec_long_name=codec_ctx.codec.long_name if codec_ctx.codec else None,
-                            hw_config_device_type=getattr(cfg, "device_type", None) if cfg else None,
-                            hw_config_format=getattr(cfg, "format", None) if cfg else None,
-                            hardware_decoder_or_device_identity=str(hwaccel_obj) if hwaccel_obj else None,
+                            deterministic_hardware_identity=(
+                                f"requested={hw_device}"
+                                if hw_device
+                                else "NOT_APPLICABLE"
+                            ),
                             first_frame_yielded=True,
                             first_frame_timestamp=timestamp,
                             first_frame_shape=list(img.shape),
