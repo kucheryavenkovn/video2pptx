@@ -170,7 +170,7 @@ All parent/child pairs are **nested cumulative contexts** — do NOT add their c
 
 **Directional stability:** extract_features is consistently the largest measured stage (38-43%), pass2_collect is consistently second (23-25%), residual is consistently ~32-34%. The stage structure is stable across runs, but the absolute values vary significantly (std dev 28.5s).
 
-**Variance impact:** High run-to-run variance reduces confidence in any single-run-based classification. The 85.8s–117.4s range for extract_features spans ~27% variation, indicating that system noise (GPU clock, memory bandwidth contention, OS scheduling) plays a meaningful role.
+**Variance impact:** High run-to-run variance (std dev 28.48s, ~11% of mean) reduces confidence in any single-run-based classification. The 85.8s–117.4s range for extract_features spans ~27% variation. The cause of this variance is not established by available evidence — the committed metrics record timers, counters, and gauges but do not measure GPU clock, memory bandwidth contention, or OS scheduling. The variance is observed but unattributed.
 
 ---
 
