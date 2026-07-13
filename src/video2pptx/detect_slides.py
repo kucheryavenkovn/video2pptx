@@ -92,7 +92,11 @@ def run_detect_slides(
             logger.info("[DetectSlides][run_detect_slides] Pass 1/2: detecting changes")
             frames_iter = (
                 (f.timestamp, f.image)
-                for f in InstrumentedIterator(decoder.iter_frames(), metrics.counter_frames_sampled)
+                for f in InstrumentedIterator(
+                    decoder.iter_frames(),
+                    metrics.counter_frames_sampled,
+                    timer=metrics.timer_pass1_decode_or_frame_advance,
+                )
             )
             if quick_mode:
                 from video2pptx.frame_features import quick_extract as _extract
@@ -128,10 +132,13 @@ def run_detect_slides(
             else:
                 logger.info("[DetectSlides][run_detect_slides] Pass 2/2: saving screenshots")
 
-            with measure("pass2_collect"):
-                for vf in InstrumentedIterator(
-                    decoder.iter_frames(), metrics.counter_pass2_frames_sampled
-                ):
+            pass2_decoder_iter = InstrumentedIterator(
+                decoder.iter_frames(),
+                metrics.counter_pass2_frames_sampled,
+                timer=metrics.timer_pass2_decode_or_frame_advance,
+            )
+            for vf in pass2_decoder_iter:
+                with measure("pass2_match_and_collect"):
                     for s in segments:
                         ts = s.representative_timestamp
                         if ts not in rep_frames and abs(vf.timestamp - ts) < sample_tolerance:

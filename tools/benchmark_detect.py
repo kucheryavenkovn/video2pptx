@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # FILE: tools/benchmark_detect.py
-# VERSION: 2.1.0
+# VERSION: 2.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Benchmark canonical DetectionService runs and emit portable raw and derived evidence.
 #   SCOPE: Environment/config capture, metrics collection, complete output signature, summary/report,
@@ -33,7 +33,9 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v2.1.0 - Added validated provenance and parsed supporting profile evidence.
+#   LAST_CHANGE: v2.2.0 - Updated STAGE_NAMES: replaced pass2_collect with pass1_decode_or_frame_advance,
+#                pass2_decode_or_frame_advance, pass2_match_and_collect; pass2_collect excluded from
+#                canonical non-overlapping stages to prevent double-count.
 # END_CHANGE_SUMMARY
 """Phase 18 canonical detect benchmark tool."""
 
@@ -55,9 +57,16 @@ from typing import Any
 
 HISTORICAL_CANONICAL_SIGNATURE = "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
 
+# Canonical non-overlapping stage timers.
+# pass2_collect is intentionally excluded — it is a legacy mixed timer whose
+# children (pass2_decode_or_frame_advance + pass2_match_and_collect) are
+# measured independently. Including pass2_collect here would double-count
+# its work against detect_elapsed_seconds.
 STAGE_NAMES = [
-    "roi", "extract_features", "visual_distance", "threshold", "debounce",
-    "pass2_collect", "pass2_dedupe", "pass2_screenshots",
+    "pass1_decode_or_frame_advance", "roi", "extract_features",
+    "visual_distance", "threshold", "debounce",
+    "pass2_decode_or_frame_advance", "pass2_match_and_collect",
+    "pass2_dedupe", "pass2_screenshots",
 ]
 
 PROFILE_FUNCTION_MATCHERS = {

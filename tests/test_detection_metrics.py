@@ -33,6 +33,7 @@ import pytest
 from video2pptx.detection_metrics import (
     DetectionRunMetrics,
     InstrumentedIterator,
+    MetricsTimer,
     RssSampler,
     collect,
     get,
@@ -109,6 +110,53 @@ class TestMetricsSchema:
         assert "rss_peak_mb" in d["gauges"]
         assert "rss_after_mb" in d["gauges"]
         assert "peak_ram_mb" not in d["gauges"]
+
+    def test_new_timers_present_and_zero(self):
+        m = DetectionRunMetrics()
+        d = m.to_dict()
+        assert "pass1_decode_or_frame_advance" in d["timers"]
+        assert "pass2_decode_or_frame_advance" in d["timers"]
+        assert "pass2_match_and_collect" in d["timers"]
+        assert d["timers"]["pass1_decode_or_frame_advance"] == 0.0
+        assert d["timers"]["pass2_decode_or_frame_advance"] == 0.0
+        assert d["timers"]["pass2_match_and_collect"] == 0.0
+
+    def test_round_trip_new_timers(self):
+        m = DetectionRunMetrics()
+        m.timer_pass1_decode_or_frame_advance.elapsed = 12.5
+        m.timer_pass2_decode_or_frame_advance.elapsed = 8.3
+        m.timer_pass2_match_and_collect.elapsed = 3.1
+        d = m.to_dict()
+        m2 = DetectionRunMetrics.from_dict(d)
+        assert m2.timer_pass1_decode_or_frame_advance.elapsed == 12.5
+        assert m2.timer_pass2_decode_or_frame_advance.elapsed == 8.3
+        assert m2.timer_pass2_match_and_collect.elapsed == 3.1
+
+    def test_historical_metrics_parses_without_new_timers(self):
+        historical = {
+            "timers": {
+                "total": 100.0, "roi": 0.5, "extract_features": 40.0,
+                "visual_distance": 0.3, "threshold": 0.2, "debounce": 0.01,
+                "pass2_collect": 30.0, "pass2_dedupe": 5.0, "pass2_screenshots": 0.1,
+            },
+            "counters": {"frames_sampled": 100, "features_full": 100},
+            "gauges": {"rss_before_mb": 0},
+        }
+        m = DetectionRunMetrics.from_dict(historical)
+        assert m.timer_total.elapsed == 100.0
+        assert m.timer_extract_features.elapsed == 40.0
+        assert m.timer_pass1_decode_or_frame_advance.elapsed == 0.0
+        assert m.timer_pass2_decode_or_frame_advance.elapsed == 0.0
+        assert m.timer_pass2_match_and_collect.elapsed == 0.0
+        assert m.counter_frames_sampled.value == 100
+
+    def test_new_timers_json_round_trip(self):
+        m = DetectionRunMetrics()
+        m.timer_pass1_decode_or_frame_advance.elapsed = 7.5
+        j = m.to_json()
+        m2 = DetectionRunMetrics.from_json(j)
+        assert m2.timer_pass1_decode_or_frame_advance.elapsed == 7.5
+        assert m2.timer_pass2_decode_or_frame_advance.elapsed == 0.0
 
 
 class TestMeasure:
@@ -188,6 +236,102 @@ class TestInstrumentedIterator:
         items = list(InstrumentedIterator(iter([]), c))
         assert items == []
         assert c.value == 0
+
+    def test_timer_accumulates(self):
+        c = DetectionRunMetrics().counter_frames_sampled
+        t = DetectionRunMetrics().timer_pass1_decode_or_frame_advance
+        items = list(InstrumentedIterator(iter([10, 20, 30]), c, timer=t))
+        assert items == [10, 20, 30]
+        assert c.value == 3
+        assert t.elapsed > 0
+
+    def test_timer_excludes_consumer_time(self):
+        import time
+        c = DetectionRunMetrics().counter_frames_sampled
+        t = MetricsTimer()
+        it = InstrumentedIterator(iter([1, 2]), c, timer=t)
+        consumer_total = 0.0
+        for item in it:
+            t0 = time.perf_counter()
+            time.sleep(0.01)
+            consumer_total += time.perf_counter() - t0
+        assert c.value == 2
+        assert t.elapsed > 0
+        assert t.elapsed < consumer_total * 0.5, (
+            f"timer ({t.elapsed:.4f}) should be much less than consumer "
+            f"sleep ({consumer_total:.4f})"
+        )
+
+    def test_exhaustion_stopiteration_timed(self):
+        c = DetectionRunMetrics().counter_frames_sampled
+        t = MetricsTimer()
+
+        class SlowExhaustion:
+            def __init__(self):
+                self.calls = 0
+            def __iter__(self):
+                return self
+            def __next__(self):
+                if self.calls >= 2:
+                    import time
+                    time.sleep(0.01)
+                    raise StopIteration
+                self.calls += 1
+                return self.calls
+
+        items = list(InstrumentedIterator(SlowExhaustion(), c, timer=t))
+        assert items == [1, 2]
+        assert c.value == 2
+        assert t.elapsed > 0.009, f"expected exhaustion time, got {t.elapsed:.4f}"
+
+    def test_exception_propagates_and_timer_accumulates(self):
+        c = DetectionRunMetrics().counter_frames_sampled
+        t = MetricsTimer()
+
+        class FailingIterator:
+            def __init__(self):
+                self.calls = 0
+            def __iter__(self):
+                return self
+            def __next__(self):
+                self.calls += 1
+                if self.calls == 2:
+                    import time
+                    time.sleep(0.01)
+                    raise ValueError("boom")
+                return self.calls
+
+        it = InstrumentedIterator(FailingIterator(), c, timer=t)
+        with pytest.raises(ValueError, match="boom"):
+            list(it)
+        assert c.value == 1
+        assert t.elapsed > 0.009, f"expected exception advancement time, got {t.elapsed:.4f}"
+
+    def test_counter_increments_only_successful_yield(self):
+        c = DetectionRunMetrics().counter_frames_sampled
+        t = MetricsTimer()
+
+        class Alternating:
+            def __init__(self):
+                self.idx = 0
+            def __iter__(self):
+                return self
+            def __next__(self):
+                self.idx += 1
+                if self.idx == 3:
+                    raise RuntimeError("fail")
+                return self.idx
+
+        it = InstrumentedIterator(Alternating(), c, timer=t)
+        collected = []
+        try:
+            while True:
+                collected.append(next(it))
+        except RuntimeError:
+            pass
+        assert collected == [1, 2]
+        assert c.value == 2
+        assert t.elapsed > 0
 
 
 class TestOpenCVMetrics:
@@ -394,3 +538,97 @@ class TestBenchmarkContract:
         d = m.to_dict()
         fs = d["counters"]["frames_sampled"]
         assert d["counters"]["features_full"] + d["counters"]["features_quick"] == fs
+
+    def test_pass1_decode_timer_positive(self, tmp_path):
+        m = self._run_detect(tmp_path)
+        assert m.timer_pass1_decode_or_frame_advance.elapsed > 0
+
+    def test_pass2_decode_timer_positive(self, tmp_path):
+        m = self._run_detect(tmp_path)
+        assert m.timer_pass2_decode_or_frame_advance.elapsed > 0
+
+    def test_pass2_match_and_collect_timer_positive(self, tmp_path):
+        m = self._run_detect(tmp_path)
+        assert m.timer_pass2_match_and_collect.elapsed > 0
+
+    def test_new_timers_do_not_crash_full_detect(self, tmp_path):
+        m = self._run_detect(tmp_path)
+        d = m.to_dict()
+        assert d["timers"]["pass1_decode_or_frame_advance"] > 0
+        assert d["timers"]["pass2_decode_or_frame_advance"] > 0
+        assert d["timers"]["pass2_match_and_collect"] > 0
+
+
+class TestBenchmarkAccounting:
+    """Tests for benchmark stage accounting — non-overlapping regions."""
+
+    @staticmethod
+    def _load_benchmark_module():
+        import importlib.util
+        import sys
+        from pathlib import Path
+        mod_path = Path(__file__).resolve().parent.parent / "tools" / "benchmark_detect.py"
+        spec = importlib.util.spec_from_file_location("benchmark_detect", mod_path)
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["benchmark_detect"] = mod
+        spec.loader.exec_module(mod)
+        return mod
+
+    def test_pass2_collect_excluded_from_canonical_if_children_present(self):
+        mod = self._load_benchmark_module()
+        children = {"pass2_decode_or_frame_advance", "pass2_match_and_collect"}
+        parent = "pass2_collect"
+        assert parent not in mod.STAGE_NAMES, (
+            f"STAGE_NAMES contains '{parent}' which would double-count when "
+            f"its children {children} are also present"
+        )
+        for child in children:
+            assert child in mod.STAGE_NAMES, (
+                f"STAGE_NAMES missing child timer '{child}'"
+            )
+        assert "pass2_dedupe" in mod.STAGE_NAMES
+        assert "pass2_screenshots" in mod.STAGE_NAMES
+
+    def test_canonical_stages_are_pairwise_non_overlapping(self):
+        mod = self._load_benchmark_module()
+        timers = {
+            "pass1_decode_or_frame_advance": 10.0,
+            "roi": 1.0,
+            "extract_features": 20.0,
+            "visual_distance": 0.5,
+            "threshold": 0.2,
+            "debounce": 0.05,
+            "pass2_decode_or_frame_advance": 8.0,
+            "pass2_match_and_collect": 5.0,
+            "pass2_dedupe": 2.0,
+            "pass2_screenshots": 0.3,
+        }
+        detect_elapsed = sum(timers.values()) + 3.0
+        accounting = mod.compute_stage_accounting(timers, detect_elapsed)
+        expected_total = sum(timers.values())
+        assert abs(accounting["measured_stage_total"] - expected_total) < 1e-9
+        residual = detect_elapsed - expected_total
+        assert abs(accounting["residual_seconds"] - residual) < 1e-9
+
+    def test_pass2_collect_legacy_not_in_measured_total(self):
+        mod = self._load_benchmark_module()
+        timers = {
+            "pass1_decode_or_frame_advance": 10.0,
+            "roi": 1.0,
+            "extract_features": 20.0,
+            "visual_distance": 0.5,
+            "threshold": 0.2,
+            "debounce": 0.05,
+            "pass2_decode_or_frame_advance": 8.0,
+            "pass2_match_and_collect": 5.0,
+            "pass2_dedupe": 2.0,
+            "pass2_screenshots": 0.3,
+            "pass2_collect": 13.0,
+        }
+        detect_elapsed = sum(timers.values()) + 3.0
+        accounting = mod.compute_stage_accounting(timers, detect_elapsed)
+        expected_total = sum(timers[stage] for stage in mod.STAGE_NAMES)
+        assert abs(accounting["measured_stage_total"] - expected_total) < 1e-9
+        assert accounting["measured_stage_total"] < sum(timers.values()), (
+            "legacy pass2_collect must NOT be added to measured_stage_total"
+        )
