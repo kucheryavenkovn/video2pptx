@@ -1,11 +1,11 @@
 # FILE: tests/tools/test_benchmark_detect.py
-# VERSION: 2.1.0
+# VERSION: 2.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for benchmark_detect.py pure helpers, derived metrics, aggregate evidence
 #   SCOPE: score distribution, bottleneck ranking, invariant evaluation, output signature,
 #          derived metric formulas, signature aggregation, median selection, stage accounting,
 #          path sanitization, profile/provenance extraction, select_backend integration, aggregate structure
-#   DEPENDS: pytest, numpy, tools.benchmark_detect
+#   DEPENDS: pytest, numpy, tools.benchmark_detect, video2pptx benchmark runtime collaborators
 #   LINKS: V-PERF-DETECT-SHORT-BENCHMARK
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
@@ -14,11 +14,12 @@
 # START_MODULE_MAP
 #   TestProfileSupportingEvidence - verifies deterministic selected cProfile entry parsing
 #   TestRecoveredMasterBase - verifies exact merge-base provenance validation
+#   TestEffectiveBackend - verifies run_benchmark uses the production backend resolver symbol
 #   TestAggregateEvidence - verifies aggregate identity separation and evidence structure
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v2.1.0 - Covered profile extraction and separate validated evidence provenance.
+#   LAST_CHANGE: v2.2.0 - Proved benchmark routing through the production backend resolver.
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -45,6 +46,7 @@ from benchmark_detect import (  # noqa: E402
     extract_profile_supporting_evidence,
     rank_bottlenecks,
     resolve_recovered_master_base,
+    run_benchmark,
     sanitize_committed_path,
     select_median_run,
 )
@@ -461,10 +463,81 @@ class TestPathSanitization:
 # =========================================================================
 
 class TestEffectiveBackend:
-    def test_select_backend_is_called(self):
-        from video2pptx.video_decode import select_backend
-        result = select_backend("auto")
-        assert result in ("pyav", "opencv")
+    def test_run_benchmark_uses_production_select_backend(self, monkeypatch, tmp_path):
+        from types import SimpleNamespace
+
+        import video2pptx.application.services.detection_service as detection_service_module
+        import video2pptx.bootstrap.application as application_module
+        import video2pptx.detection_metrics as metrics_module
+        import video2pptx.infrastructure.persistence.file_project_repository as repository_module
+        import video2pptx.video_decode as video_decode_module
+
+        selector_calls = []
+
+        def fake_select_backend(configured_backend):
+            selector_calls.append(configured_backend)
+            return "sentinel-backend"
+
+        detection = SimpleNamespace(
+            sample_fps=2.0,
+            decoder_backend="auto",
+            slide_roi="auto",
+            ignore_rois=[],
+            threshold="auto",
+            min_slide_duration=2.0,
+            min_stable_duration=2.0,
+            dedupe_enabled=True,
+        )
+        project = SimpleNamespace(
+            video_path="fixture.mp4",
+            detection=detection,
+            output_dir="",
+            score_timestamps=[],
+            score_values=[],
+        )
+
+        class FakeRepository:
+            def load(self, _location):
+                return SimpleNamespace(project=project)
+
+            def create(self, _location, _project):
+                return None
+
+        class FakeApplicationServices:
+            def __init__(self):
+                self.repository = object()
+                self.detection_service = SimpleNamespace(_detector=object())
+
+        class FakeDetectionService:
+            def __init__(self, detector, context):
+                self.detector = detector
+                self.context = context
+
+            def execute(self, _location, video_path=None):
+                assert video_path is None
+                return SimpleNamespace(data={"slides_count": 0, "video_duration": 10.0})
+
+        class FakeMetrics:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, _exc_type, _exc_value, _traceback):
+                return False
+
+            def to_dict(self):
+                return {"timers": {}, "counters": {}, "gauges": {}}
+
+        monkeypatch.setattr(video_decode_module, "select_backend", fake_select_backend)
+        monkeypatch.setattr(repository_module, "FileProjectRepository", FakeRepository)
+        monkeypatch.setattr(application_module, "ApplicationServices", FakeApplicationServices)
+        monkeypatch.setattr(detection_service_module, "DetectionService", FakeDetectionService)
+        monkeypatch.setattr(metrics_module, "collect", FakeMetrics)
+
+        result = run_benchmark(tmp_path / "project", tmp_path / "output")
+
+        assert selector_calls == ["auto"]
+        assert result["effective_config"]["configured_backend"] == "auto"
+        assert result["effective_config"]["effective_backend"] == "sentinel-backend"
 
 
 # =========================================================================
