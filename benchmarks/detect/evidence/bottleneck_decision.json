@@ -1,0 +1,261 @@
+{
+  "schema_version": "1.0.0",
+  "step": "18.4",
+  "phase": "18",
+  "status": "BLOCKED_INSUFFICIENT_DISCRIMINATION",
+  "decision_evidence_head": "97d14c2",
+  "source_benchmark": {
+    "benchmark_sequence": "hermes-600s-recovered-r2-20260713",
+    "benchmark_code_head": "465d89e243651e56a23e8c141632335bdd3a3303",
+    "benchmark_code_tree": "66f9a5d50d7b97a34bfc151623d726fee2d03365",
+    "evidence_builder_head": "3e3007cd9cb7f9e931acf8ccca1d8baa52fc5156",
+    "recovered_master_base": "713ea07827f3efc9abec1b8db50768fe8ef9bad0",
+    "aggregate_path": "benchmarks/detect/evidence/aggregate_evidence.json",
+    "median_run_id": "run-03",
+    "median_detect_elapsed_seconds": 265.1246777999986,
+    "mean_detect_elapsed_seconds": 254.48840076666602,
+    "std_dev_seconds": 28.476225778418335
+  },
+  "wall_clock_stage_accounting": {
+    "detect_elapsed_seconds": 265.1246777999986,
+    "stages": [
+      { "stage": "extract_features", "elapsed_seconds": 101.68870530002096, "percentage": 38.35505096840951 },
+      { "stage": "pass2_collect", "elapsed_seconds": 65.21966319999774, "percentage": 24.59961997547332 },
+      { "stage": "unattributed_residual", "elapsed_seconds": 87.38648949978233, "percentage": 32.96052643040036 },
+      { "stage": "pass2_dedupe", "elapsed_seconds": 9.902207399998588, "percentage": 3.7349248218487188 },
+      { "stage": "roi", "elapsed_seconds": 0.33742250004434027, "percentage": 0.1272693673196581 },
+      { "stage": "visual_distance", "elapsed_seconds": 0.27503910009909305, "percentage": 0.10373953205011475 },
+      { "stage": "threshold", "elapsed_seconds": 0.1707810000552854, "percentage": 0.0644153541165704 },
+      { "stage": "pass2_screenshots", "elapsed_seconds": 0.13893839999946067, "percentage": 0.05240492931566003 },
+      { "stage": "debounce", "elapsed_seconds": 0.005431400000816211, "percentage": 0.0020486210660908308 }
+    ],
+    "measured_stage_total": 177.73818830021628,
+    "residual_seconds": 87.38648949978233,
+    "residual_percentage": 32.96052643040036
+  },
+  "timer_boundary_mapping": [
+    {
+      "stage": "roi",
+      "source": "slide_detector.detect_changes",
+      "boundary": "with measure('roi'): cropped = slide_region.process(image)",
+      "included_work": "SlideRegion.process only (crop/mask) on the current frame",
+      "excluded_work": "decoder iteration, feature extraction, visual_distance, threshold, debounce"
+    },
+    {
+      "stage": "extract_features",
+      "source": "slide_detector.detect_changes",
+      "boundary": "with measure('extract_features'): ff = _extract(cropped)",
+      "included_work": "complete synchronous extract_features call: cv2_to_gray, cv2_resize, gray mean, array_to_pil, imagehash.phash, imagehash.dhash, compute_histogram, gray thumbnail",
+      "excluded_work": "decoder iteration, ROI processing, visual_distance, threshold, debounce"
+    },
+    {
+      "stage": "visual_distance",
+      "source": "slide_detector.detect_changes",
+      "boundary": "with measure('visual_distance'): score = _dist(prev_features, ff)",
+      "included_work": "visual_distance only (feature comparison)",
+      "excluded_work": "decoder iteration, ROI, extract_features, threshold, debounce"
+    },
+    {
+      "stage": "threshold",
+      "source": "slide_detector.detect_changes",
+      "boundary": "with measure('threshold'): _resolve_threshold, compute_threshold",
+      "included_work": "_resolve_threshold and compute_threshold",
+      "excluded_work": "decoder iteration, ROI, extract_features, visual_distance, debounce"
+    },
+    {
+      "stage": "debounce",
+      "source": "slide_detector.detect_changes",
+      "boundary": "_debounce_changes",
+      "included_work": "debounce logic only",
+      "excluded_work": "decoder iteration, ROI, extract_features, visual_distance, threshold"
+    },
+    {
+      "stage": "pass2_collect",
+      "source": "detect_slides.run_detect_slides",
+      "boundary": "with measure('pass2_collect'): for vf in decoder.iter_frames(): for s in segments: ... slide_region.process(vf.image) ... rep_frames[...]",
+      "included_work": "second-pass decoder iteration, Packet.decode, frame materialization (to_ndarray), Python iteration, segment scanning, representative_timestamp matching, SlideRegion.process for matched representatives, rep_frames insertion",
+      "excluded_work": "Pass 1 decoder iteration, Pass 1 feature extraction, deduplication, screenshot output"
+    },
+    {
+      "stage": "pass2_dedupe",
+      "source": "dedupe.deduplicate_segments",
+      "boundary": "deduplicate_segments calls extract_features on representative frames internally",
+      "included_work": "deduplication logic including extract_features on 84 representative frames",
+      "excluded_work": "Pass 1 decoder iteration and feature extraction, Pass 2 decoder iteration and collection"
+    },
+    {
+      "stage": "unattributed_residual",
+      "source": "derived = detect_elapsed - sum(measured_non_overlapping_timers)",
+      "boundary": "not a measured stage",
+      "included_work": "first-pass decoder iteration including Packet.decode and pyav_iter_frames overhead, decoder/container setup, metadata parsing, segment building, service/repository overhead, document construction, persistence, other uninstrumented work",
+      "excluded_work": "all measured stage timers (roi, extract_features, visual_distance, threshold, debounce, pass2_collect, pass2_dedupe, pass2_screenshots)"
+    }
+  ],
+  "profile_evidence": {
+    "profile_run_elapsed_seconds": 229.750,
+    "entries": {
+      "pyav_iter_frames": { "function": "pyav_iter_frames", "cumulative_seconds": 135.128, "calls": 2404, "self_seconds": 10.469 },
+      "Packet.decode": { "function": "Packet.decode", "cumulative_seconds": 114.854, "calls": 72004, "self_seconds": 114.854 },
+      "extract_features": { "function": "extract_features", "cumulative_seconds": 92.712, "calls": 1285, "self_seconds": 0.039 },
+      "compute_histogram": { "function": "compute_histogram", "cumulative_seconds": 48.842, "calls": 1285, "self_seconds": 0.887 },
+      "cv2_calc_hist": { "function": "cv2_calc_hist", "cumulative_seconds": 47.946, "calls": 3855, "self_seconds": 0.311 },
+      "numpy_histogram": { "function": "numpy histogram", "cumulative_seconds": 40.567, "calls": 3855, "self_seconds": 36.744 },
+      "cv2_to_gray": { "function": "cv2_to_gray", "cumulative_seconds": 34.049, "calls": 1285, "self_seconds": 32.438 },
+      "to_ndarray": { "function": "to_ndarray", "cumulative_seconds": 9.58, "calls": 2402, "self_seconds": 9.58 },
+      "phash": { "function": "phash", "cumulative_seconds": 3.898, "calls": 1285, "self_seconds": null },
+      "dhash": { "function": "dhash", "cumulative_seconds": 3.130, "calls": 1285, "self_seconds": null }
+    }
+  },
+  "profile_overlap_rules": [
+    {
+      "parent_or_context": "pyav_iter_frames",
+      "child": "Packet.decode",
+      "relationship": "nested_cumulative — Packet.decode is called within pyav_iter_frames",
+      "can_add_times": false,
+      "reason": "Packet.decode cumulative is a subset of pyav_iter_frames cumulative; adding would double-count"
+    },
+    {
+      "parent_or_context": "pyav_iter_frames",
+      "child": "to_ndarray",
+      "relationship": "nested_cumulative — to_ndarray is called within pyav_iter_frames for sampled frames",
+      "can_add_times": false,
+      "reason": "to_ndarray cumulative is a subset of pyav_iter_frames cumulative; would double-count"
+    },
+    {
+      "parent_or_context": "extract_features",
+      "child": "compute_histogram",
+      "relationship": "nested_cumulative — compute_histogram is called within extract_features",
+      "can_add_times": false,
+      "reason": "compute_histogram cumulative is a subset of extract_features cumulative; would double-count"
+    },
+    {
+      "parent_or_context": "compute_histogram",
+      "child": "cv2_calc_hist",
+      "relationship": "nested_cumulative — cv2_calc_hist is called within compute_histogram for each channel",
+      "can_add_times": false,
+      "reason": "cv2_calc_hist cumulative is a subset of compute_histogram cumulative; would double-count"
+    },
+    {
+      "parent_or_context": "cv2_calc_hist",
+      "child": "numpy histogram",
+      "relationship": "nested_cumulative — numpy histogram is the inner implementation of cv2_calc_hist",
+      "can_add_times": false,
+      "reason": "numpy histogram cumulative is a subset of cv2_calc_hist cumulative; would double-count"
+    },
+    {
+      "parent_or_context": "extract_features",
+      "child": "cv2_to_gray",
+      "relationship": "nested_cumulative — cv2_to_gray is called within extract_features",
+      "can_add_times": false,
+      "reason": "cv2_to_gray cumulative is a subset of extract_features cumulative; would double-count"
+    },
+    {
+      "parent_or_context": "detect_changes (Pass 1 for loop)",
+      "children": ["extract_features", "roi", "visual_distance", "threshold", "builtins.next -> InstrumentedIterator.__next__ -> pyav_iter_frames -> Packet.decode"],
+      "relationship": "serial_synchronous — all execute sequentially in the same thread within the for timestamp, image in frames loop",
+      "can_add_times": false,
+      "reason": "These are all serial stages; Packet.decode and extract_features do NOT execute concurrently. The for loop advances only when the body completes."
+    }
+  ],
+  "pipeline_execution_model": {
+    "model": "SYNCHRONOUS",
+    "producer_thread": false,
+    "feature_worker_pool": false,
+    "async_queue": false,
+    "decode_extract_overlap": false,
+    "description": "pyav_iter_frames is a Python generator. detect_changes consumes it in a synchronous for loop. Each iteration: (1) the generator yields the next sampled VideoFrame via builtins.next, (2) ROI + extract_features + visual_distance + threshold execute in the same thread, (3) the loop body completes before the next generator advance. All processing is single-threaded: no worker pool, no queue, no concurrent decode/extract."
+  },
+  "counter_invariants": {
+    "frames_decoded": 72002,
+    "frames_sampled": 1201,
+    "features_full": 1201,
+    "pass2_frames_sampled": 1201,
+    "ndarray_conversions": 2402,
+    "representative_frames": 84,
+    "extract_features_profile_calls": 1285,
+    "feature_call_reconciliation": "1201 (Pass 1 sampled) + 84 (dedupe representative) = 1285 (profile calls)"
+  },
+  "candidate_evaluation": [
+    {
+      "candidate": "FEATURE_EXTRACTION_CPU",
+      "wall_clock_evidence": "101.68870530002096s (38.36%) — largest instrumented non-overlapping timer",
+      "profile_evidence": "92.712s cumulative, 0.039s self, 1285 calls. Subsystem: compute_histogram 48.842s cumulative (40.567s numpy histogram), cv2_to_gray 34.049s cumulative.",
+      "source_boundary": "slide_detector.detect_changes, measure('extract_features'), synchronous call to frame_features.extract_features on ROI-cropped image",
+      "strongest_supporting": "Largest single measured timer. Profile confirms compute_histogram + cv2_to_gray are the dominant sub-components. Called on every sampled frame (1201 Pass 1 + 84 dedupe).",
+      "strongest_counter": "Residual (87.39s, 32.96%) is nearly as large and likely contains first-pass decode. Without isolating decode wall-clock, cannot confirm extract_features is larger than decode.",
+      "confidence": "MEDIUM",
+      "ruling": "POSSIBLE_PRIMARY — largest measured timer but cannot be safely confirmed due to uninstrumented decode in residual"
+    },
+    {
+      "candidate": "DECODE_FRAME_PIPELINE",
+      "wall_clock_evidence": "No independent non-overlapping timer exists. First-pass decode lives in unattributed_residual (87.39s, 32.96%).",
+      "profile_evidence": "Packet.decode 114.854s self/cumulative (profile run). pyav_iter_frames 135.128s cumulative, 10.469s self.",
+      "source_boundary": "pyav_backend.pyav_iter_frames — Packet.decode loop + sampling + to_ndarray for selected frames. Called from video_decode.iter_frames wrapped in InstrumentedIterator.",
+      "strongest_supporting": "Profile shows Packet.decode (114.854s) larger than extract_features (92.712s cumulative). Residual (87.39s) is large and likely contains first-pass decode work (aggregate note: decode/open/service/persistence and other uninstrumented work).",
+      "strongest_counter": "The profile run is a separate instrumented run (229.750s) with a different elapsed time from the median recorded run (265.125s); cProfile values are supporting evidence and cannot substitute for independently isolated median wall-clock stage timers. No non-overlapping wall-clock timer isolates decode. Pass2_collect (65.22s, 24.6%) includes second-pass decode + collection and is still smaller than extract_features.",
+      "confidence": "MEDIUM",
+      "ruling": "POSSIBLE_PRIMARY — profile suggests decode is comparable to feature extraction, but no wall-clock timer independently validates this"
+    },
+    {
+      "candidate": "PASS2_COLLECTION",
+      "wall_clock_evidence": "65.21966319999774s (24.60%) — second-largest measured timer",
+      "profile_evidence": "Pass 2 iterates decoder again (1201 frames sampled, 2402 ndarray conversions = Pass 1 + Pass 2). Second decoder iteration is included in this timer.",
+      "source_boundary": "Mixed timer: second decoder iteration (Packet.decode + to_ndarray) + segment loop + representative matching + ROI processing + rep_frames insertion",
+      "strongest_supporting": "Second-largest measured stage at 24.6% of total.",
+      "strongest_counter": "This is a MIXED timer. The pure collection overhead (segment scanning, matching, dict insertion) is NOT independently measured — it is entangled with second-pass decode/frame advancement (Packet.decode, to_ndarray) within the same timer. The internal proportion between collection cost and decode cost is UNKNOWN. Cannot be selected as primary because the timer does not isolate collection from decode.",
+      "confidence": "LOW",
+      "ruling": "NOT_PRIMARY — mixed timer; decode portion is entangled with collection overhead; cannot isolate pure collection cost"
+    },
+    {
+      "candidate": "THRESHOLD_OR_DECISION_LOGIC",
+      "wall_clock_evidence": "visual_distance 0.275s, threshold 0.171s, debounce 0.005s — combined <0.5s (<0.2%)",
+      "profile_evidence": "Not visible in top profile entries — negligible.",
+      "source_boundary": "slide_detector.detect_changes — visual_distance comparison, _resolve_threshold, compute_threshold, _debounce_changes",
+      "strongest_supporting": "Clearly negligible in wall-clock evidence.",
+      "strongest_counter": "Trivially not a bottleneck.",
+      "confidence": "HIGH",
+      "ruling": "NOT_PRIMARY — negligible combined wall-clock"
+    },
+    {
+      "candidate": "MIXED_OR_UNRESOLVED",
+      "wall_clock_evidence": "Residual 87.38648949978233s (32.96%). Combined extract_features (101.69s) + residual (87.39s) = 189.08s (71.3%) vs pass2_collect (65.22s, 24.6%).",
+      "profile_evidence": "Packet.decode (114.854s) and pyav_iter_frames (135.128s cumulative) live outside measured timers.",
+      "source_boundary": "residual = detect_elapsed - measured_stage_total. Contains uninstrumented first-pass decode, decoder/container setup, metadata, segment building, service/repository overhead, document construction, persistence.",
+      "strongest_supporting": "Honest assessment: the primary-wallclock cost could be split between extract_features and first-pass decode, with neither independently confirmed larger.",
+      "strongest_counter": "N/A — this is the fallback when specific discrimination fails.",
+      "confidence": "HIGH",
+      "ruling": "BLOCKED — evidence cannot safely discriminate between FEATURE_EXTRACTION_CPU and DECODE_FRAME_PIPELINE without additional wall-clock instrumentation"
+    }
+  ],
+  "selected_bottleneck_class": "NONE",
+  "decision_confidence": "LOW",
+  "confidence_rationale": "Extract_features (101.69s, 38.4%) is the largest instrumented non-overlapping timer. However, the unattributed residual (87.39s, 33.0%) likely contains first-pass decode work, and the cProfile profile run (229.8s) shows Packet.decode (114.854s) exceeding extract_features cumulative (92.712s). Without separate non-overlapping wall-clock timers for pass1_decode, pass2_decode, and pass2_match_and_collect, we cannot safely determine whether FEATURE_EXTRACTION_CPU or DECODE_FRAME_PIPELINE is the primary bottleneck.",
+  "selected_optimization": "NONE",
+  "step18_5_hypothesis": "NONE",
+  "step18_5_acceptance": {
+    "canonical_signature_required": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
+    "slides_count_required": 28,
+    "score_count_required": 1200,
+    "two_pass_semantics": "preserved",
+    "decoder_call_semantics": "preserved unless optimization explicitly targets decode architecture with new parity proof",
+    "cancellation": "preserved",
+    "progress": "preserved",
+    "gui_mcp_cli_public_semantics": "preserved",
+    "sample_fps": 2.0,
+    "threshold": "auto",
+    "dedupe": true,
+    "clip_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+    "benchmark_protocol": "one warmup, three recorded runs, one separate profile",
+    "optimization_parity_gate": "exact canonical signature match required — quality regression is not permitted as a shortcut"
+  },
+  "rejected_candidates": [
+    "PASS2_COLLECTION",
+    "THRESHOLD_OR_DECISION_LOGIC"
+  ],
+  "historical_f0087_carried_forward": false,
+  "step18_5_implementation_started": false,
+  "evidence_gap_description": "Missing independent non-overlapping wall-clock instrumentation for: pass1_decode_or_frame_advance (first-pass Packet.decode + pyav_iter_frames overhead), pass2_decode_or_frame_advance (second-pass decode separate from segment matching and collection). Without these timers, residual (87.4s, 33.0%) cannot be attributed and safe discrimination between FEATURE_EXTRACTION_CPU and DECODE_FRAME_PIPELINE is impossible.",
+  "f0097_link": "F-0097",
+  "classification_timestamp": "2026-07-13T12:00:00Z",
+  "replaces_draft": "27a28bf (REJECTED_STEP_18_4_DRAFT)"
+}

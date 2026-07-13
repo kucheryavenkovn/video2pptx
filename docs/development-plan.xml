@@ -1288,9 +1288,13 @@
         median_run_id=run-03, measured_stage_total=177.7s, residual=87.4s (33.0%)
         Invariants: 6 PASS, 1 SKIPPED (psutil). F-0088 observed: 28 slides, 6 PNGs.
       </step-18.3>
-      <step-18.4 name="BottleneckDecision" status="pending" verification="V-PERF-DETECT-BOTTLENECK">
-        Classify the current bottleneck only from the recovered-tree short benchmark. Do not
-        carry DECODE_PROFILE forward as an accepted decision from the regressed benchmark.
+      <step-18.4 name="BottleneckDecision" status="in_progress" verification="V-PERF-DETECT-BOTTLENECK">
+        Re-evaluated from corrected evidence: BLOCKED_INSUFFICIENT_DISCRIMINATION.
+        The accepted benchmark does not independently instrument first-pass decode wall-clock.
+        Extract_features (101.7s, 38.4%) is the largest measured timer but residual (87.4s, 33.0%)
+        and mixed pass2_collect (65.2s, 24.6%) prevent safe discrimination between
+        FEATURE_EXTRACTION_CPU and DECODE_FRAME_PIPELINE. No optimization selected.
+        See F-0097 for the evidence gap.
       </step-18.4>
       <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
         Select exactly one optimization only after Step 18.4 supplies accepted bottleneck evidence.
