@@ -2,7 +2,7 @@
   "schema_version": "2.0",
   "revision": "1",
   "name": "hermes-600s-benchmark",
-  "video_path": "D:\\git\\worktrees\\video2pptx-phase18-short-benchmark\\hermes-0000-1000.mp4",
+  "video_path": "examples/hermes-0000-1000.mp4",
   "slides": [],
   "pipeline": {
     "stages": {
