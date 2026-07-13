@@ -1,0 +1,89 @@
+{
+  "benchmark_sequence": "Phase 18 Step 18.3 ShortVideoBenchmark",
+  "branch": "perf/phase18-short-benchmark-recovered",
+  "benchmark_code_head": "c372ced",
+  "clip": {
+    "source": "Hermes 0000-1000 stream-copy (no audio)",
+    "sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+    "duration_seconds": 600.016667,
+    "resolution": "1920x1080",
+    "codec": "H.264",
+    "fps": 60
+  },
+  "detection_config": {
+    "sample_fps": 2.0,
+    "decoder_backend": "auto",
+    "effective_backend": "pyav",
+    "threshold": "auto",
+    "min_slide_duration": 2.0,
+    "min_stable_duration": 2.0,
+    "dedupe_enabled": true
+  },
+  "quality": {
+    "output_signature_sha256": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
+    "slides_count": 28,
+    "png_count": 6,
+    "historical_signature_match": true,
+    "notes": "Output signature matches historical 81875bc — no quality regression from recovery"
+  },
+  "invariants": {
+    "features_equal_frames_sampled": "PASS",
+    "decoded_at_least_conversions": "PASS",
+    "conversions_cover_sampled_passes": "PASS",
+    "representative_frames_positive": "PASS",
+    "representative_bytes_positive": "PASS",
+    "screenshots_match_png_count": "PASS",
+    "rss_peak_bounds": "SKIPPED (psutil unavailable)"
+  },
+  "runs": [
+    {
+      "id": "hermes-600s-run-1",
+      "detect_elapsed_seconds": 236.67,
+      "wall_clock_seconds": 236.73,
+      "real_time_multiplier": 0.39,
+      "processing_x_realtime": 2.53
+    },
+    {
+      "id": "hermes-600s-run-2",
+      "detect_elapsed_seconds": 237.21,
+      "wall_clock_seconds": 237.27,
+      "real_time_multiplier": 0.40,
+      "processing_x_realtime": 2.53
+    },
+    {
+      "id": "hermes-600s-run-3",
+      "detect_elapsed_seconds": 239.22,
+      "wall_clock_seconds": 239.28,
+      "real_time_multiplier": 0.40,
+      "processing_x_realtime": 2.51
+    }
+  ],
+  "profile_run": {
+    "id": "hermes-600s-profile",
+    "detect_elapsed_seconds": 242.79,
+    "overhead_seconds": 5.6,
+    "overhead_note": "cProfile overhead ~5.6s from the three recorded run mean"
+  },
+  "summary": {
+    "run_count": 3,
+    "mean_detect_elapsed_seconds": 237.70,
+    "median_detect_elapsed_seconds": 237.21,
+    "min_detect_elapsed_seconds": 236.67,
+    "max_detect_elapsed_seconds": 239.22,
+    "std_dev_seconds": 1.30,
+    "mean_processing_x_realtime": 2.52,
+    "historical_acceptance_threshold": "None (Step 18.4 decision not yet made)",
+    "bottleneck_ranking": [
+      {"rank": 1, "stage": "extract_features", "elapsed_seconds": 85.5, "percentage": 36.0},
+      {"rank": 2, "stage": "pass2_collect", "elapsed_seconds": 53.3, "percentage": 22.5},
+      {"rank": 3, "stage": "pass2_dedupe", "elapsed_seconds": 6.1, "percentage": 2.6},
+      {"rank": 4, "stage": "roi", "elapsed_seconds": 0.3, "percentage": 0.1},
+      {"rank": 5, "stage": "visual_distance", "elapsed_seconds": 0.2, "percentage": 0.1},
+      {"rank": 6, "stage": "threshold", "elapsed_seconds": 0.1, "percentage": 0.0},
+      {"rank": 7, "stage": "pass2_screenshots", "elapsed_seconds": 0.1, "percentage": 0.0},
+      {"rank": 8, "stage": "debounce", "elapsed_seconds": 0.0, "percentage": 0.0},
+      {"rank": 9, "stage": "unattributed_residual", "elapsed_seconds": 92.2, "percentage": 38.8}
+    ],
+    "decision": "PENDING_AGGREGATE"
+  }
+}
