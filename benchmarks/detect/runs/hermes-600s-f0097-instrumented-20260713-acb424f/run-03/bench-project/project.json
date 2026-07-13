@@ -1,0 +1,86 @@
+{
+  "schema_version": "2.0",
+  "revision": "c9bf55ec4c784aedb0eed55e09b16f16",
+  "name": "hermes-600s-benchmark",
+  "video_path": "examples/hermes-0000-1000.mp4",
+  "subtitle_path": null,
+  "slides": [],
+  "pipeline": {
+    "stages": {
+      "preview": {
+        "status": "not_started",
+        "operation_id": null,
+        "started_at": null,
+        "finished_at": null,
+        "error": null
+      },
+      "detect": {
+        "status": "not_started",
+        "operation_id": null,
+        "started_at": null,
+        "finished_at": null,
+        "error": null
+      },
+      "align": {
+        "status": "not_started",
+        "operation_id": null,
+        "started_at": null,
+        "finished_at": null,
+        "error": null
+      },
+      "notes": {
+        "status": "not_started",
+        "operation_id": null,
+        "started_at": null,
+        "finished_at": null,
+        "error": null
+      },
+      "llm": {
+        "status": "not_started",
+        "operation_id": null,
+        "started_at": null,
+        "finished_at": null,
+        "error": null
+      },
+      "markdown_export": {
+        "status": "not_started",
+        "operation_id": null,
+        "started_at": null,
+        "finished_at": null,
+        "error": null
+      },
+      "pptx_export": {
+        "status": "not_started",
+        "operation_id": null,
+        "started_at": null,
+        "finished_at": null,
+        "error": null
+      },
+      "auto": {
+        "status": "not_started",
+        "operation_id": null,
+        "started_at": null,
+        "finished_at": null,
+        "error": null
+      }
+    }
+  },
+  "scores": {
+    "timestamps": [],
+    "values": []
+  },
+  "artifacts": {
+    "items": {}
+  },
+  "detection": {
+    "sample_fps": 2.0,
+    "decoder_backend": "auto",
+    "slide_roi": "auto",
+    "ignore_rois": [],
+    "threshold": "auto",
+    "min_slide_duration": 2.0,
+    "min_stable_duration": 2.0,
+    "dedupe_enabled": true
+  },
+  "extensions": {}
+}

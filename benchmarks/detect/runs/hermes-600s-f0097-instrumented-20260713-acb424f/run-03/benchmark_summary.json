@@ -1,0 +1,160 @@
+{
+  "benchmark_id": "hermes-600s-f0097-instrumented-run-03",
+  "source_description": "local source media",
+  "clip_start_seconds": 0.0,
+  "clip_requested_duration_seconds": 0.0,
+  "clip_actual_duration_seconds": 600.0166666666667,
+  "clip_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "head_sha": "acb424f904bc4b3459f6ad2ceb9f8c701cedb69b",
+  "branch": "perf/phase18-bottleneck-instrumentation",
+  "wall_clock_seconds": 247.35562210000353,
+  "detect_elapsed_seconds": 247.2935010000001,
+  "video_duration_seconds": 600.0166666666667,
+  "real_time_multiplier": 0.4121443865448184,
+  "processing_x_realtime": 2.4263341504743643,
+  "effective_sampled_fps": 2.001611066359268,
+  "effective_backend": "pyav",
+  "slides_count": 28,
+  "change_count": "NOT_EXPOSED",
+  "change_count_note": "not directly exposed by the canonical DetectionService result",
+  "score_distribution": {
+    "count": 1200,
+    "p50": 0.0017778914188966155,
+    "p90": 0.0049317822791636,
+    "p95": 0.006335227238014339,
+    "p99": 0.014790588701143857,
+    "max": 0.11906921863555908
+  },
+  "invariants": {
+    "features_equal_frames_sampled": {
+      "status": "PASS",
+      "detail": "features_full + features_quick == frames_sampled"
+    },
+    "decoded_at_least_conversions": {
+      "status": "PASS",
+      "detail": "frames_decoded >= ndarray_conversions"
+    },
+    "conversions_cover_sampled_passes": {
+      "status": "PASS",
+      "detail": "valid for current OpenCV/PyAV full-frame sampling implementations"
+    },
+    "representative_frames_positive": {
+      "status": "PASS",
+      "detail": "representative_frames > 0"
+    },
+    "representative_bytes_positive": {
+      "status": "PASS",
+      "detail": "representative_frame_bytes > 0 when representative frames exist"
+    },
+    "screenshots_match_png_count": {
+      "status": "PASS",
+      "detail": "screenshots_written == PNG count (6)"
+    },
+    "rss_peak_bounds": {
+      "status": "SKIPPED",
+      "detail": "psutil unavailable"
+    }
+  },
+  "ranked_bottlenecks": [
+    {
+      "rank": 1,
+      "stage": "pass1_decode_or_frame_advance",
+      "elapsed_seconds": 97.13747370000056,
+      "denominator": "detect_elapsed_seconds",
+      "percentage": 39.28023717048695,
+      "measurement_type": "accumulated stage timer",
+      "notes": "non-overlapping with the other listed detector stage timers"
+    },
+    {
+      "rank": 2,
+      "stage": "extract_features",
+      "elapsed_seconds": 88.42737509993458,
+      "denominator": "detect_elapsed_seconds",
+      "percentage": 35.758066727331645,
+      "measurement_type": "accumulated stage timer",
+      "notes": "non-overlapping with the other listed detector stage timers"
+    },
+    {
+      "rank": 3,
+      "stage": "pass2_decode_or_frame_advance",
+      "elapsed_seconds": 53.775093399854086,
+      "denominator": "detect_elapsed_seconds",
+      "percentage": 21.74545355312595,
+      "measurement_type": "accumulated stage timer",
+      "notes": "non-overlapping with the other listed detector stage timers"
+    },
+    {
+      "rank": 4,
+      "stage": "pass2_dedupe",
+      "elapsed_seconds": 6.643194199998106,
+      "denominator": "detect_elapsed_seconds",
+      "percentage": 2.686360204831304,
+      "measurement_type": "accumulated stage timer",
+      "notes": "non-overlapping with the other listed detector stage timers"
+    },
+    {
+      "rank": 5,
+      "stage": "roi",
+      "elapsed_seconds": 0.3322161000360211,
+      "denominator": "detect_elapsed_seconds",
+      "percentage": 0.13434081311988094,
+      "measurement_type": "accumulated stage timer",
+      "notes": "non-overlapping with the other listed detector stage timers"
+    },
+    {
+      "rank": 6,
+      "stage": "visual_distance",
+      "elapsed_seconds": 0.24560509999355418,
+      "denominator": "detect_elapsed_seconds",
+      "percentage": 0.0993172481283906,
+      "measurement_type": "accumulated stage timer",
+      "notes": "non-overlapping with the other listed detector stage timers"
+    },
+    {
+      "rank": 7,
+      "stage": "threshold",
+      "elapsed_seconds": 0.12955429998692125,
+      "denominator": "detect_elapsed_seconds",
+      "percentage": 0.05238888181979404,
+      "measurement_type": "accumulated stage timer",
+      "notes": "non-overlapping with the other listed detector stage timers"
+    },
+    {
+      "rank": 8,
+      "stage": "pass2_screenshots",
+      "elapsed_seconds": 0.09432439999363851,
+      "denominator": "detect_elapsed_seconds",
+      "percentage": 0.03814269263535497,
+      "measurement_type": "accumulated stage timer",
+      "notes": "non-overlapping with the other listed detector stage timers"
+    },
+    {
+      "rank": 9,
+      "stage": "pass2_match_and_collect",
+      "elapsed_seconds": 0.02480059996014461,
+      "denominator": "detect_elapsed_seconds",
+      "percentage": 0.010028811861151418,
+      "measurement_type": "accumulated stage timer",
+      "notes": "non-overlapping with the other listed detector stage timers"
+    },
+    {
+      "rank": 10,
+      "stage": "debounce",
+      "elapsed_seconds": 0.009599700002581812,
+      "denominator": "detect_elapsed_seconds",
+      "percentage": 0.0038819054943873385,
+      "measurement_type": "accumulated stage timer",
+      "notes": "non-overlapping with the other listed detector stage timers"
+    },
+    {
+      "rank": 11,
+      "stage": "unattributed_residual",
+      "elapsed_seconds": 0.47426440023991745,
+      "denominator": "detect_elapsed_seconds",
+      "percentage": 0.19178199116519332,
+      "measurement_type": "derived residual",
+      "notes": "decode/open/service/persistence and other uninstrumented work; not a measured timer"
+    }
+  ],
+  "decision": "PENDING"
+}
