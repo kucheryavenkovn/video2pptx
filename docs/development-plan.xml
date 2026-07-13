@@ -1274,16 +1274,16 @@
         Log markers updated from Pass X/3 to Pass X/2.
         Verified: all detect_slides tests pass, no "Pass 3/3" markers remain.
       </step-18.2>
-      <step-18.3 name="ShortVideoBenchmark" status="done" verification="V-PERF-DETECT-SHORT-BENCHMARK">
+      <step-18.3 name="ShortVideoBenchmark" status="in_progress" verification="V-PERF-DETECT-SHORT-BENCHMARK">
         Re-run the immutable short-video benchmark on the recovered tree before making any
         bottleneck or optimization decision. The historical 8623cd2 result is regressed-tree
         context only and is not accepted as current evidence.
-        Evidence: benchmarks/detect/evidence/aggregate_evidence.json
-        tool: tools/benchmark_detect.py (BENCHMARK_CODE_HEAD=c372ced)
-        3 recorded runs: mean 237.7s (236.7s/237.2s/239.2s), std dev 1.3s
-        Output signature 8cc06c6accb055fb matches historical — no quality regression.
-        Bottleneck ranking: extract_features (36%) > pass2_collect (22.5%) > residual (38.8%).
-        Invariants: 6 PASS, 1 SKIPPED (psutil). Decision: PENDING_AGGREGATE.
+        The c372ced series (3 runs: mean 237.7s) is credible recovered-tree measurement
+        evidence but SUPERSEDED_FOR_STEP_18_3_ACCEPTANCE due to incomplete reporting and
+        aggregate evidence contract (B-18.3-02, B-18.3-03). New r2 series in progress
+        with corrected tooling APIs and tested aggregation.
+        Evidence (pending): benchmarks/detect/runs/hermes-600s-recovered-r2-20260713-&lt;SHA&gt;/
+        tool: tools/benchmark_detect.py
       </step-18.3>
       <step-18.4 name="BottleneckDecision" status="pending" verification="V-PERF-DETECT-BOTTLENECK">
         Classify the current bottleneck only from the recovered-tree short benchmark. Do not
