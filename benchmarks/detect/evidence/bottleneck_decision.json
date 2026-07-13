@@ -461,5 +461,32 @@
   "f0097_link": "F-0097 — RESOLVED by instrumentation: pass1_decode_or_frame_advance + pass2_decode_or_frame_advance + pass2_match_and_collect timers. Decoder/frame advancement pipeline wall-clock is captured.",
   "f0098_link": "F-0098 — OPEN: accepted benchmark evidence does not record actual HWAccel runtime activation or software fallback state (requested_hw_device, hwaccel_object_created, container_opened_with_hwaccel, runtime_hwaccel_active, software_fallback_detected, software_fallback_reason, codec_name, codec_long_name, hardware decoder identity). A targeted decoder optimization cannot yet be selected safely.",
   "classification_timestamp": "2026-07-13T19:30:00Z",
-  "replaces_draft": "acb424f (PENDING_INVALID_HWACCEL_HYPOTHESIS_CORRECTION)"
+  "replaces_draft": "acb424f (PENDING_INVALID_HWACCEL_HYPOTHESIS_CORRECTION)",
+  "step18_4a_evidence": {
+    "step": "18.4A",
+    "status": "OBSERVATION_COMPLETE",
+    "evidence_path": "benchmarks/detect/evidence/hwaccel-runtime-evidence/runtime_evidence.json",
+    "evidence_code_head": "a4cd8a916567ab9bb4b8f77c31bee0be0d11791a",
+    "evidence_code_tree": "7cc48d2d78e6aaea3c87473ca242ff69676d4c81",
+    "accepted_blocked_master_base": "f52e82c55744de077984db3b9bcb2162d4f9d87f",
+    "probe_clip": "tests/fixtures/test_slides.mp4 (MPEG-4, canonical H.264 Hermes clip unavailable)",
+    "runtime_observations": {
+      "requested_hw_device": "cuda",
+      "hwaccel_requested": true,
+      "hwaccel_object_created": true,
+      "container_opened_with_hwaccel": true,
+      "runtime_hwaccel_active": true,
+      "runtime_hwaccel_observation_method": "stream.codec_context.is_hwaccel (direct installed-PyAV property)",
+      "hw_config_device_type": null,
+      "hw_config_format": null,
+      "codec_name": "mpeg4",
+      "codec_long_name": "MPEG-4 part 2",
+      "software_fallback_detected": "UNKNOWN_NOT_EXPOSED",
+      "observation_consistency": true
+    },
+    "interpretation": "stream.codec_context.is_hwaccel=True confirms HWAccel object was passed to av.open(). hw_config_device_type=null and hw_config_format=null indicate no actual hardware decoder configuration. For MPEG-4 (no CUDA decoder), this implies software decode despite is_hwaccel=True. The canonical H.264 Hermes clip was not available for testing. The observability mechanism works and captures complete structured evidence from the production pyav_iter_frames path.",
+    "f0098_update": "PARTIALLY_RESOLVED: observability gap closed. HWAccel runtime activation can now be directly observed via stream.codec_context.is_hwaccel. For the available MPEG-4 test fixture: is_hwaccel=True but config=null. H.264 Hermes clip testing remains pending."
+  },
+  "f0098_link": "F-0098 — PARTIALLY_RESOLVED (see step18_4a_evidence). Observability mechanism implemented and probe executed. is_hwaccel=True via direct property. hw_config_device_type=null and hw_config_format=null for MPEG-4 codec.",
+  "classification_timestamp": "2026-07-13T22:00:00Z"
 }

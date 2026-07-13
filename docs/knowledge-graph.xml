@@ -988,7 +988,7 @@
       <cross-links>M-DETECT-SLIDES, M-DETECT-METRICS</cross-links>
     </M-DETECT-BENCHMARK>
     <M-DETECT-PERF-DECISION NAME="BottleneckDecision" TYPE="DECISION" STATUS="in_progress">
-      <purpose>Step 18.4: DECODE_FRAME_PIPELINE (172.46s, 63.27%) - SAFELY DISCRIMINATED with HIGH confidence. F-0097 resolved. PYAV_HWACCEL_CUDA rejected (REJECTED_SOURCE_MODEL_MISMATCH - existing source already requests HWAccel). No replacement optimization selected. F-0098 open: HWAccel runtime activation evidence gap. Step 18.4A (HwAccelRuntimeEvidence) in_progress: collecting production PyAV HWAccel activation state from two-independent-open probe. Step 18.4 remains in_progress until exactly one targeted optimization selected.</purpose>
+      <purpose>Step 18.4: DECODE_FRAME_PIPELINE (172.46s, 63.27%) - SAFELY DISCRIMINATED with HIGH confidence. F-0097 resolved. PYAV_HWACCEL_CUDA rejected (REJECTED_SOURCE_MODEL_MISMATCH - existing source already requests HWAccel). No replacement optimization selected. Step 18.4A done: runtime HWAccel evidence collected - is_hwaccel=True but hw_config=null for MPEG-4 (no CUDA decoder). F-0098 partially resolved: observability gap closed. F-0099 created for remaining optimization-discrimination gap. Step 18.4 remains in_progress until exactly one targeted optimization selected.</purpose>
       <path>benchmarks/detect/evidence/bottleneck_decision.json</path>
       <depends>M-DETECT-BENCHMARK</depends>
       <verification-ref>V-PERF-DETECT-BOTTLENECK</verification-ref>
