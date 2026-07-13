@@ -1,8 +1,9 @@
 {
   "benchmark_sequence": "hermes-600s-recovered-r2-20260713",
   "benchmark_code_head": "465d89e243651e56a23e8c141632335bdd3a3303",
+  "evidence_builder_head": "3e3007cd9cb7f9e931acf8ccca1d8baa52fc5156",
   "benchmark_code_tree": "66f9a5d50d7b97a34bfc151623d726fee2d03365",
-  "recovered_master_base": "713ea074f4f702835820df2725e067d8b87e2744",
+  "recovered_master_base": "713ea07827f3efc9abec1b8db50768fe8ef9bad0",
   "branch": "perf/phase18-short-benchmark-recovered",
   "clip": {
     "identifier": "hermes-0000-1000.mp4",
@@ -178,7 +179,56 @@
     "residual_seconds": 87.38648949978233,
     "residual_percentage": 32.96052643040036
   },
-  "profile_supporting_evidence": {},
+  "profile_supporting_evidence": {
+    "pyav_iter_frames": {
+      "function": "pyav_iter_frames",
+      "cumulative_seconds": 135.128,
+      "calls": 2404,
+      "self_seconds": 10.469
+    },
+    "Packet.decode": {
+      "function": "Packet.decode",
+      "cumulative_seconds": 114.854,
+      "calls": 72004,
+      "self_seconds": 114.854
+    },
+    "extract_features": {
+      "function": "extract_features",
+      "cumulative_seconds": 92.712,
+      "calls": 1285,
+      "self_seconds": 0.039
+    },
+    "compute_histogram": {
+      "function": "compute_histogram",
+      "cumulative_seconds": 48.842,
+      "calls": 1285,
+      "self_seconds": 0.887
+    },
+    "cv2_calc_hist": {
+      "function": "cv2_calc_hist",
+      "cumulative_seconds": 47.946,
+      "calls": 3855,
+      "self_seconds": 0.311
+    },
+    "numpy histogram": {
+      "function": "numpy histogram",
+      "cumulative_seconds": 40.567,
+      "calls": 3855,
+      "self_seconds": 36.744
+    },
+    "cv2_to_gray": {
+      "function": "cv2_to_gray",
+      "cumulative_seconds": 34.049,
+      "calls": 1285,
+      "self_seconds": 32.438
+    },
+    "to_ndarray": {
+      "function": "to_ndarray",
+      "cumulative_seconds": 9.58,
+      "calls": 2402,
+      "self_seconds": 9.58
+    }
+  },
   "rss": {
     "availability": false,
     "status": "SKIPPED_PSUTIL_UNAVAILABLE",

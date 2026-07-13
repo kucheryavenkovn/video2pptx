@@ -1283,7 +1283,7 @@
         evidence but SUPERSEDED_FOR_STEP_18_3_ACCEPTANCE due to incomplete reporting and
         aggregate evidence contract (B-18.3-02, B-18.3-03). New r2 series completed with
         corrected tooling APIs (BENCHMARK_CODE_HEAD=465d89e) and tested aggregation.
-        3 recorded runs: mean 254.5s (276.1s/222.2s/265.1s), std dev 28.2s
+        3 recorded runs: mean 254.5s (276.1s/222.2s/265.1s), std dev 28.48s
         Output signature 8cc06c6accb055fb matches historical — no quality regression.
         median_run_id=run-03, measured_stage_total=177.7s, residual=87.4s (33.0%)
         Invariants: 6 PASS, 1 SKIPPED (psutil). F-0088 observed: 28 slides, 6 PNGs.
