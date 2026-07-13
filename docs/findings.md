@@ -969,11 +969,20 @@
 - Resolution/Status: Resolved with user authorization by moving the directory intact to `C:/Users/tux/AppData/Local/Temp/opencode/video2pptx-phase18-short-benchmark-warmup-preflight`; no tracked raw artifact changed.
 - LINKS: M-DETECT-BENCHMARK, V-PERF-DETECT-SHORT-BENCHMARK, benchmarks/detect/runs/hermes-600s-recovered-r2-20260713-465d89e
 
-### F-0096 — extract_features (38.4%) confirmed as primary bottleneck; DECODE_PROFILE superseded
+### F-0096 — Step 18.4 draft at 27a28bf claimed FEATURE_EXTRACTION_CPU with incorrect evidence interpretation (REJECTED)
 - Date: 2026-07-13
 - Area: detection
-- Finding: Wall-clock stage timers from the accepted recovered-tree short benchmark (median run-03) show extract_features at 101.7s/265.1s (38.4%) as the primary bottleneck, not decode. The cProfile cumulative hierarchy (Packet.decode 114.854s) is inflated by producer-consumer overlap. The earlier DECODE_PROFILE hypothesis (from the regressed benchmark) does not apply to the recovered tree.
-- Symptom/Reproduction: Stage timer measure('extract_features') consistently reports 38-42% across all 3 runs. Packet.decode is not independently wall-clock-measured due to pipelining.
-- Impact: Step 18.4 decision classifies FEATURE_EXTRACTION_CPU. Optimization target: compute_histogram (48.8s) + cv2_to_gray (34.0s) in frame_features.extract_features. DECODE_PROFILE is superseded for the recovered tree.
-- Resolution/Status: Documented in bottleneck_decision.json and bottleneck_decision.md. Optimization selected: opencv-accelerated-histogram-gray.
-- LINKS: M-DETECT-PERF-DECISION, V-PERF-DETECT-BOTTLENECK, M-FRAME-FEATURES, M-BACKEND-PYAV
+- Finding: Commit 27a28bf was a Step 18.4 bottleneck decision draft that claimed FEATURE_EXTRACTION_CPU as the primary bottleneck and opencv-accelerated-histogram-gray as the selected optimization. This classification was rejected during acceptance review because it used incorrect wall-clock values (pass2_collect=10.9s instead of 65.2s, visual_distance=12.4s instead of 0.28s), fabricated an asynchronous producer-consumer pipeline that does not exist in the current synchronous generator-based detection loop, used wrong cProfile values (extract_features=107.3s instead of 92.7s, phash=9.9s instead of 3.9s, dhash=8.5s instead of 3.1s), and misstated F-0088 as run variance (F-0088 is 28 slides / 6 PNGs).
+- Symptom/Reproduction: 27a28bf contains bottleneck_decision.json and bottleneck_decision.md with the rejected classification.
+- Impact: FEATURE_EXTRACTION_CPU is not accepted by F-0096. opencv-accelerated-histogram-gray is not accepted by F-0096. The draft is preserved in repository history as REJECTED_STEP_18_4_DRAFT.
+- Resolution/Status: Rejected during acceptance audit on 2026-07-13. Step 18.4 remains in_progress. Corrected decision in subsequent commit.
+- LINKS: M-DETECT-PERF-DECISION, V-PERF-DETECT-BOTTLENECK, 27a28bf
+
+### F-0097 — Step 18.4 lacks wall-clock instrumentation for first-pass decode; bottleneck cannot be safely discriminated
+- Date: 2026-07-13
+- Area: detection
+- Finding: The accepted recovered-tree short benchmark does not independently measure first-pass decoder iteration wall-clock (Packet.decode, pyav_iter_frames overhead). Extract_features (101.7s, 38.4%) is the largest instrumented non-overlapping timer, but the unattributed residual (87.4s, 33.0%) likely contains first-pass decode time plus uninstrumented service/persistence/metadata overhead. The pass2_collect timer (65.2s, 24.6%) is a mixed timer containing second-pass decoder iteration + decode + segment matching + ROI + collection. Without separate non-overlapping wall-clock timers for pass1_decode, pass2_decode, and pass2_match_and_collect, the evidence cannot safely discriminate whether the primary bottleneck is FEATURE_EXTRACTION_CPU or DECODE_FRAME_PIPELINE.
+- Symptom/Reproduction: Step 18.4 re-evaluation from corrected evidence yields BLOCKED_INSUFFICIENT_DISCRIMINATION.
+- Impact: Step 18.4 cannot proceed to acceptance. Additional wall-clock instrumentation is needed to isolate first-pass and second-pass decode wall-clock from feature extraction and collection overhead.
+- Resolution/Status: Open. No optimization selected. No Step 18.5 started.
+- LINKS: M-DETECT-PERF-DECISION, V-PERF-DETECT-BOTTLENECK, Phase-18/Step-18.4

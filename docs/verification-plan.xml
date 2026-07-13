@@ -1330,7 +1330,7 @@
   </V-PERF-DETECT-SHORT-BENCHMARK>
 
   <V-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="in_progress">
-    <purpose>Select a bottleneck class only from accepted recovered-tree benchmark evidence.</purpose>
+    <purpose>Select a bottleneck class only from accepted recovered-tree benchmark evidence, or honestly report insufficient discrimination.</purpose>
     <verification-contract>
       1. Wall-clock stage timers from median run (run-03, 265.1s) are the primary evidence.
       2. cProfile cumulative hierarchy is secondary — must resolve wall-clock overlap regions.
@@ -1340,8 +1340,10 @@
          - PASS2_COLLECTION
          - THRESHOLD_OR_DECISION_LOGIC
          - MIXED_OR_UNRESOLVED
-      4. Decision must be exactly one class with supporting reasons and evidence.
-      5. Exactly one targeted optimization must be selected (name, code boundaries, hypothesis).
+      4. If evidence cannot safely discriminate one class, status=BLOCKED_INSUFFICIENT_DISCRIMINATION
+         with no selected class and no optimization.
+      5. If a class IS selected, exactly one targeted optimization must be selected
+         (name, code boundaries, hypothesis).
       6. Acceptance gates must be defined for step 18.6 re-benchmark.
       7. Verification artifacts: bottleneck_decision.json (machine-parseable),
          bottleneck_decision.md (human-readable rationale).

@@ -988,7 +988,7 @@
       <cross-links>M-DETECT-SLIDES, M-DETECT-METRICS</cross-links>
     </M-DETECT-BENCHMARK>
     <M-DETECT-PERF-DECISION NAME="BottleneckDecision" TYPE="DECISION" STATUS="in_progress">
-      <purpose>Step 18.4 decision: primary bottleneck = FEATURE_EXTRACTION_CPU (101.7s/265.1s = 38.4%). Extract features compute_histogram (48.8s) + cv2_to_gray (34.0s) = 82.8s subsystem. Targeted optimization: OpenCV-accelerated histogram computation within extract_features. Acceptance gates: short-video wall-clock reduction &gt;= 15%, missed_slide_rate unchanged.</purpose>
+      <purpose>Step 18.4 re-evaluated from corrected accepted evidence: BLOCKED_INSUFFICIENT_DISCRIMINATION. Extract_features (101.7s, 38.4%) is the largest instrumented timer but residual (87.4s, 33.0%) and mixed pass2_collect (65.2s, 24.6%) prevent safe discrimination between FEATURE_EXTRACTION_CPU and DECODE_FRAME_PIPELINE. No optimization selected. Requires additional wall-clock instrumentation to isolate decode from feature extraction. See F-0097.</purpose>
       <path>benchmarks/detect/evidence/bottleneck_decision.json</path>
       <depends>M-DETECT-BENCHMARK</depends>
       <verification-ref>V-PERF-DETECT-BOTTLENECK</verification-ref>
