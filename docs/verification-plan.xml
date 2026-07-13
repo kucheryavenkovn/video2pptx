@@ -1362,7 +1362,8 @@
       Benchmark code HEAD: acb424f904bc4b3459f6ad2ceb9f8c701cedb69b
       Evidence builder HEAD: acb424f904bc4b3459f6ad2ceb9f8c701cedb69b
       Recovered master base: 836a456eee0312646747d755dfe838052eaa6752
-      Step 18.6 gates (pending selected optimization): exact canonical output parity preserved.
+      Step 18.6 output parity gates defined in bottleneck_decision.json step18_6_output_parity_gates.
+        Optimization-specific performance gate: PENDING_SELECTED_OPTIMIZATION.
         Broad quality tolerances (missed_slide_rate &lt;= 5%, false_split_rate &lt;= 10%)
         remain under V-PERF-DETECT-ACCEPTANCE / Step 18.8 only.
       Artifacts:
