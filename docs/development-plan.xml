@@ -1356,6 +1356,18 @@
         Supporting evidence only; not primary evidence. No new finding created. selected_optimization=NONE;
         Step 18.4 remains in_progress; Step 18.5 planned/blocked.
       </step-18.4b>
+      <step-18.4c name="TargetOptimizationDiscrimination" status="in_progress">
+        Discriminate the remaining DECODE_FRAME_PIPELINE optimization candidates
+        (C1: PASS2_TARGETED_REPRESENTATIVE_FRAME_RETRIEVAL,
+        C2: PASS1_SAMPLE_FRAME_RETENTION,
+        C3: PYAV_DECODE_CONFIGURATION_TUNING,
+        C4: INSUFFICIENT_TARGET_OPTIMIZATION_DISCRIMINATION)
+        using source semantics, exact frame parity, resource evidence, and focused
+        microbenchmarks. Diagnostic prototypes only; no production optimization change.
+        Evidence branch: perf/phase18-target-optimization-discrimination.
+        Base HEAD: 95f5794f46ce5e313c6b2548cb8dbfcfe917555a (merged strict-control master).
+        Step 18.4 remains in_progress; Step 18.5 planned/blocked until selection.
+      </step-18.4c>
       <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
         Blocked: Step 18.4 has not selected a targeted optimization. Step 18.5 remains planned
         and must not start implementation until Step 18.4 selects exactly one optimization.
