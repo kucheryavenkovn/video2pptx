@@ -364,19 +364,19 @@
         "Step 18.5 needs to add hwaccel=cuda to av.open() options dict",
         "Existing benchmark decode is definitely software-only"
       ],
-      "current_source_evidence": "pyav_backend.py line 28: _HW_PREFERRED = ['cuda', ...], line 113-123: pyav_iter_frames calls _pick_hw_device(), _create_hwaccel(), passes hwaccel to av.open()",
+      "current_source_evidence": "pyav_backend.py: _HW_PREFERRED = ['cuda', ...], pyav_iter_frames calls _pick_hw_device(), _create_hwaccel() (now _create_hwaccel_with_evidence for evidence path), passes hwaccel to av.open()",
       "historical_context_preserved": "This hypothesis was the initial Step 18.4 decision before source audit. It is preserved in git history and in bottleneck_decision.md under REJECTED_HYPOTHESIS."
     }
   ],
   "optimization_candidate_evaluation": [
     {
       "candidate": "HWACCEL_RUNTIME_OBSERVABILITY_AND_FALLBACK",
-      "current_source_boundary": "pyav_backend.py lines 27-28 (_HW_PREFERRED), 39-41 (_available_hw_devices), 51-57 (_pick_hw_device), 67-73 (_create_hwaccel), 113-123 (pyav_iter_frames av.open)",
-      "current_behavior": "HWAccel is requested via _pick_hw_device() -> _create_hwaccel() -> av.open(hwaccel=hwaccel). No runtime telemetry records whether HWAccel was created successfully, which device was selected, whether the decoder actually uses hardware acceleration, or whether a software fallback occurred.",
-      "mechanistic_cost_targeted": "Observability gap: cannot determine if hardware decode is active. This is an evidence/observability candidate, not an optimization.",
-      "supporting_evidence": "None required — this is an evidence gap, not a performance hypothesis.",
+      "current_source_boundary": "pyav_backend.py: _HW_PREFERRED, _available_hw_devices, _pick_hw_device, _create_hwaccel_with_evidence, pyav_iter_frames av.open with _hwaccel_evidence_observer",
+      "current_behavior": "As of the Step 18.4A correction (2026-07-13): private evidence observer exists, captures structured HWAccel state from production pyav_iter_frames path. Schema separates codec_context_is_hwaccel (raw) from actual_hardware_decode_active (UNKNOWN_NOT_PROVEN). _create_hwaccel_with_evidence captures creation errors. Deterministic generator cleanup. 17/17 tests pass. Canonical Hermes H.264 probe not executed — clip unavailable (F-0100).",
+      "mechanistic_cost_targeted": "Observability gap: closed. The evidence mechanism exists and is tested. The only remaining blocker is the canonical H.264 clip.",
+      "supporting_evidence": "17/17 tests pass. Observer captures all required fields from production path. Probe validates provenance (--accepted-base, --canonical-mode).",
       "counter_evidence": "N/A — observability does not change decode performance.",
-      "missing_evidence": "Runtime HWAccel state: requested_hw_device, hwaccel_object_created, container_opened_with_hwaccel, runtime_hwaccel_active, software_fallback_detected, software_fallback_reason, codec_name, codec_long_name, hardware decoder identity (where PyAV exposes it). All fields are NOT_OBSERVED_IN_ACCEPTED_BENCHMARK_EVIDENCE.",
+      "missing_evidence": "Canonical Hermes H.264 runtime observations — cannot be collected without the clip file.",
       "quality_risks": "None.",
       "resource_risks": "Minimal log/telemetry overhead.",
       "backend_compatibility_risks": "None — observability only.",
@@ -457,9 +457,31 @@
   },
   "step18_5_hypothesis": "NONE",
   "step18_5_hypothesis_detail": "Step 18.4 has selected DECODE_FRAME_PIPELINE with HIGH confidence, but the proposed PYAV_HWACCEL_CUDA optimization is invalid because current source already requests HWAccel. Accepted benchmark evidence does not record actual HWAccel activation or software fallback state. Multiple candidate optimizations were evaluated (see optimization_candidate_evaluation) but none is sufficiently supported by committed evidence to satisfy the V-PERF-DETECT-BOTTLENECK contract requiring exactly one selected optimization with name, code boundaries, and hypothesis. Step 18.5 remains planned but blocked until Step 18.4 selects a targeted optimization.",
-  "evidence_gap_description": "PARTIALLY_RESOLVED. F-0097 gap (unattributed residual of 87.39s, 33.0%) was closed. The primary bottleneck (DECODE_FRAME_PIPELINE) is SAFELY DISCRIMINATED. However, F-0098 documents a new evidence gap: accepted benchmark evidence does not record actual HWAccel runtime activation or software fallback state (requested_hw_device, hwaccel_object_created, container_opened_with_hwaccel, runtime_hwaccel_active, software_fallback_detected, software_fallback_reason, codec_name, codec_long_name, hardware decoder identity), preventing a targeted decoder optimization from being safely selected.",
+  "evidence_gap_description": "PARTIALLY_RESOLVED. F-0097 gap (unattributed residual of 87.39s, 33.0%) was closed. The primary bottleneck (DECODE_FRAME_PIPELINE) is SAFELY DISCRIMINATED. F-0098 documents a new evidence gap: corrected evidence mechanism exists (codec_context_is_hwaccel, actual_hardware_decode_active, creation-error capture, 17/17 tests), but cannot be exercised on the canonical Hermes H.264 clip (F-0100 — clip not available on this workstation).",
   "f0097_link": "F-0097 — RESOLVED by instrumentation: pass1_decode_or_frame_advance + pass2_decode_or_frame_advance + pass2_match_and_collect timers. Decoder/frame advancement pipeline wall-clock is captured.",
-  "f0098_link": "F-0098 — OPEN: accepted benchmark evidence does not record actual HWAccel runtime activation or software fallback state (requested_hw_device, hwaccel_object_created, container_opened_with_hwaccel, runtime_hwaccel_active, software_fallback_detected, software_fallback_reason, codec_name, codec_long_name, hardware decoder identity). A targeted decoder optimization cannot yet be selected safely.",
+  "f0098_link": "F-0098 — OPEN. Evidence mechanism corrected and tested (17/17). Blocked on canonical Hermes H.264 clip (F-0100). No targeted optimization selected.",
   "classification_timestamp": "2026-07-13T19:30:00Z",
-  "replaces_draft": "acb424f (PENDING_INVALID_HWACCEL_HYPOTHESIS_CORRECTION)"
+  "replaces_draft": "acb424f (PENDING_INVALID_HWACCEL_HYPOTHESIS_CORRECTION)",
+  "step18_4a_status": {
+    "status": "in_progress",
+    "substatus": "blocked_on_canonical_evidence_object",
+    "evidence_mechanism_implemented": true,
+    "evidence_mechanism_corrected": true,
+    "evidence_schema_version": "2.0.0",
+    "observability_gap": "closed — observer with corrected semantics exists, 17/17 tests pass",
+    "creation_error_captured": true,
+    "generator_cleanup_explicit": true,
+    "probe_provenance_validated": true,
+    "canonical_probe_executed": false,
+    "canonical_probe_blocker": "exact Hermes H.264 clip (dd9da344...) not found on workstation",
+    "mpeg4_diagnostic_probe": {
+      "path": "benchmarks/detect/evidence/hwaccel-runtime-evidence/",
+      "classification": "DIAGNOSTIC_NON_CANONICAL_FIXTURE_PROBE",
+      "accepted_for_step_18_4a": false,
+      "rejection_reason": "NON_CANONICAL_EVIDENCE_OBJECT — MPEG-4 fixture cannot close Hermes H.264 gap"
+    },
+    "f0098_status": "OPEN",
+    "f0100_reference": "F-0100 documents missing canonical clip"
+  },
+  "f0100_link": "F-0100 — OPEN. Canonical Hermes H.264 benchmark clip (dd9da344...) not available on this workstation."
 }
