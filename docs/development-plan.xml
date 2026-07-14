@@ -1295,22 +1295,43 @@
         Canonical signature 8cc06c6accb055fb — no quality regression.
         Residual dropped from 87.39s (33.0%) to 0.53s (0.19%).
         Decision: DECODE_FRAME_PIPELINE (172.46s, 63.27%), HIGH confidence.
-        F-0097 resolved. F-0098 open.
+        F-0097 RESOLVED. F-0098 PARTIALLY_RESOLVED (canonical Hermes H.264 runtime evidence
+        collected 2026-07-14; codec_context_is_hwaccel=true confirmed; actual_hardware_decode_active
+        remains UNKNOWN_NOT_PROVEN by observer design; actual-HW-decode conclusion confidence = NOT_ESTABLISHED,
+        canonical observation completeness confidence = HIGH; strict fallback control is INVALID —
+        INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT, premature break, no signal).
+        F-0100 RESOLVED (canonical clip located, copied local-only, not committed).
         Selected optimization: NONE — PYAV_HWACCEL_CUDA was REJECTED_SOURCE_MODEL_MISMATCH
-        because existing source already requests HWAccel. No replacement optimization is sufficiently
-        supported by committed evidence. Step 18.4 remains in_progress until V-PERF-DETECT-BOTTLENECK
-        contract is satisfied (exactly one targeted optimization with name, code boundaries, hypothesis).
+        because existing source already requests HWAccel; no activation defect is directly proven,
+        so PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX is not viable; remaining candidates are
+        not bounded single interventions supported by committed evidence. Step 18.4 remains in_progress
+        until V-PERF-DETECT-BOTTLENECK contract is satisfied (exactly one targeted optimization with
+        name, code boundaries, hypothesis).
         Step 18.6 output parity gates defined in bottleneck_decision.json step18_6_output_parity_gates.
-        See F-0097 and F-0098 for full evidence.
+        See F-0097, F-0098, F-0100 for full evidence. (F-0101 was withdrawn: the strict-control
+        STRICT_PROBE_NO_FRAME is an implementation defect, not a runtime gap.)
       </step-18.4>
-      <step-18.4a name="HwAccelRuntimeEvidence" status="in_progress">
+      <step-18.4a name="HwAccelRuntimeEvidence" status="done">
         Evidence mechanism implemented and corrected. Separates raw codec_context_is_hwaccel from
         actual_hardware_decode_active. Includes creation-error capture, deterministic generator
         cleanup, provenance-validated probe with --canonical-mode and --accepted-base.
-        17/17 tests pass. However, the canonical Hermes H.264 benchmark clip
-        (examples/hermes-0000-1000.mp4, SHA256 dd9da344...) is NOT available on this workstation.
-        Step 18.4A remains blocked on the canonical evidence object until the clip is obtained.
-        F-0098 remains OPEN. No targeted optimization selected.
+        17/17 tests pass. Canonical Hermes H.264 benchmark clip located (SHA256 dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4)
+        and copied local-only into the canonical-evidence worktree (gitignored *.mp4, NOT committed).
+        Canonical probe executed: OBSERVATION_COMPLETE, outcome OUTCOME_D. Two consistent observations:
+        requested_hw_device=cuda, hwaccel_object_created=true, container_opened_with_hwaccel=true,
+        codec_context_is_hwaccel=true, codec_name=h264 (1920x1080, 60fps), first_frame_shape=[1080,1920,3],
+        actual_hardware_decode_active=UNKNOWN_NOT_PROVEN (by observer design; NOT inferred from decode
+        speed). Strict fallback control (allow_software_fallback=false) is INVALID:
+        INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT (premature outer break after the first demuxed
+        packet), hence STRICT_PROBE_NO_FRAME; it is NOT a runtime signal, carries no evidentiary weight,
+        and must be corrected (demux until first decoded frame / EOF / exception) before the next
+        HWAccel evidence decision.
+        Canonical evidence commit 9b4cc54949537b2a36e70a0f98f1cb732d6688b2; code HEAD
+        da35cf3456c16aa662fc573b03a126a59ec89a25 (= BLOCKED_STEP_18_4A_MASTER_HEAD). Raw artifact
+        known-limitation omission: 9b4cc54 reports evidence_confidence=HIGH / limitations=[]; the decision
+        layer qualifies HIGH as observation-completeness only (actual-HW-decode confidence = NOT_ESTABLISHED).
+        Step 18.4A purpose (canonical runtime observation collection) is complete.
+        F-0098 PARTIALLY_RESOLVED; F-0100 RESOLVED. selected_optimization=NONE.
       </step-18.4a>
       <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
         Blocked: Step 18.4 has not selected a targeted optimization. Step 18.5 remains planned
