@@ -1356,17 +1356,21 @@
         Supporting evidence only; not primary evidence. No new finding created. selected_optimization=NONE;
         Step 18.4 remains in_progress; Step 18.5 planned/blocked.
       </step-18.4b>
-      <step-18.4c name="TargetOptimizationDiscrimination" status="in_progress">
-        Discriminate the remaining DECODE_FRAME_PIPELINE optimization candidates
-        (C1: PASS2_TARGETED_REPRESENTATIVE_FRAME_RETRIEVAL,
+      <step-18.4c name="TargetOptimizationDiscrimination" status="done">
+        DONE (2026-07-14). Discriminated the remaining DECODE_FRAME_PIPELINE optimization
+        candidates (C1: PASS2_TARGETED_REPRESENTATIVE_FRAME_RETRIEVAL,
         C2: PASS1_SAMPLE_FRAME_RETENTION,
         C3: PYAV_DECODE_CONFIGURATION_TUNING,
-        C4: INSUFFICIENT_TARGET_OPTIMIZATION_DISCRIMINATION)
-        using source semantics, exact frame parity, resource evidence, and focused
-        microbenchmarks. Diagnostic prototypes only; no production optimization change.
+        C4: INSUFFICIENT_TARGET_OPTIMIZATION_DISCRIMINATION) using source semantics,
+        exact frame parity, resource evidence, and focused microbenchmarks.
+        Outcome T3: no candidate viable. C1 exact parity FAIL (0/84) — production HW decode
+        path non-reproducible across alternative container opens. C2 no bounded O(segments)
+        retention model (~7.47 GB). C3 no evidence-supported variant (thread settings ignored
+        by NVDEC). F-0102 created (OPEN).
         Evidence branch: perf/phase18-target-optimization-discrimination.
-        Base HEAD: 95f5794f46ce5e313c6b2548cb8dbfcfe917555a (merged strict-control master).
-        Step 18.4 remains in_progress; Step 18.5 planned/blocked until selection.
+        Evidence code HEAD 142da834, evidence commit b869464, evidence dir
+        benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/.
+        Step 18.4 remains in_progress; Step 18.5 planned/blocked; selected_optimization=NONE.
       </step-18.4c>
       <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
         Blocked: Step 18.4 has not selected a targeted optimization. Step 18.5 remains planned

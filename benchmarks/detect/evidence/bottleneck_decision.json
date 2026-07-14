@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "step": "18.4",
   "phase": "18",
-  "status": "BLOCKED_TARGET_OPTIMIZATION_NOT_DISCRIMINATED",
+  "status": "BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
   "decision_evidence_head": "acb424f904bc4b3459f6ad2ceb9f8c701cedb69b",
   "source_benchmark": {
     "benchmark_sequence": "hermes-600s-f0097-instrumented-20260713-acb424f",
@@ -651,5 +651,54 @@
     "f0097_status": "RESOLVED",
     "f0100_status": "RESOLVED",
     "selected_optimization": "NONE"
+  },
+  "step18_4c_status": {
+    "status": "done",
+    "substatus": "target_optimization_discrimination_complete",
+    "purpose": "discriminate remaining DECODE_FRAME_PIPELINE optimization candidates (C1-C4) using source semantics, exact frame parity, resource evidence, and focused microbenchmarks",
+    "evidence_branch": "perf/phase18-target-optimization-discrimination",
+    "evidence_code_head": "142da834b1a9c16416e2386d99f22ae54d692d27",
+    "evidence_code_tree": "52624e512e8b7a5d48963c538b3406ba3918c79c",
+    "evidence_commit": "b869464a6e84b2deba83a3df5e7c37ffe65ccde8",
+    "accepted_master_base": "95f5794f46ce5e313c6b2548cb8dbfcfe917555a",
+    "evidence_dir": "benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/",
+    "outcome": "T3",
+    "decision_status": "BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
+    "c1_evaluation": {
+      "candidate": "PASS2_TARGETED_REPRESENTATIVE_FRAME_RETRIEVAL",
+      "exact_parity": "FAIL",
+      "parity_detail": "0/84 representative frames matched. The production decode path (pyav_iter_frames with stream.codec_context access) produces different pixel values than any alternative decode path (direct av.open + seek + decode). Root cause: HW decode non-determinism across different container/codec-context initialization paths.",
+      "viability": false,
+      "rejection_reason": "EXACT_PARITY_FAIL"
+    },
+    "c2_evaluation": {
+      "candidate": "PASS1_SAMPLE_FRAME_RETENTION",
+      "exact_parity": "NOT_APPLICABLE",
+      "full_rgb_retention_bytes": 7471180800,
+      "retention_to_representative_ratio": 14.297,
+      "bounded_o_segments_proven": false,
+      "resource_classification": "UNDEFINED_PROJECT_RESOURCE_BUDGET",
+      "viability": false,
+      "rejection_reason": "UNBOUNDED_RETENTION_NO_RESOURCE_BUDGET"
+    },
+    "c3_evaluation": {
+      "candidate": "PYAV_DECODE_CONFIGURATION_TUNING",
+      "exact_parity": "NOT_APPLICABLE",
+      "result": "NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT",
+      "available_parity_preserving": ["thread_count", "thread_type"],
+      "reason": "Software threading options ignored by NVDEC hardware decode; no mechanism to reduce HW decode cost",
+      "viability": false,
+      "rejection_reason": "NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT"
+    },
+    "c4_evaluation": {
+      "candidate": "INSUFFICIENT_TARGET_OPTIMIZATION_DISCRIMINATION",
+      "description": "Honest fallback: no candidate satisfies all viability requirements",
+      "viability": false
+    },
+    "selected_optimization": "NONE",
+    "f0102_created": true,
+    "f0102_status": "OPEN",
+    "step_18_4": "in_progress",
+    "step_18_5": "planned / blocked"
   }
 }

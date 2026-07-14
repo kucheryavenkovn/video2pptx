@@ -310,3 +310,63 @@ Step 18.4A's strict control was an `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DE
 - **Step 18.4B strict control:** corrected; `FIRST_FRAME_DECODED`; demuxes until first frame / EOF / exception; explicit container close.
 - **PYAV_HWACCEL_CUDA:** REJECTED_SOURCE_MODEL_MISMATCH. Source already requests HWAccel (historical source state at rejection HEAD `acb424f`; current production uses `_create_hwaccel_with_evidence()`).
 - **PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX:** CONTRADICTED_BY_STRICT_NO_FALLBACK_CONTROL (Step 18.4B FIRST_FRAME_DECODED).
+
+---
+
+## 15. Step 18.4C — Target Optimization Discrimination (2026-07-14)
+
+**Status:** done.
+**Outcome:** T3 — BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION.
+**Selected optimization:** NONE.
+**Step 18.4:** in_progress.
+**Step 18.5:** planned / blocked.
+**New finding:** F-0102 (OPEN).
+
+Evidence branch: `perf/phase18-target-optimization-discrimination`.
+Evidence code HEAD: `142da834b1a9c16416e2386d99f22ae54d692d27`.
+Evidence commit: `b869464`.
+Evidence dir: `benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/`.
+
+### C1 — PASS2_TARGETED_REPRESENTATIVE_FRAME_RETRIEVAL
+
+**Viability: NOT VIABLE — exact parity FAIL (0/84 targets).**
+
+Root cause: the production decode path (`pyav_iter_frames`, which accesses `stream.codec_context`)
+produces systematically different pixel values than any alternative decode path (direct
+`av.open + seek + decode`) for the same video frame. This was confirmed by comparing
+`VideoDecoder.iter_frames()` output against direct `av.open + demux + decode` for the same
+frame index — pixels differ (max_diff=255, ~143K/6.2M differing pixels). The candidate's
+seek-based retrieval cannot reproduce the exact production pixels. This is a HW decode
+environment-specific behavior (PyAV 18.0.0 / NVDEC / CUDA).
+
+Rejection: EXACT_PARITY_FAIL.
+
+### C2 — PASS1_SAMPLE_FRAME_RETENTION
+
+**Viability: NOT VIABLE — no bounded resource model.**
+
+Full RGB retention: 7,471,180,800 bytes (7.47 GB / 6.96 GiB).
+Retention/representative ratio: 14.30x (1201 sampled frames / 84 representative frames).
+Bounded O(number_of_segments) retention is impossible without changing representative
+timestamp semantics — the segment end boundary is unknown until the next change event.
+No project memory budget defined.
+
+Rejection: UNBOUNDED_RETENTION_NO_RESOURCE_BUDGET.
+
+### C3 — PYAV_DECODE_CONFIGURATION_TUNING
+
+**Viability: NOT VIABLE — no evidence-supported variant.**
+
+Inspected PyAV 18.0.0 codec context: only `thread_count` and `thread_type` are writable
+and potentially parity-preserving. Both are software threading options ignored by NVDEC
+hardware decode. `skip_frame` is SEMANTICS_CHANGE_FRAME_SEQUENCE. All other options
+(low_delay, skip_loop_filter, skip_non_ref, skip_idct) are NOT_AVAILABLE.
+
+Rejection: NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT.
+
+### Decision
+
+DECODE_FRAME_PIPELINE remains the accepted primary bottleneck (172.46s, 63.27%, HIGH confidence),
+but C1/C2/C3 discrimination found no exact-parity, bounded, evidence-supported optimization
+satisfying the Step 18.4 selection contract. Step 18.4 remains in_progress; Step 18.5 remains
+planned/blocked. F-0102 created.

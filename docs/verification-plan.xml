@@ -1385,6 +1385,28 @@
     </result></evidence>
   </V-PERF-DETECT-BOTTLENECK>
 
+  <V-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION MODULE="Phase-18/Step-18.4C" PRIORITY="medium" STATUS="done">
+    <purpose>Discriminate remaining DECODE_FRAME_PIPELINE optimization candidates (C1-C4)
+      using source semantics, exact frame parity, resource evidence, and focused
+      microbenchmarks.</purpose>
+    <evidence><result>
+      Step 18.4C = done. Outcome T3: BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION.
+      C1 (PASS2_TARGETED_REPRESENTATIVE_FRAME_RETRIEVAL): exact parity FAIL (0/84 targets).
+      Root cause: production decode path (pyav_iter_frames with stream.codec_context access)
+      produces different pixel values than alternative decode paths. HW decode environment-specific.
+      C2 (PASS1_SAMPLE_FRAME_RETENTION): no bounded O(segments) model (~7.47 GB retention).
+      C3 (PYAV_DECODE_CONFIGURATION_TUNING): NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT
+      (thread_count/thread_type ignored by NVDEC).
+      C4: honest fallback.
+      selected_optimization=NONE. F-0102 created (OPEN).
+      Step 18.4 remains in_progress; Step 18.5 planned/blocked.
+      Evidence dir: benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/
+      Evidence code HEAD: 142da834b1a9c16416e2386d99f22ae54d692d27
+      Evidence commit: b869464a6e84b2deba83a3df5e7c37ffe65ccde8
+      Diagnostic tests: tests/test_target_optimization_discrimination.py (40/40 PASS)
+    </result></evidence>
+  </V-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION>
+
   <V-PERF-DETECT-TARGETED MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
     <purpose>Verify the single targeted optimization selected by Step 18.4. No optimization is
       selected while the bottleneck decision is incomplete. Step 18.5 remains blocked until
