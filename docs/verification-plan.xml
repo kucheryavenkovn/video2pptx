@@ -1351,16 +1351,20 @@
     <evidence><result>
       Bottleneck class: DECODE_FRAME_PIPELINE — SAFELY DISCRIMINATED. Confidence: HIGH.
       Selected optimization: NONE.
-      F-0097 RESOLVED. F-0098 PARTIALLY_RESOLVED (canonical Hermes H.264 runtime evidence collected
-      2026-07-14: codec_context_is_hwaccel=true confirmed; actual_hardware_decode_active=UNKNOWN_NOT_PROVEN
-      by observer design; actual-HW-decode conclusion confidence = NOT_ESTABLISHED, canonical observation
-      completeness confidence = HIGH). F-0100 RESOLVED (canonical clip located,
-      copied local-only, not committed). Strict fallback control = INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT
-      (premature break after first packet; STRICT_PROBE_NO_FRAME is an implementation defect, not a runtime
-      signal; carries no evidentiary weight; must be corrected before the next evidence decision).
+      F-0097 RESOLVED. F-0098 RESOLVED (activation-defect discrimination): canonical production-path
+      evidence (Step 18.4A, codec_context_is_hwaccel=true) plus the corrected strict no-software-fallback
+      control (Step 18.4B, FIRST_FRAME_DECODED, allow_software_fallback=false) establish that the current
+      environment decodes at least one canonical H.264 frame through a CUDA HWAccel configuration with
+      software fallback explicitly disabled. F-0100 RESOLVED (canonical clip located, copied local-only,
+      not committed). Step 18.4A strict control = INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT
+      (historical, raw 9b4cc STRICT_PROBE_NO_FRAME, no evidentiary weight) — CORRECTED in Step 18.4B:
+      FIRST_FRAME_DECODED (packets_examined=3, frames_decoded=1, frames_converted=1, container_closed=true;
+      strict-control code 04c0dc1f, raw evidence ef589a1, accepted master base 547dc06e). Bounded: does NOT
+      prove all production decode was hardware, that production fallback never occurred, or any speedup.
+      Production-path actual_hardware_decode_active remains UNKNOWN_NOT_PROVEN by observer design.
       PYAV_HWACCEL_CUDA: REJECTED_SOURCE_MODEL_MISMATCH — existing source already requests HWAccel.
-      PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX: not viable — no activation defect directly proven.
-      Step 18.4A=done (canonical runtime observation collection complete, OBSERVATION_COMPLETE, OUTCOME_D).
+      PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX: CONTRADICTED_BY_STRICT_NO_FALLBACK_CONTROL.
+      Step 18.4A=done (OBSERVATION_COMPLETE, OUTCOME_D). Step 18.4B=done (FIRST_FRAME_DECODED, OUTCOME_S1).
       Step 18.4 remains in_progress until exactly one targeted optimization is selected.
       Median run (run-01): 272.57s detect elapsed.
       Residual: 0.53s (0.19%) — down from 87.39s (33.0%) pre-instrumentation.
