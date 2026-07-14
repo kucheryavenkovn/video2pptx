@@ -1351,8 +1351,13 @@
     <evidence><result>
       Bottleneck class: DECODE_FRAME_PIPELINE — SAFELY DISCRIMINATED. Confidence: HIGH.
       Selected optimization: NONE.
-      F-0097 resolved. F-0098 open.
+      F-0097 RESOLVED. F-0098 PARTIALLY_RESOLVED (canonical Hermes H.264 runtime evidence collected
+      2026-07-14: codec_context_is_hwaccel=true confirmed; actual_hardware_decode_active=UNKNOWN_NOT_PROVEN;
+      strict fallback control inconclusive — see F-0101). F-0100 RESOLVED (canonical clip located,
+      copied local-only, not committed). F-0101 OPEN.
       PYAV_HWACCEL_CUDA: REJECTED_SOURCE_MODEL_MISMATCH — existing source already requests HWAccel.
+      PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX: not viable — no activation defect directly proven.
+      Step 18.4A=done (canonical runtime observation collection complete, OBSERVATION_COMPLETE, OUTCOME_D).
       Step 18.4 remains in_progress until exactly one targeted optimization is selected.
       Median run (run-01): 272.57s detect elapsed.
       Residual: 0.53s (0.19%) — down from 87.39s (33.0%) pre-instrumentation.
