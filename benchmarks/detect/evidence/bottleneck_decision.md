@@ -217,7 +217,8 @@ All three timers use `time.perf_counter()` before/after `self._it.__next__()`, i
 - `requested_hw_device`
 - `hwaccel_object_created`
 - `container_opened_with_hwaccel`
-- `runtime_hwaccel_active`
+- `codec_context_is_hwaccel` (raw `codec_ctx.is_hwaccel`)
+- `actual_hardware_decode_active` (interpreted: true/false/UNKNOWN_NOT_PROVEN)
 - `software_fallback_detected`
 - `software_fallback_reason`
 - `codec_name`

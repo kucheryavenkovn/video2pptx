@@ -483,6 +483,5 @@
     "f0098_status": "OPEN",
     "f0100_reference": "F-0100 documents missing canonical clip"
   },
-  "f0098_link": "F-0098 — OPEN. Evidence mechanism corrected and tested (17/17). Blocked on canonical Hermes H.264 clip (F-0100). No targeted optimization selected.",
   "f0100_link": "F-0100 — OPEN. Canonical Hermes H.264 benchmark clip (dd9da344...) not available on this workstation."
 }
