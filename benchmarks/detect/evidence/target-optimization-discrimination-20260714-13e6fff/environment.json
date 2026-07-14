@@ -1,0 +1,10 @@
+{
+  "python_version": "3.14.6",
+  "platform": "Windows",
+  "platform_release": "11",
+  "platform_machine": "AMD64",
+  "cpu_count_logical": 32,
+  "numpy_version": "2.4.4",
+  "opencv_version": "5.0.0",
+  "pyav_version": "18.0.0"
+}

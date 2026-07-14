@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "step": "18.4C",
+  "candidate": "PASS1_SAMPLE_FRAME_RETENTION",
+  "sampled_frame_count": 1201,
+  "frame_dimensions": [
+    1920,
+    1080,
+    3
+  ],
+  "full_rgb_retention_bytes": 7471180800,
+  "full_rgb_retention_GB_decimal": 7.471181,
+  "full_rgb_retention_GiB": 6.958079,
+  "roi_retention_bytes": 7471180800,
+  "roi_retention_GB_decimal": 7.471181,
+  "roi_retention_GiB": 6.958079,
+  "current_representative_frame_bytes": 522547200,
+  "retention_to_representative_ratio": 14.297619,
+  "streaming_information_analysis": {
+    "representative_timestamp_depends_on": "final segment start AND end",
+    "long_segment_rule": "start + 0.80 * duration (duration >= 6.0)",
+    "short_segment_rule": "start + 0.50 * duration (duration < 6.0)",
+    "final_end_boundary_known_when": "next change event detected during Pass 1, or video_duration at end",
+    "bounded_O_number_of_segments_exact_retention_proven": false,
+    "reason": "When a frame passes through Pass 1 at time t, the final segment end boundary is not yet known. The representative timestamp for the segment containing t depends on the segment end, which depends on the next change event. Therefore all frames within each segment must be retained until the segment end is known. Total retention is O(frames_sampled) = O(video_duration * sample_fps), NOT O(number_of_segments). Bounded O(number_of_segments) retention is impossible without changing representative timestamp semantics."
+  },
+  "existing_project_memory_budget": null,
+  "resource_classification": "UNDEFINED_PROJECT_RESOURCE_BUDGET",
+  "exact_semantics_preserved": true,
+  "viability": false,
+  "rejection_reason": "No bounded O(number_of_segments) retention model exists for exact current representative-frame selection semantics. Full sampled-frame retention requires ~7.47 GB (1201 frames at 1920x1080x3). No project memory budget is defined in GRACE. Retention-to-representative ratio is 14.30x. C2 is rejected because it requires unbounded retention relative to segment count and has no accepted resource budget."
+}

@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "step": "18.4C",
+  "evidence_type": "TARGET_OPTIMIZATION_DISCRIMINATION",
+  "status": "BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
+  "branch": "perf/phase18-target-optimization-discrimination",
+  "evidence_code_head": "142da834b1a9c16416e2386d99f22ae54d692d27",
+  "evidence_code_tree": "52624e512e8b7a5d48963c538b3406ba3918c79c",
+  "accepted_master_base": "95f5794f46ce5e313c6b2548cb8dbfcfe917555a",
+  "canonical_clip": {
+    "identifier": "hermes-0000-1000.mp4",
+    "sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+    "duration_seconds": 600.016667,
+    "resolution": "1920x1080",
+    "codec": "h264",
+    "fps": 60
+  },
+  "accepted_bottleneck_evidence_reference": {
+    "selected_bottleneck_class": "DECODE_FRAME_PIPELINE",
+    "decision_confidence": "HIGH",
+    "total_decode_pipeline_seconds": 172.4571186000867,
+    "pass1_decode_seconds": 96.36347230006504,
+    "pass2_decode_seconds": 76.09364630002165,
+    "extract_features_seconds": 92.61781430006886,
+    "pass2_match_and_collect_seconds": 0.04362679996120278,
+    "median_detect_elapsed_seconds": 272.56575189999785
+  },
+  "canonical_runtime_evidence_commit": "9b4cc54949537b2a36e70a0f98f1cb732d6688b2",
+  "strict_control_evidence_commit": "ef589a12187c299f4bd086dc690a38b3f7095982",
+  "candidate_evaluations": {
+    "C1_PASS2_TARGETED_REPRESENTATIVE_FRAME_RETRIEVAL": {
+      "exact_parity": "FAIL",
+      "bounded_intervention": "YES",
+      "resource_model": "ACCEPTABLE",
+      "median_absolute_seconds_saved": null,
+      "median_percentage_reduction": null,
+      "directionally_faster_all_recorded_runs": null,
+      "projected_canonical_total_seconds_saved": null,
+      "strongest_counter_evidence": "All 84 representative frames failed exact cropped RGB SHA256 parity. Root cause: the production decode path (pyav_iter_frames, which accesses stream.codec_context) produces different pixel values than any alternative decode path (direct av.open + seek + decode) for the same video frame. This was verified by comparing the production decoder.iter_frames() output against direct av.open + demux + decode for the same frame index: pixels differ (max_diff=255, ~143K/6.2M differing pixels). The production HW decode path is non-reproducible by alternative container opens. C1 cannot achieve exact parity.",
+      "viability": false,
+      "rejection_reason": "EXACT_PARITY_FAIL \u2014 all 84 representative frames differ. The production decode path (pyav_iter_frames with stream.codec_context access) produces pixel values that no seek-based alternative decode path can reproduce. This is a HW decode environment-specific behavior, not a fixable bug.",
+      "shared_pass1_elapsed_seconds": 175.53996180000104,
+      "reference_wall_clock_seconds": 55.34686800000054,
+      "candidate_wall_clock_seconds": 24.844641000001502,
+      "reference_frames_sampled": 1201,
+      "candidate_frames_decoded": 12396
+    },
+    "C2_PASS1_SAMPLE_FRAME_RETENTION": {
+      "exact_parity": "NOT_APPLICABLE",
+      "bounded_intervention": "NO",
+      "resource_model": "UNDEFINED_PROJECT_RESOURCE_BUDGET",
+      "median_absolute_seconds_saved": null,
+      "median_percentage_reduction": null,
+      "directionally_faster_all_recorded_runs": null,
+      "projected_canonical_total_seconds_saved": null,
+      "strongest_counter_evidence": "Exact current representative-frame selection cannot be performed with bounded O(number_of_segments) frame storage. Retention is O(frames_sampled) = ~7.47 GB (1201 frames at 1920x1080x3). No project memory budget defined.",
+      "viability": false,
+      "rejection_reason": "UNBOUNDED_RETENTION_NO_RESOURCE_BUDGET \u2014 full sampled-frame retention required (~7.47 GB). No bounded O(segments) model exists. No project memory budget defined.",
+      "full_rgb_retention_bytes": 7471180800,
+      "retention_to_representative_ratio": 14.297619
+    },
+    "C3_PYAV_DECODE_CONFIGURATION_TUNING": {
+      "exact_parity": "NOT_APPLICABLE",
+      "bounded_intervention": "YES",
+      "resource_model": "ACCEPTABLE",
+      "median_absolute_seconds_saved": null,
+      "median_percentage_reduction": null,
+      "directionally_faster_all_recorded_runs": null,
+      "projected_canonical_total_seconds_saved": null,
+      "strongest_counter_evidence": "Only thread_count and thread_type are writable and potentially parity-preserving. Both are software threading options ignored by NVDEC hardware decode. No concrete mechanism to reduce HW decode cost. No evidence-supported variant.",
+      "viability": false,
+      "rejection_reason": "NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT \u2014 the only parity-preserving writable properties (thread_count, thread_type) have no mechanism to reduce NVDEC HW decode cost."
+    },
+    "C4_INSUFFICIENT_TARGET_OPTIMIZATION_DISCRIMINATION": {
+      "exact_parity": "NOT_APPLICABLE",
+      "bounded_intervention": "NOT_APPLICABLE",
+      "resource_model": "NOT_APPLICABLE",
+      "viability": false,
+      "description": "Honest fallback: C1 fails exact parity, C2 has no bounded resource model, C3 has no evidence-supported variant. DECODE_FRAME_PIPELINE remains the accepted primary bottleneck but no targeted optimization can be safely selected."
+    }
+  },
+  "decision_inputs": {
+    "outcome": "T3",
+    "decision_status": "BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
+    "selected_bottleneck_class": "DECODE_FRAME_PIPELINE",
+    "decision_confidence": "HIGH",
+    "selected_optimization": "NONE",
+    "step_18_4": "in_progress",
+    "step_18_5": "planned / blocked",
+    "new_finding": "F-0102"
+  }
+}
