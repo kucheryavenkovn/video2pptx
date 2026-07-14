@@ -1,0 +1,30 @@
+{
+  "evidence_code_head": "0bcfe540c62b5d1130ba2dbb3d067c46234062bb",
+  "evidence_code_tree": "a55759461374ac747b1e87e1611c544ce59ca969",
+  "accepted_master_base": "95f5794f46ce5e313c6b2548cb8dbfcfe917555a",
+  "clip_actual_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "clip_expected_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "sha256_match": true,
+  "sample_fps": 2.0,
+  "schema_version": "2.0.0",
+  "step": "18.4C-r2",
+  "reference_repeatability": "REFERENCE_EXACTLY_REPEATABLE",
+  "candidate_states": {
+    "C1": "NOT_VIABLE_EXACT_PARITY_FAIL",
+    "C2": "NOT_VIABLE_RESOURCE_MODEL",
+    "C3": "NOT_VIABLE_PERFORMANCE_FAIL"
+  },
+  "c3_approved_variants": [
+    "thread_count_1",
+    "thread_count_4",
+    "thread_count_8"
+  ],
+  "c3_candidate_selection_consistency": "PASS",
+  "c3_parity_result": "EXECUTED",
+  "viable_candidates": [],
+  "outcome": "T3",
+  "decision_status": "BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
+  "selected_bottleneck_class": "DECODE_FRAME_PIPELINE",
+  "decision_confidence": "HIGH",
+  "selected_optimization": "NONE"
+}

@@ -1,0 +1,44 @@
+{
+  "evidence_code_head": "0bcfe540c62b5d1130ba2dbb3d067c46234062bb",
+  "evidence_code_tree": "a55759461374ac747b1e87e1611c544ce59ca969",
+  "accepted_master_base": "95f5794f46ce5e313c6b2548cb8dbfcfe917555a",
+  "clip_actual_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "clip_expected_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "sha256_match": true,
+  "selection_function": "select_c3_variants(inspection, max_variants=3)",
+  "eligibility_rule": "writable == true AND classification == POTENTIALLY_PARITY_PRESERVING",
+  "candidate_selection_consistency": "PASS",
+  "eligible_boundaries": [
+    "thread_type",
+    "thread_count"
+  ],
+  "approved_variants": [
+    {
+      "name": "thread_count_1",
+      "property_or_options_boundary": "codec_context.thread_count",
+      "default_value": 0,
+      "candidate_value": 1,
+      "mechanistic_hypothesis": "Changing codec_context.thread_count may alter decoder scheduling/throughput; the actual effect in the production-equivalent path is unknown and must be measured.",
+      "frame_sequence_parity_risk": "UNKNOWN_REQUIRES_EXACT_MEASUREMENT",
+      "hwaccel_compatibility_risk": "UNKNOWN_NOT_PROVEN"
+    },
+    {
+      "name": "thread_count_4",
+      "property_or_options_boundary": "codec_context.thread_count",
+      "default_value": 0,
+      "candidate_value": 4,
+      "mechanistic_hypothesis": "Changing codec_context.thread_count may alter decoder scheduling/throughput; the actual effect in the production-equivalent path is unknown and must be measured.",
+      "frame_sequence_parity_risk": "UNKNOWN_REQUIRES_EXACT_MEASUREMENT",
+      "hwaccel_compatibility_risk": "UNKNOWN_NOT_PROVEN"
+    },
+    {
+      "name": "thread_count_8",
+      "property_or_options_boundary": "codec_context.thread_count",
+      "default_value": 0,
+      "candidate_value": 8,
+      "mechanistic_hypothesis": "Changing codec_context.thread_count may alter decoder scheduling/throughput; the actual effect in the production-equivalent path is unknown and must be measured.",
+      "frame_sequence_parity_risk": "UNKNOWN_REQUIRES_EXACT_MEASUREMENT",
+      "hwaccel_compatibility_risk": "UNKNOWN_NOT_PROVEN"
+    }
+  ]
+}
