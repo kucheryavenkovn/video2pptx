@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 # FILE: tools/discrimination_helpers.py
-# VERSION: 1.0.0
+# VERSION: 2.0.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Pure deterministic helpers for Step 18.4C target-optimization discrimination.
-#   SCOPE: Statistics (median/mean/stdev/paired reductions), frame parity checking,
-#          C2 resource byte calculations, C3 variant metadata validation,
-#          streaming frame sequence signatures.
-#   DEPENDS: hashlib, json, statistics
+#   SCOPE: Statistics, reference repeatability, exact C2 retention rules,
+#          deterministic C3 selection/guards, frame parity, and signatures.
+#   DEPENDS: hashlib, json, statistics, subprocess, platform process APIs
 #   LINKS: M-DETECT-PERF-DECISION, V-PERF-DETECT-BOTTLENECK
 #   ROLE: SCRIPT
 #   MAP_MODE: EXPORTS
@@ -31,6 +30,14 @@
 #   validate_c3_variant_metadata - required-fields validation for a C3 variant
 #   build_streaming_frame_signature - deterministic hash over a frame-signature sequence
 #   check_sequence_parity - exact yielded-frame-sequence parity
+#   classify_reference_repeatability - classify three independent decode sequences
+#   earliest_possible_representative - lower target bound for an unresolved segment
+#   can_evict_retained_frame - exact strict-tolerance eviction predicate
+#   select_c3_variants - deterministic variants from recorded inspection fields
+#   check_c3_selection_consistency - hard guard against eligible/zero contradiction
+#   validate_accepted_base - validate full commit SHA and HEAD ancestry
+#   balanced_recorded_order - required paired timing execution order
+#   process_rss_bytes - current process RSS with an explicit platform backend
 # END_MODULE_MAP
 """
 Pure deterministic helpers for Step 18.4C target-optimization discrimination.
@@ -41,11 +48,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import statistics
+import subprocess
+import sys
+from pathlib import Path
 from typing import Any
 
 _GB = 1_000_000_000
-_GIB = 1024 ** 3
+_GIB = 1024**3
 
 
 # =========================================================================
@@ -71,9 +82,7 @@ def compute_sample_stdev(values: list[float]) -> float:
     return float(statistics.stdev(values))
 
 
-def compute_paired_absolute_savings(
-    reference: list[float], candidate: list[float]
-) -> list[float]:
+def compute_paired_absolute_savings(reference: list[float], candidate: list[float]) -> list[float]:
     if len(reference) != len(candidate):
         raise ValueError(
             f"paired lengths differ: reference={len(reference)} candidate={len(candidate)}"
@@ -97,9 +106,7 @@ def compute_paired_percentage_reduction(
     return results
 
 
-def compute_median_reduction_percent(
-    reference: list[float], candidate: list[float]
-) -> float:
+def compute_median_reduction_percent(reference: list[float], candidate: list[float]) -> float:
     return compute_median(compute_paired_percentage_reduction(reference, candidate))
 
 
@@ -230,10 +237,11 @@ def check_frame_parity(
         else:
             entry["exact_byte_match"] = None
 
-        entry["status"] = "PASS" if (
-            ts_match and sha_match and shape_match and
-            (entry["exact_byte_match"] is not False)
-        ) else "FAIL"
+        entry["status"] = (
+            "PASS"
+            if (ts_match and sha_match and shape_match and (entry["exact_byte_match"] is not False))
+            else "FAIL"
+        )
         if entry["status"] == "FAIL":
             result["parity_pass"] = False
 
@@ -324,3 +332,229 @@ def check_sequence_parity(
         "final_sequence_signature_identical": sig_match,
         "parity_pass": count_match and ts_match and hash_match and sig_match,
     }
+
+
+# =========================================================================
+# Reference repeatability
+# =========================================================================
+
+
+def classify_reference_repeatability(runs: list[dict[str, Any]]) -> dict[str, Any]:
+    """Classify exact sequence repeatability across three independent opens."""
+    if len(runs) != 3:
+        raise ValueError("exactly three reference runs are required")
+    comparisons: dict[str, dict[str, bool]] = {}
+    all_equal = True
+    for left, right in ((0, 1), (0, 2), (1, 2)):
+        a, b = runs[left], runs[right]
+        key = f"run{left + 1:02d}_run{right + 1:02d}"
+        comparison = {
+            "frame_count_identical": a["frames_yielded"] == b["frames_yielded"],
+            "timestamp_sequence_identical": a["yielded_timestamps"] == b["yielded_timestamps"],
+            "shape_sequence_identical": a["shapes"] == b["shapes"],
+            "rgb_sequence_identical": a["frame_hashes"] == b["frame_hashes"],
+            "complete_signature_identical": a["sequence_signature"] == b["sequence_signature"],
+        }
+        comparison["exact_match"] = all(comparison.values())
+        comparisons[key] = comparison
+        all_equal = all_equal and comparison["exact_match"]
+    classification = (
+        "REFERENCE_EXACTLY_REPEATABLE"
+        if all_equal
+        else "REFERENCE_PIXEL_NONDETERMINISTIC_ACROSS_OPENS"
+    )
+    return {
+        "run_count": 3,
+        "comparisons": comparisons,
+        "classification": classification,
+        "exact_byte_cross_open_discriminator_valid": all_equal,
+    }
+
+
+# =========================================================================
+# C2 exact rolling retention model
+# =========================================================================
+
+
+def representative_timestamp(start: float, end: float) -> float:
+    """Mirror segmenter.choose_representative_timestamp exactly."""
+    duration = end - start
+    factor = 0.8 if duration >= 6.0 else 0.5
+    return min(start + factor * duration, end - 0.01)
+
+
+def earliest_possible_representative(segment_start: float, current_time: float) -> float:
+    """Lower representative target over all legal final ends >= current_time."""
+    duration = current_time - segment_start
+    if duration < 0:
+        raise ValueError("current_time precedes segment_start")
+    factor = 0.8 if duration >= 6.0 else 0.5
+    return min(segment_start + factor * duration, current_time - 0.01)
+
+
+def can_evict_retained_frame(
+    frame_timestamp: float,
+    segment_start: float,
+    current_time: float,
+    sample_tolerance: float,
+) -> bool:
+    """Return true when strict tolerance makes future selection impossible."""
+    lower_target = earliest_possible_representative(segment_start, current_time)
+    return frame_timestamp + sample_tolerance <= lower_target
+
+
+def select_first_strict_match(
+    timestamps: list[float], target: float, tolerance: float
+) -> float | None:
+    """Select the first timestamp satisfying the production strict tolerance."""
+    return next((ts for ts in timestamps if abs(ts - target) < tolerance), None)
+
+
+# =========================================================================
+# C3 deterministic selection and provenance
+# =========================================================================
+
+
+def select_c3_variants(inspection: dict[str, Any], max_variants: int = 3) -> list[dict[str, Any]]:
+    """Select variants using only recorded inspection fields and stable ordering."""
+    if max_variants < 0:
+        raise ValueError("max_variants must be non-negative")
+    variants: list[dict[str, Any]] = []
+    properties = inspection.get("properties", {})
+    for name in ("thread_count", "thread_type"):
+        prop = properties.get(name, {})
+        if not (
+            prop.get("writable") is True
+            and prop.get("classification") == "POTENTIALLY_PARITY_PRESERVING"
+        ):
+            continue
+        default_value = prop.get("default_value")
+        values = (1, 4, 8) if name == "thread_count" else (1, 2)
+        for value in values:
+            if value == default_value:
+                continue
+            variants.append(
+                {
+                    "name": f"{name}_{value}",
+                    "property_or_options_boundary": f"codec_context.{name}",
+                    "default_value": default_value,
+                    "candidate_value": value,
+                    "mechanistic_hypothesis": (
+                        f"Changing codec_context.{name} may alter decoder scheduling/throughput; "
+                        "the actual effect in the production-equivalent path is unknown and must be measured."
+                    ),
+                    "frame_sequence_parity_risk": "UNKNOWN_REQUIRES_EXACT_MEASUREMENT",
+                    "hwaccel_compatibility_risk": "UNKNOWN_NOT_PROVEN",
+                }
+            )
+    return variants[:max_variants]
+
+
+def check_c3_selection_consistency(
+    inspection: dict[str, Any], variants: list[dict[str, Any]]
+) -> str:
+    """Enforce machine-readable eligible-boundary/variant consistency."""
+    eligible = [
+        prop
+        for prop in inspection.get("properties", {}).values()
+        if prop.get("writable") is True
+        and prop.get("classification") == "POTENTIALLY_PARITY_PRESERVING"
+    ]
+    if not eligible or variants:
+        return "PASS"
+    if all(prop.get("direct_runtime_exclusion_evidence") for prop in eligible):
+        return "PASS_ALL_ELIGIBLE_BOUNDARIES_DIRECTLY_EXCLUDED"
+    return "FAIL_ELIGIBLE_BOUNDARIES_WITH_ZERO_VARIANTS"
+
+
+def validate_accepted_base(accepted_base: str, repo: Path) -> None:
+    """Require a full lowercase commit SHA that is an ancestor of HEAD."""
+    if len(accepted_base) != 40 or any(c not in "0123456789abcdef" for c in accepted_base):
+        raise ValueError("accepted base must be a full lowercase 40-character SHA")
+    try:
+        object_type = subprocess.check_output(
+            ["git", "cat-file", "-t", accepted_base],
+            cwd=repo,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except subprocess.CalledProcessError as exc:
+        raise ValueError("accepted base Git object does not exist") from exc
+    if object_type != "commit":
+        raise ValueError(f"accepted base is {object_type}, expected commit")
+    result = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", accepted_base, "HEAD"],
+        cwd=repo,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise ValueError("accepted base is not an ancestor of HEAD")
+
+
+def collect_git_provenance(repo: Path, allowed_evidence_root: Path | None = None) -> dict[str, str]:
+    """Record committed HEAD/tree and reject dirt outside the active evidence root."""
+    status_lines = subprocess.check_output(
+        ["git", "status", "--short"], cwd=repo, text=True
+    ).splitlines()
+    if allowed_evidence_root is not None:
+        allowed = allowed_evidence_root.resolve().relative_to(repo.resolve()).as_posix().rstrip("/")
+        status_lines = [
+            line
+            for line in status_lines
+            if not line[3:].replace("\\", "/").startswith(f"{allowed}/")
+            and line[3:].replace("\\", "/") != allowed
+        ]
+    if status_lines:
+        raise ValueError(f"evidence execution found dirt outside evidence root: {status_lines}")
+    head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
+    tree = subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"], cwd=repo, text=True).strip()
+    return {"evidence_code_head": head, "evidence_code_tree": tree}
+
+
+def balanced_recorded_order() -> list[str]:
+    """Return the required balanced three-pair timing order."""
+    return [
+        "reference-01",
+        "candidate-01",
+        "candidate-02",
+        "reference-02",
+        "reference-03",
+        "candidate-03",
+    ]
+
+
+def process_rss_bytes() -> tuple[int | None, str]:
+    """Return current RSS and the exact measurement backend."""
+    if sys.platform == "win32":
+        import ctypes
+        from ctypes import wintypes
+
+        class ProcessMemoryCounters(ctypes.Structure):
+            _fields_ = [
+                ("cb", wintypes.DWORD),
+                ("PageFaultCount", wintypes.DWORD),
+                ("PeakWorkingSetSize", ctypes.c_size_t),
+                ("WorkingSetSize", ctypes.c_size_t),
+                ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                ("PagefileUsage", ctypes.c_size_t),
+                ("PeakPagefileUsage", ctypes.c_size_t),
+            ]
+
+        counters = ProcessMemoryCounters()
+        counters.cb = ctypes.sizeof(counters)
+        handle = ctypes.windll.kernel32.GetCurrentProcess()
+        ok = ctypes.windll.psapi.GetProcessMemoryInfo(handle, ctypes.byref(counters), counters.cb)
+        if ok:
+            return int(counters.WorkingSetSize), "WIN32_GetProcessMemoryInfo"
+        return None, "WIN32_GetProcessMemoryInfo_FAILED"
+    try:
+        import resource
+
+        value = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        multiplier = 1 if sys.platform == "darwin" else 1024
+        return int(value * multiplier), "resource.getrusage_ru_maxrss"
+    except Exception:
+        return None, f"UNAVAILABLE_pid_{os.getpid()}"

@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "package": "target-optimization-discrimination-20260714-13e6fff",
+  "evidence_commit": "b869464a6e84b2deba83a3df5e7c37ffe65ccde8",
+  "decision_commit": "4b6eba59467110642e0959407d7bec9ff59ac7d8",
+  "acceptance_classification": "REJECTED_FOR_STEP_18_4C_ACCEPTANCE",
+  "primary_reason": "C3_CODE_ARTIFACT_PROVENANCE_CONTRADICTION",
+  "additional_reasons": [
+    "UNSUPPORTED_C1_CAUSAL_ATTRIBUTION",
+    "C2_UPPER_BOUND_MISLABELED_AS_REQUIRED_MINIMUM"
+  ],
+  "retained_historical_observations": {
+    "c1": "The exact tested seek-based prototype produced 84 reference frames, 84 candidate frames, matching sampled timestamps, and 0/84 cropped RGB SHA256 and exact-byte matches.",
+    "c2": "1201 * 1920 * 1080 * 3 = 7471180800 bytes is a valid retain-all upper-bound calculation."
+  },
+  "rejected_current_conclusions": {
+    "c3": "NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT",
+    "outcome": "T3",
+    "finding": "F-0102"
+  },
+  "c3_provenance_fact": "The committed inspection marks thread_count and thread_type writable and POTENTIALLY_PARITY_PRESERVING, while the committed selection code deterministically constructs variants before truncating to three; approved_variants=[] is therefore not accepted.",
+  "raw_measurements_modified": false
+}

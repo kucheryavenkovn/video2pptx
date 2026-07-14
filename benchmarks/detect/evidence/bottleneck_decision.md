@@ -313,60 +313,29 @@ Step 18.4A's strict control was an `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DE
 
 ---
 
-## 15. Step 18.4C — Target Optimization Discrimination (2026-07-14)
+## 15. Step 18.4C — Target Optimization Discrimination Correction (2026-07-14)
 
-**Status:** done.
-**Outcome:** T3 — BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION.
+**Status:** in_progress.
+**Corrected evidence:** not yet executed.
 **Selected optimization:** NONE.
 **Step 18.4:** in_progress.
-**Step 18.5:** planned / blocked.
-**New finding:** F-0102 (OPEN).
+**Step 18.5:** planned / blocked; implementation not started.
+**F-0102:** `REJECTED_STEP_18_4C_DRAFT_FINDING`; not current.
 
-Evidence branch: `perf/phase18-target-optimization-discrimination`.
-Evidence code HEAD: `142da834b1a9c16416e2386d99f22ae54d692d27`.
-Evidence commit: `b869464`.
-Evidence dir: `benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/`.
+The package in `benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/`
+(evidence commit `b869464a6e84b2deba83a3df5e7c37ffe65ccde8`, decision commit
+`4b6eba59467110642e0959407d7bec9ff59ac7d8`) is
+`REJECTED_FOR_STEP_18_4C_ACCEPTANCE`.
 
-### C1 — PASS2_TARGETED_REPRESENTATIVE_FRAME_RETRIEVAL
+Primary reason: `C3_CODE_ARTIFACT_PROVENANCE_CONTRADICTION`.
 
-**Viability: NOT VIABLE — exact parity FAIL (0/84 targets).**
+Additional reasons: `UNSUPPORTED_C1_CAUSAL_ATTRIBUTION` and
+`C2_UPPER_BOUND_MISLABELED_AS_REQUIRED_MINIMUM`.
 
-Root cause: the production decode path (`pyav_iter_frames`, which accesses `stream.codec_context`)
-produces systematically different pixel values than any alternative decode path (direct
-`av.open + seek + decode`) for the same video frame. This was confirmed by comparing
-`VideoDecoder.iter_frames()` output against direct `av.open + demux + decode` for the same
-frame index — pixels differ (max_diff=255, ~143K/6.2M differing pixels). The candidate's
-seek-based retrieval cannot reproduce the exact production pixels. This is a HW decode
-environment-specific behavior (PyAV 18.0.0 / NVDEC / CUDA).
+The exact tested C1 prototype's 0/84 result remains historical, with root cause
+`UNKNOWN_NOT_ISOLATED`. The C2 value 7,471,180,800 bytes remains
+`retain_all_upper_bound_bytes`, not a proven minimum. C3
+`NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT` and Outcome T3 are not accepted.
 
-Rejection: EXACT_PARITY_FAIL.
-
-### C2 — PASS1_SAMPLE_FRAME_RETENTION
-
-**Viability: NOT VIABLE — no bounded resource model.**
-
-Full RGB retention: 7,471,180,800 bytes (7.47 GB / 6.96 GiB).
-Retention/representative ratio: 14.30x (1201 sampled frames / 84 representative frames).
-Bounded O(number_of_segments) retention is impossible without changing representative
-timestamp semantics — the segment end boundary is unknown until the next change event.
-No project memory budget defined.
-
-Rejection: UNBOUNDED_RETENTION_NO_RESOURCE_BUDGET.
-
-### C3 — PYAV_DECODE_CONFIGURATION_TUNING
-
-**Viability: NOT VIABLE — no evidence-supported variant.**
-
-Inspected PyAV 18.0.0 codec context: only `thread_count` and `thread_type` are writable
-and potentially parity-preserving. Both are software threading options ignored by NVDEC
-hardware decode. `skip_frame` is SEMANTICS_CHANGE_FRAME_SEQUENCE. All other options
-(low_delay, skip_loop_filter, skip_non_ref, skip_idct) are NOT_AVAILABLE.
-
-Rejection: NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT.
-
-### Decision
-
-DECODE_FRAME_PIPELINE remains the accepted primary bottleneck (172.46s, 63.27%, HIGH confidence),
-but C1/C2/C3 discrimination found no exact-parity, bounded, evidence-supported optimization
-satisfying the Step 18.4 selection contract. Step 18.4 remains in_progress; Step 18.5 remains
-planned/blocked. F-0102 created.
+No terminal corrected decision exists until clean committed diagnostic code emits the new r2
+child artifacts and a child-consistent aggregate.

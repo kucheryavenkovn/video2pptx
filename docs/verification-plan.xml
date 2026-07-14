@@ -1385,25 +1385,28 @@
     </result></evidence>
   </V-PERF-DETECT-BOTTLENECK>
 
-  <V-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION MODULE="Phase-18/Step-18.4C" PRIORITY="medium" STATUS="done">
+  <V-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION MODULE="Phase-18/Step-18.4C" PRIORITY="medium" STATUS="in_progress">
     <purpose>Discriminate remaining DECODE_FRAME_PIPELINE optimization candidates (C1-C4)
       using source semantics, exact frame parity, resource evidence, and focused
       microbenchmarks.</purpose>
+    <verification-contract>
+      <scenario-1 kind="success">Three fresh production-equivalent complete sampled decodes classify exact cross-open byte repeatability from direct timestamp, shape, RGB hash, and complete signatures.</scenario-1>
+      <scenario-2 kind="success">The C2 model records exact admission, eviction, six-second transition, strict tolerance, accepted-boundary handling, proof, complexity, and canonical peak resource measurements.</scenario-2>
+      <scenario-3 kind="success">Live C3 inspection deterministically selects at most three variants from recorded fields and hard-fails eligible-boundary/zero-variant contradictions.</scenario-3>
+      <scenario-4 kind="failure">Stop terminal discrimination when baseline reference nondeterminism invalidates cross-open exact-byte gates; do not invent a tolerance.</scenario-4>
+      <scenario-5 kind="failure">Reject canonical SHA mismatch, abbreviated/non-commit/non-ancestor accepted bases, child/aggregate contradictions, duplicate JSON keys, or dirty evidence-code execution.</scenario-5>
+      <required-evidence>reference_repeatability.json, c1_status.json, c2_retention_model.json, c3_inspection.json, c3_variants.json, discrimination_evidence.json, discrimination_report.md, environment.json, plus conditional parity/run artifacts.</required-evidence>
+      <commands>python -m pytest tests/test_target_optimization_discrimination.py -v; ruff check changed Python; duplicate-key JSON validation; strict XML parsing; git diff --check</commands>
+      <stop-condition>Do not produce a terminal candidate decision until committed clean correction code emits all applicable child artifacts and the aggregate agrees with them.</stop-condition>
+    </verification-contract>
     <evidence><result>
-      Step 18.4C = done. Outcome T3: BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION.
-      C1 (PASS2_TARGETED_REPRESENTATIVE_FRAME_RETRIEVAL): exact parity FAIL (0/84 targets).
-      Root cause: production decode path (pyav_iter_frames with stream.codec_context access)
-      produces different pixel values than alternative decode paths. HW decode environment-specific.
-      C2 (PASS1_SAMPLE_FRAME_RETENTION): no bounded O(segments) model (~7.47 GB retention).
-      C3 (PYAV_DECODE_CONFIGURATION_TUNING): NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT
-      (thread_count/thread_type ignored by NVDEC).
-      C4: honest fallback.
-      selected_optimization=NONE. F-0102 created (OPEN).
-      Step 18.4 remains in_progress; Step 18.5 planned/blocked.
-      Evidence dir: benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/
-      Evidence code HEAD: 142da834b1a9c16416e2386d99f22ae54d692d27
-      Evidence commit: b869464a6e84b2deba83a3df5e7c37ffe65ccde8
-      Diagnostic tests: tests/test_target_optimization_discrimination.py (40/40 PASS)
+      IN PROGRESS. The b869464/4b6eba5 package is REJECTED_FOR_STEP_18_4C_ACCEPTANCE
+      because of C3_CODE_ARTIFACT_PROVENANCE_CONTRADICTION, unsupported C1 causality,
+      and a C2 retain-all upper bound mislabeled as a required minimum. C1 0/84 and the
+      7,471,180,800-byte arithmetic remain historical observations only. C1 root cause is
+      UNKNOWN_NOT_ISOLATED. Outcome T3 and C3 NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT
+      are not accepted. F-0102 is rejected draft context. selected_optimization=NONE;
+      Step 18.4 and Step 18.4C remain in_progress; Step 18.5 planned/blocked.
     </result></evidence>
   </V-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION>
 

@@ -1,8 +1,8 @@
 # FILE: src/video2pptx/slide_detector.py
-# VERSION: 0.1.0
+# VERSION: 0.1.1
 # START_MODULE_CONTRACT
 #   PURPOSE: Slide change detection via frame comparison with threshold and debounce
-#   SCOPE: Compare consecutive frames, detect significant changes, apply debounce via min_stable_duration
+#   SCOPE: Compare consecutive frames, detect significant changes, apply debounce, and expose an optional disabled evidence observer
 #   DEPENDS: frame_features, roi, models, numpy, loguru, detection_metrics
 #   LINKS: M-SLIDE-DETECTOR
 #   ROLE: RUNTIME
@@ -15,7 +15,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.1.0 - Restored accepted contracts and detection navigation anchors
+#   LAST_CHANGE: v0.1.1 - Added a disabled-by-default diagnostic observer without changing detection semantics
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -57,10 +57,11 @@ def detect_changes(
     extract_fn: Callable | None = None,
     distance_fn: Callable | None = None,
     quick_mode: bool = False,
+    evidence_observer: Callable[[str, dict], None] | None = None,
 ) -> tuple[list[ChangeEvent], list[FrameFeatures], list[float]]:
     # START_CONTRACT: detect_changes
     #   PURPOSE: Scan consecutive frames and identify debounced slide changes
-    #   INPUTS: { frames: timestamp/image iterator, slide_region: SlideRegion|None, threshold: float|str, min_stable_duration: float, sample_fps: float, video_duration: float|None, progress_callback: Callable|None, extract_fn: Callable|None, distance_fn: Callable|None, quick_mode: bool }
+    #   INPUTS: { frames: timestamp/image iterator, slide_region: SlideRegion|None, threshold: float|str, min_stable_duration: float, sample_fps: float, video_duration: float|None, progress_callback: Callable|None, extract_fn: Callable|None, distance_fn: Callable|None, quick_mode: bool, evidence_observer: optional diagnostic callback }
     #   OUTPUTS: { tuple[list[ChangeEvent], list[FrameFeatures], list[float]] }
     #   SIDE_EFFECTS: emits progress logs and optional progress callbacks
     #   LINKS: M-SLIDE-DETECTOR, M-DETECT-METRICS
@@ -84,6 +85,8 @@ def detect_changes(
 
         with measure("roi"):
             cropped = slide_region.process(image)
+        if evidence_observer is not None:
+            evidence_observer("sampled_frame", {"timestamp": timestamp, "image": cropped})
 
         with measure("extract_features"):
             ff = _extract(cropped)
@@ -104,14 +107,23 @@ def detect_changes(
             with measure("threshold"):
                 actual_threshold = _resolve_threshold(threshold, all_scores, timestamp)
             if score > actual_threshold:
-                changes.append(ChangeEvent(timestamp=timestamp, score=score, features=ff))
+                event = ChangeEvent(timestamp=timestamp, score=score, features=ff)
+                changes.append(event)
+                if evidence_observer is not None:
+                    evidence_observer(
+                        "candidate_change", {"event": event, "candidates": tuple(changes)}
+                    )
                 logger.debug(
                     f"[SlideDetector][detect_changes] Candidate change | "
                     f"ts={timestamp:.2f} score={score:.4f} threshold={actual_threshold:.4f}"
                 )
 
         if timestamp >= next_progress:
-            pct = f"{timestamp / video_duration * 100:.0f}%" if video_duration else f"{timestamp:.0f}s"
+            pct = (
+                f"{timestamp / video_duration * 100:.0f}%"
+                if video_duration
+                else f"{timestamp:.0f}s"
+            )
             logger.info(
                 f"[SlideDetector][detect_changes] Progress | "
                 f"{pct} ts={timestamp:.0f}s changes={len(changes)}"
@@ -130,6 +142,8 @@ def detect_changes(
     with measure("debounce"):
         stable_frames = max(1, int(round(sample_fps * min_stable_duration)))
         changes = _debounce_changes(changes, stable_frames)
+    if evidence_observer is not None:
+        evidence_observer("debounced_changes", {"changes": tuple(changes)})
     # END_BLOCK_DEBOUNCE
 
     logger.info(
@@ -150,10 +164,9 @@ def _debounce_changes(changes: list[ChangeEvent], min_stable_frames: int) -> lis
         return changes
     result: list[ChangeEvent] = [changes[0]]
     for i in range(1, len(changes)):
-        gap_frames = int(round(
-            (changes[i].timestamp - result[-1].timestamp)
-            / max(0.5, 1.0 / 30.0)
-        ))
+        gap_frames = int(
+            round((changes[i].timestamp - result[-1].timestamp) / max(0.5, 1.0 / 30.0))
+        )
         if gap_frames >= min_stable_frames:
             result.append(changes[i])
         else:

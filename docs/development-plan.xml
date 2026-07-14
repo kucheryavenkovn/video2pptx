@@ -1356,21 +1356,21 @@
         Supporting evidence only; not primary evidence. No new finding created. selected_optimization=NONE;
         Step 18.4 remains in_progress; Step 18.5 planned/blocked.
       </step-18.4b>
-      <step-18.4c name="TargetOptimizationDiscrimination" status="done">
-        DONE (2026-07-14). Discriminated the remaining DECODE_FRAME_PIPELINE optimization
-        candidates (C1: PASS2_TARGETED_REPRESENTATIVE_FRAME_RETRIEVAL,
-        C2: PASS1_SAMPLE_FRAME_RETENTION,
-        C3: PYAV_DECODE_CONFIGURATION_TUNING,
-        C4: INSUFFICIENT_TARGET_OPTIMIZATION_DISCRIMINATION) using source semantics,
-        exact frame parity, resource evidence, and focused microbenchmarks.
-        Outcome T3: no candidate viable. C1 exact parity FAIL (0/84) — production HW decode
-        path non-reproducible across alternative container opens. C2 no bounded O(segments)
-        retention model (~7.47 GB). C3 no evidence-supported variant (thread settings ignored
-        by NVDEC). F-0102 created (OPEN).
-        Evidence branch: perf/phase18-target-optimization-discrimination.
-        Evidence code HEAD 142da834, evidence commit b869464, evidence dir
-        benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/.
-        Step 18.4 remains in_progress; Step 18.5 planned/blocked; selected_optimization=NONE.
+      <step-18.4c name="TargetOptimizationDiscrimination" status="in_progress">
+        IN PROGRESS (forensic correction, 2026-07-14). The package at
+        benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/
+        (evidence commit b869464a6e84b2deba83a3df5e7c37ffe65ccde8; decision commit
+        4b6eba59467110642e0959407d7bec9ff59ac7d8) is REJECTED_FOR_STEP_18_4C_ACCEPTANCE.
+        Primary reason: C3_CODE_ARTIFACT_PROVENANCE_CONTRADICTION. Additional reasons:
+        UNSUPPORTED_C1_CAUSAL_ATTRIBUTION and C2_UPPER_BOUND_MISLABELED_AS_REQUIRED_MINIMUM.
+        Historical facts retained: the exact C1 prototype produced 0/84 exact frame matches;
+        7,471,180,800 bytes is the retain-all upper bound. C1 root cause is
+        UNKNOWN_NOT_ISOLATED. C3 NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT and Outcome T3
+        are not accepted. F-0102 is a REJECTED_STEP_18_4C_DRAFT_FINDING and is not current.
+        Corrected work must first establish reference cross-open byte repeatability, derive and
+        execute an exact C2 retention model where possible, and select/run C3 variants directly
+        from live inspection with provenance and consistency guards. selected_optimization=NONE;
+        Step 18.4 remains in_progress; Step 18.5 remains planned/blocked and not started.
       </step-18.4c>
       <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
         Blocked: Step 18.4 has not selected a targeted optimization. Step 18.5 remains planned
