@@ -7,9 +7,10 @@
 **Selected optimization:** NONE
 
 **F-0097:** RESOLVED — decoder/frame advancement pipeline wall-clock captured.
-**F-0098:** PARTIALLY_RESOLVED — canonical Hermes H.264 runtime evidence collected; `codec_context_is_hwaccel=true` confirmed; `actual_hardware_decode_active` remains UNKNOWN_NOT_PROVEN (observer design; conclusion confidence NOT_ESTABLISHED; observation completeness confidence HIGH); no targeted optimization selected.
+**F-0098:** RESOLVED (activation-defect discrimination) — strict no-software-fallback CUDA control (Step 18.4B) decoded a canonical H.264 frame (`FIRST_FRAME_DECODED`); no activation/fallback defect proven; `PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX` contradicted. Bounded: does NOT prove all production decode was hardware. No targeted optimization selected.
 **F-0100:** RESOLVED — canonical Hermes H.264 clip located and copied local-only (not committed).
-**Strict fallback control:** `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT` (premature `break` after the first demuxed packet) — NOT a runtime signal, carries no evidentiary weight; must be corrected before the next HWAccel evidence decision.
+**Step 18.4A strict control (historical):** `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT` (premature `break`) in raw `9b4cc` — carried no evidentiary weight; immutable provenance.
+**Step 18.4B strict control (corrected):** `FIRST_FRAME_DECODED` (`allow_software_fallback=false`, packets_examined=3, frames_decoded=1, frames_converted=1, container_closed=true) — corrected control demuxes until first frame / EOF / exception; see §12B.
 
 ---
 
@@ -115,9 +116,10 @@ Other candidates (FEATURE_EXTRACTION_CPU, PASS2_COLLECTION, THRESHOLD_OR_DECISIO
 | **Decision confidence** | HIGH |
 | **Selected optimization** | `NONE` |
 | **F-0097** | RESOLVED — decoder/frame advancement pipeline wall-clock captured. |
-| **F-0098** | PARTIALLY_RESOLVED — canonical Hermes H.264 runtime evidence collected; activation still UNKNOWN_NOT_PROVEN (conclusion confidence NOT_ESTABLISHED). |
+| **F-0098** | RESOLVED (activation-defect discrimination) — strict no-fallback CUDA control decoded a canonical frame (FIRST_FRAME_DECODED); no activation defect proven. |
 | **F-0100** | RESOLVED — canonical clip located and copied local-only. |
-| **Strict fallback control** | INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT (premature `break`); not a runtime signal; must be fixed before next evidence decision. |
+| **Step 18.4A strict control** | INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT (historical, raw 9b4cc) — no evidentiary weight. |
+| **Step 18.4B strict control** | FIRST_FRAME_DECODED (corrected, allow_software_fallback=false); OUTCOME_S1. |
 
 ---
 
@@ -154,9 +156,9 @@ The hypothesized intervention already existed in source at that HEAD. No committ
 - **Verdict:** Observability gap closed and exercised on the canonical clip. Cannot be the sole optimization for Step 18.5.
 
 ### PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX
-- **Type:** Conditional optimization (requires direct runtime proof of an activation defect).
-- **Current evidence:** NONE — canonical Hermes H.264 production-path evidence does NOT directly prove hardware decode was inactive and does NOT directly prove a software fallback occurred (`actual_hardware_decode_active = UNKNOWN_NOT_PROVEN` by observer design; conclusion confidence NOT_ESTABLISHED). The strict fallback control is `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT` (premature `break`) and provides no signal.
-- **Verdict:** Not viable. No activation defect is directly proven, so no bounded activation/fallback fix can be selected.
+- **Type:** Conditional optimization (would have required direct runtime proof of an activation defect).
+- **Current evidence:** CONTRADICTED — Step 18.4B corrected strict no-software-fallback control (`HWAccel('cuda',0)`, `allow_software_fallback=false`) on the exact canonical Hermes H.264 clip produced `FIRST_FRAME_DECODED` (packets_examined=3, frames_decoded=1, frames_converted=1, container_closed=true; strict_control_evidence_commit `ef589a1`). The current environment decodes at least one canonical H.264 frame through a CUDA HWAccel configuration with software fallback explicitly disabled.
+- **Verdict:** CONTRADICTED. No CUDA activation/fallback defect is proven — the strict no-fallback path already decodes the canonical stream — so there is nothing for this optimization to fix. Bounded: this does NOT prove all production decode was hardware, that the production fallback-enabled path never fell back, or any speedup.
 
 ### SECOND_PASS_DECODE_ELIMINATION_OR_REUSE
 - **Target:** Save ~76s (27.92%) from pass2_decode_or_frame_advance.
@@ -267,6 +269,25 @@ Evidence mechanism **implemented, corrected, and exercised on the canonical Herm
 
 ---
 
+## 12B. Step 18.4B — Corrected Strict No-Software-Fallback Control (OUTCOME_S1)
+
+Step 18.4A's strict control was an `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT` (premature outer `break` after the first demux packet). Step 18.4B corrected it and re-ran **only** the corrected control on the exact canonical Hermes H.264 clip (production observations were NOT rerun; raw `9b4cc` is immutable).
+
+- **Corrected loop behavior:** demux/decode until ONE deterministic terminal state — `FIRST_FRAME_DECODED` / `EOF_NO_FRAME` / `PACKET_LIMIT_REACHED_NO_FRAME` / `SETUP_EXCEPTION` / `CONTAINER_OPEN_EXCEPTION` / `DECODE_EXCEPTION` / `FRAME_CONVERSION_EXCEPTION`. It does NOT stop merely because one packet yielded zero frames; container is explicitly closed in a `finally` block.
+- **Result:** `FIRST_FRAME_DECODED` (stage `first_frame_decoded`).
+  - `requested_hw_device = cuda`; `allow_software_fallback = false`
+  - `packets_examined = 3`; `packets_with_decoded_frames = 1`; `frames_decoded = 1`; `frames_converted = 1`
+  - `first_frame_timestamp = 0.033`; `first_frame_shape = [1080, 1920, 3]`; `codec_name = h264`
+  - `container_opened = true`; `container_closed = true`; no error
+- **Evidence dir:** `benchmarks/detect/evidence/hwaccel-strict-control-hermes-h264-20260714/`
+- **Commits:** strict-control code `04c0dc1f` (tree `b93329dd`); raw strict evidence `ef589a1`; accepted master base `547dc06e`; canonical runtime evidence `9b4cc` (unchanged).
+- **Bounded fact (directly proven):** the current environment supports decoding at least one canonical H.264 frame through a CUDA HWAccel configuration with software fallback explicitly disabled.
+- **NOT proven:** that all production benchmark frames used hardware decode; that the production fallback-enabled path never used software fallback; any decode throughput improvement / speedup.
+- **Confidence:** `strict_control_execution_completeness_confidence = HIGH`; `strict_control_runtime_interpretation_confidence = HIGH`.
+- **Decision (OUTCOME_S1):** no CUDA activation/fallback defect is proven → `PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX` is CONTRADICTED. `F-0098 = RESOLVED` (activation-defect discrimination). `selected_optimization = NONE`; `Step 18.4 = in_progress`; `Step 18.4B = done`; `Step 18.5 = planned / blocked`. No new finding (the corrected control succeeded; no new gap).
+
+---
+
 ## 13. F-0088 Status
 
 **OPEN** — 28 slides detected, 6 PNG screenshots written. Pre-existing quality observation, unchanged by this decision.
@@ -279,7 +300,9 @@ Evidence mechanism **implemented, corrected, and exercised on the canonical Herm
 - **F-0088:** 28 slides / 6 PNGs — remains OPEN.
 - **F-0096:** Previous rejected draft at incorrect HEAD. Historical.
 - **F-0097:** RESOLVED — decoder/frame advancement pipeline wall-clock captured.
-- **F-0098:** PARTIALLY_RESOLVED — canonical Hermes H.264 runtime evidence collected; `codec_context_is_hwaccel=true` confirmed; `actual_hardware_decode_active` remains UNKNOWN_NOT_PROVEN (conclusion confidence NOT_ESTABLISHED).
+- **F-0098:** RESOLVED (activation-defect discrimination) — Step 18.4B corrected strict control decoded a canonical H.264 frame (FIRST_FRAME_DECODED); no CUDA activation/fallback defect proven; PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX contradicted. Production-path actual_hardware_decode_active remains UNKNOWN_NOT_PROVEN by observer design (not needed to discriminate the optimization).
 - **F-0100:** RESOLVED — canonical Hermes H.264 clip located and copied local-only (not committed).
-- **Strict fallback control:** `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT` (premature `break` after first packet); not a runtime gap and not a finding; must be fixed before the next HWAccel evidence decision.
+- **Step 18.4A strict control:** `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT` (historical, raw 9b4cc) — no evidentiary weight; immutable provenance.
+- **Step 18.4B strict control:** corrected; `FIRST_FRAME_DECODED`; demuxes until first frame / EOF / exception; explicit container close.
 - **PYAV_HWACCEL_CUDA:** REJECTED_SOURCE_MODEL_MISMATCH. Source already requests HWAccel (historical source state at rejection HEAD `acb424f`; current production uses `_create_hwaccel_with_evidence()`).
+- **PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX:** CONTRADICTED_BY_STRICT_NO_FALLBACK_CONTROL (Step 18.4B FIRST_FRAME_DECODED).

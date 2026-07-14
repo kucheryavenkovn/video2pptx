@@ -1295,21 +1295,24 @@
         Canonical signature 8cc06c6accb055fb — no quality regression.
         Residual dropped from 87.39s (33.0%) to 0.53s (0.19%).
         Decision: DECODE_FRAME_PIPELINE (172.46s, 63.27%), HIGH confidence.
-        F-0097 RESOLVED. F-0098 PARTIALLY_RESOLVED (canonical Hermes H.264 runtime evidence
-        collected 2026-07-14; codec_context_is_hwaccel=true confirmed; actual_hardware_decode_active
-        remains UNKNOWN_NOT_PROVEN by observer design; actual-HW-decode conclusion confidence = NOT_ESTABLISHED,
-        canonical observation completeness confidence = HIGH; strict fallback control is INVALID —
-        INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT, premature break, no signal).
+        F-0097 RESOLVED. F-0098 RESOLVED (activation-defect discrimination): canonical Hermes H.264
+        production-path evidence (Step 18.4A, codec_context_is_hwaccel=true) plus the corrected strict
+        no-software-fallback control (Step 18.4B, FIRST_FRAME_DECODED with allow_software_fallback=false)
+        establish that the current environment decodes at least one canonical H.264 frame through a CUDA
+        HWAccel configuration with software fallback explicitly disabled. The Step 18.4A strict control
+        INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT (premature break) was corrected in Step 18.4B.
+        Production-path actual_hardware_decode_active remains UNKNOWN_NOT_PROVEN by observer design (not
+        needed to discriminate the optimization).
         F-0100 RESOLVED (canonical clip located, copied local-only, not committed).
-        Selected optimization: NONE — PYAV_HWACCEL_CUDA was REJECTED_SOURCE_MODEL_MISMATCH
-        because existing source already requests HWAccel; no activation defect is directly proven,
-        so PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX is not viable; remaining candidates are
-        not bounded single interventions supported by committed evidence. Step 18.4 remains in_progress
-        until V-PERF-DETECT-BOTTLENECK contract is satisfied (exactly one targeted optimization with
-        name, code boundaries, hypothesis).
+        Selected optimization: NONE — PYAV_HWACCEL_CUDA was REJECTED_SOURCE_MODEL_MISMATCH; no CUDA
+        activation/fallback defect is proven so PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX is
+        CONTRADICTED by the corrected strict control; remaining candidates are not bounded single
+        interventions supported by committed evidence. Step 18.4 remains in_progress until
+        V-PERF-DETECT-BOTTLENECK contract is satisfied (exactly one targeted optimization with name,
+        code boundaries, hypothesis).
         Step 18.6 output parity gates defined in bottleneck_decision.json step18_6_output_parity_gates.
-        See F-0097, F-0098, F-0100 for full evidence. (F-0101 was withdrawn: the strict-control
-        STRICT_PROBE_NO_FRAME is an implementation defect, not a runtime gap.)
+        See F-0097, F-0098, F-0100 and Step 18.4B for full evidence. (F-0101 was withdrawn: the
+        strict-control STRICT_PROBE_NO_FRAME is an implementation defect, not a runtime gap.)
       </step-18.4>
       <step-18.4a name="HwAccelRuntimeEvidence" status="done">
         Evidence mechanism implemented and corrected. Separates raw codec_context_is_hwaccel from
@@ -1331,22 +1334,27 @@
         known-limitation omission: 9b4cc54 reports evidence_confidence=HIGH / limitations=[]; the decision
         layer qualifies HIGH as observation-completeness only (actual-HW-decode confidence = NOT_ESTABLISHED).
         Step 18.4A purpose (canonical runtime observation collection) is complete.
-        F-0098 PARTIALLY_RESOLVED; F-0100 RESOLVED. selected_optimization=NONE.
+        F-0098 PARTIALLY_RESOLVED at Step 18.4A (RESOLVED at Step 18.4B); F-0100 RESOLVED. selected_optimization=NONE.
       </step-18.4a>
-      <step-18.4b name="StrictHwAccelFallbackControl" status="in_progress">
-        Sole purpose: CORRECT AND EXECUTE the strict no-software-fallback supporting control
+      <step-18.4b name="StrictHwAccelFallbackControl" status="done">
+        DONE (2026-07-14). Corrected the strict no-software-fallback supporting control
         (INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT in Step 18.4A — premature outer break
-        after the first demux packet) on the exact canonical Hermes H.264 clip. The corrected
-        control demux/decodes until ONE deterministic terminal state: FIRST_FRAME_DECODED,
-        EOF_NO_FRAME, PACKET_LIMIT_REACHED_NO_FRAME, SETUP_EXCEPTION, CONTAINER_OPEN_EXCEPTION,
-        DECODE_EXCEPTION, or FRAME_CONVERSION_EXCEPTION; it does NOT stop merely because one packet
-        yielded zero frames, and it explicitly closes the container in a finally block.
-        This step does NOT repeat Step 18.4A: production-path observations are NOT rerun; the
-        immutable raw evidence in 9b4cc54949537b2a36e70a0f98f1cb732d6688b2 stands unchanged. The
-        strict-only CLI mode (--strict-control-only) executes only the corrected control. Supporting
-        evidence only; not primary evidence. No new finding is created merely for the already-known
-        premature-break defect. Status before execution: Phase 18 in_progress, Step 18.4 in_progress,
-        Step 18.4A done, selected_optimization NONE, Step 18.5 planned/blocked.
+        after the first demux packet) and executed it on the exact canonical Hermes H.264 clip.
+        The corrected control demux/decodes until ONE deterministic terminal state and explicitly
+        closes the container in a finally block; it does NOT stop merely because one packet yielded
+        zero frames. Result: FIRST_FRAME_DECODED (allow_software_fallback=false, packets_examined=3,
+        frames_decoded=1, frames_converted=1, first_frame_shape=[1080,1920,3], container_closed=true),
+        outcome OUTCOME_S1. Production-path observations were NOT rerun; the immutable raw evidence in
+        9b4cc54949537b2a36e70a0f98f1cb732d6688b2 stands unchanged. Strict-control code HEAD
+        04c0dc1f21cd8f37a9c82925e9c1470a40759553 (tree b93329dde6740d2f7f0283e6c7fb2235f0245bb3);
+        strict-control raw evidence commit ef589a12187c299f4bd086dc690a38b3f7095982; accepted master
+        base 547dc06ef6bfe331daf60018ac45bd342f0d3dfd. Bounded fact: the current environment supports
+        decoding at least one canonical H.264 frame through a CUDA HWAccel configuration with software
+        fallback explicitly disabled. No CUDA activation/fallback defect is proven; F-0098 RESOLVED
+        (activation-defect discrimination); PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX contradicted.
+        NOT proven: all production decode was hardware, production fallback never occurred, or any speedup.
+        Supporting evidence only; not primary evidence. No new finding created. selected_optimization=NONE;
+        Step 18.4 remains in_progress; Step 18.5 planned/blocked.
       </step-18.4b>
       <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
         Blocked: Step 18.4 has not selected a targeted optimization. Step 18.5 remains planned
