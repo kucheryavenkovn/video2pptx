@@ -1333,6 +1333,21 @@
         Step 18.4A purpose (canonical runtime observation collection) is complete.
         F-0098 PARTIALLY_RESOLVED; F-0100 RESOLVED. selected_optimization=NONE.
       </step-18.4a>
+      <step-18.4b name="StrictHwAccelFallbackControl" status="in_progress">
+        Sole purpose: CORRECT AND EXECUTE the strict no-software-fallback supporting control
+        (INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT in Step 18.4A — premature outer break
+        after the first demux packet) on the exact canonical Hermes H.264 clip. The corrected
+        control demux/decodes until ONE deterministic terminal state: FIRST_FRAME_DECODED,
+        EOF_NO_FRAME, PACKET_LIMIT_REACHED_NO_FRAME, SETUP_EXCEPTION, CONTAINER_OPEN_EXCEPTION,
+        DECODE_EXCEPTION, or FRAME_CONVERSION_EXCEPTION; it does NOT stop merely because one packet
+        yielded zero frames, and it explicitly closes the container in a finally block.
+        This step does NOT repeat Step 18.4A: production-path observations are NOT rerun; the
+        immutable raw evidence in 9b4cc54949537b2a36e70a0f98f1cb732d6688b2 stands unchanged. The
+        strict-only CLI mode (--strict-control-only) executes only the corrected control. Supporting
+        evidence only; not primary evidence. No new finding is created merely for the already-known
+        premature-break defect. Status before execution: Phase 18 in_progress, Step 18.4 in_progress,
+        Step 18.4A done, selected_optimization NONE, Step 18.5 planned/blocked.
+      </step-18.4b>
       <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
         Blocked: Step 18.4 has not selected a targeted optimization. Step 18.5 remains planned
         and must not start implementation until Step 18.4 selects exactly one optimization.
