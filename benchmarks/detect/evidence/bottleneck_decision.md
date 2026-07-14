@@ -7,9 +7,9 @@
 **Selected optimization:** NONE
 
 **F-0097:** RESOLVED — decoder/frame advancement pipeline wall-clock captured.
-**F-0098:** PARTIALLY_RESOLVED — canonical Hermes H.264 runtime evidence collected; `codec_context_is_hwaccel=true` confirmed; `actual_hardware_decode_active` remains UNKNOWN_NOT_PROVEN; no targeted optimization selected.
+**F-0098:** PARTIALLY_RESOLVED — canonical Hermes H.264 runtime evidence collected; `codec_context_is_hwaccel=true` confirmed; `actual_hardware_decode_active` remains UNKNOWN_NOT_PROVEN (observer design; conclusion confidence NOT_ESTABLISHED; observation completeness confidence HIGH); no targeted optimization selected.
 **F-0100:** RESOLVED — canonical Hermes H.264 clip located and copied local-only (not committed).
-**F-0101:** OPEN — strict fallback control (`allow_software_fallback=false`) inconclusive (`STRICT_PROBE_NO_FRAME`); direct HW-decode activation not directly proven.
+**Strict fallback control:** `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT` (premature `break` after the first demuxed packet) — NOT a runtime signal, carries no evidentiary weight; must be corrected before the next HWAccel evidence decision.
 
 ---
 
@@ -115,9 +115,9 @@ Other candidates (FEATURE_EXTRACTION_CPU, PASS2_COLLECTION, THRESHOLD_OR_DECISIO
 | **Decision confidence** | HIGH |
 | **Selected optimization** | `NONE` |
 | **F-0097** | RESOLVED — decoder/frame advancement pipeline wall-clock captured. |
-| **F-0098** | PARTIALLY_RESOLVED — canonical Hermes H.264 runtime evidence collected; activation still UNKNOWN_NOT_PROVEN. |
+| **F-0098** | PARTIALLY_RESOLVED — canonical Hermes H.264 runtime evidence collected; activation still UNKNOWN_NOT_PROVEN (conclusion confidence NOT_ESTABLISHED). |
 | **F-0100** | RESOLVED — canonical clip located and copied local-only. |
-| **F-0101** | OPEN — strict fallback control inconclusive (STRICT_PROBE_NO_FRAME). |
+| **Strict fallback control** | INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT (premature `break`); not a runtime signal; must be fixed before next evidence decision. |
 
 ---
 
@@ -127,13 +127,15 @@ Other candidates (FEATURE_EXTRACTION_CPU, PASS2_COLLECTION, THRESHOLD_OR_DECISIO
 
 **Hypothesis (rejected):** Add `hwaccel=cuda` to PyAV `av.open()` to offload H.264 Packet.decode from CPU to GPU.
 
-**Why rejected:** Source audit at candidate HEAD proves the existing `pyav_iter_frames` already:
-1. Prefers `"cuda"` first in `_HW_PREFERRED` (`pyav_backend.py:28`)
+**Why rejected:** Source audit at the Step 18.4 candidate HEAD (`acb424f`) at which PYAV_HWACCEL_CUDA was evaluated proved the `pyav_iter_frames` at **that HEAD** already:
+1. Prefers `"cuda"` first in `_HW_PREFERRED`
 2. Calls `_pick_hw_device()` which selects the best available HW device
 3. Calls `_create_hwaccel(hw_device)` to create a `HWAccel` object
-4. Passes `hwaccel=hwaccel` to `av.open(str(video_path), hwaccel=hwaccel)` (`pyav_backend.py:123`)
+4. Passes `hwaccel=hwaccel` to `av.open(str(video_path), hwaccel=hwaccel)`
 
-The hypothesized intervention already exists in source. No committed benchmark evidence proves whether hardware decode was actually active at runtime (see F-0098).
+> **Historical source state (traceability only).** The list above describes the source at the rejection HEAD (`acb424f`), preserved for traceability. It is **not** a current-source claim. The **current production** `pyav_iter_frames` (merged master HEAD `da35cf34`) calls `_create_hwaccel_with_evidence()` (the evidence-capturing variant) instead of the plain `_create_hwaccel()`; the plain helper still exists but is not invoked by the production decode path.
+
+The hypothesized intervention already existed in source at that HEAD. No committed benchmark evidence proves whether hardware decode was actually active at runtime (see F-0098).
 
 **False source assumptions:**
 - "PyAV defaults to software H.264 decoder" — contradicted by `_HW_PREFERRED = ["cuda", ...]`
@@ -153,7 +155,7 @@ The hypothesized intervention already exists in source. No committed benchmark e
 
 ### PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX
 - **Type:** Conditional optimization (requires direct runtime proof of an activation defect).
-- **Current evidence:** NONE — canonical Hermes H.264 evidence does NOT directly prove hardware decode was inactive and does NOT directly prove a software fallback occurred. Strict fallback control (`allow_software_fallback=false`) returned `STRICT_PROBE_NO_FRAME` with no error (inconclusive, see F-0101).
+- **Current evidence:** NONE — canonical Hermes H.264 production-path evidence does NOT directly prove hardware decode was inactive and does NOT directly prove a software fallback occurred (`actual_hardware_decode_active = UNKNOWN_NOT_PROVEN` by observer design; conclusion confidence NOT_ESTABLISHED). The strict fallback control is `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT` (premature `break`) and provides no signal.
 - **Verdict:** Not viable. No activation defect is directly proven, so no bounded activation/fallback fix can be selected.
 
 ### SECOND_PASS_DECODE_ELIMINATION_OR_REUSE
@@ -248,12 +250,16 @@ Evidence mechanism **implemented, corrected, and exercised on the canonical Herm
 - `actual_hardware_decode_active = UNKNOWN_NOT_PROVEN` (by design — installed API does not directly expose actual HW decode vs configured HWAccel)
 - `software_fallback_detected = UNKNOWN_NOT_PROVEN`; `software_fallback_reason = ""`
 
-**Strict fallback control** (`allow_software_fallback=false`, cuda): `result = STRICT_PROBE_NO_FRAME`, `error_type = null`, no exception — **inconclusive**. It neither proves HW decode active (no frame produced under the strict-no-fallback regime) nor proves software fallback (no error). See F-0101.
+**Strict fallback control** (`allow_software_fallback=false`, cuda): `result = STRICT_PROBE_NO_FRAME`, `error_type = null`, no exception — **`INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT`**, NOT a runtime signal. The control's loop executes an outer `break` immediately after the inner `packet.decode()` loop, so it surrenders after the FIRST demuxed packet regardless of whether a frame was produced; for this H.264 stream the first packet yields no frame, hence `STRICT_PROBE_NO_FRAME`. It carries **no evidentiary weight** on actual HW decode activation or software fallback. It must be corrected (continue `demux` until the first decoded frame / EOF / exception) before it can be used in any future HWAccel evidence decision. The canonical production-path observations (which DO yield frames) are unaffected and remain valid.
 
-**Decision (OUTCOME_D):** Canonical H.264 runtime observations succeed, but actual hardware decode state remains `UNKNOWN_NOT_PROVEN`. Hardware decode is not directly proven active; software fallback is not directly proven. `cuda` was requested and available (not OUTCOME_C). Therefore:
-- **F-0098 = PARTIALLY_RESOLVED** — canonical evidence object now exists and is complete; `codec_context_is_hwaccel=true` confirmed; activation question still UNKNOWN_NOT_PROVEN.
+**Raw-artifact known-limitation omission (`raw_artifact_known_limitation_omission`).** The committed raw artifact (`9b4cc54`, a provenance object that is intentionally NOT rewritten) reports `evidence_confidence = HIGH` and `limitations = []`. In the decision layer these must be qualified:
+- raw `evidence_confidence = HIGH` refers ONLY to **canonical observation completeness** (two consistent production-path opens, `OBSERVATION_COMPLETE`) — it is NOT a confidence statement about actual HW decode activation;
+- raw `limitations = []` omits that `actual_hardware_decode_active = UNKNOWN_NOT_PROVEN` and `software_fallback_detected = UNKNOWN_NOT_PROVEN` are by-design non-determinations, and that the strict fallback control result is an `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT`, not a runtime signal.
+- Confidence separation: **canonical observation completeness confidence = HIGH**; **actual hardware decode conclusion confidence = NOT_ESTABLISHED**.
+
+**Decision (OUTCOME_D):** Canonical H.264 production-path observations succeed, but actual hardware decode state remains `UNKNOWN_NOT_PROVEN`. This determination rests solely on the production-observer design limitation (installed API does not expose actual HW decode vs configured HWAccel) — it is NOT inferred from decode speed and NOT inferred from the (invalid) strict control. The strict fallback control is invalid and provides no signal either way. `cuda` was requested and available (not OUTCOME_C). Therefore:
+- **F-0098 = PARTIALLY_RESOLVED** — canonical evidence object now exists and is complete (observation completeness confidence HIGH); `codec_context_is_hwaccel=true` confirmed; activation question still UNKNOWN_NOT_PROVEN (conclusion confidence NOT_ESTABLISHED).
 - **F-0100 = RESOLVED** — canonical clip located and copied local-only (gitignored `*.mp4`, not committed).
-- **F-0101 = OPEN** — strict fallback control inconclusive; distinct from F-0098.
 - **Step 18.4A = done** (canonical runtime observation collection complete, status `OBSERVATION_COMPLETE`).
 - **selected_optimization = NONE**; **Step 18.4 = in_progress**; **Step 18.5 = planned / blocked**.
 
@@ -273,7 +279,7 @@ Evidence mechanism **implemented, corrected, and exercised on the canonical Herm
 - **F-0088:** 28 slides / 6 PNGs — remains OPEN.
 - **F-0096:** Previous rejected draft at incorrect HEAD. Historical.
 - **F-0097:** RESOLVED — decoder/frame advancement pipeline wall-clock captured.
-- **F-0098:** PARTIALLY_RESOLVED — canonical Hermes H.264 runtime evidence collected; `codec_context_is_hwaccel=true` confirmed; `actual_hardware_decode_active` remains UNKNOWN_NOT_PROVEN.
+- **F-0098:** PARTIALLY_RESOLVED — canonical Hermes H.264 runtime evidence collected; `codec_context_is_hwaccel=true` confirmed; `actual_hardware_decode_active` remains UNKNOWN_NOT_PROVEN (conclusion confidence NOT_ESTABLISHED).
 - **F-0100:** RESOLVED — canonical Hermes H.264 clip located and copied local-only (not committed).
-- **F-0101:** OPEN — strict fallback control inconclusive (`STRICT_PROBE_NO_FRAME`); direct HW-decode activation not directly proven.
-- **PYAV_HWACCEL_CUDA:** REJECTED_SOURCE_MODEL_MISMATCH. Source already requests HWAccel.
+- **Strict fallback control:** `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DEFECT` (premature `break` after first packet); not a runtime gap and not a finding; must be fixed before the next HWAccel evidence decision.
+- **PYAV_HWACCEL_CUDA:** REJECTED_SOURCE_MODEL_MISMATCH. Source already requests HWAccel (historical source state at rejection HEAD `acb424f`; current production uses `_create_hwaccel_with_evidence()`).
