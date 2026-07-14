@@ -1,0 +1,141 @@
+{
+  "schema_version": "2.0.0",
+  "step": "18.4A",
+  "evidence_type": "PYAV_HWACCEL_RUNTIME_STATE",
+  "status": "OBSERVATION_COMPLETE",
+  "branch": "perf/phase18-hwaccel-canonical-hermes-evidence",
+  "evidence_code_head": "da35cf3456c16aa662fc573b03a126a59ec89a25",
+  "evidence_code_tree": "713b8e7fdfbd5c7f127e60f5ebe64a393eb4b419",
+  "accepted_blocked_master_base": "da35cf3456c16aa662fc573b03a126a59ec89a25",
+  "clip": {
+    "identifier": "D:\\git\\worktrees\\video2pptx-phase18-hwaccel-canonical-hermes-evidence\\examples\\hermes-0000-1000.mp4",
+    "actual_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+    "expected_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+    "sha256_match": true
+  },
+  "effective_probe_config": {
+    "sample_fps": 2.0,
+    "independent_open_count": 2,
+    "frames_consumed_per_open": 1,
+    "canonical_mode": true
+  },
+  "environment": {
+    "python_version": "3.14.6",
+    "platform": "Windows",
+    "platform_release": "11",
+    "platform_machine": "AMD64",
+    "pyav_version": "18.0.0"
+  },
+  "installed_api_capabilities": {
+    "codec_context_is_hwaccel": true,
+    "hwaccel_allow_software_fallback": true,
+    "hwaccel_config": true
+  },
+  "observations": {
+    "observation-01": {
+      "schema_version": "1.0.0",
+      "backend": "pyav",
+      "sample_fps": 2.0,
+      "video_identifier": "D:\\git\\worktrees\\video2pptx-phase18-hwaccel-canonical-hermes-evidence\\examples\\hermes-0000-1000.mp4",
+      "available_hw_devices": [
+        "cuda",
+        "d3d12va",
+        "d3d11va",
+        "qsv",
+        "dxva2"
+      ],
+      "requested_hw_device": "cuda",
+      "hwaccel_requested": true,
+      "hwaccel_object_created": true,
+      "hwaccel_creation_error_type": null,
+      "hwaccel_creation_error_message": null,
+      "container_opened_with_hwaccel": true,
+      "container_open_error": null,
+      "allow_software_fallback": true,
+      "codec_context_hwaccel_present": true,
+      "codec_context_is_hwaccel": true,
+      "hw_config_present": false,
+      "hw_config_device_type": null,
+      "hw_config_format": null,
+      "actual_hardware_decode_active": "UNKNOWN_NOT_PROVEN",
+      "actual_hardware_decode_observation_method": "installed API does not directly expose actual hardware decode vs configured HWAccel",
+      "software_fallback_detected": "UNKNOWN_NOT_PROVEN",
+      "software_fallback_reason": "",
+      "codec_name": "h264",
+      "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+      "deterministic_hardware_identity": "requested=cuda",
+      "first_frame_yielded": true,
+      "first_frame_timestamp": 0.0,
+      "first_frame_shape": [
+        1080,
+        1920,
+        3
+      ],
+      "observation_notes": "",
+      "observation_id": "observation-01"
+    },
+    "observation-02": {
+      "schema_version": "1.0.0",
+      "backend": "pyav",
+      "sample_fps": 2.0,
+      "video_identifier": "D:\\git\\worktrees\\video2pptx-phase18-hwaccel-canonical-hermes-evidence\\examples\\hermes-0000-1000.mp4",
+      "available_hw_devices": [
+        "cuda",
+        "d3d12va",
+        "d3d11va",
+        "qsv",
+        "dxva2"
+      ],
+      "requested_hw_device": "cuda",
+      "hwaccel_requested": true,
+      "hwaccel_object_created": true,
+      "hwaccel_creation_error_type": null,
+      "hwaccel_creation_error_message": null,
+      "container_opened_with_hwaccel": true,
+      "container_open_error": null,
+      "allow_software_fallback": true,
+      "codec_context_hwaccel_present": true,
+      "codec_context_is_hwaccel": true,
+      "hw_config_present": false,
+      "hw_config_device_type": null,
+      "hw_config_format": null,
+      "actual_hardware_decode_active": "UNKNOWN_NOT_PROVEN",
+      "actual_hardware_decode_observation_method": "installed API does not directly expose actual hardware decode vs configured HWAccel",
+      "software_fallback_detected": "UNKNOWN_NOT_PROVEN",
+      "software_fallback_reason": "",
+      "codec_name": "h264",
+      "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+      "deterministic_hardware_identity": "requested=cuda",
+      "first_frame_yielded": true,
+      "first_frame_timestamp": 0.0,
+      "first_frame_shape": [
+        1080,
+        1920,
+        3
+      ],
+      "observation_notes": "",
+      "observation_id": "observation-02"
+    }
+  },
+  "observation_consistency": true,
+  "strict_fallback_control": {
+    "supported": true,
+    "attempted": true,
+    "result": "STRICT_PROBE_NO_FRAME",
+    "error_type": null,
+    "error_message": null
+  },
+  "conclusions": {
+    "requested_hw_device": "cuda",
+    "hwaccel_object_created": true,
+    "container_opened_with_hwaccel": true,
+    "codec_context_is_hwaccel": true,
+    "hw_config_present": false,
+    "actual_hardware_decode_active": "UNKNOWN_NOT_PROVEN",
+    "actual_hardware_decode_observation_method": "installed API does not directly expose actual hardware decode vs configured HWAccel",
+    "software_fallback_detected": "UNKNOWN_NOT_PROVEN",
+    "evidence_confidence": "HIGH",
+    "limitations": []
+  },
+  "_output_dir": "D:\\git\\worktrees\\video2pptx-phase18-hwaccel-canonical-hermes-evidence\\benchmarks\\detect\\evidence\\hwaccel-runtime-hermes-h264-20260714"
+}
