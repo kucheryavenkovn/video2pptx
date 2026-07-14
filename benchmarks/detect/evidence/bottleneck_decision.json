@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "step": "18.4",
   "phase": "18",
-  "status": "IN_PROGRESS_TARGET_OPTIMIZATION_DISCRIMINATION_CORRECTION",
+  "status": "BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
   "decision_evidence_head": "acb424f904bc4b3459f6ad2ceb9f8c701cedb69b",
   "source_benchmark": {
     "benchmark_sequence": "hermes-600s-f0097-instrumented-20260713-acb424f",
@@ -653,9 +653,9 @@
     "selected_optimization": "NONE"
   },
   "step18_4c_status": {
-    "status": "in_progress",
-    "substatus": "forensic_evidence_correction_before_execution",
-    "purpose": "repair the discrimination evidence chain before selecting or rejecting any remaining DECODE_FRAME_PIPELINE candidate",
+    "status": "done",
+    "substatus": "corrected_target_optimization_discrimination_complete",
+    "purpose": "discriminate remaining DECODE_FRAME_PIPELINE candidates with validated reference repeatability, exact C2 semantics, deterministic C3 selection, provenance, and paired timing",
     "evidence_branch": "perf/phase18-target-optimization-discrimination",
     "rejected_package": {
       "evidence_commit": "b869464a6e84b2deba83a3df5e7c37ffe65ccde8",
@@ -672,11 +672,58 @@
       "c3_terminal_conclusion_accepted": false,
       "outcome_t3_accepted": false
     },
-    "corrected_evidence_status": "NOT_YET_EXECUTED",
-    "reference_repeatability_status": "NOT_YET_EXECUTED",
+    "corrected_evidence_status": "COMMITTED",
+    "corrected_evidence_dir": "benchmarks/detect/evidence/target-optimization-discrimination-r2-20260714-0bcfe54/",
+    "corrected_evidence_code_head": "0bcfe540c62b5d1130ba2dbb3d067c46234062bb",
+    "corrected_evidence_code_tree": "a55759461374ac747b1e87e1611c544ce59ca969",
+    "corrected_evidence_commit": "b4ed0e40c2f9d86c0db41c2dd53106f945f2502c",
+    "accepted_master_base": "95f5794f46ce5e313c6b2548cb8dbfcfe917555a",
+    "reference_repeatability_status": "REFERENCE_EXACTLY_REPEATABLE",
+    "exact_byte_cross_open_discriminator_valid": true,
+    "c1_evaluation": {
+      "candidate": "PASS2_TARGETED_REPRESENTATIVE_FRAME_RETRIEVAL",
+      "state": "NOT_VIABLE_EXACT_PARITY_FAIL",
+      "historical_exact_prototype_observation": "84 reference and 84 candidate frames; sampled timestamps identical; 0/84 cropped RGB SHA256 and exact-byte matches",
+      "causal_matrix_run": false,
+      "causal_classification": "ROOT_CAUSE_UNKNOWN_NOT_ISOLATED"
+    },
+    "c2_evaluation": {
+      "candidate": "PASS1_ROLLING_REPRESENTATIVE_WINDOW_RETENTION",
+      "state": "NOT_VIABLE_RESOURCE_MODEL",
+      "retention_model": "ROLLING_WINDOW_EXACT_MODEL_PROVEN",
+      "retain_all_upper_bound_bytes": 7471180800,
+      "canonical_peak_retained_frames": 15,
+      "canonical_peak_retained_bytes": 93312000,
+      "resource_classification": "RESOURCE_MODEL_MEASURED_NO_PROJECT_BUDGET",
+      "exact_semantics": true,
+      "reference_median_seconds": 290.5263571000032,
+      "candidate_median_seconds": 330.72188989999995,
+      "median_paired_seconds_saved": -46.81963299999916,
+      "median_paired_reduction_percent": -16.115451096192,
+      "all_paired_candidate_faster": false,
+      "accepted_canonical_signature_match": false,
+      "candidate_reference_canonical_signature_parity": true
+    },
+    "c3_evaluation": {
+      "candidate": "PYAV_DECODE_CONFIGURATION_TUNING",
+      "state": "NOT_VIABLE_PERFORMANCE_FAIL",
+      "candidate_selection_consistency": "PASS",
+      "actual_hardware_decode_active": "UNKNOWN_NOT_PROVEN",
+      "approved_variants": ["thread_count_1", "thread_count_4", "thread_count_8"],
+      "all_variants_exact_parity": true,
+      "variant_median_paired_reduction_percent": {
+        "thread_count_1": -2.0286151696316983,
+        "thread_count_4": -4.571325686392127,
+        "thread_count_8": 0.944157137560262
+      },
+      "all_variants_directionally_faster": false
+    },
+    "outcome": "T3",
+    "decision_status": "BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
     "selected_optimization": "NONE",
     "step18_5_hypothesis": "NONE",
     "f0102_status": "REJECTED_STEP_18_4C_DRAFT_FINDING_NOT_CURRENT",
+    "f0103_status": "OPEN",
     "step_18_4": "in_progress",
     "step_18_5": "planned / blocked",
     "step18_5_implementation_started": false

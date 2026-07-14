@@ -1356,8 +1356,8 @@
         Supporting evidence only; not primary evidence. No new finding created. selected_optimization=NONE;
         Step 18.4 remains in_progress; Step 18.5 planned/blocked.
       </step-18.4b>
-      <step-18.4c name="TargetOptimizationDiscrimination" status="in_progress">
-        IN PROGRESS (forensic correction, 2026-07-14). The package at
+      <step-18.4c name="TargetOptimizationDiscrimination" status="done">
+        DONE (corrected forensic discrimination, 2026-07-14). The package at
         benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/
         (evidence commit b869464a6e84b2deba83a3df5e7c37ffe65ccde8; decision commit
         4b6eba59467110642e0959407d7bec9ff59ac7d8) is REJECTED_FOR_STEP_18_4C_ACCEPTANCE.
@@ -1367,10 +1367,17 @@
         7,471,180,800 bytes is the retain-all upper bound. C1 root cause is
         UNKNOWN_NOT_ISOLATED. C3 NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT and Outcome T3
         are not accepted. F-0102 is a REJECTED_STEP_18_4C_DRAFT_FINDING and is not current.
-        Corrected work must first establish reference cross-open byte repeatability, derive and
-        execute an exact C2 retention model where possible, and select/run C3 variants directly
-        from live inspection with provenance and consistency guards. selected_optimization=NONE;
-        Step 18.4 remains in_progress; Step 18.5 remains planned/blocked and not started.
+        Corrected r2 evidence from code HEAD 0bcfe540c62b5d1130ba2dbb3d067c46234062bb
+        (tree a55759461374ac747b1e87e1611c544ce59ca969), raw commit
+        b4ed0e40c2f9d86c0db41c2dd53106f945f2502c, proves REFERENCE_EXACTLY_REPEATABLE.
+        C1=NOT_VIABLE_EXACT_PARITY_FAIL with ROOT_CAUSE_UNKNOWN_NOT_ISOLATED.
+        C2=NOT_VIABLE_RESOURCE_MODEL: exact rolling model and semantics proven, peak 15 frames /
+        93,312,000 bytes, but candidate median 330.72s vs reference 290.53s and -16.12%
+        median paired reduction. C3=NOT_VIABLE_PERFORMANCE_FAIL: deterministic variants
+        thread_count_1/4/8 all exact-parity PASS but no stable >=15% improvement. Corrected
+        Outcome T3=BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION; F-0103 OPEN.
+        selected_optimization=NONE; Step 18.4 remains in_progress; Step 18.5 remains
+        planned/blocked and not started.
       </step-18.4c>
       <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
         Blocked: Step 18.4 has not selected a targeted optimization. Step 18.5 remains planned

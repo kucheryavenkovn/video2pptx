@@ -315,12 +315,14 @@ Step 18.4A's strict control was an `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DE
 
 ## 15. Step 18.4C — Target Optimization Discrimination Correction (2026-07-14)
 
-**Status:** in_progress.
-**Corrected evidence:** not yet executed.
+**Status:** done.
+**Outcome:** T3 — `BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION`.
+**Corrected evidence:** committed at `b4ed0e40c2f9d86c0db41c2dd53106f945f2502c`.
 **Selected optimization:** NONE.
 **Step 18.4:** in_progress.
 **Step 18.5:** planned / blocked; implementation not started.
 **F-0102:** `REJECTED_STEP_18_4C_DRAFT_FINDING`; not current.
+**F-0103:** OPEN — corrected valid discrimination found no viable candidate.
 
 The package in `benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/`
 (evidence commit `b869464a6e84b2deba83a3df5e7c37ffe65ccde8`, decision commit
@@ -337,5 +339,16 @@ The exact tested C1 prototype's 0/84 result remains historical, with root cause
 `retain_all_upper_bound_bytes`, not a proven minimum. C3
 `NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT` and Outcome T3 are not accepted.
 
-No terminal corrected decision exists until clean committed diagnostic code emits the new r2
-child artifacts and a child-consistent aggregate.
+Corrected evidence directory:
+`benchmarks/detect/evidence/target-optimization-discrimination-r2-20260714-0bcfe54/`.
+Evidence code: `0bcfe540c62b5d1130ba2dbb3d067c46234062bb`, tree
+`a55759461374ac747b1e87e1611c544ce59ca969`.
+
+### Corrected Results
+
+* Reference: `REFERENCE_EXACTLY_REPEATABLE`; all three complete 1,201-frame sequences match exactly. Cross-open exact-byte discrimination is valid.
+* C1: `NOT_VIABLE_EXACT_PARITY_FAIL` for the exact historical seek prototype. Root cause remains `ROOT_CAUSE_UNKNOWN_NOT_ISOLATED`; no causal matrix was run.
+* C2: `ROLLING_WINDOW_EXACT_MODEL_PROVEN`; 84/84 same-run identity and exact downstream semantic parity. Peak retained storage was 15 frames / 93,312,000 bytes versus the 7,471,180,800-byte retain-all upper bound. It is not viable: candidate median 330.72s versus reference 290.53s, median paired reduction -16.12%, and not all pairs were faster. Fresh candidate/reference signatures matched each other but not the accepted canonical constant; that raw fact remains explicit.
+* C3: live inspection selected `thread_count_1`, `thread_count_4`, and `thread_count_8`; selection guard PASS. All three variants passed exact sequence parity. Their median paired reductions were -2.03%, -4.57%, and +0.94%; none was directionally faster or reached 15%.
+
+All candidate discriminators are valid and terminal. No candidate is viable. `selected_optimization=NONE`, Step 18.4 remains `in_progress`, and Step 18.5 remains planned/blocked and not started.

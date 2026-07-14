@@ -988,13 +988,13 @@
       <cross-links>M-DETECT-SLIDES, M-DETECT-METRICS</cross-links>
     </M-DETECT-BENCHMARK>
     <M-DETECT-PERF-DECISION NAME="BottleneckDecision" TYPE="DECISION" STATUS="in_progress">
-      <purpose>Step 18.4: DECODE_FRAME_PIPELINE (172.46s, 63.27%) remains selected with HIGH confidence. F-0097 RESOLVED. PYAV_HWACCEL_CUDA is REJECTED_SOURCE_MODEL_MISMATCH. PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX is CONTRADICTED_BY_STRICT_NO_FALLBACK_CONTROL. Step 18.4A DONE; Step 18.4B DONE (FIRST_FRAME_DECODED, F-0098 and F-0100 RESOLVED). Step 18.4C is IN PROGRESS under forensic correction: the b869464/4b6eba5 package is REJECTED_FOR_STEP_18_4C_ACCEPTANCE for C3_CODE_ARTIFACT_PROVENANCE_CONTRADICTION, unsupported C1 causal attribution, and a C2 retain-all upper bound mislabeled as a required minimum. C1 0/84 and 7,471,180,800 bytes remain historical observations; C1 root cause UNKNOWN_NOT_ISOLATED. Outcome T3, C3 NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT, and F-0102 as a current finding are not accepted. selected_optimization=NONE; Step 18.4 in_progress; Step 18.5 planned/blocked and not started.</purpose>
+      <purpose>Step 18.4: DECODE_FRAME_PIPELINE (172.46s, 63.27%) remains selected with HIGH confidence. F-0097 RESOLVED. PYAV_HWACCEL_CUDA is REJECTED_SOURCE_MODEL_MISMATCH. PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX is CONTRADICTED_BY_STRICT_NO_FALLBACK_CONTROL. Step 18.4A and 18.4B DONE. The b869464/4b6eba5 Step 18.4C package remains REJECTED_FOR_STEP_18_4C_ACCEPTANCE and F-0102 is rejected draft context. Corrected Step 18.4C DONE from code 0bcfe54/raw b4ed0e4: REFERENCE_EXACTLY_REPEATABLE; C1 NOT_VIABLE_EXACT_PARITY_FAIL with UNKNOWN_NOT_ISOLATED causality; C2 exact rolling model/semantics proven but resource/performance non-viable (-16.115% median paired reduction); C3 thread_count_1/4/8 exact parity PASS but all performance FAIL. Corrected Outcome T3 BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION; F-0103 OPEN. selected_optimization=NONE; Step 18.4 in_progress; Step 18.5 planned/blocked and not started.</purpose>
       <path>benchmarks/detect/evidence/bottleneck_decision.json</path>
       <depends>M-DETECT-BENCHMARK</depends>
       <verification-ref>V-PERF-DETECT-BOTTLENECK</verification-ref>
       <cross-links>M-DETECT-SLIDES, M-SLIDE-DETECTOR, M-FRAME-FEATURES, M-BACKEND-PYAV</cross-links>
     </M-DETECT-PERF-DECISION>
-    <M-DETECT-TARGET-DISCRIMINATION-R2 NAME="TargetOptimizationDiscriminationR2" TYPE="UTILITY" STATUS="active">
+    <M-DETECT-TARGET-DISCRIMINATION-R2 NAME="TargetOptimizationDiscriminationR2" TYPE="UTILITY" STATUS="verified">
       <purpose>Diagnostic-only Step 18.4C-r2 tooling for reference decode repeatability, exact rolling representative retention, deterministic C3 selection/provenance, and child-consistent evidence aggregation; it does not implement Step 18.5.</purpose>
       <path>tools/probe_target_optimization_discrimination_r2.py</path>
       <depends>M-DETECT-PERF-DECISION, M-SLIDE-DETECTOR, M-SEGMENTER, M-BACKEND-PYAV</depends>
