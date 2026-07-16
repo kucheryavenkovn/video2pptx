@@ -11,8 +11,23 @@
   "reference_repeatability": "REFERENCE_EXACTLY_REPEATABLE",
   "candidate_states": {
     "C1": "NOT_VIABLE_EXACT_PARITY_FAIL",
-    "C2": "NOT_VIABLE_RESOURCE_MODEL",
+    "C2": "NOT_VIABLE_PERFORMANCE_FAIL",
     "C3": "NOT_VIABLE_PERFORMANCE_FAIL"
+  },
+  "c2_classification_correction": {
+    "previous_state": "NOT_VIABLE_RESOURCE_MODEL",
+    "corrected_state": "NOT_VIABLE_PERFORMANCE_FAIL",
+    "reason": "The rolling-window exact retention model IS proven (c2_retention_model.json: ROLLING_WINDOW_EXACT_MODEL_PROVEN, peak 15 frames / 93312000 bytes). The rejection reason is performance failure: candidate is slower than reference in all three paired runs (directional_stability=false, median_of_paired_differences=-46.82s). The resource model is measured and bounded; the failure is performance, not resources."
+  },
+  "canonical_signature_provenance": {
+    "accepted_immutable_signature": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
+    "fresh_reference_signature": "5a7c45387383adf8fa31a306111451f2aadb6f91352c307545547057f686e783",
+    "match": false,
+    "root_cause": "CODE_CHANGE_NOT_ENVIRONMENT_ANOMALY. The original benchmark at HEAD acb424f904bc4b3459f6ad2ceb9f8c701cedb69b did NOT access stream.codec_context in pyav_iter_frames. The current code (since the evidence-observer infrastructure was added) DOES access stream.codec_context. This access changes PyAV 18.0.0 / NVDEC HW decode initialization, producing systematically different pixel values for the same input bitstream. Different pixels lead to different feature extraction, different change detection, different segments, and therefore a different canonical signature.",
+    "original_benchmark_head": "acb424f904bc4b3459f6ad2ceb9f8c701cedb69b",
+    "original_pyav_iter_frames_accessed_codec_context": false,
+    "current_pyav_iter_frames_accesses_codec_context": true,
+    "implication": "The 8cc06c6a signature is valid ONLY for code that does NOT access stream.codec_context in the decode loop. The 5a7c4538 signature is valid for the current code that DOES access it. The signature mismatch is a direct consequence of production code change, not an environment or clip anomaly. This provenance gap blocks the exact-semantics gate until either (a) the codec_context access is removed from the hot decode path, or (b) the immutable signature is re-baselined under the current code."
   },
   "c3_approved_variants": [
     "thread_count_1",
@@ -22,8 +37,9 @@
   "c3_candidate_selection_consistency": "PASS",
   "c3_parity_result": "EXECUTED",
   "viable_candidates": [],
-  "outcome": "T3",
+  "outcome": "T3_blocked",
   "decision_status": "BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
+  "step_18_4c_status": "in_progress / blocked_on_canonical_signature_provenance",
   "selected_bottleneck_class": "DECODE_FRAME_PIPELINE",
   "decision_confidence": "HIGH",
   "selected_optimization": "NONE"

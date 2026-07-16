@@ -133,8 +133,13 @@
     -0.8328813651982234
   ],
   "median_seconds_saved": -46.81963299999916,
+  "median_seconds_saved_definition": "median of paired differences (reference[i] - candidate[i])",
   "median_reduction_percent": -16.115451096192,
+  "difference_of_medians_seconds": -40.19553279999674,
+  "difference_of_medians_percent": -13.8353319039,
+  "difference_of_medians_definition": "reference_median - candidate_median",
   "directional_stability": false,
   "viable": false,
-  "state": "NOT_VIABLE_RESOURCE_MODEL"
+  "state": "NOT_VIABLE_PERFORMANCE_FAIL",
+  "state_correction_note": "Previously classified NOT_VIABLE_RESOURCE_MODEL. Corrected: the rolling-window exact retention model IS proven (c2_retention_model.json: ROLLING_WINDOW_EXACT_MODEL_PROVEN, peak 15 frames / 93312000 bytes). The rejection reason is performance failure (candidate slower in all paired runs), not resource model absence."
 }

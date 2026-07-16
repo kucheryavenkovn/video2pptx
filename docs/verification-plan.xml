@@ -1412,8 +1412,12 @@
       UNKNOWN_NOT_ISOLATED. C2 exact rolling model/semantics pass, peak 15 frames / 93,312,000
       bytes, but performance fails (-16.115% median paired reduction; unstable). C3 selection
       PASS with thread_count_1/4/8; all exact parity PASS and all performance FAIL. Corrected
-      Outcome T3; F-0103 OPEN. selected_optimization=NONE; Step 18.4 remains in_progress;
-      Step 18.4C=done; Step 18.5 planned/blocked and not started.
+      Outcome T3_blocked; F-0103 OPEN (codec_context root cause isolated). selected_optimization=NONE; Step 18.4 remains in_progress;
+      Step 18.4C=in_progress/blocked_on_canonical_signature_provenance; Step 18.5 planned/blocked and not started.
+      Canonical signature provenance: 8cc06c6a... (original) vs 5a7c4538... (current); root cause is
+      stream.codec_context access in pyav_iter_frames added between acb424f and current HEAD.
+      C2 taxonomy corrected: NOT_VIABLE_PERFORMANCE_FAIL (not NOT_VIABLE_RESOURCE_MODEL).
+      Median terminology clarified: median_of_paired_differences vs difference_of_medians explicitly separated.
     </result></evidence>
   </V-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION>
 

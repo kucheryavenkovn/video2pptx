@@ -130,7 +130,11 @@
         -27.441368875841544
       ],
       "median_seconds_saved": -1.7776554000010947,
+      "median_seconds_saved_definition": "median of paired differences (reference[i] - candidate[i])",
       "median_reduction_percent": -2.0286151696316983,
+      "difference_of_medians_seconds": 1.5125023000000510,
+      "difference_of_medians_percent": 1.662515,
+      "difference_of_medians_definition": "reference_median - candidate_median",
       "directional_stability": false,
       "warmups": {
         "reference": 93.7512510000015,
@@ -255,7 +259,11 @@
         16.083236080601978
       ],
       "median_seconds_saved": -3.972242899999401,
+      "median_seconds_saved_definition": "median of paired differences (reference[i] - candidate[i])",
       "median_reduction_percent": -4.571325686392127,
+      "difference_of_medians_seconds": -5.8578292999991390,
+      "difference_of_medians_percent": -6.741291,
+      "difference_of_medians_definition": "reference_median - candidate_median",
       "directional_stability": false,
       "warmups": {
         "reference": 89.15031680000175,
@@ -380,7 +388,11 @@
         0.944157137560262
       ],
       "median_seconds_saved": 0.5914975000050617,
+      "median_seconds_saved_definition": "median of paired differences (reference[i] - candidate[i])",
       "median_reduction_percent": 0.944157137560262,
+      "difference_of_medians_seconds": 1.3269663999999466,
+      "difference_of_medians_percent": 2.093546,
+      "difference_of_medians_definition": "reference_median - candidate_median",
       "directional_stability": false,
       "warmups": {
         "reference": 80.16715690000274,

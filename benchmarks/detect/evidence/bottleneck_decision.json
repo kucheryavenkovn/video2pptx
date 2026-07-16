@@ -653,8 +653,8 @@
     "selected_optimization": "NONE"
   },
   "step18_4c_status": {
-    "status": "done",
-    "substatus": "corrected_target_optimization_discrimination_complete",
+    "status": "in_progress",
+    "substatus": "blocked_on_canonical_signature_provenance",
     "purpose": "discriminate remaining DECODE_FRAME_PIPELINE candidates with validated reference repeatability, exact C2 semantics, deterministic C3 selection, provenance, and paired timing",
     "evidence_branch": "perf/phase18-target-optimization-discrimination",
     "rejected_package": {
@@ -689,7 +689,8 @@
     },
     "c2_evaluation": {
       "candidate": "PASS1_ROLLING_REPRESENTATIVE_WINDOW_RETENTION",
-      "state": "NOT_VIABLE_RESOURCE_MODEL",
+      "state": "NOT_VIABLE_PERFORMANCE_FAIL",
+      "state_correction_note": "Previously classified NOT_VIABLE_RESOURCE_MODEL. Corrected per acceptance review: the rolling-window exact model IS proven; rejection reason is performance failure, not resource model absence.",
       "retention_model": "ROLLING_WINDOW_EXACT_MODEL_PROVEN",
       "retain_all_upper_bound_bytes": 7471180800,
       "canonical_peak_retained_frames": 15,
@@ -700,9 +701,20 @@
       "candidate_median_seconds": 330.72188989999995,
       "median_paired_seconds_saved": -46.81963299999916,
       "median_paired_reduction_percent": -16.115451096192,
+      "median_paired_definition": "median of paired differences reference[i]-candidate[i]",
+      "difference_of_medians_seconds": -40.19553279999674,
+      "difference_of_medians_percent": -13.8353319039,
+      "difference_of_medians_definition": "reference_median - candidate_median",
       "all_paired_candidate_faster": false,
       "accepted_canonical_signature_match": false,
-      "candidate_reference_canonical_signature_parity": true
+      "candidate_reference_canonical_signature_parity": true,
+      "canonical_signature_provenance": {
+        "accepted_immutable": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
+        "fresh_reference": "5a7c45387383adf8fa31a306111451f2aadb6f91352c307545547057f686e783",
+        "root_cause": "CODE_CHANGE_NOT_ENVIRONMENT_ANOMALY. Original benchmark HEAD acb424f did NOT access stream.codec_context in pyav_iter_frames. Current code DOES. This access changes NVDEC HW decode initialization, producing different pixels → different detection → different signature.",
+        "original_benchmark_head": "acb424f904bc4b3459f6ad2ceb9f8c701cedb69b",
+        "blocking": "Exact-semantics gate cannot close until provenance is resolved (remove codec_context access from hot path OR re-baseline immutable signature under current code)."
+      }
     },
     "c3_evaluation": {
       "candidate": "PYAV_DECODE_CONFIGURATION_TUNING",
@@ -718,12 +730,14 @@
       },
       "all_variants_directionally_faster": false
     },
-    "outcome": "T3",
+    "outcome": "T3_blocked",
     "decision_status": "BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
+    "blocked_reason": "canonical_signature_provenance_unresolved_and_c2_taxonomy_corrected",
     "selected_optimization": "NONE",
     "step18_5_hypothesis": "NONE",
     "f0102_status": "REJECTED_STEP_18_4C_DRAFT_FINDING_NOT_CURRENT",
     "f0103_status": "OPEN",
+    "f0103_root_cause": "stream.codec_context access in pyav_iter_frames (added between acb424f and current HEAD) changes NVDEC HW decode pixel output, breaking canonical signature immutability and blocking exact-parity optimization candidates.",
     "step_18_4": "in_progress",
     "step_18_5": "planned / blocked",
     "step18_5_implementation_started": false

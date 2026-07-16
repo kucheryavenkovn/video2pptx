@@ -315,14 +315,14 @@ Step 18.4A's strict control was an `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DE
 
 ## 15. Step 18.4C — Target Optimization Discrimination Correction (2026-07-14)
 
-**Status:** done.
-**Outcome:** T3 — `BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION`.
+**Status:** in_progress / blocked_on_canonical_signature_provenance.
+**Outcome:** T3_blocked — `BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION`.
 **Corrected evidence:** committed at `b4ed0e40c2f9d86c0db41c2dd53106f945f2502c`.
 **Selected optimization:** NONE.
 **Step 18.4:** in_progress.
 **Step 18.5:** planned / blocked; implementation not started.
 **F-0102:** `REJECTED_STEP_18_4C_DRAFT_FINDING`; not current.
-**F-0103:** OPEN — corrected valid discrimination found no viable candidate.
+**F-0103:** OPEN — `stream.codec_context` access in `pyav_iter_frames` changes NVDEC HW decode pixel output.
 
 The package in `benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/`
 (evidence commit `b869464a6e84b2deba83a3df5e7c37ffe65ccde8`, decision commit
@@ -335,20 +335,65 @@ Additional reasons: `UNSUPPORTED_C1_CAUSAL_ATTRIBUTION` and
 `C2_UPPER_BOUND_MISLABELED_AS_REQUIRED_MINIMUM`.
 
 The exact tested C1 prototype's 0/84 result remains historical, with root cause
-`UNKNOWN_NOT_ISOLATED`. The C2 value 7,471,180,800 bytes remains
+now isolated (see Canonical Signature Provenance below). The C2 value 7,471,180,800 bytes remains
 `retain_all_upper_bound_bytes`, not a proven minimum. C3
-`NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT` and Outcome T3 are not accepted.
+`NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT` and Outcome T3 are not accepted
+from the original package; the corrected r2 package is partially accepted with
+taxonomy corrections (see below).
 
 Corrected evidence directory:
 `benchmarks/detect/evidence/target-optimization-discrimination-r2-20260714-0bcfe54/`.
 Evidence code: `0bcfe540c62b5d1130ba2dbb3d067c46234062bb`, tree
 `a55759461374ac747b1e87e1611c544ce59ca969`.
 
+### Canonical Signature Provenance
+
+The accepted immutable canonical signature is `8cc06c6a...`. Fresh reference and
+candidate runs both produce `5a7c4538...`. These do NOT match.
+
+**Root cause: CODE_CHANGE_NOT_ENVIRONMENT_ANOMALY.** The original benchmark at HEAD
+`acb424f904bc4b3459f6ad2ceb9f8c701cedb69b` did NOT access `stream.codec_context`
+in `pyav_iter_frames`. The current code (since evidence-observer infrastructure was
+added between `acb424f` and merged master `95f5794`) DOES access `stream.codec_context`
+(line 230 of `pyav_backend.py`). This access changes PyAV 18.0.0 / NVDEC HW decode
+initialization, producing systematically different pixel values for the same input
+bitstream. Different pixels → different features → different change detection →
+different segments → different canonical signature.
+
+This provenance gap blocks the exact-semantics gate until either:
+(a) the `stream.codec_context` access is removed from the hot decode path, or
+(b) the immutable signature is re-baselined under the current code.
+
+This also explains the C1 exact-parity failure: the production decode path
+(with codec_context access) produces different pixels than any alternative decode
+path (without codec_context access) for the same video frame.
+
 ### Corrected Results
 
 * Reference: `REFERENCE_EXACTLY_REPEATABLE`; all three complete 1,201-frame sequences match exactly. Cross-open exact-byte discrimination is valid.
-* C1: `NOT_VIABLE_EXACT_PARITY_FAIL` for the exact historical seek prototype. Root cause remains `ROOT_CAUSE_UNKNOWN_NOT_ISOLATED`; no causal matrix was run.
-* C2: `ROLLING_WINDOW_EXACT_MODEL_PROVEN`; 84/84 same-run identity and exact downstream semantic parity. Peak retained storage was 15 frames / 93,312,000 bytes versus the 7,471,180,800-byte retain-all upper bound. It is not viable: candidate median 330.72s versus reference 290.53s, median paired reduction -16.12%, and not all pairs were faster. Fresh candidate/reference signatures matched each other but not the accepted canonical constant; that raw fact remains explicit.
+* C1: `NOT_VIABLE_EXACT_PARITY_FAIL` for the exact historical seek prototype. Root cause: `stream.codec_context` access in production `pyav_iter_frames` changes HW decode pixel output vs alternative decode paths.
+* C2: `NOT_VIABLE_PERFORMANCE_FAIL` (corrected from `NOT_VIABLE_RESOURCE_MODEL`). `ROLLING_WINDOW_EXACT_MODEL_PROVEN`; 84/84 same-run identity and exact downstream semantic parity. Peak retained storage was 15 frames / 93,312,000 bytes versus the 7,471,180,800-byte retain-all upper bound. The resource model IS measured and bounded; the rejection reason is performance: candidate median 330.72s vs reference 290.53s. Median of paired differences: -46.82s / -16.12%. Difference of medians: -40.20s / -13.84%. Not directionally faster.
 * C3: live inspection selected `thread_count_1`, `thread_count_4`, and `thread_count_8`; selection guard PASS. All three variants passed exact sequence parity. Their median paired reductions were -2.03%, -4.57%, and +0.94%; none was directionally faster or reached 15%.
 
-All candidate discriminators are valid and terminal. No candidate is viable. `selected_optimization=NONE`, Step 18.4 remains `in_progress`, and Step 18.5 remains planned/blocked and not started.
+### Terminology Clarification
+
+`median_seconds_saved` is the **median of paired differences** `reference[i] - candidate[i]`,
+NOT the **difference of medians** `reference_median - candidate_median`. Both are now
+explicitly recorded in evidence artifacts (`median_seconds_saved` with definition
+`median_of_paired_differences` and `difference_of_medians_seconds` with definition
+`reference_median - candidate_median`).
+
+### Observer Contract
+
+The `evidence_observer` parameter added to `detect_changes()` in `slide_detector.py`
+is disabled by default (`None`) and does not change detection output when not used.
+However, when enabled, it receives the **mutable `cropped` ndarray** before feature
+extraction. The callback could theoretically modify the image and alter detection
+results. The observer must be treated as a **trusted intrusive diagnostic hook**,
+not a semantically inert observation point. This is not a primary blocker since
+the observer is off in production, but the contract must be documented.
+
+All candidate discriminators have valid terminal measurements. No candidate is viable.
+`selected_optimization=NONE`, Step 18.4 remains `in_progress`, and Step 18.5 remains
+planned/blocked and not started. Step 18.4C is blocked on canonical signature
+provenance resolution.
