@@ -334,8 +334,9 @@ Primary reason: `C3_CODE_ARTIFACT_PROVENANCE_CONTRADICTION`.
 Additional reasons: `UNSUPPORTED_C1_CAUSAL_ATTRIBUTION` and
 `C2_UPPER_BOUND_MISLABELED_AS_REQUIRED_MINIMUM`.
 
-The exact tested C1 prototype's 0/84 result remains historical, with root cause
-now isolated (see Canonical Signature Provenance below). The C2 value 7,471,180,800 bytes remains
+The exact tested C1 prototype's 0/84 result remains historical.
+Its root cause remains ROOT_CAUSE_UNKNOWN_NOT_ISOLATED; see
+Canonical Signature Provenance below. The C2 value 7,471,180,800 bytes remains
 `retain_all_upper_bound_bytes`, not a proven minimum. C3
 `NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT` and Outcome T3 are not accepted
 from the original package; the corrected r2 package is partially accepted with

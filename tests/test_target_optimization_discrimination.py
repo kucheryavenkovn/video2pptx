@@ -1,5 +1,5 @@
 # FILE: tests/test_target_optimization_discrimination.py
-# VERSION: 2.0.0
+# VERSION: 2.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Focused tests for Step 18.4C target-optimization discrimination helpers.
 #   SCOPE: Statistics, repeatability, C1 parity, exact C2 retention, C3 selection/provenance/parity.
@@ -16,11 +16,23 @@
 #   TestC3Selection - deterministic selection and consistency-guard checks
 #   TestC3Provenance - accepted-base, clip, and evidence-code provenance checks
 # END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: [v2.1.0 - Step 18.4C: strengthened causal-consistency gate.
+#     Added case/whitespace-tolerant rejection of "root cause now isolated",
+#     "not an environment anomaly", and "not with an environment or clip anomaly"
+#     in current artifacts (incl. findings.md and bottleneck_decision.md). Added
+#     positive assertions that the aggregate provenance carries
+#     causal_classification=ROOT_CAUSE_UNKNOWN_NOT_ISOLATED, codec_context_causal
+#     is False, and explicit "environment contribution is not excluded" wording.
+#     Rejected 13e6fff draft package remains out of scope.]
+# END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
 import hashlib
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -628,6 +640,11 @@ _DECISION_JSON = (
     Path(__file__).resolve().parents[1]
     / "benchmarks/detect/evidence/bottleneck_decision.json"
 )
+_DECISION_MD = (
+    Path(__file__).resolve().parents[1]
+    / "benchmarks/detect/evidence/bottleneck_decision.md"
+)
+_FINDINGS_MD = Path(__file__).resolve().parents[1] / "docs/findings.md"
 
 
 def _load_strict_json(path: Path) -> Any:
@@ -648,6 +665,11 @@ def _load_strict_json(path: Path) -> Any:
 
 def _json_files(paths: list[Path]) -> list[Path]:
     return [path for path in paths if path.exists()]
+
+
+def _normalize_ws(text: str) -> str:
+    """Collapse all runs of whitespace to a single space (line-wrap tolerant)."""
+    return re.sub(r"\s+", " ", text)
 
 
 class TestEvidencePackageConsistency:
@@ -780,11 +802,23 @@ class TestEvidencePackageConsistency:
             ), name
 
     def test_no_unsupported_isolated_cause_claims_in_current_artifacts(self):
-        forbidden = [
+        # Exact-substring forbidden claims (machine-token form).
+        forbidden_exact = [
             "root cause ISOLATED",
             "direct consequence of codec_context",
             "codec_context causal = true",
             "outcome\": \"T3_blocked",
+        ]
+        # Causal-language claims forbidden in CURRENT conclusions. Matched
+        # case-insensitively with collapsed whitespace so line-wrapped/cased
+        # variants are caught. The explicitly rejected 13e6fff draft package is
+        # intentionally NOT a target, so rejected-draft quotations are out of
+        # scope; valid historical quotations are not presented as current
+        # conclusions in any targeted artifact.
+        causal_forbidden = [
+            "root cause now isolated",
+            "not an environment anomaly",
+            "not with an environment or clip anomaly",
         ]
         targets = [
             _EVIDENCE_DIR / "discrimination_evidence.json",
@@ -793,10 +827,24 @@ class TestEvidencePackageConsistency:
             _EVIDENCE_DIR / "c2_runs.json",
             _EVIDENCE_DIR / "c3_runs.json",
             _DECISION_JSON,
-            Path(__file__).resolve().parents[1]
-            / "benchmarks/detect/evidence/bottleneck_decision.md",
+            _DECISION_MD,
+            _FINDINGS_MD,
         ]
         for path in _json_files(targets):
             text = path.read_text(encoding="utf-8")
-            for phrase in forbidden:
+            for phrase in forbidden_exact:
                 assert phrase not in text, f"{path.name}: forbidden phrase {phrase!r}"
+            normalized = _normalize_ws(text).lower()
+            for phrase in causal_forbidden:
+                assert phrase not in normalized, (
+                    f"{path.name}: forbidden causal phrase {phrase!r}"
+                )
+
+        # Positive assertions: the aggregate provenance block must carry the
+        # evidence-bounded classification and explicitly NOT exclude the
+        # environment contribution.
+        prov = self._aggregate()["canonical_signature_provenance"]
+        assert prov["causal_classification"] == "ROOT_CAUSE_UNKNOWN_NOT_ISOLATED"
+        assert prov["codec_context_causal"] is False
+        implication_normalized = _normalize_ws(prov["implication"]).lower()
+        assert "environment contribution is not excluded" in implication_normalized
