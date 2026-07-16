@@ -1329,7 +1329,7 @@
     </evidence>
   </V-PERF-DETECT-SHORT-BENCHMARK>
 
-  <V-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="in_progress">
+  <V-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="done">
     <purpose>Select a bottleneck class only from accepted recovered-tree benchmark evidence, or honestly report insufficient discrimination.</purpose>
     <verification-contract>
       1. Wall-clock stage timers from median run (run-01, 272.57s) are the primary evidence.
@@ -1365,7 +1365,9 @@
       PYAV_HWACCEL_CUDA: REJECTED_SOURCE_MODEL_MISMATCH — existing source already requests HWAccel.
       PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX: CONTRADICTED_BY_STRICT_NO_FALLBACK_CONTROL.
       Step 18.4A=done (OBSERVATION_COMPLETE, OUTCOME_D). Step 18.4B=done (FIRST_FRAME_DECODED, OUTCOME_S1).
-      Step 18.4 remains in_progress until exactly one targeted optimization is selected.
+      Step 18.4=done: the accepted negative terminal outcome T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION
+      satisfies the contract — no tested C1/C2/C3 candidate satisfies the parity, stability, and
+      performance gates, so selected_optimization=NONE (no targeted optimization is implemented).
       Median run (run-01): 272.57s detect elapsed.
       Residual: 0.53s (0.19%) — down from 87.39s (33.0%) pre-instrumentation.
       Total decoder/frame advancement pipeline (pass1 + pass2): 172.46s (63.27%).
@@ -1384,6 +1386,51 @@
         - benchmarks/detect/evidence/bottleneck_decision.md
     </result></evidence>
   </V-PERF-DETECT-BOTTLENECK>
+
+  <V-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION MODULE="M-DETECT-TARGET-DISCRIMINATION-R2" PRIORITY="medium" STATUS="passed">
+    <purpose>Discriminate remaining DECODE_FRAME_PIPELINE optimization candidates (C1-C4)
+      using source semantics, exact frame parity, resource evidence, and focused
+      microbenchmarks.</purpose>
+    <verification-contract>
+      <scenario-1 kind="success">Three fresh production-equivalent complete sampled decodes classify exact cross-open byte repeatability from direct timestamp, shape, RGB hash, and complete signatures.</scenario-1>
+      <scenario-2 kind="success">The C2 model records exact admission, eviction, six-second transition, strict tolerance, accepted-boundary handling, proof, complexity, and canonical peak resource measurements.</scenario-2>
+      <scenario-3 kind="success">Live C3 inspection deterministically selects at most three variants from recorded fields and hard-fails eligible-boundary/zero-variant contradictions.</scenario-3>
+      <scenario-4 kind="failure">Stop terminal discrimination when baseline reference nondeterminism invalidates cross-open exact-byte gates; do not invent a tolerance.</scenario-4>
+      <scenario-5 kind="failure">Reject canonical SHA mismatch, abbreviated/non-commit/non-ancestor accepted bases, child/aggregate contradictions, duplicate JSON keys, or dirty evidence-code execution.</scenario-5>
+      <required-evidence>reference_repeatability.json, c1_status.json, c2_retention_model.json, c3_inspection.json, c3_variants.json, discrimination_evidence.json, discrimination_report.md, environment.json, plus conditional parity/run artifacts.</required-evidence>
+      <commands>python -m pytest tests/test_target_optimization_discrimination.py -v; ruff check changed Python; duplicate-key JSON validation; strict XML parsing; git diff --check</commands>
+      <stop-condition>Do not produce a terminal candidate decision until committed clean correction code emits all applicable child artifacts and the aggregate agrees with them.</stop-condition>
+    </verification-contract>
+    <evidence><result>
+      PASSED. The b869464/4b6eba5 package is REJECTED_FOR_STEP_18_4C_ACCEPTANCE
+      because of C3_CODE_ARTIFACT_PROVENANCE_CONTRADICTION, unsupported C1 causality,
+      and a C2 retain-all upper bound mislabeled as a required minimum. C1 0/84 and the
+      7,471,180,800-byte arithmetic remain historical observations only. C1 causal
+      classification is UNKNOWN_NOT_ISOLATED (codec_context_causal=false; the stream.codec_context
+      code-path difference is a leading hypothesis, NOT an isolated cause). Outcome T3 and C3
+      NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT are not accepted. F-0102 is rejected draft
+      context. Corrected evidence code 0bcfe540c62b5d1130ba2dbb3d067c46234062bb,
+      tree a55759461374ac747b1e87e1611c544ce59ca969, raw commit b4ed0e40c2f9d86c0db41c2dd53106f945f2502c.
+      REFERENCE_EXACTLY_REPEATABLE validates exact cross-open discrimination.
+      C1=NOT_VIABLE_EXACT_PARITY_FAIL with causal classification UNKNOWN_NOT_ISOLATED.
+      C2 exact rolling model/semantics pass, peak 15 frames / 93,312,000 bytes,
+      but performance fails (difference of medians -40.19553279999673s / -13.835416931263438%;
+      median of paired differences -46.81963299999916s / -16.115451096192%; unstable).
+      C3 selection PASS with thread_count_1/4/8; all exact parity PASS and all performance FAIL.
+      Management outcome: the negative terminal outcome
+      T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION is accepted — no tested candidate is viable.
+      F-0103 OPEN / NON_BLOCKING (ROOT_CAUSE_UNKNOWN_NOT_ISOLATED; codec_context is a leading
+      hypothesis, not an isolated cause; environment contribution not excluded).
+      selected_optimization=NONE; Step 18.4=done; Step 18.4C=done; Step 18.5 planned/blocked and
+      not started (implementation_started=false).
+      Canonical signature provenance: 8cc06c6a... (original) vs 5a7c4538... (current); match=false;
+      provenance classification ROOT_CAUSE_UNKNOWN_NOT_ISOLATED. The historical benchmark path at
+      acb424f did not access stream.codec_context while the current path does — a proven code-path
+      difference and leading hypothesis; causality NOT isolated (no controlled A/B varied ONLY that access).
+      C2 taxonomy corrected: NOT_VIABLE_PERFORMANCE_FAIL (not NOT_VIABLE_RESOURCE_MODEL).
+      Median terminology clarified: median_of_paired_differences vs difference_of_medians explicitly separated.
+    </result></evidence>
+  </V-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION>
 
   <V-PERF-DETECT-TARGETED MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
     <purpose>Verify the single targeted optimization selected by Step 18.4. No optimization is

@@ -1,0 +1,20 @@
+{
+  "evidence_code_head": "0bcfe540c62b5d1130ba2dbb3d067c46234062bb",
+  "evidence_code_tree": "a55759461374ac747b1e87e1611c544ce59ca969",
+  "accepted_master_base": "95f5794f46ce5e313c6b2548cb8dbfcfe917555a",
+  "clip_actual_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "clip_expected_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "sha256_match": true,
+  "sample_fps": 2.0,
+  "candidate": "PASS2_TARGETED_REPRESENTATIVE_FRAME_RETRIEVAL",
+  "previous_prototype": "SEEK_BASED_CANDIDATE",
+  "historical_observation": "84 reference, 84 candidate, sampled timestamps matched, 0/84 cropped RGB and exact-byte matches",
+  "reference_repeatability_classification": "REFERENCE_EXACTLY_REPEATABLE",
+  "exact_cross_open_gate_valid": true,
+  "state": "NOT_VIABLE_EXACT_PARITY_FAIL",
+  "causal_matrix_run": false,
+  "causal_classification": "ROOT_CAUSE_UNKNOWN_NOT_ISOLATED",
+  "codec_context_causal": false,
+  "seek_causal": false,
+  "container_open_nondeterminism": null
+}

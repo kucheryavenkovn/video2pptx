@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0.0",
+  "step": "18.4C",
+  "candidate": "PYAV_DECODE_CONFIGURATION_TUNING",
+  "installed_pyav_version": "18.0.0",
+  "hw_device": "cuda",
+  "hwaccel_enabled": true,
+  "codec_name": "h264",
+  "configuration_boundaries_inspected": {
+    "thread_type": {
+      "name": "thread_type",
+      "readable": true,
+      "default_value": "ThreadType.SLICE",
+      "default_value_repr": "ThreadType.SLICE",
+      "writable": true,
+      "classification": "POTENTIALLY_PARITY_PRESERVING"
+    },
+    "thread_count": {
+      "name": "thread_count",
+      "readable": true,
+      "default_value": 0,
+      "default_value_repr": "NONE",
+      "writable": true,
+      "classification": "POTENTIALLY_PARITY_PRESERVING"
+    },
+    "low_delay": {
+      "name": "low_delay",
+      "readable": false,
+      "default_value": null,
+      "writable": false,
+      "classification": "NOT_AVAILABLE"
+    },
+    "skip_loop_filter": {
+      "name": "skip_loop_filter",
+      "readable": false,
+      "default_value": null,
+      "writable": false,
+      "classification": "NOT_AVAILABLE"
+    },
+    "skip_non_ref": {
+      "name": "skip_non_ref",
+      "readable": false,
+      "default_value": null,
+      "writable": false,
+      "classification": "NOT_AVAILABLE"
+    },
+    "skip_idct": {
+      "name": "skip_idct",
+      "readable": false,
+      "default_value": null,
+      "writable": false,
+      "classification": "NOT_AVAILABLE"
+    },
+    "skip_frame": {
+      "name": "skip_frame",
+      "readable": true,
+      "default_value": "DEFAULT",
+      "default_value_repr": "DEFAULT",
+      "writable": true,
+      "classification": "SEMANTICS_CHANGE_FRAME_SEQUENCE"
+    }
+  },
+  "available_fields": [
+    "thread_type",
+    "thread_count",
+    "skip_frame"
+  ],
+  "read_only_boundaries": [],
+  "not_available_boundaries": [
+    "low_delay",
+    "skip_loop_filter",
+    "skip_non_ref",
+    "skip_idct"
+  ],
+  "frame_sequence_changing_boundaries": [
+    "skip_frame"
+  ],
+  "potentially_parity_preserving_boundaries": [
+    "thread_type",
+    "thread_count"
+  ],
+  "approved_variants": [],
+  "result": "NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT",
+  "reason": "The only writable POTENTIALLY_PARITY_PRESERVING properties are thread_count and thread_type. Both are software decoder threading options. With NVDEC hardware decode (hwaccel=cuda), the hardware decoder handles its own parallelism; software thread settings have no mechanism to reduce HW decode cost. All other writable properties (skip_frame) are SEMANTICS_CHANGE_FRAME_SEQUENCE and are excluded. No variant has a concrete mechanism to reduce decoder/frame advancement cost while preserving exact sampled-frame parity.",
+  "viability": false,
+  "rejection_reason": "NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT"
+}

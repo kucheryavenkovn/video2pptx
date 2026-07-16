@@ -1,6 +1,6 @@
 # Step 18.4 Bottleneck Decision — Corrected
 
-## Status: BLOCKED_TARGET_OPTIMIZATION_NOT_DISCRIMINATED
+## Status: NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION
 
 **Selected bottleneck class:** DECODE_FRAME_PIPELINE
 **Decision confidence:** HIGH
@@ -111,7 +111,7 @@ Other candidates (FEATURE_EXTRACTION_CPU, PASS2_COLLECTION, THRESHOLD_OR_DECISIO
 
 | Field | Value |
 |-------|-------|
-| **Status** | `BLOCKED_TARGET_OPTIMIZATION_NOT_DISCRIMINATED` |
+| **Status** | `NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION` |
 | **Selected bottleneck class** | `DECODE_FRAME_PIPELINE` |
 | **Decision confidence** | HIGH |
 | **Selected optimization** | `NONE` |
@@ -219,7 +219,7 @@ All three timers use `time.perf_counter()` before/after `self._it.__next__()`, i
 
 **Status:** RESOLVED (activation-defect discrimination).
 
-**Current resolution (Step 18.4B, 2026-07-14):** The corrected strict no-software-fallback control (`HWAccel('cuda',0)`, `allow_software_fallback=false`) decoded a canonical Hermes H.264 frame (`FIRST_FRAME_DECODED`; see §12B). No CUDA activation/fallback defect is proven, so `PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX` is contradicted. Bounded: this does NOT prove all production decode was hardware, that the production fallback-enabled path never fell back, or any speedup. Production-path per-frame HW usage remains UNKNOWN_NOT_PROVEN by observer design (not needed to discriminate the optimization). `selected_optimization = NONE`; `Step 18.4 = in_progress`; `Step 18.5 = planned / blocked`.
+**Current resolution (Step 18.4B, 2026-07-14):** The corrected strict no-software-fallback control (`HWAccel('cuda',0)`, `allow_software_fallback=false`) decoded a canonical Hermes H.264 frame (`FIRST_FRAME_DECODED`; see §12B). No CUDA activation/fallback defect is proven, so `PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX` is contradicted. Bounded: this does NOT prove all production decode was hardware, that the production fallback-enabled path never fell back, or any speedup. Production-path per-frame HW usage remains UNKNOWN_NOT_PROVEN by observer design (not needed to discriminate the optimization). `selected_optimization = NONE`; `Step 18.4 = done`; `Step 18.5 = planned / blocked`.
 
 > **Historical Step 18.4A intermediate state (before Step 18.4B).** The remainder of this section is preserved for traceability. It documents why F-0098 was `PARTIALLY_RESOLVED` after Step 18.4A and why the strict control then required correction — both of which Step 18.4B resolved. The statements below (including the previously-required strict-control correction and the Step 18.4A-time `F-0098 = PARTIALLY_RESOLVED` status) describe the Step 18.4A-time state, NOT the current state. Current state: F-0098 = RESOLVED (see §12B).
 
@@ -310,3 +310,102 @@ Step 18.4A's strict control was an `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DE
 - **Step 18.4B strict control:** corrected; `FIRST_FRAME_DECODED`; demuxes until first frame / EOF / exception; explicit container close.
 - **PYAV_HWACCEL_CUDA:** REJECTED_SOURCE_MODEL_MISMATCH. Source already requests HWAccel (historical source state at rejection HEAD `acb424f`; current production uses `_create_hwaccel_with_evidence()`).
 - **PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX:** CONTRADICTED_BY_STRICT_NO_FALLBACK_CONTROL (Step 18.4B FIRST_FRAME_DECODED).
+
+---
+
+## 15. Step 18.4C — Target Optimization Discrimination Correction (2026-07-14)
+
+**Status:** done (negative terminal outcome accepted).
+**Outcome:** `T3` (`terminal_outcome=T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION`). Step 18.4C is complete with the accepted negative terminal outcome `T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION`. The tested C1/C2/C3 candidates did not produce an acceptable targeted optimization. `selected_optimization=NONE`. Step 18.5 remains planned/blocked and was not started. The canonical-signature provenance discrepancy remains OPEN under F-0103 with causal classification `ROOT_CAUSE_UNKNOWN_NOT_ISOLATED`. It is retained as non-blocking technical debt and does not reopen the completed C1/C2/C3 candidate-discrimination result.
+**Corrected evidence:** committed at `b4ed0e40c2f9d86c0db41c2dd53106f945f2502c`.
+**Selected optimization:** NONE.
+**Step 18.4:** done.
+**Step 18.5:** planned / blocked; implementation not started.
+**F-0102:** `REJECTED_STEP_18_4C_DRAFT_FINDING`; not current.
+**F-0103:** OPEN — corrected discrimination found no viable target. The `stream.codec_context` access (present in the current path, absent at the historical benchmark HEAD) is a proven code-path difference and the leading hypothesis for the canonical-signature change, but causality is `ROOT_CAUSE_UNKNOWN_NOT_ISOLATED` (no controlled causal A/B isolate was performed).
+
+The package in `benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/`
+(evidence commit `b869464a6e84b2deba83a3df5e7c37ffe65ccde8`, decision commit
+`4b6eba59467110642e0959407d7bec9ff59ac7d8`) is
+`REJECTED_FOR_STEP_18_4C_ACCEPTANCE`.
+
+Primary reason: `C3_CODE_ARTIFACT_PROVENANCE_CONTRADICTION`.
+
+Additional reasons: `UNSUPPORTED_C1_CAUSAL_ATTRIBUTION` and
+`C2_UPPER_BOUND_MISLABELED_AS_REQUIRED_MINIMUM`.
+
+The exact tested C1 prototype's 0/84 result remains historical.
+Its root cause remains ROOT_CAUSE_UNKNOWN_NOT_ISOLATED; see
+Canonical Signature Provenance below. The C2 value 7,471,180,800 bytes remains
+`retain_all_upper_bound_bytes`, not a proven minimum. C3
+`NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT` and Outcome T3 are not accepted
+from the original package; the corrected r2 package is partially accepted with
+taxonomy corrections (see below).
+
+Corrected evidence directory:
+`benchmarks/detect/evidence/target-optimization-discrimination-r2-20260714-0bcfe54/`.
+Evidence code: `0bcfe540c62b5d1130ba2dbb3d067c46234062bb`, tree
+`a55759461374ac747b1e87e1611c544ce59ca969`.
+
+### Canonical Signature Provenance
+
+The accepted immutable canonical signature is `8cc06c6a...`. Fresh reference and
+candidate runs both produce `5a7c4538...`. These do NOT match.
+
+**Proven code-path difference.** The original benchmark at HEAD
+`acb424f904bc4b3459f6ad2ceb9f8c701cedb69b` did NOT access `stream.codec_context`
+in `pyav_iter_frames`. The current code (since evidence-observer infrastructure was
+added between `acb424f` and merged master `95f5794`) DOES access `stream.codec_context`
+(line 230 of `pyav_backend.py`). This access difference is a proven code-path
+difference and the **leading hypothesis** for the canonical-signature change.
+
+**Causality NOT isolated (`ROOT_CAUSE_UNKNOWN_NOT_ISOLATED`).** No controlled causal
+A/B matrix was run in which ONLY the presence of `stream.codec_context` access varied.
+Other HWAccel/evidence infrastructure changed together with that access, so the causal
+variable was not isolated. It is therefore NOT asserted that `stream.codec_context`
+access is the isolated cause of the pixel/signature difference, and `codec_context_causal=false`.
+
+This provenance gap blocks the exact-semantics gate until either:
+(a) a controlled causal A/B probe varying ONLY `stream.codec_context` access is
+performed, or
+(b) an architectural decision on the production decode path is made and the immutable
+signature is then explicitly, consciously re-baselined under the current code.
+
+The C1 exact-parity failure (0/84 matches for the tested historical seek prototype)
+remains a historical observation; its causal attribution is
+`ROOT_CAUSE_UNKNOWN_NOT_ISOLATED`.
+
+### Corrected Results
+
+* Reference: `REFERENCE_EXACTLY_REPEATABLE`; all three complete 1,201-frame sequences match exactly. Cross-open exact-byte discrimination is valid.
+* C1: `NOT_VIABLE_EXACT_PARITY_FAIL` for the exact historical seek prototype. Causal classification: `ROOT_CAUSE_UNKNOWN_NOT_ISOLATED`; `codec_context_causal=false`; `codec_context_access=LEADING_HYPOTHESIS_NOT_PROVEN`.
+* C2: `NOT_VIABLE_PERFORMANCE_FAIL` (corrected from `NOT_VIABLE_RESOURCE_MODEL`). `ROLLING_WINDOW_EXACT_MODEL_PROVEN`; 84/84 same-run identity and exact downstream semantic parity. Peak retained storage was 15 frames / 93,312,000 bytes versus the 7,471,180,800-byte retain-all upper bound. The resource model IS measured and bounded; the rejection reason is performance: candidate median 330.72s vs reference 290.53s. Median of paired differences: -46.82s / -16.12%. Difference of medians: -40.19553279999673s / -13.835416931263438%. Not directionally faster.
+* C3: live inspection selected `thread_count_1`, `thread_count_4`, and `thread_count_8`; selection guard PASS. All three variants passed exact sequence parity. Their median paired reductions were -2.03%, -4.57%, and +0.94%; none was directionally faster or reached 15%.
+
+### Terminology Clarification
+
+`median_seconds_saved` is the **median of paired differences** `reference[i] - candidate[i]`,
+NOT the **difference of medians** `reference_median - candidate_median`. Both are now
+explicitly recorded in evidence artifacts (`median_seconds_saved` with definition
+`median_of_paired_differences` and `difference_of_medians_seconds` with definition
+`reference_median - candidate_median`).
+
+### Observer Contract
+
+The `evidence_observer` parameter added to `detect_changes()` in `slide_detector.py`
+is disabled by default (`None`) and does not change detection output when not used.
+However, when enabled, it receives the **mutable `cropped` ndarray** before feature
+extraction. The callback could theoretically modify the image and alter detection
+results. The observer must be treated as a **trusted intrusive diagnostic hook**,
+not a semantically inert observation point. This is not a primary blocker since
+the observer is off in production, but the contract must be documented.
+
+All candidate discriminators have valid terminal measurements. No candidate is viable.
+The research step is complete with the accepted negative terminal outcome
+`T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION`; `selected_optimization=NONE`;
+Step 18.4 is `done`; Step 18.5 remains planned/blocked and was not started
+(`implementation_started=false`). The canonical-signature provenance discrepancy
+remains OPEN under F-0103 as non-blocking technical debt
+(`ROOT_CAUSE_UNKNOWN_NOT_ISOLATED`; `codec_context_causal=false`; environment
+contribution not excluded); it does not reopen the completed C1/C2/C3
+candidate-discrimination result.

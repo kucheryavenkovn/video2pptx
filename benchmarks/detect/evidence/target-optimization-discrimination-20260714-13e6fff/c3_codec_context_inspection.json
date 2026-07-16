@@ -1,0 +1,60 @@
+{
+  "pyav_version": "18.0.0",
+  "hw_device": "cuda",
+  "hwaccel_enabled": true,
+  "codec_name": "h264",
+  "properties": {
+    "thread_type": {
+      "name": "thread_type",
+      "readable": true,
+      "default_value": "ThreadType.SLICE",
+      "default_value_repr": "ThreadType.SLICE",
+      "writable": true,
+      "classification": "POTENTIALLY_PARITY_PRESERVING"
+    },
+    "thread_count": {
+      "name": "thread_count",
+      "readable": true,
+      "default_value": 0,
+      "default_value_repr": "NONE",
+      "writable": true,
+      "classification": "POTENTIALLY_PARITY_PRESERVING"
+    },
+    "low_delay": {
+      "name": "low_delay",
+      "readable": false,
+      "default_value": null,
+      "writable": false,
+      "classification": "NOT_AVAILABLE"
+    },
+    "skip_loop_filter": {
+      "name": "skip_loop_filter",
+      "readable": false,
+      "default_value": null,
+      "writable": false,
+      "classification": "NOT_AVAILABLE"
+    },
+    "skip_non_ref": {
+      "name": "skip_non_ref",
+      "readable": false,
+      "default_value": null,
+      "writable": false,
+      "classification": "NOT_AVAILABLE"
+    },
+    "skip_idct": {
+      "name": "skip_idct",
+      "readable": false,
+      "default_value": null,
+      "writable": false,
+      "classification": "NOT_AVAILABLE"
+    },
+    "skip_frame": {
+      "name": "skip_frame",
+      "readable": true,
+      "default_value": "DEFAULT",
+      "default_value_repr": "DEFAULT",
+      "writable": true,
+      "classification": "SEMANTICS_CHANGE_FRAME_SEQUENCE"
+    }
+  }
+}

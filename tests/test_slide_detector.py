@@ -1,5 +1,5 @@
 # FILE: tests/test_slide_detector.py
-# VERSION: 0.2.0
+# VERSION: 0.2.2
 # START_MODULE_CONTRACT
 #   PURPOSE: Tests for slide change detection
 #   SCOPE: Change detection, debounce, threshold handling, governed anchor preservation
@@ -10,32 +10,47 @@
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   TestDetectChanges - frame comparison and threshold behavior checks
+#   TestDetectChanges - frame comparison, threshold, and disabled observer behavior checks
 #   TestChangeEvent - detected-change value checks
 #   TestDebounce - debounce behavior checks
+#   TestEvidenceObserverContract - trusted intrusive observer contract checks
 #   test_governed_contracts_and_blocks_are_paired_and_ordered - semantic anchor preservation gate
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.2.0 - Added governed contract and navigation anchor preservation coverage
+#   LAST_CHANGE: v0.2.2 - Add trusted-intrusive evidence_observer contract coverage (mutable ndarray, before extract)
 # END_CHANGE_SUMMARY
 
 from pathlib import Path
 
 import numpy as np
 
+from video2pptx.frame_features import extract_features
 from video2pptx.models import FrameFeatures
 from video2pptx.roi import SlideRegion
 from video2pptx.slide_detector import ChangeEvent, detect_changes
 
 
 class TestDetectChanges:
+    def test_disabled_evidence_observer_preserves_results(self):
+        frames = [
+            (0.0, np.zeros((20, 20, 3), dtype=np.uint8)),
+            (1.0, np.full((20, 20, 3), 255, dtype=np.uint8)),
+        ]
+        omitted = detect_changes(iter(frames), threshold=0.1)
+        disabled = detect_changes(iter(frames), threshold=0.1, evidence_observer=None)
+        assert [event.timestamp for event in omitted[0]] == [
+            event.timestamp for event in disabled[0]
+        ]
+        assert [feature.timestamp for feature in omitted[1]] == [
+            feature.timestamp for feature in disabled[1]
+        ]
+        assert omitted[2] == disabled[2]
+
     def test_identical_frames_no_changes(self):
         frame = np.full((100, 100, 3), 128, dtype=np.uint8)
         frames = [(float(i), frame.copy()) for i in range(10)]
-        changes, features, scores = detect_changes(
-            iter(frames), threshold=0.3, sample_fps=1.0
-        )
+        changes, features, scores = detect_changes(iter(frames), threshold=0.3, sample_fps=1.0)
         assert len(changes) == 0
 
     def test_distinct_frames_detects_change(self):
@@ -44,34 +59,34 @@ class TestDetectChanges:
             val = 0 if i < 2 else 255
             frames.append((float(i), np.full((50, 50, 3), val, dtype=np.uint8)))
 
-        changes, features, scores = detect_changes(
-            iter(frames), threshold=0.1, sample_fps=2.0
-        )
+        changes, features, scores = detect_changes(iter(frames), threshold=0.1, sample_fps=2.0)
         assert len(changes) >= 1, f"Expected >=1 change, got {len(changes)}"
 
     def test_scores_and_features_returned(self):
-        frames = [(0.0, np.zeros((50, 50, 3), dtype=np.uint8)),
-                  (0.5, np.ones((50, 50, 3), dtype=np.uint8) * 255)]
+        frames = [
+            (0.0, np.zeros((50, 50, 3), dtype=np.uint8)),
+            (0.5, np.ones((50, 50, 3), dtype=np.uint8) * 255),
+        ]
         changes, features, scores = detect_changes(iter(frames))
         assert len(features) == 2
         assert len(scores) == 1
 
     def test_with_slide_region(self):
         region = SlideRegion(roi=None, ignore_rois=[])
-        frames = [(0.0, np.zeros((50, 50, 3), dtype=np.uint8)),
-                  (1.0, np.ones((50, 50, 3), dtype=np.uint8) * 255)]
-        changes, features, scores = detect_changes(
-            iter(frames), slide_region=region, threshold=0.1
-        )
+        frames = [
+            (0.0, np.zeros((50, 50, 3), dtype=np.uint8)),
+            (1.0, np.ones((50, 50, 3), dtype=np.uint8) * 255),
+        ]
+        changes, features, scores = detect_changes(iter(frames), slide_region=region, threshold=0.1)
         assert len(changes) >= 1
 
     def test_auto_threshold(self):
-        frames = [(0.0, np.zeros((50, 50, 3), dtype=np.uint8)),
-                  (1.0, np.zeros((50, 50, 3), dtype=np.uint8)),
-                  (2.0, np.ones((50, 50, 3), dtype=np.uint8) * 255)]
-        changes, features, scores = detect_changes(
-            iter(frames), threshold="auto"
-        )
+        frames = [
+            (0.0, np.zeros((50, 50, 3), dtype=np.uint8)),
+            (1.0, np.zeros((50, 50, 3), dtype=np.uint8)),
+            (2.0, np.ones((50, 50, 3), dtype=np.uint8) * 255),
+        ]
+        changes, features, scores = detect_changes(iter(frames), threshold="auto")
         assert isinstance(scores[0], (float, np.floating))
 
 
@@ -118,6 +133,77 @@ class TestDebounce:
             iter(frames), threshold=0.1, min_stable_duration=1.0, sample_fps=2.0
         )
         assert len(changes) >= 1
+
+
+class TestEvidenceObserverContract:
+    def test_none_observer_equals_omitted(self):
+        frames = [
+            (0.0, np.zeros((20, 20, 3), dtype=np.uint8)),
+            (1.0, np.full((20, 20, 3), 255, dtype=np.uint8)),
+        ]
+        omitted = detect_changes(iter([tuple(f) for f in frames]), threshold=0.1)
+        disabled = detect_changes(
+            iter([tuple(f) for f in frames]), threshold=0.1, evidence_observer=None
+        )
+        assert [e.timestamp for e in omitted[0]] == [e.timestamp for e in disabled[0]]
+        assert omitted[2] == disabled[2]
+
+    def test_observer_invoked_before_extract(self):
+        order: list[str] = []
+
+        def extract(cropped):
+            order.append("extract")
+            return extract_features(cropped)
+
+        def observer(event, payload):
+            if event == "sampled_frame":
+                order.append("observer")
+
+        frames = [
+            (0.0, np.zeros((30, 30, 3), dtype=np.uint8)),
+            (1.0, np.full((30, 30, 3), 255, dtype=np.uint8)),
+        ]
+        detect_changes(
+            iter(frames), threshold=0.1, extract_fn=extract, evidence_observer=observer
+        )
+        # observer must precede extract for every sampled frame
+        assert order == ["observer", "extract", "observer", "extract"]
+
+    def test_observer_receives_mutable_ndarray_and_can_alter_detection(self):
+        # Distinct frames normally produce at least one change.
+        frames = [
+            (0.0, np.zeros((40, 40, 3), dtype=np.uint8)),
+            (1.0, np.full((40, 40, 3), 255, dtype=np.uint8)),
+        ]
+        changes_noop, _, _ = detect_changes(
+            iter([(t, f.copy()) for t, f in frames]), threshold=0.1
+        )
+        assert len(changes_noop) >= 1
+
+        # An intrusive observer that forces every sampled frame to identical gray
+        # collapses the visual distance -> no change is detected. This proves the
+        # observer receives the mutable cropped ndarray before feature extraction
+        # and is NOT semantically inert.
+        def mutate(event, payload):
+            if event == "sampled_frame":
+                payload["image"][:] = 128
+
+        changes_mutated, _, _ = detect_changes(
+            iter([(t, f.copy()) for t, f in frames]),
+            threshold=0.1,
+            evidence_observer=mutate,
+        )
+        assert len(changes_mutated) == 0
+        assert len(changes_mutated) != len(changes_noop)
+
+    def test_observer_contract_documented_in_source(self):
+        source = (Path(__file__).parents[1] / "src/video2pptx/slide_detector.py").read_text(
+            encoding="utf-8"
+        )
+        assert "EVIDENCE_OBSERVER_CONTRACT" in source
+        assert "MUTABLE" in source
+        assert "TRUSTED INTRUSIVE DIAGNOSTIC HOOK" in source
+        assert "MUST NOT use evidence_observer to mutate" in source
 
 
 def test_governed_contracts_and_blocks_are_paired_and_ordered():

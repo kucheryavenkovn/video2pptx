@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "step": "18.4C",
+  "candidate": "PASS2_TARGETED_REPRESENTATIVE_FRAME_RETRIEVAL",
+  "shared_pass1_elapsed_seconds": 175.53996180000104,
+  "segment_count": 106,
+  "representative_timestamp_count": 106,
+  "video_fps": 60.0,
+  "frame_interval": 30,
+  "sample_tolerance": 0.25,
+  "reference_result": {
+    "method": "SEQUENTIAL_PASS2_REFERENCE",
+    "wall_clock_seconds": 55.34686800000054,
+    "frames_sampled": 1201,
+    "ndarray_conversions": 84,
+    "rgb_transfer_bytes": 522547200,
+    "representative_frames_collected": 84
+  },
+  "candidate_result": {
+    "method": "TARGETED_RETRIEVAL_CANDIDATE",
+    "wall_clock_seconds": 24.844641000001502,
+    "frames_decoded": 12396,
+    "container_opens": 84,
+    "ndarray_conversions": 84,
+    "rgb_transfer_bytes": 522547200,
+    "representative_frames_collected": 84,
+    "skipped_no_match": 22,
+    "parity_error": false
+  },
+  "frame_parity_summary": {
+    "parity_pass": false,
+    "target_count_reference": 84,
+    "target_count_candidate": 84,
+    "exact_sampled_timestamp_parity": true,
+    "exact_cropped_rgb_sha_parity": false,
+    "exact_byte_parity": false
+  },
+  "benchmark": {
+    "ran": false
+  }
+}

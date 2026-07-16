@@ -1,0 +1,405 @@
+{
+  "evidence_code_head": "0bcfe540c62b5d1130ba2dbb3d067c46234062bb",
+  "evidence_code_tree": "a55759461374ac747b1e87e1611c544ce59ca969",
+  "accepted_master_base": "95f5794f46ce5e313c6b2548cb8dbfcfe917555a",
+  "clip_actual_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "clip_expected_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "sha256_match": true,
+  "recorded_order": [
+    "reference-01",
+    "candidate-01",
+    "candidate-02",
+    "reference-02",
+    "reference-03",
+    "candidate-03"
+  ],
+  "variants": {
+    "thread_count_1": {
+      "reference_runs": [
+        {
+          "wall_clock_seconds": 90.97675180000078,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {},
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        },
+        {
+          "wall_clock_seconds": 87.6290104999971,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {},
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        },
+        {
+          "wall_clock_seconds": 92.37509219999993,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {},
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        }
+      ],
+      "candidate_runs": [
+        {
+          "wall_clock_seconds": 89.46424950000073,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {
+            "thread_count": 1
+          },
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        },
+        {
+          "wall_clock_seconds": 89.40666589999819,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {
+            "thread_count": 1
+          },
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        },
+        {
+          "wall_clock_seconds": 117.72408200000064,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {
+            "thread_count": 1
+          },
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        }
+      ],
+      "reference_seconds": [
+        90.97675180000078,
+        87.6290104999971,
+        92.37509219999993
+      ],
+      "candidate_seconds": [
+        89.46424950000073,
+        89.40666589999819,
+        117.72408200000064
+      ],
+      "reference_median": 90.97675180000078,
+      "candidate_median": 89.46424950000073,
+      "reference_mean": 90.32695149999927,
+      "candidate_mean": 98.86499913333319,
+      "reference_sample_stdev": 2.4388528447175712,
+      "candidate_sample_stdev": 16.33247023253432,
+      "paired_absolute_savings": [
+        1.512502300000051,
+        -1.7776554000010947,
+        -25.34898980000071
+      ],
+      "paired_percentage_reductions": [
+        1.6625151701668446,
+        -2.0286151696316983,
+        -27.441368875841544
+      ],
+      "median_seconds_saved": -1.7776554000010947,
+      "median_seconds_saved_definition": "median of paired differences (reference[i] - candidate[i])",
+      "median_reduction_percent": -2.0286151696316983,
+      "difference_of_medians_seconds": 1.5125023000000510,
+      "difference_of_medians_percent": 1.6625151701668446,
+      "difference_of_medians_definition": "reference_median - candidate_median",
+      "directional_stability": false,
+      "warmups": {
+        "reference": 93.7512510000015,
+        "candidate": 90.35991750000176
+      },
+      "viable": false,
+      "state": "NOT_VIABLE_PERFORMANCE_FAIL"
+    },
+    "thread_count_4": {
+      "reference_runs": [
+        {
+          "wall_clock_seconds": 86.69009439999718,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {},
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        },
+        {
+          "wall_clock_seconds": 86.8947690999994,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {},
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        },
+        {
+          "wall_clock_seconds": 110.52928410000095,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {},
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        }
+      ],
+      "candidate_runs": [
+        {
+          "wall_clock_seconds": 94.37036799999987,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {
+            "thread_count": 4
+          },
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        },
+        {
+          "wall_clock_seconds": 90.8670119999988,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {
+            "thread_count": 4
+          },
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        },
+        {
+          "wall_clock_seconds": 92.75259839999853,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {
+            "thread_count": 4
+          },
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        }
+      ],
+      "reference_seconds": [
+        86.69009439999718,
+        86.8947690999994,
+        110.52928410000095
+      ],
+      "candidate_seconds": [
+        94.37036799999987,
+        90.8670119999988,
+        92.75259839999853
+      ],
+      "reference_median": 86.8947690999994,
+      "candidate_median": 92.75259839999853,
+      "reference_mean": 94.70471586666584,
+      "candidate_mean": 92.6633261333324,
+      "reference_sample_stdev": 13.7048601876055,
+      "candidate_sample_stdev": 1.75338329206214,
+      "paired_absolute_savings": [
+        -7.6802736000026925,
+        -3.972242899999401,
+        17.776685700002417
+      ],
+      "paired_percentage_reductions": [
+        -8.859459264821083,
+        -4.571325686392127,
+        16.083236080601978
+      ],
+      "median_seconds_saved": -3.972242899999401,
+      "median_seconds_saved_definition": "median of paired differences (reference[i] - candidate[i])",
+      "median_reduction_percent": -4.571325686392127,
+      "difference_of_medians_seconds": -5.8578292999991390,
+      "difference_of_medians_percent": -6.741291058910449,
+      "difference_of_medians_definition": "reference_median - candidate_median",
+      "directional_stability": false,
+      "warmups": {
+        "reference": 89.15031680000175,
+        "candidate": 90.9858856000028
+      },
+      "viable": false,
+      "state": "NOT_VIABLE_PERFORMANCE_FAIL"
+    },
+    "thread_count_8": {
+      "reference_runs": [
+        {
+          "wall_clock_seconds": 63.38367399999697,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {},
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        },
+        {
+          "wall_clock_seconds": 65.26653140000053,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {},
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        },
+        {
+          "wall_clock_seconds": 62.64820510000209,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {},
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        }
+      ],
+      "candidate_runs": [
+        {
+          "wall_clock_seconds": 63.52533389999735,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {
+            "thread_count": 8
+          },
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        },
+        {
+          "wall_clock_seconds": 60.509207199997036,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {
+            "thread_count": 8
+          },
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        },
+        {
+          "wall_clock_seconds": 62.056707599997026,
+          "frames_decoded": 36001,
+          "frames_yielded": 1201,
+          "ndarray_conversions": 1201,
+          "rgb_transfer_bytes": 7471180800,
+          "peak_rss_bytes": 0,
+          "rss_measurement_backend": "WIN32_GetProcessMemoryInfo_FAILED",
+          "video_fps": 60.0,
+          "frame_interval": 30,
+          "config_applied": {
+            "thread_count": 8
+          },
+          "sequence_signature": "9441201942f2333337ccba1d0280058b2e1e45c4ea17700cc5940d8067c757af"
+        }
+      ],
+      "reference_seconds": [
+        63.38367399999697,
+        65.26653140000053,
+        62.64820510000209
+      ],
+      "candidate_seconds": [
+        63.52533389999735,
+        60.509207199997036,
+        62.056707599997026
+      ],
+      "reference_median": 63.38367399999697,
+      "candidate_median": 62.056707599997026,
+      "reference_mean": 63.7661368333332,
+      "candidate_mean": 62.03041623333047,
+      "reference_sample_stdev": 1.3504134616770394,
+      "candidate_sample_stdev": 1.5082352252167404,
+      "paired_absolute_savings": [
+        -0.1416599000003771,
+        4.757324200003495,
+        0.5914975000050617
+      ],
+      "paired_percentage_reductions": [
+        -0.22349588002800827,
+        7.289071592984113,
+        0.944157137560262
+      ],
+      "median_seconds_saved": 0.5914975000050617,
+      "median_seconds_saved_definition": "median of paired differences (reference[i] - candidate[i])",
+      "median_reduction_percent": 0.944157137560262,
+      "difference_of_medians_seconds": 1.3269663999999466,
+      "difference_of_medians_percent": 2.093546044680228,
+      "difference_of_medians_definition": "reference_median - candidate_median",
+      "directional_stability": false,
+      "warmups": {
+        "reference": 80.16715690000274,
+        "candidate": 83.81195149999985
+      },
+      "viable": false,
+      "state": "NOT_VIABLE_PERFORMANCE_FAIL"
+    }
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "evidence_code_head": "0bcfe540c62b5d1130ba2dbb3d067c46234062bb",
+  "evidence_code_tree": "a55759461374ac747b1e87e1611c544ce59ca969",
+  "accepted_master_base": "95f5794f46ce5e313c6b2548cb8dbfcfe917555a",
+  "clip_actual_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "clip_expected_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "sha256_match": true,
+  "sample_fps": 2.0,
+  "measured": true,
+  "accounting_boundary": "REFERENCE=current Pass 1 + sequential Pass 2 collection; CANDIDATE=same Pass 1 with rolling retention and no Pass 2 decode",
+  "reference_warmup": {
+    "pass1_wall_clock_seconds": 220.72126520000165,
+    "pass2_retrieval_wall_clock_seconds": 59.16043010000067,
+    "total_compared_wall_clock_seconds": 279.8816953000023,
+    "frames_decoded": 72002,
+    "frames_decoded_derivation": "round(video_duration * video_fps) per complete sequential pass",
+    "frames_sampled": 2402,
+    "ndarray_conversions": 2402,
+    "rgb_transfer_bytes": 14942361600,
+    "peak_rss_bytes": 0,
+    "representative_frames_collected": 84
+  },
+  "candidate_warmup": {
+    "pass1_wall_clock_seconds": 176.60540180000316,
+    "pass2_retrieval_wall_clock_seconds": 0.0,
+    "total_compared_wall_clock_seconds": 176.60540180000316,
+    "frames_decoded": 36001,
+    "frames_decoded_derivation": "round(video_duration * video_fps) per complete sequential pass",
+    "frames_sampled": 1201,
+    "ndarray_conversions": 1201,
+    "rgb_transfer_bytes": 7471180800,
+    "peak_rss_bytes": 0,
+    "representative_frames_collected": 84
+  },
+  "recorded_order": [
+    "reference-01",
+    "candidate-01",
+    "candidate-02",
+    "reference-02",
+    "reference-03",
+    "candidate-03"
+  ],
+  "reference_runs": [
+    {
+      "pass1_wall_clock_seconds": 204.4570870000025,
+      "pass2_retrieval_wall_clock_seconds": 86.06927010000072,
+      "total_compared_wall_clock_seconds": 290.5263571000032,
+      "frames_decoded": 72002,
+      "frames_decoded_derivation": "round(video_duration * video_fps) per complete sequential pass",
+      "frames_sampled": 2402,
+      "ndarray_conversions": 2402,
+      "rgb_transfer_bytes": 14942361600,
+      "peak_rss_bytes": 0,
+      "representative_frames_collected": 84
+    },
+    {
+      "pass1_wall_clock_seconds": 164.94066569999995,
+      "pass2_retrieval_wall_clock_seconds": 53.4993209000022,
+      "total_compared_wall_clock_seconds": 218.43998660000216,
+      "frames_decoded": 72002,
+      "frames_decoded_derivation": "round(video_duration * video_fps) per complete sequential pass",
+      "frames_sampled": 2402,
+      "ndarray_conversions": 2402,
+      "rgb_transfer_bytes": 14942361600,
+      "peak_rss_bytes": 0,
+      "representative_frames_collected": 84
+    },
+    {
+      "pass1_wall_clock_seconds": 247.04174830000193,
+      "pass2_retrieval_wall_clock_seconds": 80.94837299999926,
+      "total_compared_wall_clock_seconds": 327.9901213000012,
+      "frames_decoded": 72002,
+      "frames_decoded_derivation": "round(video_duration * video_fps) per complete sequential pass",
+      "frames_sampled": 2402,
+      "ndarray_conversions": 2402,
+      "rgb_transfer_bytes": 14942361600,
+      "peak_rss_bytes": 0,
+      "representative_frames_collected": 84
+    }
+  ],
+  "candidate_runs": [
+    {
+      "pass1_wall_clock_seconds": 337.3459901000024,
+      "pass2_retrieval_wall_clock_seconds": 0.0,
+      "total_compared_wall_clock_seconds": 337.3459901000024,
+      "frames_decoded": 36001,
+      "frames_decoded_derivation": "round(video_duration * video_fps) per complete sequential pass",
+      "frames_sampled": 1201,
+      "ndarray_conversions": 1201,
+      "rgb_transfer_bytes": 7471180800,
+      "peak_rss_bytes": 0,
+      "representative_frames_collected": 84
+    },
+    {
+      "pass1_wall_clock_seconds": 287.52387100000124,
+      "pass2_retrieval_wall_clock_seconds": 0.0,
+      "total_compared_wall_clock_seconds": 287.52387100000124,
+      "frames_decoded": 36001,
+      "frames_decoded_derivation": "round(video_duration * video_fps) per complete sequential pass",
+      "frames_sampled": 1201,
+      "ndarray_conversions": 1201,
+      "rgb_transfer_bytes": 7471180800,
+      "peak_rss_bytes": 0,
+      "representative_frames_collected": 84
+    },
+    {
+      "pass1_wall_clock_seconds": 330.72188989999995,
+      "pass2_retrieval_wall_clock_seconds": 0.0,
+      "total_compared_wall_clock_seconds": 330.72188989999995,
+      "frames_decoded": 36001,
+      "frames_decoded_derivation": "round(video_duration * video_fps) per complete sequential pass",
+      "frames_sampled": 1201,
+      "ndarray_conversions": 1201,
+      "rgb_transfer_bytes": 7471180800,
+      "peak_rss_bytes": 0,
+      "representative_frames_collected": 84
+    }
+  ],
+  "reference_median": 290.5263571000032,
+  "candidate_median": 330.72188989999995,
+  "reference_mean": 278.9854883333355,
+  "candidate_mean": 318.53058366666784,
+  "reference_sample_stdev": 55.67945529649215,
+  "candidate_sample_stdev": 27.056087090705415,
+  "paired_absolute_savings": [
+    -46.81963299999916,
+    -69.08388439999908,
+    -2.731768599998759
+  ],
+  "paired_percentage_reductions": [
+    -16.115451096192,
+    -31.626024829649207,
+    -0.8328813651982234
+  ],
+  "median_seconds_saved": -46.81963299999916,
+  "median_seconds_saved_definition": "median of paired differences (reference[i] - candidate[i])",
+  "median_reduction_percent": -16.115451096192,
+  "difference_of_medians_seconds": -40.19553279999673,
+  "difference_of_medians_percent": -13.835416931263438,
+  "difference_of_medians_definition": "reference_median - candidate_median",
+  "directional_stability": false,
+  "viable": false,
+  "state": "NOT_VIABLE_PERFORMANCE_FAIL",
+  "state_correction_note": "Previously classified NOT_VIABLE_RESOURCE_MODEL. Corrected: the rolling-window exact retention model IS proven (c2_retention_model.json: ROLLING_WINDOW_EXACT_MODEL_PROVEN, peak 15 frames / 93312000 bytes). The rejection reason is performance failure (candidate slower in all paired runs), not resource model absence."
+}

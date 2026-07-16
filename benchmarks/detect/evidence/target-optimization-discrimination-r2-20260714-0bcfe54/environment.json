@@ -1,0 +1,14 @@
+{
+  "evidence_code_head": "0bcfe540c62b5d1130ba2dbb3d067c46234062bb",
+  "evidence_code_tree": "a55759461374ac747b1e87e1611c544ce59ca969",
+  "accepted_master_base": "95f5794f46ce5e313c6b2548cb8dbfcfe917555a",
+  "clip_actual_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "clip_expected_sha256": "dd9da3442e91ab7f17f0405198aa8e39d1538d74518b6b9a3b1e61ac2fc0f5a4",
+  "sha256_match": true,
+  "sample_fps": 2.0,
+  "python_version": "3.14.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numpy_version": "2.4.4",
+  "opencv_version": "5.0.0",
+  "pyav_version": "18.0.0"
+}
