@@ -1,5 +1,5 @@
 # FILE: tests/test_target_optimization_discrimination.py
-# VERSION: 2.1.0
+# VERSION: 2.2.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Focused tests for Step 18.4C target-optimization discrimination helpers.
 #   SCOPE: Statistics, repeatability, C1 parity, exact C2 retention, C3 selection/provenance/parity.
@@ -18,7 +18,16 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: [v2.1.0 - Step 18.4C: strengthened causal-consistency gate.
+#   LAST_CHANGE: [v2.2.0 - Step 18.4 closeout: accept negative terminal outcome
+#     T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION at the decision layer.
+#     Replaced outcome=PENDING/terminal_outcome=null/Step 18.4C=in_progress
+#     assertions with outcome=T3, terminal_outcome=T3_..., Step 18.4C=done,
+#     Step 18.4=done, selected_optimization=NONE, step18_5_implementation_started
+#     false, F-0103 OPEN_NON_BLOCKING. The raw r2 discrimination evidence
+#     package is asserted unchanged (immutable raw evidence retains its
+#     discrimination-time PENDING snapshot). Causal-language,
+#     duplicate-key, arithmetic, and signature-provenance guards retained.]
+#   PREV_CHANGE: [v2.1.0 - Step 18.4C: strengthened causal-consistency gate.
 #     Added case/whitespace-tolerant rejection of "root cause now isolated",
 #     "not an environment anomaly", and "not with an environment or clip anomaly"
 #     in current artifacts (incl. findings.md and bottleneck_decision.md). Added
@@ -741,25 +750,40 @@ class TestEvidencePackageConsistency:
         assert prov["codec_context_causal"] is False
         assert prov["codec_context_access"] == "LEADING_HYPOTHESIS_NOT_PROVEN"
 
-    def test_no_terminal_outcome_accepted(self):
-        agg = self._aggregate()
+    def test_negative_terminal_outcome_accepted(self):
+        # Management decision (Step 18.4 closeout): the negative terminal
+        # outcome T3 is accepted at the decision layer (bottleneck_decision.json
+        # step18_4c_status). The raw r2 discrimination evidence package
+        # (discrimination_evidence.json) is immutable raw evidence and
+        # intentionally retains its discrimination-time PENDING snapshot; the
+        # accepted management outcome supersedes it at the decision layer.
         decision = self._decision()
         status = decision["step18_4c_status"]
+        assert status["outcome"] == "T3"
+        assert status["terminal_outcome"] == (
+            "T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION"
+        )
+        assert status["decision_status"] == "NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION"
+        assert status["selected_optimization"] == "NONE"
+        assert decision["selected_optimization"] == "NONE"
+        assert status["f0103_status"] == "OPEN_NON_BLOCKING"
+        # Raw discrimination evidence package is unchanged at the evidence layer.
+        agg = self._aggregate()
         assert agg["outcome"] == "PENDING"
         assert agg["terminal_outcome"] is None
-        assert status["outcome"] == "PENDING"
-        assert status["terminal_outcome"] is None
+        assert agg["selected_optimization"] == "NONE"
 
-    def test_step_18_4c_in_progress_and_18_5_not_started(self):
-        agg = self._aggregate()
+    def test_step_18_4c_done_and_18_5_blocked(self):
         decision = self._decision()
         status = decision["step18_4c_status"]
-        assert status["status"] == "in_progress"
-        assert status["substatus"] == "blocked_on_canonical_signature_provenance"
-        assert agg["step_18_4c_status"] == "in_progress / blocked_on_canonical_signature_provenance"
+        assert status["status"] == "done"
+        assert status["step_18_4"] == "done"
         assert status["step_18_5"] == "planned / blocked"
         assert status["step18_5_implementation_started"] is False
         assert status["selected_optimization"] == "NONE"
+        assert status["step18_5_hypothesis"] == "NONE"
+        # raw discrimination evidence retains its discrimination-time snapshot
+        agg = self._aggregate()
         assert agg["selected_optimization"] == "NONE"
 
     def test_c2_difference_of_medians_recomputed_from_raw(self):

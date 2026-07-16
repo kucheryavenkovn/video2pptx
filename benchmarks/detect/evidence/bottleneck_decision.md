@@ -1,6 +1,6 @@
 # Step 18.4 Bottleneck Decision — Corrected
 
-## Status: BLOCKED_TARGET_OPTIMIZATION_NOT_DISCRIMINATED
+## Status: NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION
 
 **Selected bottleneck class:** DECODE_FRAME_PIPELINE
 **Decision confidence:** HIGH
@@ -111,7 +111,7 @@ Other candidates (FEATURE_EXTRACTION_CPU, PASS2_COLLECTION, THRESHOLD_OR_DECISIO
 
 | Field | Value |
 |-------|-------|
-| **Status** | `BLOCKED_TARGET_OPTIMIZATION_NOT_DISCRIMINATED` |
+| **Status** | `NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION` |
 | **Selected bottleneck class** | `DECODE_FRAME_PIPELINE` |
 | **Decision confidence** | HIGH |
 | **Selected optimization** | `NONE` |
@@ -219,7 +219,7 @@ All three timers use `time.perf_counter()` before/after `self._it.__next__()`, i
 
 **Status:** RESOLVED (activation-defect discrimination).
 
-**Current resolution (Step 18.4B, 2026-07-14):** The corrected strict no-software-fallback control (`HWAccel('cuda',0)`, `allow_software_fallback=false`) decoded a canonical Hermes H.264 frame (`FIRST_FRAME_DECODED`; see §12B). No CUDA activation/fallback defect is proven, so `PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX` is contradicted. Bounded: this does NOT prove all production decode was hardware, that the production fallback-enabled path never fell back, or any speedup. Production-path per-frame HW usage remains UNKNOWN_NOT_PROVEN by observer design (not needed to discriminate the optimization). `selected_optimization = NONE`; `Step 18.4 = in_progress`; `Step 18.5 = planned / blocked`.
+**Current resolution (Step 18.4B, 2026-07-14):** The corrected strict no-software-fallback control (`HWAccel('cuda',0)`, `allow_software_fallback=false`) decoded a canonical Hermes H.264 frame (`FIRST_FRAME_DECODED`; see §12B). No CUDA activation/fallback defect is proven, so `PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX` is contradicted. Bounded: this does NOT prove all production decode was hardware, that the production fallback-enabled path never fell back, or any speedup. Production-path per-frame HW usage remains UNKNOWN_NOT_PROVEN by observer design (not needed to discriminate the optimization). `selected_optimization = NONE`; `Step 18.4 = done`; `Step 18.5 = planned / blocked`.
 
 > **Historical Step 18.4A intermediate state (before Step 18.4B).** The remainder of this section is preserved for traceability. It documents why F-0098 was `PARTIALLY_RESOLVED` after Step 18.4A and why the strict control then required correction — both of which Step 18.4B resolved. The statements below (including the previously-required strict-control correction and the Step 18.4A-time `F-0098 = PARTIALLY_RESOLVED` status) describe the Step 18.4A-time state, NOT the current state. Current state: F-0098 = RESOLVED (see §12B).
 
@@ -315,11 +315,11 @@ Step 18.4A's strict control was an `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DE
 
 ## 15. Step 18.4C — Target Optimization Discrimination Correction (2026-07-14)
 
-**Status:** in_progress / blocked_on_canonical_signature_provenance.
-**Outcome:** `PENDING` (`terminal_outcome=null`). Terminal `T3` is NOT accepted while the canonical-signature provenance gate is open.
+**Status:** done (negative terminal outcome accepted).
+**Outcome:** `T3` (`terminal_outcome=T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION`). Step 18.4C is complete with the accepted negative terminal outcome `T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION`. The tested C1/C2/C3 candidates did not produce an acceptable targeted optimization. `selected_optimization=NONE`. Step 18.5 remains planned/blocked and was not started. The canonical-signature provenance discrepancy remains OPEN under F-0103 with causal classification `ROOT_CAUSE_UNKNOWN_NOT_ISOLATED`. It is retained as non-blocking technical debt and does not reopen the completed C1/C2/C3 candidate-discrimination result.
 **Corrected evidence:** committed at `b4ed0e40c2f9d86c0db41c2dd53106f945f2502c`.
 **Selected optimization:** NONE.
-**Step 18.4:** in_progress.
+**Step 18.4:** done.
 **Step 18.5:** planned / blocked; implementation not started.
 **F-0102:** `REJECTED_STEP_18_4C_DRAFT_FINDING`; not current.
 **F-0103:** OPEN — corrected discrimination found no viable target. The `stream.codec_context` access (present in the current path, absent at the historical benchmark HEAD) is a proven code-path difference and the leading hypothesis for the canonical-signature change, but causality is `ROOT_CAUSE_UNKNOWN_NOT_ISOLATED` (no controlled causal A/B isolate was performed).
@@ -401,6 +401,11 @@ not a semantically inert observation point. This is not a primary blocker since
 the observer is off in production, but the contract must be documented.
 
 All candidate discriminators have valid terminal measurements. No candidate is viable.
-`selected_optimization=NONE`, Step 18.4 remains `in_progress`, and Step 18.5 remains
-planned/blocked and not started. Step 18.4C is blocked on canonical signature
-provenance resolution.
+The research step is complete with the accepted negative terminal outcome
+`T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION`; `selected_optimization=NONE`;
+Step 18.4 is `done`; Step 18.5 remains planned/blocked and was not started
+(`implementation_started=false`). The canonical-signature provenance discrepancy
+remains OPEN under F-0103 as non-blocking technical debt
+(`ROOT_CAUSE_UNKNOWN_NOT_ISOLATED`; `codec_context_causal=false`; environment
+contribution not excluded); it does not reopen the completed C1/C2/C3
+candidate-discrimination result.

@@ -1329,7 +1329,7 @@
     </evidence>
   </V-PERF-DETECT-SHORT-BENCHMARK>
 
-  <V-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="in_progress">
+  <V-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="done">
     <purpose>Select a bottleneck class only from accepted recovered-tree benchmark evidence, or honestly report insufficient discrimination.</purpose>
     <verification-contract>
       1. Wall-clock stage timers from median run (run-01, 272.57s) are the primary evidence.
@@ -1365,7 +1365,9 @@
       PYAV_HWACCEL_CUDA: REJECTED_SOURCE_MODEL_MISMATCH — existing source already requests HWAccel.
       PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX: CONTRADICTED_BY_STRICT_NO_FALLBACK_CONTROL.
       Step 18.4A=done (OBSERVATION_COMPLETE, OUTCOME_D). Step 18.4B=done (FIRST_FRAME_DECODED, OUTCOME_S1).
-      Step 18.4 remains in_progress until exactly one targeted optimization is selected.
+      Step 18.4=done: the accepted negative terminal outcome T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION
+      satisfies the contract — no tested C1/C2/C3 candidate satisfies the parity, stability, and
+      performance gates, so selected_optimization=NONE (no targeted optimization is implemented).
       Median run (run-01): 272.57s detect elapsed.
       Residual: 0.53s (0.19%) — down from 87.39s (33.0%) pre-instrumentation.
       Total decoder/frame advancement pipeline (pass1 + pass2): 172.46s (63.27%).
@@ -1415,10 +1417,12 @@
       but performance fails (difference of medians -40.19553279999673s / -13.835416931263438%;
       median of paired differences -46.81963299999916s / -16.115451096192%; unstable).
       C3 selection PASS with thread_count_1/4/8; all exact parity PASS and all performance FAIL.
-      Outcome PENDING (terminal_outcome=null); terminal T3 NOT accepted while the gate is open.
-      F-0103 OPEN (ROOT_CAUSE_UNKNOWN_NOT_ISOLATED; codec_context is a leading hypothesis, not an
-      isolated cause). selected_optimization=NONE; Step 18.4 remains in_progress;
-      Step 18.4C=in_progress/blocked_on_canonical_signature_provenance; Step 18.5 planned/blocked and not started.
+      Management outcome: the negative terminal outcome
+      T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION is accepted — no tested candidate is viable.
+      F-0103 OPEN / NON_BLOCKING (ROOT_CAUSE_UNKNOWN_NOT_ISOLATED; codec_context is a leading
+      hypothesis, not an isolated cause; environment contribution not excluded).
+      selected_optimization=NONE; Step 18.4=done; Step 18.4C=done; Step 18.5 planned/blocked and
+      not started (implementation_started=false).
       Canonical signature provenance: 8cc06c6a... (original) vs 5a7c4538... (current); match=false;
       provenance classification ROOT_CAUSE_UNKNOWN_NOT_ISOLATED. The historical benchmark path at
       acb424f did not access stream.codec_context while the current path does — a proven code-path

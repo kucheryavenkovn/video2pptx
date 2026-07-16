@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "step": "18.4",
   "phase": "18",
-  "status": "BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
+  "status": "NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
   "decision_evidence_head": "acb424f904bc4b3459f6ad2ceb9f8c701cedb69b",
   "source_benchmark": {
     "benchmark_sequence": "hermes-600s-f0097-instrumented-20260713-acb424f",
@@ -653,8 +653,8 @@
     "selected_optimization": "NONE"
   },
   "step18_4c_status": {
-    "status": "in_progress",
-    "substatus": "blocked_on_canonical_signature_provenance",
+    "status": "done",
+    "substatus": "negative_terminal_outcome_accepted",
     "purpose": "discriminate remaining DECODE_FRAME_PIPELINE candidates with validated reference repeatability, exact C2 semantics, deterministic C3 selection, provenance, and paired timing",
     "evidence_branch": "perf/phase18-target-optimization-discrimination",
     "rejected_package": {
@@ -739,19 +739,19 @@
       },
       "all_variants_directionally_faster": false
     },
-    "outcome": "PENDING",
-    "terminal_outcome": null,
-    "decision_status": "BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
-    "blocked_reason": "canonical_signature_provenance_unresolved_and_c2_taxonomy_corrected",
+    "outcome": "T3",
+    "terminal_outcome": "T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
+    "decision_status": "NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
+    "outcome_rationale": "Accepted negative terminal outcome T3: none of the tested C1/C2/C3 candidates satisfies the required parity, stability, and performance gates. selected_optimization=NONE. The canonical-signature provenance discrepancy remains OPEN under F-0103 as non-blocking technical debt (ROOT_CAUSE_UNKNOWN_NOT_ISOLATED) and does not reopen the completed C1/C2/C3 candidate-discrimination result. The raw r2 discrimination evidence package retains its discrimination-time PENDING state; this accepted management outcome supersedes it at the decision layer.",
     "selected_optimization": "NONE",
     "step18_5_hypothesis": "NONE",
     "f0102_status": "REJECTED_STEP_18_4C_DRAFT_FINDING_NOT_CURRENT",
-    "f0103_status": "OPEN",
+    "f0103_status": "OPEN_NON_BLOCKING",
     "causal_classification": "ROOT_CAUSE_UNKNOWN_NOT_ISOLATED",
     "codec_context_causal": false,
     "codec_context_access": "LEADING_HYPOTHESIS_NOT_PROVEN",
     "f0103_classification": "Corrected discrimination found no currently viable target among the tested C1/C2/C3 candidates. C1 exact parity failed for the historical seek prototype and the canonical-signature provenance gap remains unresolved (ROOT_CAUSE_UNKNOWN_NOT_ISOLATED). The stream.codec_context access (present in the current path, absent from the historical benchmark path) is a proven code-path difference and the leading hypothesis for the canonical-signature change, but causality has NOT been isolated because no controlled causal A/B matrix was run varying ONLY that access. C2 and C3 fail performance gates.",
-    "step_18_4": "in_progress",
+    "step_18_4": "done",
     "step_18_5": "planned / blocked",
     "step18_5_implementation_started": false
   }
