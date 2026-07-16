@@ -20,9 +20,11 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -38,6 +40,7 @@ from discrimination_helpers import (  # noqa: E402
     check_sequence_parity,
     classify_reference_repeatability,
     collect_git_provenance,
+    compute_difference_of_medians,
     compute_full_rgb_retention_bytes,
     compute_mean,
     compute_median,
@@ -581,3 +584,219 @@ def test_balanced_order_and_warmup_exclusion_contract():
         "candidate-03",
     ]
     assert all("warmup" not in item for item in balanced_recorded_order())
+
+
+# =========================================================================
+# Difference-of-medians arithmetic (must be recomputed from raw medians)
+# =========================================================================
+
+
+class TestDifferenceOfMedians:
+    def test_seconds_and_percent_exact(self):
+        result = compute_difference_of_medians(290.5263571000032, 330.72188989999995)
+        assert result["difference_of_medians_seconds"] == -40.19553279999673
+        assert result["difference_of_medians_percent"] == -13.835416931263438
+
+    def test_distinct_from_median_of_paired_differences(self):
+        # difference of medians (-40.195...) != median of paired differences (-46.819...)
+        reference = [290.5263571000032, 218.43998660000216, 327.9901213000012]
+        candidate = [337.3459901000024, 287.52387100000124, 330.72188989999995]
+        diff_of_medians = compute_difference_of_medians(
+            compute_median(reference), compute_median(candidate)
+        )
+        median_of_paired = compute_median(
+            compute_paired_absolute_savings(reference, candidate)
+        )
+        assert diff_of_medians["difference_of_medians_seconds"] != median_of_paired
+        assert diff_of_medians["difference_of_medians_seconds"] == -40.19553279999673
+        assert median_of_paired == -46.81963299999916
+
+    def test_zero_reference_raises(self):
+        with pytest.raises(ValueError):
+            compute_difference_of_medians(0.0, 1.0)
+
+
+# =========================================================================
+# Evidence-package consistency gate (cheap static checks on committed artifacts)
+# =========================================================================
+
+_EVIDENCE_DIR = (
+    Path(__file__).resolve().parents[1]
+    / "benchmarks/detect/evidence/target-optimization-discrimination-r2-20260714-0bcfe54"
+)
+_DECISION_JSON = (
+    Path(__file__).resolve().parents[1]
+    / "benchmarks/detect/evidence/bottleneck_decision.json"
+)
+
+
+def _load_strict_json(path: Path) -> Any:
+    """Parse JSON rejecting duplicate object keys."""
+    seen: list[str] = []
+
+    def hook(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        obj: dict[str, Any] = {}
+        for key, value in pairs:
+            if key in obj:
+                raise ValueError(f"duplicate key in {path}: {key}")
+            obj[key] = value
+        seen.extend(obj.keys())
+        return obj
+
+    return json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=hook)
+
+
+def _json_files(paths: list[Path]) -> list[Path]:
+    return [path for path in paths if path.exists()]
+
+
+class TestEvidencePackageConsistency:
+    def _aggregate(self):
+        return _load_strict_json(_EVIDENCE_DIR / "discrimination_evidence.json")
+
+    def _decision(self):
+        return _load_strict_json(_DECISION_JSON)
+
+    def test_all_artifacts_parse_without_duplicate_keys(self):
+        candidates = [
+            _EVIDENCE_DIR / "c1_status.json",
+            _EVIDENCE_DIR / "c2_retention_model.json",
+            _EVIDENCE_DIR / "c2_runs.json",
+            _EVIDENCE_DIR / "c3_runs.json",
+            _EVIDENCE_DIR / "c3_variants.json",
+            _EVIDENCE_DIR / "c3_inspection.json",
+            _EVIDENCE_DIR / "discrimination_evidence.json",
+            _DECISION_JSON,
+        ]
+        for path in _json_files(candidates):
+            _load_strict_json(path)  # raises on duplicate keys
+
+    def test_c1_causality_consistent(self):
+        c1 = _load_strict_json(_EVIDENCE_DIR / "c1_status.json")
+        assert c1["state"] == "NOT_VIABLE_EXACT_PARITY_FAIL"
+        assert c1["causal_matrix_run"] is False
+        assert c1["causal_classification"] == "ROOT_CAUSE_UNKNOWN_NOT_ISOLATED"
+        assert c1["codec_context_causal"] is False
+        assert c1["seek_causal"] is False
+        # aggregate c1 block must agree
+        decision = self._decision()
+        agg_c1 = decision["step18_4c_status"]["c1_evaluation"]
+        assert agg_c1["state"] == "NOT_VIABLE_EXACT_PARITY_FAIL"
+        assert agg_c1["causal_classification"] == "ROOT_CAUSE_UNKNOWN_NOT_ISOLATED"
+        assert agg_c1["codec_context_causal"] is False
+
+    def test_c2_state_and_retention_model_consistent(self):
+        c2_runs = _load_strict_json(_EVIDENCE_DIR / "c2_runs.json")
+        c2_model = _load_strict_json(_EVIDENCE_DIR / "c2_retention_model.json")
+        assert c2_runs["state"] == "NOT_VIABLE_PERFORMANCE_FAIL"
+        assert c2_model["classification"] == "ROLLING_WINDOW_EXACT_MODEL_PROVEN"
+        decision = self._decision()
+        agg_c2 = decision["step18_4c_status"]["c2_evaluation"]
+        assert agg_c2["state"] == "NOT_VIABLE_PERFORMANCE_FAIL"
+        assert agg_c2["retention_model"] == "ROLLING_WINDOW_EXACT_MODEL_PROVEN"
+
+    def test_c3_variants_all_performance_fail(self):
+        c3_runs = _load_strict_json(_EVIDENCE_DIR / "c3_runs.json")
+        for name, variant in c3_runs["variants"].items():
+            assert variant["state"] == "NOT_VIABLE_PERFORMANCE_FAIL", name
+            assert variant["directional_stability"] is False, name
+        decision = self._decision()
+        assert decision["step18_4c_status"]["c3_evaluation"]["state"] == (
+            "NOT_VIABLE_PERFORMANCE_FAIL"
+        )
+
+    def test_canonical_signature_mismatch_preserved(self):
+        agg = self._aggregate()
+        prov = agg["canonical_signature_provenance"]
+        assert prov["accepted_immutable_signature"] == (
+            "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85"
+        )
+        assert prov["fresh_reference_signature"] == (
+            "5a7c45387383adf8fa31a306111451f2aadb6f91352c307545547057f686e783"
+        )
+        assert prov["match"] is False
+        assert prov["causal_classification"] == "ROOT_CAUSE_UNKNOWN_NOT_ISOLATED"
+        assert prov["codec_context_causal"] is False
+        assert prov["codec_context_access"] == "LEADING_HYPOTHESIS_NOT_PROVEN"
+
+    def test_no_terminal_outcome_accepted(self):
+        agg = self._aggregate()
+        decision = self._decision()
+        status = decision["step18_4c_status"]
+        assert agg["outcome"] == "PENDING"
+        assert agg["terminal_outcome"] is None
+        assert status["outcome"] == "PENDING"
+        assert status["terminal_outcome"] is None
+
+    def test_step_18_4c_in_progress_and_18_5_not_started(self):
+        agg = self._aggregate()
+        decision = self._decision()
+        status = decision["step18_4c_status"]
+        assert status["status"] == "in_progress"
+        assert status["substatus"] == "blocked_on_canonical_signature_provenance"
+        assert agg["step_18_4c_status"] == "in_progress / blocked_on_canonical_signature_provenance"
+        assert status["step_18_5"] == "planned / blocked"
+        assert status["step18_5_implementation_started"] is False
+        assert status["selected_optimization"] == "NONE"
+        assert agg["selected_optimization"] == "NONE"
+
+    def test_c2_difference_of_medians_recomputed_from_raw(self):
+        c2_runs = _load_strict_json(_EVIDENCE_DIR / "c2_runs.json")
+        recomputed = compute_difference_of_medians(
+            c2_runs["reference_median"], c2_runs["candidate_median"]
+        )
+        assert c2_runs["difference_of_medians_seconds"] == (
+            recomputed["difference_of_medians_seconds"]
+        )
+        assert c2_runs["difference_of_medians_percent"] == (
+            recomputed["difference_of_medians_percent"]
+        )
+        # cross-check the aggregate carries the same corrected percent
+        agg_c2 = self._decision()["step18_4c_status"]["c2_evaluation"]
+        assert agg_c2["difference_of_medians_seconds"] == (
+            recomputed["difference_of_medians_seconds"]
+        )
+        assert agg_c2["difference_of_medians_percent"] == (
+            recomputed["difference_of_medians_percent"]
+        )
+        # median-of-paired-differences must remain distinct from difference-of-medians
+        assert c2_runs["median_seconds_saved"] == -46.81963299999916
+        assert c2_runs["median_seconds_saved"] != c2_runs["difference_of_medians_seconds"]
+
+    def test_c3_difference_of_medians_recomputed_from_raw(self):
+        c3_runs = _load_strict_json(_EVIDENCE_DIR / "c3_runs.json")
+        for name, variant in c3_runs["variants"].items():
+            recomputed = compute_difference_of_medians(
+                variant["reference_median"], variant["candidate_median"]
+            )
+            assert variant["difference_of_medians_seconds"] == (
+                recomputed["difference_of_medians_seconds"]
+            ), name
+            assert variant["difference_of_medians_percent"] == (
+                recomputed["difference_of_medians_percent"]
+            ), name
+            assert variant["median_seconds_saved"] != (
+                variant["difference_of_medians_seconds"]
+            ), name
+
+    def test_no_unsupported_isolated_cause_claims_in_current_artifacts(self):
+        forbidden = [
+            "root cause ISOLATED",
+            "direct consequence of codec_context",
+            "codec_context causal = true",
+            "outcome\": \"T3_blocked",
+        ]
+        targets = [
+            _EVIDENCE_DIR / "discrimination_evidence.json",
+            _EVIDENCE_DIR / "discrimination_report.md",
+            _EVIDENCE_DIR / "c1_status.json",
+            _EVIDENCE_DIR / "c2_runs.json",
+            _EVIDENCE_DIR / "c3_runs.json",
+            _DECISION_JSON,
+            Path(__file__).resolve().parents[1]
+            / "benchmarks/detect/evidence/bottleneck_decision.md",
+        ]
+        for path in _json_files(targets):
+            text = path.read_text(encoding="utf-8")
+            for phrase in forbidden:
+                assert phrase not in text, f"{path.name}: forbidden phrase {phrase!r}"

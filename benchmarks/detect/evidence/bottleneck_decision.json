@@ -685,7 +685,10 @@
       "state": "NOT_VIABLE_EXACT_PARITY_FAIL",
       "historical_exact_prototype_observation": "84 reference and 84 candidate frames; sampled timestamps identical; 0/84 cropped RGB SHA256 and exact-byte matches",
       "causal_matrix_run": false,
-      "causal_classification": "ROOT_CAUSE_UNKNOWN_NOT_ISOLATED"
+      "causal_classification": "ROOT_CAUSE_UNKNOWN_NOT_ISOLATED",
+      "codec_context_causal": false,
+      "codec_context_access": "LEADING_HYPOTHESIS_NOT_PROVEN",
+      "seek_causal": false
     },
     "c2_evaluation": {
       "candidate": "PASS1_ROLLING_REPRESENTATIVE_WINDOW_RETENTION",
@@ -702,8 +705,8 @@
       "median_paired_seconds_saved": -46.81963299999916,
       "median_paired_reduction_percent": -16.115451096192,
       "median_paired_definition": "median of paired differences reference[i]-candidate[i]",
-      "difference_of_medians_seconds": -40.19553279999674,
-      "difference_of_medians_percent": -13.8353319039,
+      "difference_of_medians_seconds": -40.19553279999673,
+      "difference_of_medians_percent": -13.835416931263438,
       "difference_of_medians_definition": "reference_median - candidate_median",
       "all_paired_candidate_faster": false,
       "accepted_canonical_signature_match": false,
@@ -711,9 +714,15 @@
       "canonical_signature_provenance": {
         "accepted_immutable": "8cc06c6accb055fb6fed461f2f4a96f0b288ef864b9423000b6f59d9ab56bc85",
         "fresh_reference": "5a7c45387383adf8fa31a306111451f2aadb6f91352c307545547057f686e783",
-        "root_cause": "CODE_CHANGE_NOT_ENVIRONMENT_ANOMALY. Original benchmark HEAD acb424f did NOT access stream.codec_context in pyav_iter_frames. Current code DOES. This access changes NVDEC HW decode initialization, producing different pixels → different detection → different signature.",
+        "match": false,
+        "causal_classification": "ROOT_CAUSE_UNKNOWN_NOT_ISOLATED",
+        "codec_context_causal": false,
+        "codec_context_access": "LEADING_HYPOTHESIS_NOT_PROVEN",
+        "code_path_difference": "PROVEN. The historical benchmark path at HEAD acb424f904bc4b3459f6ad2ceb9f8c701cedb69b did NOT access stream.codec_context in pyav_iter_frames, while the current production-equivalent path DOES. This is a proven code-path difference.",
+        "leading_hypothesis": "The stream.codec_context access (present in the current path, absent from the historical benchmark path) is a leading hypothesis for the canonical-signature change, but causality has NOT been isolated: no controlled causal A/B matrix was run in which ONLY the presence of stream.codec_context access varied.",
+        "not_proven": "That stream.codec_context access is the isolated cause of the pixel/signature difference. Other HWAccel/evidence infrastructure changed together with the codec_context access, so the causal variable was not isolated.",
         "original_benchmark_head": "acb424f904bc4b3459f6ad2ceb9f8c701cedb69b",
-        "blocking": "Exact-semantics gate cannot close until provenance is resolved (remove codec_context access from hot path OR re-baseline immutable signature under current code)."
+        "blocking": "Exact-semantics gate cannot close until provenance is resolved via either (a) a controlled causal A/B probe varying ONLY stream.codec_context access, or (b) an architectural decision on the production decode path followed by an explicit, conscious re-baselining of the immutable signature under the current code."
       }
     },
     "c3_evaluation": {
@@ -730,14 +739,18 @@
       },
       "all_variants_directionally_faster": false
     },
-    "outcome": "T3_blocked",
+    "outcome": "PENDING",
+    "terminal_outcome": null,
     "decision_status": "BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION",
     "blocked_reason": "canonical_signature_provenance_unresolved_and_c2_taxonomy_corrected",
     "selected_optimization": "NONE",
     "step18_5_hypothesis": "NONE",
     "f0102_status": "REJECTED_STEP_18_4C_DRAFT_FINDING_NOT_CURRENT",
     "f0103_status": "OPEN",
-    "f0103_root_cause": "stream.codec_context access in pyav_iter_frames (added between acb424f and current HEAD) changes NVDEC HW decode pixel output, breaking canonical signature immutability and blocking exact-parity optimization candidates.",
+    "causal_classification": "ROOT_CAUSE_UNKNOWN_NOT_ISOLATED",
+    "codec_context_causal": false,
+    "codec_context_access": "LEADING_HYPOTHESIS_NOT_PROVEN",
+    "f0103_classification": "Corrected discrimination found no currently viable target among the tested C1/C2/C3 candidates. C1 exact parity failed for the historical seek prototype and the canonical-signature provenance gap remains unresolved (ROOT_CAUSE_UNKNOWN_NOT_ISOLATED). The stream.codec_context access (present in the current path, absent from the historical benchmark path) is a proven code-path difference and the leading hypothesis for the canonical-signature change, but causality has NOT been isolated because no controlled causal A/B matrix was run varying ONLY that access. C2 and C3 fail performance gates.",
     "step_18_4": "in_progress",
     "step_18_5": "planned / blocked",
     "step18_5_implementation_started": false

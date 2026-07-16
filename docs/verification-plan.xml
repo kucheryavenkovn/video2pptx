@@ -1403,19 +1403,26 @@
       PASSED. The b869464/4b6eba5 package is REJECTED_FOR_STEP_18_4C_ACCEPTANCE
       because of C3_CODE_ARTIFACT_PROVENANCE_CONTRADICTION, unsupported C1 causality,
       and a C2 retain-all upper bound mislabeled as a required minimum. C1 0/84 and the
-      7,471,180,800-byte arithmetic remain historical observations only. C1 root cause is
-      UNKNOWN_NOT_ISOLATED. Outcome T3 and C3 NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT
-      are not accepted. F-0102 is rejected draft context. Corrected evidence code
-      0bcfe540c62b5d1130ba2dbb3d067c46234062bb, tree a55759461374ac747b1e87e1611c544ce59ca969,
-      raw commit b4ed0e40c2f9d86c0db41c2dd53106f945f2502c. REFERENCE_EXACTLY_REPEATABLE validates
-      exact cross-open discrimination. C1=NOT_VIABLE_EXACT_PARITY_FAIL with root cause
-      UNKNOWN_NOT_ISOLATED. C2 exact rolling model/semantics pass, peak 15 frames / 93,312,000
-      bytes, but performance fails (-16.115% median paired reduction; unstable). C3 selection
-      PASS with thread_count_1/4/8; all exact parity PASS and all performance FAIL. Corrected
-      Outcome T3_blocked; F-0103 OPEN (codec_context root cause isolated). selected_optimization=NONE; Step 18.4 remains in_progress;
+      7,471,180,800-byte arithmetic remain historical observations only. C1 causal
+      classification is UNKNOWN_NOT_ISOLATED (codec_context_causal=false; the stream.codec_context
+      code-path difference is a leading hypothesis, NOT an isolated cause). Outcome T3 and C3
+      NO_EVIDENCE_SUPPORTED_CONFIGURATION_VARIANT are not accepted. F-0102 is rejected draft
+      context. Corrected evidence code 0bcfe540c62b5d1130ba2dbb3d067c46234062bb,
+      tree a55759461374ac747b1e87e1611c544ce59ca969, raw commit b4ed0e40c2f9d86c0db41c2dd53106f945f2502c.
+      REFERENCE_EXACTLY_REPEATABLE validates exact cross-open discrimination.
+      C1=NOT_VIABLE_EXACT_PARITY_FAIL with causal classification UNKNOWN_NOT_ISOLATED.
+      C2 exact rolling model/semantics pass, peak 15 frames / 93,312,000 bytes,
+      but performance fails (difference of medians -40.19553279999673s / -13.835416931263438%;
+      median of paired differences -46.81963299999916s / -16.115451096192%; unstable).
+      C3 selection PASS with thread_count_1/4/8; all exact parity PASS and all performance FAIL.
+      Outcome PENDING (terminal_outcome=null); terminal T3 NOT accepted while the gate is open.
+      F-0103 OPEN (ROOT_CAUSE_UNKNOWN_NOT_ISOLATED; codec_context is a leading hypothesis, not an
+      isolated cause). selected_optimization=NONE; Step 18.4 remains in_progress;
       Step 18.4C=in_progress/blocked_on_canonical_signature_provenance; Step 18.5 planned/blocked and not started.
-      Canonical signature provenance: 8cc06c6a... (original) vs 5a7c4538... (current); root cause is
-      stream.codec_context access in pyav_iter_frames added between acb424f and current HEAD.
+      Canonical signature provenance: 8cc06c6a... (original) vs 5a7c4538... (current); match=false;
+      provenance classification ROOT_CAUSE_UNKNOWN_NOT_ISOLATED. The historical benchmark path at
+      acb424f did not access stream.codec_context while the current path does — a proven code-path
+      difference and leading hypothesis; causality NOT isolated (no controlled A/B varied ONLY that access).
       C2 taxonomy corrected: NOT_VIABLE_PERFORMANCE_FAIL (not NOT_VIABLE_RESOURCE_MODEL).
       Median terminology clarified: median_of_paired_differences vs difference_of_medians explicitly separated.
     </result></evidence>

@@ -316,13 +316,13 @@ Step 18.4A's strict control was an `INVALID_SUPPORTING_CONTROL_IMPLEMENTATION_DE
 ## 15. Step 18.4C — Target Optimization Discrimination Correction (2026-07-14)
 
 **Status:** in_progress / blocked_on_canonical_signature_provenance.
-**Outcome:** T3_blocked — `BLOCKED_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION`.
+**Outcome:** `PENDING` (`terminal_outcome=null`). Terminal `T3` is NOT accepted while the canonical-signature provenance gate is open.
 **Corrected evidence:** committed at `b4ed0e40c2f9d86c0db41c2dd53106f945f2502c`.
 **Selected optimization:** NONE.
 **Step 18.4:** in_progress.
 **Step 18.5:** planned / blocked; implementation not started.
 **F-0102:** `REJECTED_STEP_18_4C_DRAFT_FINDING`; not current.
-**F-0103:** OPEN — `stream.codec_context` access in `pyav_iter_frames` changes NVDEC HW decode pixel output.
+**F-0103:** OPEN — corrected discrimination found no viable target. The `stream.codec_context` access (present in the current path, absent at the historical benchmark HEAD) is a proven code-path difference and the leading hypothesis for the canonical-signature change, but causality is `ROOT_CAUSE_UNKNOWN_NOT_ISOLATED` (no controlled causal A/B isolate was performed).
 
 The package in `benchmarks/detect/evidence/target-optimization-discrimination-20260714-13e6fff/`
 (evidence commit `b869464a6e84b2deba83a3df5e7c37ffe65ccde8`, decision commit
@@ -351,28 +351,34 @@ Evidence code: `0bcfe540c62b5d1130ba2dbb3d067c46234062bb`, tree
 The accepted immutable canonical signature is `8cc06c6a...`. Fresh reference and
 candidate runs both produce `5a7c4538...`. These do NOT match.
 
-**Root cause: CODE_CHANGE_NOT_ENVIRONMENT_ANOMALY.** The original benchmark at HEAD
+**Proven code-path difference.** The original benchmark at HEAD
 `acb424f904bc4b3459f6ad2ceb9f8c701cedb69b` did NOT access `stream.codec_context`
 in `pyav_iter_frames`. The current code (since evidence-observer infrastructure was
 added between `acb424f` and merged master `95f5794`) DOES access `stream.codec_context`
-(line 230 of `pyav_backend.py`). This access changes PyAV 18.0.0 / NVDEC HW decode
-initialization, producing systematically different pixel values for the same input
-bitstream. Different pixels → different features → different change detection →
-different segments → different canonical signature.
+(line 230 of `pyav_backend.py`). This access difference is a proven code-path
+difference and the **leading hypothesis** for the canonical-signature change.
+
+**Causality NOT isolated (`ROOT_CAUSE_UNKNOWN_NOT_ISOLATED`).** No controlled causal
+A/B matrix was run in which ONLY the presence of `stream.codec_context` access varied.
+Other HWAccel/evidence infrastructure changed together with that access, so the causal
+variable was not isolated. It is therefore NOT asserted that `stream.codec_context`
+access is the isolated cause of the pixel/signature difference, and `codec_context_causal=false`.
 
 This provenance gap blocks the exact-semantics gate until either:
-(a) the `stream.codec_context` access is removed from the hot decode path, or
-(b) the immutable signature is re-baselined under the current code.
+(a) a controlled causal A/B probe varying ONLY `stream.codec_context` access is
+performed, or
+(b) an architectural decision on the production decode path is made and the immutable
+signature is then explicitly, consciously re-baselined under the current code.
 
-This also explains the C1 exact-parity failure: the production decode path
-(with codec_context access) produces different pixels than any alternative decode
-path (without codec_context access) for the same video frame.
+The C1 exact-parity failure (0/84 matches for the tested historical seek prototype)
+remains a historical observation; its causal attribution is
+`ROOT_CAUSE_UNKNOWN_NOT_ISOLATED`.
 
 ### Corrected Results
 
 * Reference: `REFERENCE_EXACTLY_REPEATABLE`; all three complete 1,201-frame sequences match exactly. Cross-open exact-byte discrimination is valid.
-* C1: `NOT_VIABLE_EXACT_PARITY_FAIL` for the exact historical seek prototype. Root cause: `stream.codec_context` access in production `pyav_iter_frames` changes HW decode pixel output vs alternative decode paths.
-* C2: `NOT_VIABLE_PERFORMANCE_FAIL` (corrected from `NOT_VIABLE_RESOURCE_MODEL`). `ROLLING_WINDOW_EXACT_MODEL_PROVEN`; 84/84 same-run identity and exact downstream semantic parity. Peak retained storage was 15 frames / 93,312,000 bytes versus the 7,471,180,800-byte retain-all upper bound. The resource model IS measured and bounded; the rejection reason is performance: candidate median 330.72s vs reference 290.53s. Median of paired differences: -46.82s / -16.12%. Difference of medians: -40.20s / -13.84%. Not directionally faster.
+* C1: `NOT_VIABLE_EXACT_PARITY_FAIL` for the exact historical seek prototype. Causal classification: `ROOT_CAUSE_UNKNOWN_NOT_ISOLATED`; `codec_context_causal=false`; `codec_context_access=LEADING_HYPOTHESIS_NOT_PROVEN`.
+* C2: `NOT_VIABLE_PERFORMANCE_FAIL` (corrected from `NOT_VIABLE_RESOURCE_MODEL`). `ROLLING_WINDOW_EXACT_MODEL_PROVEN`; 84/84 same-run identity and exact downstream semantic parity. Peak retained storage was 15 frames / 93,312,000 bytes versus the 7,471,180,800-byte retain-all upper bound. The resource model IS measured and bounded; the rejection reason is performance: candidate median 330.72s vs reference 290.53s. Median of paired differences: -46.82s / -16.12%. Difference of medians: -40.19553279999673s / -13.835416931263438%. Not directionally faster.
 * C3: live inspection selected `thread_count_1`, `thread_count_4`, and `thread_count_8`; selection guard PASS. All three variants passed exact sequence parity. Their median paired reductions were -2.03%, -4.57%, and +0.94%; none was directionally faster or reached 15%.
 
 ### Terminology Clarification

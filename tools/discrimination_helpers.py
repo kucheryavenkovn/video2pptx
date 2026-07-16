@@ -18,6 +18,7 @@
 #   compute_paired_absolute_savings - per-pair reference-candidate differences
 #   compute_paired_percentage_reduction - per-pair percentage reduction
 #   compute_median_reduction_percent - median of paired percentage reductions
+#   compute_difference_of_medians - reference_median - candidate_median seconds and percent
 #   directional_stability - true iff every candidate run is faster than paired reference
 #   compute_target_sampled_timestamp - first sampled ts within tolerance of rep_ts
 #   compute_target_frame_index - frame index for a target sampled timestamp
@@ -108,6 +109,36 @@ def compute_paired_percentage_reduction(
 
 def compute_median_reduction_percent(reference: list[float], candidate: list[float]) -> float:
     return compute_median(compute_paired_percentage_reduction(reference, candidate))
+
+
+def compute_difference_of_medians(
+    reference_median: float, candidate_median: float
+) -> dict[str, float]:
+    # START_CONTRACT: compute_difference_of_medians
+    #   PURPOSE: Compute difference-of-medians seconds and percent from two medians.
+    #   INPUTS: { reference_median: float, candidate_median: float }
+    #   OUTPUTS: { dict with difference_of_medians_seconds and difference_of_medians_percent }
+    #   SIDE_EFFECTS: none
+    #   LINKS: M-DETECT-PERF-DECISION
+    # END_CONTRACT: compute_difference_of_medians
+    """Difference-of-medians statistics.
+
+    difference_of_medians_seconds = reference_median - candidate_median
+    difference_of_medians_percent = difference_of_medians_seconds / reference_median * 100
+
+    This is DISTINCT from the median-of-paired-differences
+    (compute_paired_absolute_savings + compute_median). Both quantities are
+    recorded explicitly in evidence artifacts with their own definition fields so
+    the two concepts cannot be conflated.
+    """
+    if reference_median == 0:
+        raise ValueError("reference_median must be non-zero for percent reduction")
+    seconds = float(reference_median - candidate_median)
+    percent = float(seconds / reference_median * 100.0)
+    return {
+        "difference_of_medians_seconds": seconds,
+        "difference_of_medians_percent": percent,
+    }
 
 
 def directional_stability(reference: list[float], candidate: list[float]) -> bool:

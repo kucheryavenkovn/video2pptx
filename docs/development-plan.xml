@@ -1363,20 +1363,29 @@
         4b6eba59467110642e0959407d7bec9ff59ac7d8) is REJECTED_FOR_STEP_18_4C_ACCEPTANCE.
         Corrected r2 evidence from code HEAD 0bcfe540c62b5d1130ba2dbb3d067c46234062bb,
         raw commit b4ed0e40c2f9d86c0db41c2dd53106f945f2502c, proves REFERENCE_EXACTLY_REPEATABLE.
-        C1=NOT_VIABLE_EXACT_PARITY_FAIL — root cause ISOLATED: stream.codec_context access
-        in pyav_iter_frames (added between acb424f and current HEAD) changes NVDEC HW decode
-        pixel output vs alternative decode paths.
-        C2=NOT_VIABLE_PERFORMANCE_FAIL (corrected from NOT_VIABLE_RESOURCE_MODEL) — rolling-window
-        exact model proven (peak 15 frames / 93312000 bytes); rejection is performance, not
-        resource model. Candidate median 330.72s vs reference 290.53s; median of paired
-        differences -46.82s / -16.12%; difference of medians -40.20s / -13.84%.
+        C1=NOT_VIABLE_EXACT_PARITY_FAIL; causal_classification=ROOT_CAUSE_UNKNOWN_NOT_ISOLATED;
+        codec_context_causal=false; codec_context_access=LEADING_HYPOTHESIS_NOT_PROVEN. The
+        historical benchmark path (HEAD acb424f) did NOT access stream.codec_context in
+        pyav_iter_frames while the current production-equivalent path DOES — a proven code-path
+        difference and leading hypothesis for the canonical-signature change. Causality is NOT
+        isolated: no controlled causal A/B matrix varied ONLY stream.codec_context access, and
+        other HWAccel/evidence infrastructure changed together with it.
+        C2=NOT_VIABLE_PERFORMANCE_FAIL (corrected from NOT_VIABLE_RESOURCE_MODEL);
+        ROLLING_WINDOW_EXACT_MODEL_PROVEN (peak 15 frames / 93312000 bytes); rejection is
+        performance, not resource model. Candidate median 330.72188989999995s vs reference
+        290.5263571000032s; median of paired differences -46.81963299999916s / -16.115451096192%;
+        difference of medians -40.19553279999673s / -13.835416931263438%.
         C3=NOT_VIABLE_PERFORMANCE_FAIL — thread_count_1/4/8 selected, exact-parity PASS,
         no stable >=15% improvement.
         Canonical signature provenance: fresh runs produce 5a7c4538... while accepted immutable
-        is 8cc06c6a...; root cause is stream.codec_context access code change, NOT environment.
-        Exact-semantics gate BLOCKED until provenance resolved.
-        F-0102=REJECTED draft. F-0103=OPEN with codec_context root cause.
-        selected_optimization=NONE; Step 18.4=in_progress; Step 18.5=planned/blocked.
+        is 8cc06c6a...; match=false. Provenance classification ROOT_CAUSE_UNKNOWN_NOT_ISOLATED
+        (codec_context is a leading hypothesis, not an isolated cause).
+        Exact-semantics gate BLOCKED until provenance resolved via a controlled causal A/B probe
+        OR an explicit re-baselining decision.
+        F-0102=REJECTED draft. F-0103=OPEN (no viable target; ROOT_CAUSE_UNKNOWN_NOT_ISOLATED).
+        outcome=PENDING; terminal_outcome=null (terminal T3 NOT accepted while the gate is open).
+        selected_optimization=NONE; Step 18.4=in_progress; Step 18.5=planned/blocked
+        (implementation_started=false).
       </step-18.4c>
       <step-18.5 name="TargetedOptimization" status="planned" verification="V-PERF-DETECT-TARGETED">
         Blocked: Step 18.4 has not selected a targeted optimization. Step 18.5 remains planned
