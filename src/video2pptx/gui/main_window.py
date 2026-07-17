@@ -123,8 +123,6 @@ class MainWindow(QMainWindow):
     def _confirm(self, title: str, text: str) -> bool:
         return self._host.active or QMessageBox.question(self, title, text, QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No) == QMessageBox.StandardButton.Yes
 
-    # END_BLOCK_SETUP_UI
-
     # START_BLOCK_RECENT_PROJECTS
     def _refresh_recent_projects(self) -> None:
         self._app_config = load_app_config()
@@ -420,7 +418,7 @@ class MainWindow(QMainWindow):
 
     def _on_project_ctrl_error(self, msg: str) -> None:
         QMessageBox.critical(self, "Error", msg)
-    # END_BLOCK_PIPELINE_EXPORT
+    # END_BLOCK_PROJECT_LIFECYCLE
 
     # START_BLOCK_SETTINGS_MENU
     def _on_project_settings(self) -> None:

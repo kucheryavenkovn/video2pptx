@@ -215,6 +215,8 @@ class TimelineWidget(QWidget):
     def set_project(self, project) -> None:
         self._view._project = project
 
+    # END_BLOCK_DATA
+
     # START_BLOCK_ZOOM
     def zoom_fit(self) -> None:
         self._on_zoom_fit()

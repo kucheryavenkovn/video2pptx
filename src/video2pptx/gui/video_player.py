@@ -276,6 +276,8 @@ class VideoPlayerWidget(QWidget):
         vh = self._view.height()
         if vw > 0 and vh > 0:
             self._video_item.setSize(QSizeF(vw, vh))
+    # END_BLOCK_UTILITY
+
     # START_BLOCK_KEYBOARD_NAV
     def _on_view_mouse_press(self, event) -> None:
         self._view.setFocus()

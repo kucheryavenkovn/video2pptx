@@ -45,6 +45,7 @@ class SlideBlockItem(QGraphicsRectItem):
         on_clicked: Callable[[str, int], None] | None = None,
         parent: QGraphicsItem | None = None,
     ) -> None:
+        # START_BLOCK_CONSTRUCTOR
         super().__init__(x, y, w, h, parent)
         self._slide_index = slide_index
         self._start_sec = start_sec

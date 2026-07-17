@@ -69,7 +69,7 @@ class SlideRegion:
         #   OUTPUTS: np.ndarray — frame with ignore regions blacked out
         #   SIDE_EFFECTS: none
         #   LINKS: M-ROI
-        # END_CONTRACT:
+        # END_CONTRACT: apply_masks
 
         if not self.ignore_rois:
             return frame

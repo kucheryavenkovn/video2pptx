@@ -41,6 +41,9 @@ def _register_hwaccel_evidence_observer(observer: Callable[[dict], None] | None)
 # END_BLOCK_EVIDENCE_OBSERVER
 
 
+# START_BLOCK_BUILD_EVIDENCE
+
+
 def _build_hwaccel_evidence(
     *,
     video_path: str | Path,
@@ -102,7 +105,7 @@ def _build_hwaccel_evidence(
         "first_frame_shape": first_frame_shape,
         "observation_notes": observation_notes,
     }
-# END_BLOCK_EVIDENCE_OBSERVER
+# END_BLOCK_BUILD_EVIDENCE
 
 
 # START_CONTRACT: _available_hw_devices

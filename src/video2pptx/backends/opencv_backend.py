@@ -98,11 +98,11 @@ def opencv_iter_frames(
     #   LINKS: M-BACKEND-OPENCV
     # END_CONTRACT: opencv_iter_frames
 
-    # START_BLOCK_OPEN_VIDEO
+    # START_BLOCK_OPEN_VIDEO_ITER
     cap = cv2.VideoCapture(_win_short_path(video_path))
     if not cap.isOpened():
         raise FileNotFoundError(f"Cannot open video: {video_path}")
-    # END_BLOCK_OPEN_VIDEO
+    # END_BLOCK_OPEN_VIDEO_ITER
 
     # START_BLOCK_CALC_SAMPLE_INTERVAL
     video_fps = cap.get(cv2.CAP_PROP_FPS)
