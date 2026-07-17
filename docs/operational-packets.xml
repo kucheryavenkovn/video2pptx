@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<OperationalPackets VERSION="0.1.0">
+<OperationalPackets VERSION="0.2.0">
   <ExecutionPacketTemplate>
     <ExecutionPacket>
       <module-id>M-EXAMPLE</module-id>
@@ -12,9 +12,57 @@
       <contract-excerpt><![CDATA[
 Planned module contract excerpt goes here.
       ]]></contract-excerpt>
+      <assumptions>
+        <assumption-1>Approved plan and verification entries are stable context for this packet.</assumption-1>
+        <assumption-2>Phase status, accepted negative outcomes, and pending step boundaries must not be modified by this packet.</assumption-2>
+        <assumption-3>Tests and log markers referenced by verification entries are the source of truth for evidence.</assumption-3>
+      </assumptions>
+      <stop-conditions>
+        <stop-condition-1>verification entry STATUS flips from passed to failed and cannot be restored within retry-budget.</stop-condition-1>
+        <stop-condition-2>diff touches a module outside the declared write-scope.</stop-condition-2>
+        <stop-condition-3>plan or graph drift detected by grace lint --profile autonomous.</stop-condition-3>
+        <stop-condition-4>Phase-18 accepted negative terminal outcome or pending step boundary is violated.</stop-condition-4>
+      </stop-conditions>
+      <retry-budget>
+        <max-fix-loops per-step="3" />
+        <max-lint-rounds per-fix-loop="2" />
+        <escalation>Hand off to controller with FailurePacket when retry-budget is exhausted.</escalation>
+      </retry-budget>
+      <checkpoint-fields>
+        <field name="assumptions">Restate the assumptions accepted as stable context for this packet.</field>
+        <field name="commands">Canonical commands executed (lint, tests, refresh) with provenance.</field>
+        <field name="evidence">Test names, log anchors, or metric values that satisfy the verification entry.</field>
+        <field name="next-action">Concrete next step or explicit BLOCKED reason with handoff owner.</field>
+      </checkpoint-fields>
       <notes><note-1>Workers should only read more context when the packet is insufficient.</note-1></notes>
     </ExecutionPacket>
   </ExecutionPacketTemplate>
+
+  <CheckpointReportTemplate>
+    <CheckpointReport>
+      <step-ref>phase-X/step-Y</step-ref>
+      <module-id>M-EXAMPLE</module-id>
+      <verification-id>V-M-EXAMPLE</verification-id>
+      <status>in_progress | blocked | done</status>
+      <assumptions>
+        <assumption-1>Restate assumptions accepted as stable context for this checkpoint.</assumption-1>
+      </assumptions>
+      <commands>
+        <command-1>grace lint --path &lt;project-root&gt;</command-1>
+        <command-2>pytest tests/test_example.py -v</command-2>
+      </commands>
+      <evidence>
+        <evidence-1>All verification entry scenarios pass.</evidence-1>
+        <evidence-2>grace lint reports no structural errors.</evidence-2>
+      </evidence>
+      <next-action>Concrete next step or explicit BLOCKED reason with handoff owner.</next-action>
+      <handoff>
+        <from>worker-agent</from>
+        <to>controller | reviewer | next-worker</to>
+        <context-summary>One paragraph summary of state, drift, and pending decisions.</context-summary>
+      </handoff>
+    </CheckpointReport>
+  </CheckpointReportTemplate>
 
   <GraphDeltaTemplate>
     <GraphDelta module="M-EXAMPLE">
@@ -39,7 +87,9 @@ Planned module contract excerpt goes here.
       <contract-ref>M-EXAMPLE / V-M-EXAMPLE / scenario-1</contract-ref>
       <expected-evidence /><observed-evidence />
       <first-divergent-block>BLOCK_EXAMPLE</first-divergent-block>
-      <suggested-next-action>Read the contract, inspect the divergent block, apply smallest safe fix.</suggested-next-action>
+      <retry-budget-used>fix-loop 2 of 3</retry-budget-used>
+      <stop-condition-triggered>verification STATUS cannot be restored within retry-budget.</stop-condition-triggered>
+      <suggested-next-action>Read the contract, inspect the divergent block, apply smallest safe fix, or hand off to controller.</suggested-next-action>
     </FailurePacket>
   </FailurePacketTemplate>
 </OperationalPackets>
