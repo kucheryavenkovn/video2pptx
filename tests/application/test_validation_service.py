@@ -4,7 +4,7 @@
 #   PURPOSE: Verify ValidationService storage, aggregate, media, artifacts, export checks.
 #   SCOPE: Valid canonical project valid=true; missing slides.json; missing media; revision mismatch.
 #   DEPENDS: pytest, video2pptx.application, video2pptx.domain
-#   LINKS: M-APP-VALIDATE, V-APP-VALIDATE
+#   LINKS: M-APP-VALIDATE, V-M-APP-VALIDATE
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

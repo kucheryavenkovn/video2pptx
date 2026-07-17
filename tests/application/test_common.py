@@ -4,7 +4,7 @@
 #   PURPOSE: Verify common application DTOs, errors, cancellation, and service context.
 #   SCOPE: ServiceResult, ProgressUpdate, CancellationError, CancellationToken, ServiceContext.
 #   DEPENDS: pytest, video2pptx.application
-#   LINKS: M-APP-COMMON, V-REF-APP-SERVICES
+#   LINKS: M-APP-COMMON, V-M-REF-APP-SERVICES
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

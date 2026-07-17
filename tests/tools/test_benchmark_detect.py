@@ -6,7 +6,7 @@
 #          derived metric formulas, signature aggregation, median selection, stage accounting,
 #          path sanitization, profile/provenance extraction, select_backend integration, aggregate structure
 #   DEPENDS: pytest, numpy, tools.benchmark_detect, video2pptx benchmark runtime collaborators
-#   LINKS: V-PERF-DETECT-SHORT-BENCHMARK
+#   LINKS: V-M-PERF-DETECT-SHORT-BENCHMARK
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

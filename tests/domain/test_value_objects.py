@@ -4,7 +4,7 @@
 #   PURPOSE: Unit tests for domain value objects: SlideId, TimeInterval, ArtifactRef.
 #   SCOPE: Creation, invariants, parsing, rejection, immutability, round-trip, legacy migration.
 #   DEPENDS: pytest, video2pptx.domain
-#   LINKS: V-DOMAIN-VALUE
+#   LINKS: V-M-DOMAIN-VALUE
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

@@ -4,7 +4,7 @@
 #   PURPOSE: Verify strict schema 2.0 canonical persistence DTO behavior.
 #   SCOPE: Full pipeline round-trip, canonical field rejection, portable artifacts, slide and score invariants.
 #   DEPENDS: pytest, pydantic, video2pptx.infrastructure.persistence.dto
-#   LINKS: M-PERSIST-DTO, V-PERSIST-DTO, V-REF-PERSISTENCE-STABILIZATION
+#   LINKS: M-PERSIST-DTO, V-M-PERSIST-DTO, V-M-REF-PERSISTENCE-STABILIZATION
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

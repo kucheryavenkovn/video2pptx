@@ -4,7 +4,7 @@
 #   PURPOSE: Characterize real GUI subprocess startup and MCP transport without mocks.
 #   SCOPE: Process lifecycle, fresh port discovery, health, initialize, tools/list, initial UI state.
 #   DEPENDS: pytest, tools/mcp_e2e_runner.py, PySide6
-#   LINKS: V-REF-CHAR-TESTS, E2E-001
+#   LINKS: V-M-REF-CHAR-TESTS, E2E-001
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

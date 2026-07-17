@@ -4,7 +4,7 @@
 #   PURPOSE: Focused tests for Step 18.4C target-optimization discrimination helpers.
 #   SCOPE: Statistics, repeatability, C1 parity, exact C2 retention, C3 selection/provenance/parity.
 #   DEPENDS: tools.discrimination_helpers, tools.probe_pyav_decode_config
-#   LINKS: M-DETECT-PERF-DECISION, V-PERF-DETECT-BOTTLENECK
+#   LINKS: M-DETECT-PERF-DECISION, V-M-PERF-DETECT-BOTTLENECK
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

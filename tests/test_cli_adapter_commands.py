@@ -4,7 +4,7 @@
 #   PURPOSE: Module-local tests for CLI adapter Typer commands.
 #   SCOPE: Command registration, argument parsing, missing-project handling, exit codes
 #   DEPENDS: video2pptx.adapters.cli.app, typer.testing
-#   LINKS: M-CLI-ADAPTER, V-REF-CLI-ADAPTER
+#   LINKS: M-CLI-ADAPTER, V-M-REF-CLI-ADAPTER
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

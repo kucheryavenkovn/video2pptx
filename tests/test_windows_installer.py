@@ -4,7 +4,7 @@
 #   PURPOSE: Protect accepted Windows installer payload and directive integrity
 #   SCOPE: Static checks for canonical bundle, README, icon, and removed invalid sections
 #   DEPENDS: pytest, pathlib
-#   LINKS: V-REF-WIN-INSTALLER
+#   LINKS: V-M-REF-WIN-INSTALLER
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

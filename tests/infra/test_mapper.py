@@ -4,7 +4,7 @@
 #   PURPOSE: Verify side-effect-free canonical DTO and Project aggregate mapping.
 #   SCOPE: Rehydration, complete pipeline, artifacts, extensions, slide extras, and runtime root.
 #   DEPENDS: pytest, video2pptx.domain, video2pptx.infrastructure.persistence
-#   LINKS: M-PERSIST-DTO, M-PERSIST-MIGRATIONS, V-REF-PERSISTENCE-STABILIZATION
+#   LINKS: M-PERSIST-DTO, M-PERSIST-MIGRATIONS, V-M-REF-PERSISTENCE-STABILIZATION
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

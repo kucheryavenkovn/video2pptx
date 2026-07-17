@@ -4,7 +4,7 @@
 #   PURPOSE: Verify ExportService markdown, PPTX, overwrite guard, dry-run, and cancellation.
 #   SCOPE: Markdown staged, PPTX slide/image count, overwrite=false error, dry-run, cancellation.
 #   DEPENDS: pytest, video2pptx.application, video2pptx.domain
-#   LINKS: M-APP-EXPORT, V-APP-EXPORT
+#   LINKS: M-APP-EXPORT, V-M-APP-EXPORT
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

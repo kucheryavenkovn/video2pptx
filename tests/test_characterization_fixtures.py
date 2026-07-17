@@ -4,7 +4,7 @@
 #   PURPOSE: Characterize deterministic synthetic media used by adapter-equivalence tests.
 #   SCOPE: Video duration, dimensions, slide sections, and subtitle cue invariants.
 #   DEPENDS: pytest, OpenCV, M-SUBTITLES
-#   LINKS: V-REF-CHAR-TESTS
+#   LINKS: V-M-REF-CHAR-TESTS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

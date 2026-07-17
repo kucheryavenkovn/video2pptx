@@ -4,7 +4,7 @@
 #   PURPOSE: Verify persisted UID-based ProjectModel slide CRUD invariants.
 #   SCOPE: Add/split, resize, move, clear image, delete, disk and timeline synchronization.
 #   DEPENDS: pytest-qt, M-PROJECT-MODEL, M-MODELS, M-PROJECT
-#   LINKS: V-REF-CHAR-TESTS, E2E-011
+#   LINKS: V-M-REF-CHAR-TESTS, E2E-011
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

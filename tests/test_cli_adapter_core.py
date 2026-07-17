@@ -6,7 +6,7 @@
 #          deterministic output, CliContext cancellation, render_service_result JSON/human modes.
 #   DEPENDS: video2pptx.adapters.cli, video2pptx.application.errors, video2pptx.domain.errors,
 #            video2pptx.infrastructure.persistence.errors, rich.console, pytest
-#   LINKS: M-CLI-ADAPTER, V-REF-CLI-ADAPTER
+#   LINKS: M-CLI-ADAPTER, V-M-REF-CLI-ADAPTER
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

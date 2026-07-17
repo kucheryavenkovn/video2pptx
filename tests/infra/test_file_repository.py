@@ -4,7 +4,7 @@
 #   PURPOSE: Unit tests for FileProjectRepository — create, load, save, migration, atomicity, revision.
 #   SCOPE: LoadedProject, V2/derived consistency, migration, atomicity, revision conflict, corruption.
 #   DEPENDS: pytest, video2pptx.infrastructure.persistence, video2pptx.domain
-#   LINKS: V-PORT-REPO
+#   LINKS: V-M-PORT-REPO
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

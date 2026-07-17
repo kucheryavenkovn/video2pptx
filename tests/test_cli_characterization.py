@@ -4,7 +4,7 @@
 #   PURPOSE: Freeze the public pre-Step-7 CLI surface and explicit semantic migration boundary.
 #   SCOPE: Command names, positional arguments, options, usage codes, and missing-file behavior.
 #   DEPENDS: typer.testing, video2pptx.cli
-#   LINKS: M-CLI-ADAPTER, V-REF-CLI-ADAPTER
+#   LINKS: M-CLI-ADAPTER, V-M-REF-CLI-ADAPTER
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

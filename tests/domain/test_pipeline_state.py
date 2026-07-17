@@ -4,7 +4,7 @@
 #   PURPOSE: Unit tests for PipelineState state machine, transitions, invalidation, and legacy adapter.
 #   SCOPE: StageStatus transitions, downstream invalidation, retry, force, from/to legacy, round-trip.
 #   DEPENDS: pytest, video2pptx.domain
-#   LINKS: V-DOMAIN-STATE
+#   LINKS: V-M-DOMAIN-STATE
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

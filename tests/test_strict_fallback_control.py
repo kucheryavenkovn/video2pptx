@@ -5,7 +5,7 @@
 #            HWAccel supporting control (Step 18.4B).
 #   SCOPE: terminal states A-L, no-observer M, canonical SHA N, provenance O, JSON P.
 #   DEPENDS: tools.probe_pyav_hwaccel, numpy
-#   LINKS: V-PERF-DETECT-BOTTLENECK
+#   LINKS: V-M-PERF-DETECT-BOTTLENECK
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

@@ -4,7 +4,7 @@
 #   PURPOSE: Regression tests for MCP AppServiceRunner dispatch through McpServiceAdapter.
 #   SCOPE: Command mapping, path passthrough, failure propagation (persistence tested in Phase 16 unit tests).
 #   DEPENDS: pytest, M-MCP-OPERATIONS, M-MCP-ADAPTER
-#   LINKS: V-REF-CHAR-TESTS
+#   LINKS: V-M-REF-CHAR-TESTS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

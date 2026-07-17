@@ -4,7 +4,7 @@
 #   PURPOSE: Verify NotesService basic mode, LLM failure, raw cue preservation, and cancellation.
 #   SCOPE: Basic mode, adapter failure, cancellation, no subtitles, raw cues preserved.
 #   DEPENDS: pytest, video2pptx.application, video2pptx.domain
-#   LINKS: M-APP-NOTES, V-APP-NOTES
+#   LINKS: M-APP-NOTES, V-M-APP-NOTES
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

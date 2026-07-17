@@ -9,7 +9,7 @@
 #          frames_decoded>=ndarray_conversions>=frames_sampled+pass2_frames_sampled,
 #          RSS gauges, representative frame evidence, exact OpenCV/PyAV telemetry
 #   DEPENDS: pytest, video2pptx.detection_metrics
-#   LINKS: V-PERF-DETECT-BASELINE
+#   LINKS: V-M-PERF-DETECT-BASELINE
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

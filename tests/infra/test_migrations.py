@@ -4,7 +4,7 @@
 #   PURPOSE: Verify deterministic and loss-aware schema 1.0 to 2.0 migration.
 #   SCOPE: Stable IDs, pipeline flags, portable artifacts, extensions, and legacy field preservation.
 #   DEPENDS: pytest, video2pptx.infrastructure.persistence.migrations
-#   LINKS: M-PERSIST-MIGRATIONS, V-PERSIST-MIGRATIONS
+#   LINKS: M-PERSIST-MIGRATIONS, V-M-PERSIST-MIGRATIONS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

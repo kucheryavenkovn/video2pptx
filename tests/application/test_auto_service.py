@@ -4,7 +4,7 @@
 #   PURPOSE: Verify AutoService full/resume/force orchestration and failure halting.
 #   SCOPE: Full runs all stages, resume skips SUCCEEDED, force re-runs all, failure halts.
 #   DEPENDS: pytest, video2pptx.application, video2pptx.domain
-#   LINKS: M-APP-AUTO, V-APP-AUTO
+#   LINKS: M-APP-AUTO, V-M-APP-AUTO
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

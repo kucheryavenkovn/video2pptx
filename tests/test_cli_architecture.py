@@ -5,7 +5,7 @@
 #            legacy pipeline modules or bypass Application Services.
 #   SCOPE: All files in src/video2pptx/adapters/cli/ and src/video2pptx/bootstrap/
 #   DEPENDS: ast, pathlib
-#   LINKS: M-CLI-ADAPTER, M-APP-BOOTSTRAP, V-REF-CLI-ADAPTER
+#   LINKS: M-CLI-ADAPTER, M-APP-BOOTSTRAP, V-M-REF-CLI-ADAPTER
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

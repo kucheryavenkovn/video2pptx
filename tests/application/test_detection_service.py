@@ -4,7 +4,7 @@
 #   PURPOSE: Verify DetectionService replaces slides, invalidates downstream, and saves with revision.
 #   SCOPE: Success, cancellation, adapter failure, downstream invalidation, no side effects.
 #   DEPENDS: pytest, video2pptx.application, video2pptx.domain
-#   LINKS: M-APP-DETECT, V-APP-DETECT
+#   LINKS: M-APP-DETECT, V-M-APP-DETECT
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
