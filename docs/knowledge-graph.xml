@@ -723,31 +723,31 @@
       <purpose>Canonical GUI project-state owner: create/open/reload/save/close via FileProjectRepository and emit loaded state only after the canonical snapshot is current.</purpose>
       <path>src/video2pptx/gui/controllers/project_controller.py</path>
       <depends>M-APP-BOOTSTRAP, M-DOMAIN-PROJECT</depends>
-      <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
+      <verification-ref>V-M-REF-GUI-ADAPTER</verification-ref>
     </M-GUI-PROJECT-CTRL>
     <M-GUI-PIPELINE-CTRL NAME="PipelineController" TYPE="CORE_LOGIC" STATUS="active">
       <purpose>Schedule stage services through operation-scoped ApplicationServices in QThread with queued progress, cancellation, completion, and error signals.</purpose>
       <path>src/video2pptx/gui/controllers/pipeline_controller.py</path>
       <depends>M-GUI-PIPELINE-WORKER, M-APP-BOOTSTRAP, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-AUTO</depends>
-      <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
+      <verification-ref>V-M-REF-GUI-ADAPTER</verification-ref>
     </M-GUI-PIPELINE-CTRL>
     <M-GUI-TIMELINE-CTRL NAME="TimelineController" TYPE="CORE_LOGIC" STATUS="active">
       <purpose>Perform revision-safe slide mutations by SlideId only, including canonical ArtifactRef image assignment.</purpose>
       <path>src/video2pptx/gui/controllers/timeline_controller.py</path>
       <depends>M-APP-BOOTSTRAP, M-DOMAIN-PROJECT</depends>
-      <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
+      <verification-ref>V-M-REF-GUI-ADAPTER</verification-ref>
     </M-GUI-TIMELINE-CTRL>
     <M-GUI-PIPELINE-WORKER NAME="GuiPipelineWorker" TYPE="UTILITY" STATUS="active">
       <purpose>Execute one operation-scoped ApplicationServices stage on a QThread without blocking Qt's main thread.</purpose>
       <path>src/video2pptx/gui/controllers/pipeline_worker.py</path>
       <depends>M-APP-BOOTSTRAP, M-APP-SERVICE-CONTEXT</depends>
-      <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
+      <verification-ref>V-M-REF-GUI-ADAPTER</verification-ref>
     </M-GUI-PIPELINE-WORKER>
     <M-GUI-WINDOW-UI NAME="MainWindowUiBuilder" TYPE="UI_COMPONENT" STATUS="active">
       <purpose>Build MainWindow UI and optional host adapters while keeping lifecycle and pipeline logic outside construction code.</purpose>
       <path>src/video2pptx/gui/main_window_ui.py</path>
       <depends>M-GUI-MAIN, M-GUI-MENUBAR, M-GUI-VIDEOPLAYER, M-GUI-TIMELINE3</depends>
-      <verification-ref>V-REF-GUI-ADAPTER</verification-ref>
+      <verification-ref>V-M-REF-GUI-ADAPTER</verification-ref>
     </M-GUI-WINDOW-UI>
     <M-GUI-CANONICAL-BUTTONS NAME="CanonicalButtons" TYPE="UI_COMPONENT" STATUS="planned">
       <purpose>Rename/wire 5 distinct stages: Quick Preview / Detect / Auto Align / Process Notes / Auto. Each button slot delegates to app_service — no business logic in slots.</purpose>
@@ -824,8 +824,8 @@
     <CrossLink from="M-DETECT-SLIDES" to="M-SEGMENTER" relation="builds intervals" />
     <CrossLink from="M-DETECT-SLIDES" to="M-DEDUPE" relation="deduplicates" />
     <CrossLink from="M-DETECT-SLIDES" to="M-ROI" relation="crops and masks" />
-    <CrossLink from="M-DETECT-SLIDES" to="Phase-18/TwoPassDetection" relation="Phase-18: 3→2 passes, Pass 3 merged into Pass 2" />
-    <CrossLink from="Phase-18/TwoPassDetection" to="M-DETECT-METRICS" relation="baseline identified redundant Pass 3 bottleneck" />
+    <CrossLink from="M-DETECT-SLIDES" to="M-DETECT-PERF-DECISION" relation="Phase-18 TwoPassDetection: 3-to-2 passes, Pass 3 merged into Pass 2" />
+    <CrossLink from="M-DETECT-PERF-DECISION" to="M-DETECT-METRICS" relation="Phase-18 TwoPassDetection: baseline identified redundant Pass 3 bottleneck" />
     <CrossLink from="M-NOTES" to="M-SUBTITLES" relation="parses and aligns cues" />
     <CrossLink from="M-NOTES" to="M-NOTES-PROCESSOR" relation="cleans and formats notes" />
     <CrossLink from="M-ROI-TOOL" to="M-VIDEO-DECODE" relation="extracts frame" />
@@ -933,72 +933,72 @@
       <purpose>Common input resolution helpers for project-bound operations: resolve_project_input, resolve_project_path, resolve_detection_override, normalize_roi.</purpose>
       <path>src/video2pptx/application/base.py</path>
       <depends>M-APP-ERRORS</depends>
-      <verification-ref>V-REF-DETECTION-INPUT</verification-ref>
+      <verification-ref>V-M-REF-DETECTION-INPUT</verification-ref>
     </M-APP-INPUT-RESOLVER>
     <M-PERSIST-DETECTION NAME="DetectionConfigPersistence" TYPE="DATA_LAYER" STATUS="active">
       <purpose>Canonical DetectionConfigDocument in schema 2.0 with to_domain/to_document round-trip and legacy migration.</purpose>
       <path>src/video2pptx/infrastructure/persistence/</path>
       <depends>M-DOMAIN-PROJECT, M-PERSIST-DTO</depends>
-      <verification-ref>V-REF-DETECTION-INPUT</verification-ref>
+      <verification-ref>V-M-REF-DETECTION-INPUT</verification-ref>
     </M-PERSIST-DETECTION>
     <!-- ===== WINDOWS PACKAGING (Phase-17) ===== -->
     <M-APP-IDENTITY NAME="ApplicationIdentity" TYPE="UTILITY" STATUS="active">
       <purpose>Canonical application identity: version, build SHA, repository, runtime info. Single source of product metadata.</purpose>
       <path>src/video2pptx/application/identity.py</path>
       <depends>packaging.version</depends>
-      <verification-ref>V-REF-PRODUCT-IDENTITY</verification-ref>
+      <verification-ref>V-M-REF-PRODUCT-IDENTITY</verification-ref>
     </M-APP-IDENTITY>
     <M-APP-BUILD-META NAME="BuildMeta" TYPE="UTILITY" STATUS="active">
       <purpose>Build-time injected metadata (commit SHA, build type). Overwritten by CI/CD pipeline.</purpose>
       <path>src/video2pptx/build_meta.py</path>
       <depends>none</depends>
-      <verification-ref>V-REF-PRODUCT-IDENTITY</verification-ref>
+      <verification-ref>V-M-REF-PRODUCT-IDENTITY</verification-ref>
     </M-APP-BUILD-META>
     <M-GUI-ABOUT NAME="AboutDialog" TYPE="UI_COMPONENT" STATUS="active">
       <purpose>About dialog with version, build SHA, runtime capabilities, diagnostic info copy, GitHub/logs actions.</purpose>
       <path>src/video2pptx/gui/about_dialog.py</path>
       <depends>M-APP-IDENTITY, PySide6</depends>
-      <verification-ref>V-REF-PRODUCT-IDENTITY</verification-ref>
+      <verification-ref>V-M-REF-PRODUCT-IDENTITY</verification-ref>
     </M-GUI-ABOUT>
     <M-GUI-HELP-MENU NAME="HelpMenu" TYPE="UI_COMPONENT" STATUS="active">
       <purpose>Help menu: About, Check for Updates, Open Logs, GitHub Repository.</purpose>
       <path>src/video2pptx/gui/menu_bar.py</path>
       <depends>M-GUI-ABOUT, M-APP-IDENTITY</depends>
-      <verification-ref>V-REF-PRODUCT-IDENTITY</verification-ref>
+      <verification-ref>V-M-REF-PRODUCT-IDENTITY</verification-ref>
     </M-GUI-HELP-MENU>
     <M-DESKTOP-BOOTSTRAP NAME="DesktopBootstrap" TYPE="ENTRY_POINT" STATUS="active">
       <purpose>Canonical desktop GUI entry point for source and packaged modes.</purpose>
       <path>src/video2pptx/desktop.py</path>
       <depends>M-GUI-MAIN, M-APP-BOOTSTRAP</depends>
-      <verification-ref>V-REF-STANDALONE-BUILD</verification-ref>
+      <verification-ref>V-M-REF-STANDALONE-BUILD</verification-ref>
     </M-DESKTOP-BOOTSTRAP>
     <!-- ===== DETECT PERFORMANCE (Phase-18) ===== -->
     <M-DETECT-METRICS NAME="DetectMetrics" TYPE="UTILITY" STATUS="active">
       <purpose>Low-overhead aggregated performance telemetry with deterministic RSS lifecycle and backend cleanup evidence. Phase 18 baseline remains in progress until recovered-tree benchmark evidence exists.</purpose>
       <path>src/video2pptx/detection_metrics.py</path>
       <depends>none</depends>
-      <verification-ref>V-PERF-DETECT-BASELINE</verification-ref>
+      <verification-ref>V-M-PERF-DETECT-BASELINE</verification-ref>
       <cross-links>M-DETECT-SLIDES, M-BACKEND-OPENCV, M-BACKEND-PYAV</cross-links>
     </M-DETECT-METRICS>
     <M-DETECT-BENCHMARK NAME="DetectBenchmarkPlan" TYPE="UTILITY" STATUS="active">
       <purpose>Evidence-driven Phase 18 sequence: recovered-tree short benchmark (Step 18.3 — done), bottleneck decision (Step 18.4 — done: DECODE_FRAME_PIPELINE, HIGH confidence, accepted negative terminal outcome T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION, no optimization selected), HWAccel runtime evidence (Step 18.4A — done: canonical Hermes H.264 runtime evidence, OBSERVATION_COMPLETE, OUTCOME_D; actual_hardware_decode_active UNKNOWN_NOT_PROVEN by observer design), strict no-software-fallback control (Step 18.4B — done: corrected control, FIRST_FRAME_DECODED, OUTCOME_S1; F-0098 RESOLVED for activation-defect discrimination; PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX contradicted; bounded — does not prove all production decode was hardware), one targeted optimization (Step 18.5 — blocked pending Step 18.4), short re-benchmark (Step 18.6), Hermes full re-benchmark (Step 18.7), and quality acceptance (Step 18.8). Step 18.3 evidence: mean detect 237.7s (3 runs), historical signature match, 6/6 invariants PASS.</purpose>
       <path>tools/benchmark_detect.py</path>
       <depends>M-DETECT-SLIDES, M-DETECT-METRICS</depends>
-      <verification-ref>V-PERF-DETECT-SHORT-BENCHMARK, V-PERF-DETECT-BOTTLENECK, V-PERF-DETECT-TARGETED, V-PERF-DETECT-SHORT-REBENCHMARK, V-PERF-DETECT-HERMES-REBENCHMARK, V-PERF-DETECT-ACCEPTANCE</verification-ref>
+      <verification-ref>V-M-PERF-DETECT-SHORT-BENCHMARK, V-M-PERF-DETECT-BOTTLENECK, V-M-PERF-DETECT-TARGETED, V-M-PERF-DETECT-SHORT-REBENCHMARK, V-M-PERF-DETECT-HERMES-REBENCHMARK, V-M-PERF-DETECT-ACCEPTANCE</verification-ref>
       <cross-links>M-DETECT-SLIDES, M-DETECT-METRICS</cross-links>
     </M-DETECT-BENCHMARK>
     <M-DETECT-PERF-DECISION NAME="BottleneckDecision" TYPE="DECISION" STATUS="done">
       <purpose>Step 18.4: DECODE_FRAME_PIPELINE (172.46s, 63.27%) remains selected with HIGH confidence. F-0097 RESOLVED. PYAV_HWACCEL_CUDA is REJECTED_SOURCE_MODEL_MISMATCH. PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX is CONTRADICTED_BY_STRICT_NO_FALLBACK_CONTROL. Step 18.4A and 18.4B DONE. Step 18.4C IN_PROGRESS/blocked_on_canonical_signature_provenance. The b869464/4b6eba5 package remains REJECTED_FOR_STEP_18_4C_ACCEPTANCE and F-0102 is rejected draft context. Corrected r2 evidence from code 0bcfe54/raw b4ed0e4: REFERENCE_EXACTLY_REPEATABLE; C1 NOT_VIABLE_EXACT_PARITY_FAIL — causal_classification=ROOT_CAUSE_UNKNOWN_NOT_ISOLATED, codec_context_causal=false, codec_context_access=LEADING_HYPOTHESIS_NOT_PROVEN (the historical path at acb424f did not access stream.codec_context while the current path does — a proven code-path difference and leading hypothesis, NOT an isolated cause); C2 NOT_VIABLE_PERFORMANCE_FAIL (corrected from NOT_VIABLE_RESOURCE_MODEL) — ROLLING_WINDOW_EXACT_MODEL_PROVEN (peak 15 frames), candidate slower (median of paired differences -46.81963299999916s, difference of medians -40.19553279999673s / -13.835416931263438%); C3 NOT_VIABLE_PERFORMANCE_FAIL — thread_count_1/4/8 exact parity PASS but all performance FAIL. Canonical signature provenance: 8cc06c6a (original) vs 5a7c4538 (current), match=false — ROOT_CAUSE_UNKNOWN_NOT_ISOLATED. Accepted negative terminal outcome T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION (no tested candidate viable). F-0103 OPEN / NON_BLOCKING. selected_optimization=NONE; Step 18.4 done; Step 18.5 planned/blocked and not started.</purpose>
       <path>benchmarks/detect/evidence/bottleneck_decision.json</path>
       <depends>M-DETECT-BENCHMARK</depends>
-      <verification-ref>V-PERF-DETECT-BOTTLENECK</verification-ref>
+      <verification-ref>V-M-PERF-DETECT-BOTTLENECK</verification-ref>
       <cross-links>M-DETECT-SLIDES, M-SLIDE-DETECTOR, M-FRAME-FEATURES, M-BACKEND-PYAV</cross-links>
     </M-DETECT-PERF-DECISION>
     <M-DETECT-TARGET-DISCRIMINATION-R2 NAME="TargetOptimizationDiscriminationR2" TYPE="UTILITY" STATUS="verified">
       <purpose>Diagnostic-only Step 18.4C-r2 tooling for reference decode repeatability, exact rolling representative retention, deterministic C3 selection/provenance, and child-consistent evidence aggregation; it does not implement Step 18.5.</purpose>
       <path>tools/probe_target_optimization_discrimination_r2.py</path>
       <depends>M-DETECT-PERF-DECISION, M-SLIDE-DETECTOR, M-SEGMENTER, M-BACKEND-PYAV</depends>
-      <verification-ref>V-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION</verification-ref>
+      <verification-ref>V-M-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION</verification-ref>
       <cross-links>M-DETECT-PERF-DECISION, M-DETECT-SLIDES, M-SLIDE-DETECTOR, M-BACKEND-PYAV</cross-links>
       <annotations><fn-run_reference_repeatability PURPOSE="Classify exact sampled RGB sequence repeatability across three fresh opens" /><type-RollingRepresentativeRetention PURPOSE="Diagnostic exact online retention observer using production debounce semantics" /><fn-build_aggregate PURPOSE="Derive candidate states and decision outcome only from validated child artifacts" /></annotations>
     </M-DETECT-TARGET-DISCRIMINATION-R2>
@@ -1006,7 +1006,7 @@
     <M-ARCH-OVERVIEW NAME="ArchitectureOverview" TYPE="UTILITY" STATUS="planned">
       <purpose>Target layered architecture: domain/application/infrastructure/adapters with ports and dependency rules. See docs/architecture.md for full context.</purpose>
       <path>docs/architecture.md</path>
-      <verification-ref>V-ARCH-OVERVIEW</verification-ref>
+      <verification-ref>V-M-ARCH-OVERVIEW</verification-ref>
       <annotations>
         <type-DomainLayer PURPOSE="PySide6-free domain: Project aggregate, Slide entity, TimeInterval, PipelineState, events, exceptions" />
         <type-ApplicationLayer PURPOSE="PySide6-free application: Commands, Services (use cases), DTOs, Ports (Protocols)" />
@@ -1017,122 +1017,122 @@
     <M-DOMAIN-VALUE NAME="ValueObjects" TYPE="UTILITY" STATUS="implemented">
       <purpose>Frozen value objects: SlideId, TimeInterval (validated), ArtifactRef (normalized relative path), PipelineState enum</purpose>
       <path>src/video2pptx/domain/value_objects.py</path>
-      <verification-ref>V-DOMAIN-VALUE</verification-ref>
+      <verification-ref>V-M-DOMAIN-VALUE</verification-ref>
     </M-DOMAIN-VALUE>
     <M-DOMAIN-PROJECT NAME="ProjectAggregate" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Project aggregate root controlling slide invariants, downstream invalidation, state transitions, and side-effect-free validation. Canonical source of truth.</purpose>
       <path>src/video2pptx/domain/project.py</path>
       <depends>M-DOMAIN-VALUE</depends>
-      <verification-ref>V-DOMAIN-PROJECT</verification-ref>
+      <verification-ref>V-M-DOMAIN-PROJECT</verification-ref>
       <annotations><fn-validate PURPOSE="Check complete aggregate invariants without mutation" /></annotations>
     </M-DOMAIN-PROJECT>
     <M-DOMAIN-SLIDE NAME="SlideEntity" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Slide entity with stable SlideId, visual/aligned TimeInterval, image ArtifactRef, transcript, confidence, manual flag</purpose>
       <path>src/video2pptx/domain/slide.py</path>
       <depends>M-DOMAIN-VALUE</depends>
-      <verification-ref>V-DOMAIN-SLIDE</verification-ref>
+      <verification-ref>V-M-DOMAIN-SLIDE</verification-ref>
     </M-DOMAIN-SLIDE>
     <M-DOMAIN-STATE NAME="PipelineState" TYPE="UTILITY" STATUS="implemented">
       <purpose>Pipeline stage state machine: NOT_STARTED→RUNNING→SUCCEEDED/FAILED/CANCELLED/STALE/SKIPPED</purpose>
       <path>src/video2pptx/domain/pipeline_state.py</path>
       <depends>none</depends>
-      <verification-ref>V-DOMAIN-STATE</verification-ref>
+      <verification-ref>V-M-DOMAIN-STATE</verification-ref>
     </M-DOMAIN-STATE>
     <M-DOMAIN-EVENTS NAME="DomainEvents" TYPE="UTILITY" STATUS="planned">
       <purpose>Domain event dataclasses: ProjectCreated, SlidesDetected, SlidesAligned, NotesProcessed, SlideAdded, etc.</purpose>
       <path>src/video2pptx/domain/events.py</path>
       <depends>M-DOMAIN-VALUE</depends>
-      <verification-ref>V-DOMAIN-EVENTS</verification-ref>
+      <verification-ref>V-M-DOMAIN-EVENTS</verification-ref>
     </M-DOMAIN-EVENTS>
     <M-ADAPTERS NAME="LegacyPortAdapters" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Translate Phase 16 port contracts to legacy CV, alignment, notes, and export functions.</purpose>
       <path>src/video2pptx/adapters/</path>
       <depends>M-PORT-PREVIEW, M-PORT-DETECTOR, M-PORT-ALIGNMENT, M-PORT-NOTES, M-PORT-EXPORT</depends>
-      <verification-ref>V-REF-MCP-ADAPTER</verification-ref>
+      <verification-ref>V-M-REF-MCP-ADAPTER</verification-ref>
     </M-ADAPTERS>
     <M-MCP-ADAPTER NAME="McpServiceAdapter" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Map MCP tool arguments and results to Phase 16 Application Services without legacy pipeline dispatch.</purpose>
       <path>src/video2pptx/debug/app_service_adapter.py</path>
       <depends>M-MCP-COMPOSITION, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-AUTO</depends>
-      <verification-ref>V-REF-MCP-ADAPTER</verification-ref>
+      <verification-ref>V-M-REF-MCP-ADAPTER</verification-ref>
     </M-MCP-ADAPTER>
     <M-MCP-COMPOSITION NAME="McpComposition" TYPE="UTILITY" STATUS="implemented">
       <purpose>Wire application services to FileProjectRepository and concrete legacy port adapters.</purpose>
       <path>src/video2pptx/debug/mcp_composition.py</path>
       <depends>M-ADAPTERS, M-FILE-REPO, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-AUTO</depends>
-      <verification-ref>V-REF-MCP-ADAPTER</verification-ref>
+      <verification-ref>V-M-REF-MCP-ADAPTER</verification-ref>
     </M-MCP-COMPOSITION>
     <M-CLI-ADAPTER NAME="CliAdapter" TYPE="ENTRY_POINT" STATUS="active">
       <purpose>Thin Typer transport adapter over operation-scoped canonical application services.</purpose>
       <path>src/video2pptx/adapters/cli/</path>
       <depends>M-APP-BOOTSTRAP, M-APP-PREVIEW, M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-VALIDATE, M-APP-AUTO</depends>
-      <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
+      <verification-ref>V-M-REF-CLI-ADAPTER</verification-ref>
     </M-CLI-ADAPTER>
     <M-APP-BOOTSTRAP NAME="ApplicationServicesBootstrap" TYPE="UTILITY" STATUS="active">
       <purpose>Build one service bundle and operation-scoped context shared by CLI and MCP.</purpose>
       <path>src/video2pptx/bootstrap/__init__.py, src/video2pptx/bootstrap/application.py</path>
       <depends>M-FILE-REPO, M-ADAPTERS, M-APP-AUTO</depends>
-      <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
+      <verification-ref>V-M-REF-CLI-ADAPTER</verification-ref>
     </M-APP-BOOTSTRAP>
     <M-APP-LLM NAME="LlmEnrichmentService" TYPE="CORE_LOGIC" STATUS="planned">
       <purpose>Canonical explicit LLM enrichment use case with no silent basic-mode fallback.</purpose>
       <path>src/video2pptx/application/services/llm_service.py</path>
       <depends>M-PORT-REPO, M-PORT-LLM, M-DOMAIN-PROJECT</depends>
-      <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
+      <verification-ref>V-M-REF-CLI-ADAPTER</verification-ref>
     </M-APP-LLM>
     <M-PORT-LLM NAME="LlmEnricherPort" TYPE="INTEGRATION" STATUS="planned">
       <purpose>Enrich immutable slide snapshots and return descriptions/transcripts without persistence.</purpose>
       <path>src/video2pptx/application/ports/llm_enricher.py</path>
       <depends>M-DOMAIN-PROJECT</depends>
-      <verification-ref>V-REF-CLI-ADAPTER</verification-ref>
+      <verification-ref>V-M-REF-CLI-ADAPTER</verification-ref>
     </M-PORT-LLM>
     <M-APP-PROJECT name="ProjectService" TYPE="CORE_LOGIC" STATUS="planned">
       <purpose>Create, open, close, save project via repository port. No direct file access.</purpose>
       <path>src/video2pptx/application/services/project_service.py</path>
       <depends>M-DOMAIN-PROJECT, M-PORT-REPO</depends>
-      <verification-ref>V-APP-PROJECT</verification-ref>
+      <verification-ref>V-M-APP-PROJECT</verification-ref>
     </M-APP-PROJECT>
     <M-APP-DETECT name="DetectionService" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Run full or preview detection via strategy. Project invariant enforcement. Single canonical detect path.</purpose>
       <path>src/video2pptx/application/services/detection_service.py</path>
       <depends>M-DOMAIN-PROJECT, M-PORT-REPO, M-PORT-DETECTOR</depends>
-      <verification-ref>V-APP-DETECT</verification-ref>
+      <verification-ref>V-M-APP-DETECT</verification-ref>
     </M-APP-DETECT>
     <M-APP-ALIGN name="AlignmentService" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Align visual boundaries to subtitle anchors via strategy + anchor provider.</purpose>
       <path>src/video2pptx/application/services/alignment_service.py</path>
       <depends>M-DOMAIN-PROJECT, M-PORT-REPO, M-PORT-ALIGNMENT</depends>
-      <verification-ref>V-APP-ALIGN</verification-ref>
+      <verification-ref>V-M-APP-ALIGN</verification-ref>
     </M-APP-ALIGN>
     <M-APP-AUTO name="AutoService" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Coordinate full/resume/force by composing stage services without duplicating stage algorithms.</purpose>
       <path>src/video2pptx/application/services/auto_service.py</path>
       <depends>M-APP-DETECT, M-APP-ALIGN, M-APP-NOTES, M-APP-EXPORT, M-APP-VALIDATE</depends>
-      <verification-ref>V-APP-AUTO</verification-ref>
+      <verification-ref>V-M-APP-AUTO</verification-ref>
     </M-APP-AUTO>
     <M-APP-NOTES NAME="NotesService" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Canonical basic/LLM notes use case preserving raw cues and forbidding silent LLM fallback.</purpose>
       <path>src/video2pptx/application/services/notes_service.py</path>
       <depends>M-PORT-REPO, M-PORT-NOTES, M-DOMAIN-PROJECT</depends>
-      <verification-ref>V-APP-NOTES</verification-ref>
+      <verification-ref>V-M-APP-NOTES</verification-ref>
     </M-APP-NOTES>
     <M-APP-EXPORT NAME="ExportService" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Canonical staged Markdown/PPTX exports from immutable aggregate snapshots with output validation.</purpose>
       <path>src/video2pptx/application/services/export_service.py</path>
       <depends>M-PORT-REPO, M-PORT-EXPORT, M-DOMAIN-PROJECT</depends>
-      <verification-ref>V-APP-EXPORT</verification-ref>
+      <verification-ref>V-M-APP-EXPORT</verification-ref>
     </M-APP-EXPORT>
     <M-APP-VALIDATE NAME="ValidationService" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Validate storage, aggregate, media, artifacts, exports, and derived revision consistency.</purpose>
       <path>src/video2pptx/application/services/validation_service.py</path>
       <depends>M-PORT-REPO, M-DOMAIN-PROJECT</depends>
-      <verification-ref>V-APP-VALIDATE</verification-ref>
+      <verification-ref>V-M-APP-VALIDATE</verification-ref>
     </M-APP-VALIDATE>
     <M-PORT-REPO name="ProjectRepository" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Revision-aware port for loading/saving Project aggregate through LoadedProject and SaveResult.</purpose>
       <path>src/video2pptx/application/ports/project_repository.py</path>
       <depends>M-DOMAIN-PROJECT</depends>
-      <verification-ref>V-PORT-REPO</verification-ref>
+      <verification-ref>V-M-PORT-REPO</verification-ref>
       <annotations>
         <type-LoadedProject PURPOSE="Aggregate plus runtime location, canonical revision, warnings, and migration flag" />
         <type-SaveResult PURPOSE="New canonical revision and non-fatal save warnings" />
@@ -1144,7 +1144,7 @@
       <purpose>Strict schema 2.0 DTO with full pipeline, portable artifacts, extensions, and revision.</purpose>
       <path>src/video2pptx/infrastructure/persistence/dto.py</path>
       <depends>M-DOMAIN-VALUE</depends>
-      <verification-ref>V-PERSIST-DTO</verification-ref>
+      <verification-ref>V-M-PERSIST-DTO</verification-ref>
       <annotations>
         <type-ProjectDocumentV2 PURPOSE="Canonical project document; rejects output_dir and unknown fields outside extensions" />
         <type-PipelineDocument PURPOSE="Exact complete state for all canonical pipeline stages" />
@@ -1158,7 +1158,7 @@
       <purpose>Deterministic schema 1.0 → 2.0 migration preserving unknown legacy fields and stable UIDs.</purpose>
       <path>src/video2pptx/infrastructure/persistence/migrations.py</path>
       <depends>M-PERSIST-DTO, M-DOMAIN-VALUE</depends>
-      <verification-ref>V-PERSIST-MIGRATIONS</verification-ref>
+      <verification-ref>V-M-PERSIST-MIGRATIONS</verification-ref>
       <annotations>
         <fn-migrate_v1_to_v2 PURPOSE="Deterministically build strict V2 data and preserve legacy extensions without output_dir" />
         <fn-ProjectMapper-to_domain PURPOSE="Rehydrate complete aggregate state without lifecycle transitions or invalidation" />
@@ -1169,7 +1169,7 @@
       <purpose>Canonical atomic commit with revisioned derived slides artifact, strict validation, optimistic concurrency.</purpose>
       <path>src/video2pptx/infrastructure/persistence/file_project_repository.py</path>
       <depends>M-PORT-REPO, M-PERSIST-DTO, M-PERSIST-MIGRATIONS, M-DOMAIN-PROJECT</depends>
-      <verification-ref>V-FILE-REPO</verification-ref>
+      <verification-ref>V-M-FILE-REPO</verification-ref>
       <annotations>
         <fn-create PURPOSE="Create canonical storage and return first LoadedProject revision unit" />
         <fn-load PURPOSE="Dispatch raw legacy migration or strict V2 parsing" />
@@ -1181,7 +1181,7 @@
       <purpose>Shared DTOs, errors, cancellation, observer, and service context for all stage services.</purpose>
       <path>src/video2pptx/application/</path>
       <depends>none</depends>
-      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+      <verification-ref>V-M-REF-APP-SERVICES</verification-ref>
       <annotations>
         <type-ServiceResult PURPOSE="Typed success/failure result with stage, data, revision, and warnings" />
         <type-ProgressUpdate PURPOSE="Validated percent and message for progress reporting" />
@@ -1194,49 +1194,49 @@
       <purpose>Produce immutable preview score data without project or persistence mutation.</purpose>
       <path>src/video2pptx/application/ports/preview_analyzer.py</path>
       <depends>M-DOMAIN-VALUE</depends>
-      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+      <verification-ref>V-M-REF-APP-SERVICES</verification-ref>
     </M-PORT-PREVIEW>
     <M-PORT-DETECTOR NAME="SlideDetectorPort" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Return a complete immutable candidate slide set from video input.</purpose>
       <path>src/video2pptx/application/ports/slide_detector.py</path>
       <depends>M-DOMAIN-VALUE</depends>
-      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+      <verification-ref>V-M-REF-APP-SERVICES</verification-ref>
     </M-PORT-DETECTOR>
     <M-PORT-ALIGNMENT NAME="AlignmentPort" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Compute immutable alignment plans and metrics without aggregate mutation.</purpose>
       <path>src/video2pptx/application/ports/alignment.py</path>
       <depends>M-DOMAIN-PROJECT</depends>
-      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+      <verification-ref>V-M-REF-APP-SERVICES</verification-ref>
     </M-PORT-ALIGNMENT>
     <M-PORT-NOTES NAME="NotesProcessorPort" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Produce basic or LLM notes while preserving raw subtitle cues.</purpose>
       <path>src/video2pptx/application/ports/notes_processor.py</path>
       <depends>M-DOMAIN-PROJECT</depends>
-      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+      <verification-ref>V-M-REF-APP-SERVICES</verification-ref>
     </M-PORT-NOTES>
     <M-PORT-EXPORT NAME="PresentationExporterPort" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Stage Markdown or PPTX output from immutable project snapshots.</purpose>
       <path>src/video2pptx/application/ports/presentation_exporter.py</path>
       <depends>M-DOMAIN-PROJECT</depends>
-      <verification-ref>V-REF-APP-SERVICES</verification-ref>
+      <verification-ref>V-M-REF-APP-SERVICES</verification-ref>
     </M-PORT-EXPORT>
     <M-APP-PREVIEW NAME="PreviewService" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Canonical waveform-only preview use case with revision-safe persistence and no slide invalidation.</purpose>
       <path>src/video2pptx/application/services/preview_service.py</path>
       <depends>M-PORT-REPO, M-PORT-PREVIEW, M-DOMAIN-PROJECT</depends>
-      <verification-ref>V-APP-PREVIEW</verification-ref>
+      <verification-ref>V-M-APP-PREVIEW</verification-ref>
     </M-APP-PREVIEW>
     <M-PORT-EVENTS name="EventBus" TYPE="UTILITY" STATUS="planned">
       <purpose>Synchronous event bus: publish domain events, notify subscribers. Adapter for Qt signals.</purpose>
       <path>src/video2pptx/application/ports/event_bus.py</path>
       <depends>M-DOMAIN-EVENTS</depends>
-      <verification-ref>V-PORT-EVENTS</verification-ref>
+      <verification-ref>V-M-PORT-EVENTS</verification-ref>
     </M-PORT-EVENTS>
     <M-UPDATE-CHECKER NAME="UpdateService" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Application-layer update check: version comparison, channel filtering, PEP 440 semantics.</purpose>
       <path>src/video2pptx/application/update_service.py</path>
       <depends>M-APP-IDENTITY</depends>
-      <verification-ref>V-REF-UPDATE-CHECKER</verification-ref>
+      <verification-ref>V-M-REF-UPDATE-CHECKER</verification-ref>
       <annotations>
         <type-UpdateChannel PURPOSE="STABLE or BETA enum" />
         <type-UpdateCheckResult PURPOSE="UPDATE_AVAILABLE, UP_TO_DATE, CHECK_FAILED, NO_RELEASES" />
@@ -1248,7 +1248,7 @@
       <purpose>Fetch GitHub Releases API, parse into ReleaseInfo. No Qt, no GUI.</purpose>
       <path>src/video2pptx/infrastructure/github_release_provider.py</path>
       <depends>httpx, packaging</depends>
-      <verification-ref>V-REF-UPDATE-CHECKER</verification-ref>
+      <verification-ref>V-M-REF-UPDATE-CHECKER</verification-ref>
       <annotations>
         <fn-fetch_releases PURPOSE="GET /repos/owner/repo/releases, parse response" />
       </annotations>
@@ -1258,7 +1258,7 @@
       <path>src/video2pptx/gui/update_controller.py</path>
       <path>src/video2pptx/gui/update_dialog.py</path>
       <depends>M-UPDATE-CHECKER, M-GUI-APPCONFIG</depends>
-      <verification-ref>V-REF-UPDATE-CHECKER</verification-ref>
+      <verification-ref>V-M-REF-UPDATE-CHECKER</verification-ref>
       <annotations>
         <fn-schedule_startup_check PURPOSE="Non-blocking check after MainWindow visible" />
         <fn-manual_check PURPOSE="Force refresh from Help menu, show dialogs" />

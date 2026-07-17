@@ -813,13 +813,33 @@
   </V-M-E2E-SCENARIOS>
 
   <!-- ===== DOMAIN REFACTORING (Phase-16) ===== -->
-  <V-ARCH-OVERVIEW MODULE="M-ARCH-OVERVIEW" PRIORITY="high" STATUS="planned">
+  <V-M-ARCH-OVERVIEW MODULE="M-ARCH-OVERVIEW" PRIORITY="high" STATUS="planned">
     <scenarios>
       <scenario-1 kind="success">docs/architecture.md exists with layers, dependency rules, sequence diagrams, migration table.</scenario-1>
     </scenarios>
-  </V-ARCH-OVERVIEW>
+  </V-M-ARCH-OVERVIEW>
 
-  <V-DOMAIN-VALUE MODULE="M-DOMAIN-VALUE" PRIORITY="high" STATUS="planned">
+  <V-M-DOMAIN-SLIDE MODULE="M-DOMAIN-SLIDE" PRIORITY="medium" STATUS="planned">
+    <purpose>Slide entity invariants: stable SlideId, visual/aligned TimeInterval, ArtifactRef, transcript, confidence, manual flag.</purpose>
+  </V-M-DOMAIN-SLIDE>
+
+  <V-M-DOMAIN-STATE MODULE="M-DOMAIN-STATE" PRIORITY="medium" STATUS="planned">
+    <purpose>Pipeline stage state machine transitions: NOT_STARTED -> RUNNING -> SUCCEEDED/FAILED/CANCELLED/STALE/SKIPPED.</purpose>
+  </V-M-DOMAIN-STATE>
+
+  <V-M-DOMAIN-EVENTS MODULE="M-DOMAIN-EVENTS" PRIORITY="low" STATUS="planned">
+    <purpose>Domain event dataclasses (ProjectCreated, SlidesDetected, SlidesAligned, NotesProcessed, SlideAdded).</purpose>
+  </V-M-DOMAIN-EVENTS>
+
+  <V-M-PORT-EVENTS MODULE="M-PORT-EVENTS" PRIORITY="low" STATUS="planned">
+    <purpose>Synchronous event bus: publish domain events, notify subscribers, Qt signal adapter.</purpose>
+  </V-M-PORT-EVENTS>
+
+  <V-M-APP-PROJECT MODULE="M-APP-PROJECT" PRIORITY="high" STATUS="planned">
+    <purpose>Project service use case: create/open/close/save via repository port without direct file access.</purpose>
+  </V-M-APP-PROJECT>
+
+  <V-M-DOMAIN-VALUE MODULE="M-DOMAIN-VALUE" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/domain/test_value_objects.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">TimeInterval(start, end): end > start enforced, duration computed, contains/overlaps methods.</scenario-1>
@@ -828,9 +848,9 @@
       <scenario-4 kind="success">ArtifactRef: normalizes path, prevents double prefix, resolves relative to project dir.</scenario-4>
       <scenario-5 kind="success">PipelineState: valid transitions, terminal states, cannot restart from succeeded without force.</scenario-5>
     </scenarios>
-  </V-DOMAIN-VALUE>
+  </V-M-DOMAIN-VALUE>
 
-  <V-DOMAIN-PROJECT MODULE="M-DOMAIN-PROJECT" PRIORITY="high" STATUS="planned">
+  <V-M-DOMAIN-PROJECT MODULE="M-DOMAIN-PROJECT" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/domain/test_project.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">add_slide(): stable SlideId, correct index assignment.</scenario-1>
@@ -840,9 +860,9 @@
       <scenario-5 kind="success">invalidate_downstream_from('detect'): align/notes/md/pptx all stale.</scenario-5>
       <scenario-6 kind="failure">Adding overlapping slide raises DomainError.</scenario-6>
     </scenarios>
-  </V-DOMAIN-PROJECT>
+  </V-M-DOMAIN-PROJECT>
 
-  <V-PORT-REPO MODULE="M-PORT-REPO" PRIORITY="high" STATUS="planned">
+  <V-M-PORT-REPO MODULE="M-PORT-REPO" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/infra/test_file_repository.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Save → load round-trip preserves all fields.</scenario-1>
@@ -850,9 +870,9 @@
       <scenario-3 kind="success">Schema migration: v1 project.json upgrades to v2 on load.</scenario-3>
       <scenario-4 kind="failure">Loading invalid project.json raises ProjectPersistenceError.</scenario-4>
     </scenarios>
-  </V-PORT-REPO>
+  </V-M-PORT-REPO>
 
-  <V-PERSIST-DTO MODULE="M-PERSIST-DTO" PRIORITY="high" STATUS="passed">
+  <V-M-PERSIST-DTO MODULE="M-PERSIST-DTO" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/infra/test_persistence_dto.py</file><file>tests/domain/test_value_objects.py</file></test-files>
     <module-checks><check-1>python -m pytest tests/infra/test_persistence_dto.py tests/domain/test_value_objects.py -q</check-1></module-checks>
     <wave-checks><check-1>python -m pytest tests/domain tests/infra -q</check-1></wave-checks>
@@ -861,9 +881,9 @@
       <scenario-1 kind="success">ProjectDocumentV2 strictly round-trips every canonical aggregate field.</scenario-1>
       <scenario-2 kind="failure">Unknown canonical fields are rejected outside extensions.</scenario-2>
     </scenarios>
-  </V-PERSIST-DTO>
+  </V-M-PERSIST-DTO>
 
-  <V-PERSIST-MIGRATIONS MODULE="M-PERSIST-MIGRATIONS" PRIORITY="high" STATUS="passed">
+  <V-M-PERSIST-MIGRATIONS MODULE="M-PERSIST-MIGRATIONS" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/infra/test_migrations.py</file><file>tests/infra/test_mapper.py</file></test-files>
     <module-checks><check-1>python -m pytest tests/infra/test_migrations.py tests/infra/test_mapper.py tests/infra/test_file_repository.py -q</check-1></module-checks>
     <wave-checks><check-1>python -m pytest tests/domain tests/infra -q</check-1></wave-checks>
@@ -873,9 +893,9 @@
       <scenario-1 kind="success">Schema 1.0 migrates deterministically to schema 2.0 with stable slide IDs.</scenario-1>
       <scenario-2 kind="success">Unknown legacy fields survive under extensions.legacy.</scenario-2>
     </scenarios>
-  </V-PERSIST-MIGRATIONS>
+  </V-M-PERSIST-MIGRATIONS>
 
-  <V-FILE-REPO MODULE="M-FILE-REPO" PRIORITY="high" STATUS="passed">
+  <V-M-FILE-REPO MODULE="M-FILE-REPO" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/infra/test_file_repository.py</file><file>tests/infra/test_mapper.py</file></test-files>
     <module-checks><check-1>python -m pytest tests/infra/test_file_repository.py tests/infra/test_mapper.py tests/infra/test_migrations.py tests/infra/test_persistence_dto.py -q</check-1></module-checks>
     <wave-checks><check-1>python -m pytest tests/domain tests/infra -q</check-1></wave-checks>
@@ -886,9 +906,9 @@
       <scenario-2 kind="failure">Corrupt canonical storage and revision conflicts fail without overwrite.</scenario-2>
       <scenario-3 kind="success">Derived slides artifact records and validates source_revision.</scenario-3>
     </scenarios>
-  </V-FILE-REPO>
+  </V-M-FILE-REPO>
 
-  <V-REF-PERSISTENCE-STABILIZATION MODULE="Phase-16/Step-4.7" DATA_FLOW="DF-PERSIST-01" PRIORITY="high" STATUS="passed">
+  <V-M-REF-PERSISTENCE-STABILIZATION MODULE="Phase-16/Step-4.7" DATA_FLOW="DF-PERSIST-01" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/infra/test_persistence_dto.py</file><file>tests/infra/test_migrations.py</file><file>tests/infra/test_mapper.py</file><file>tests/infra/test_file_repository.py</file></test-files>
     <module-checks><check-1>python -m pytest tests/infra/ -q</check-1></module-checks>
     <wave-checks><check-1>python -m pytest tests/domain tests/infra -q</check-1></wave-checks>
@@ -907,9 +927,9 @@
       <scenario-PERSIST-10 kind="success">project.validate() checks aggregate invariants without mutating state.</scenario-PERSIST-10>
       <scenario-PERSIST-11 kind="success">SlideId.new() generates 128-bit UUID; legacy IDs preserved as-is.</scenario-PERSIST-11>
     </scenarios>
-  </V-REF-PERSISTENCE-STABILIZATION>
+  </V-M-REF-PERSISTENCE-STABILIZATION>
 
-  <V-APP-PREVIEW MODULE="M-APP-PREVIEW" PRIORITY="high" STATUS="passed">
+  <V-M-APP-PREVIEW MODULE="M-APP-PREVIEW" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_preview_service.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Preview succeeds, waveform updated, slides unchanged.</scenario-1>
@@ -917,9 +937,9 @@
       <scenario-3 kind="success">Cancellation raises before aggregate mutation.</scenario-3>
       <scenario-4 kind="failure">Revision conflict → PersistenceConflictError.</scenario-4>
     </scenarios>
-  </V-APP-PREVIEW>
+  </V-M-APP-PREVIEW>
 
-  <V-APP-DETECT MODULE="M-APP-DETECT" PRIORITY="high" STATUS="passed">
+  <V-M-APP-DETECT MODULE="M-APP-DETECT" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_detection_service.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Detection replaces slides, invalidates downstream, saves with revision.</scenario-1>
@@ -927,9 +947,9 @@
       <scenario-3 kind="success">No notes/export/align side effects.</scenario-3>
       <scenario-4 kind="failure">Overlapping candidates → rejection before aggregate mutation.</scenario-4>
     </scenarios>
-  </V-APP-DETECT>
+  </V-M-APP-DETECT>
 
-  <V-APP-ALIGN MODULE="M-APP-ALIGN" PRIORITY="high" STATUS="passed">
+  <V-M-APP-ALIGN MODULE="M-APP-ALIGN" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_alignment_service.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Dry-run returns metrics without saving or mutating pipeline.</scenario-1>
@@ -937,36 +957,36 @@
       <scenario-3 kind="success">Idempotent second apply produces identical intervals.</scenario-3>
       <scenario-4 kind="failure">Invalid plan → rejection before aggregate mutation.</scenario-4>
     </scenarios>
-  </V-APP-ALIGN>
+  </V-M-APP-ALIGN>
 
-  <V-APP-NOTES MODULE="M-APP-NOTES" PRIORITY="high" STATUS="passed">
+  <V-M-APP-NOTES MODULE="M-APP-NOTES" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_notes_service.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Basic mode enriches transcript from subtitle cues.</scenario-1>
       <scenario-2 kind="failure">LLM mode with unavailable gateway returns error, no silent fallback.</scenario-2>
       <scenario-3 kind="success">Raw subtitle cues preserved after processing.</scenario-3>
     </scenarios>
-  </V-APP-NOTES>
+  </V-M-APP-NOTES>
 
-  <V-APP-EXPORT MODULE="M-APP-EXPORT" PRIORITY="high" STATUS="passed">
+  <V-M-APP-EXPORT MODULE="M-APP-EXPORT" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_export_service.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Markdown staged, validated, atomically replaced.</scenario-1>
       <scenario-2 kind="success">PPTX reopened through python-pptx, slide/image counts match.</scenario-2>
       <scenario-3 kind="failure">overwrite=false with existing file → controlled error.</scenario-3>
     </scenarios>
-  </V-APP-EXPORT>
+  </V-M-APP-EXPORT>
 
-  <V-APP-VALIDATE MODULE="M-APP-VALIDATE" PRIORITY="high" STATUS="passed">
+  <V-M-APP-VALIDATE MODULE="M-APP-VALIDATE" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_validation_service.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Valid canonical storage, media, artifacts, and exports produce valid=true.</scenario-1>
       <scenario-2 kind="failure">Domain invariant or derived revision mismatch produces a typed validation error.</scenario-2>
       <scenario-3 kind="failure">Missing or structurally invalid export is reported without mutating project state.</scenario-3>
     </scenarios>
-  </V-APP-VALIDATE>
+  </V-M-APP-VALIDATE>
 
-  <V-APP-AUTO MODULE="M-APP-AUTO" PRIORITY="high" STATUS="passed">
+  <V-M-APP-AUTO MODULE="M-APP-AUTO" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_auto_service.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Full mode runs all stages, validation passes.</scenario-1>
@@ -974,9 +994,9 @@
       <scenario-3 kind="success">Force re-runs all stages.</scenario-3>
       <scenario-4 kind="failure">Stage failure halts pipeline, records which stage failed.</scenario-4>
     </scenarios>
-  </V-APP-AUTO>
+  </V-M-APP-AUTO>
 
-  <V-REF-APP-SERVICES MODULE="Phase-16/Step-5" DATA_FLOW="DF-APP-01" PRIORITY="high" STATUS="passed">
+  <V-M-REF-APP-SERVICES MODULE="Phase-16/Step-5" DATA_FLOW="DF-APP-01" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_common.py</file></test-files>
     <module-checks><check-1>python -m pytest tests/application/ -q</check-1></module-checks>
     <wave-checks><check-1>python -m pytest tests/domain tests/application tests/infra -q</check-1></wave-checks>
@@ -987,9 +1007,9 @@
       <scenario-2 kind="success">Cancellation and adapter failures leave aggregate invariants intact and record typed stage failures.</scenario-2>
       <scenario-3 kind="success">Auto composes stage services for full, resume, and force modes without duplicating algorithms.</scenario-3>
     </scenarios>
-  </V-REF-APP-SERVICES>
+  </V-M-REF-APP-SERVICES>
 
-  <V-REF-CHAR-TESTS MODULE="Phase-16/Step-1" PRIORITY="high" STATUS="passed">
+  <V-M-REF-CHAR-TESTS MODULE="Phase-16/Step-1" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/e2e/test_mcp_gui_workflow.py</file><file>tests/e2e/test_mcp_startup_characterization.py</file><file>tests/test_characterization_adapters.py</file><file>tests/test_characterization_fixtures.py</file></test-files>
     <module-checks><check-1>pytest tests/test_characterization_adapters.py tests/test_characterization_fixtures.py -q</check-1></module-checks>
     <wave-checks><check-1>pytest tests/e2e/test_mcp_startup_characterization.py -q</check-1></wave-checks>
@@ -1010,9 +1030,9 @@
       <scenario-CHAR-012 kind="success">Process Notes enriches transcript text and sets notes_done.</scenario-CHAR-012>
       <scenario-CHAR-013 kind="success">Full Auto completes detect+align+notes+export in a single clean project with all artifacts.</scenario-CHAR-013>
     </scenarios>
-  </V-REF-CHAR-TESTS>
+  </V-M-REF-CHAR-TESTS>
 
-  <V-REF-MCP-ADAPTER MODULE="Phase-16/Step-6" PRIORITY="high" STATUS="passed">
+  <V-M-REF-MCP-ADAPTER MODULE="Phase-16/Step-6" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/test_app_service_runner.py</file><file>tests/application/test_export_service.py</file><file>tests/e2e/test_mcp_startup_characterization.py</file></test-files>
     <module-checks><check-1>python -m pytest tests/application tests/infra/test_file_repository.py tests/test_app_service_runner.py -q</check-1></module-checks>
     <wave-checks><check-1>python -m pytest tests/e2e/test_mcp_startup_characterization.py -q</check-1></wave-checks>
@@ -1025,9 +1045,9 @@
       <scenario-4 kind="success">Markdown and PPTX preserve project title, images, notes, and canonical pipeline state.</scenario-4>
       <scenario-5 kind="success">GUI slide CRUD and save/open retain schema 2.0 and revisioned repository persistence.</scenario-5>
     </scenarios>
-  </V-REF-MCP-ADAPTER>
+  </V-M-REF-MCP-ADAPTER>
 
-  <V-REF-CLI-ADAPTER MODULE="M-CLI-ADAPTER" PRIORITY="high" STATUS="passed">
+  <V-M-REF-CLI-ADAPTER MODULE="M-CLI-ADAPTER" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/test_cli_characterization.py</file><file>tests/test_cli.py</file><file>tests/test_cli_adapter_core.py</file><file>tests/test_cli_adapter_commands.py</file><file>tests/test_cli_architecture.py</file><file>tests/test_bootstrap.py</file></test-files>
     <module-checks><check-1>python -m pytest tests/test_cli_characterization.py tests/test_cli_adapter_core.py tests/test_cli_adapter_commands.py tests/test_cli_architecture.py tests/test_bootstrap.py -q</check-1></module-checks>
     <wave-checks><check-1>python -m pytest tests/test_cli_e2e.py tests/test_characterization_adapters.py -q</check-1></wave-checks>
@@ -1047,9 +1067,9 @@
       <condition-2>Stop if canonical project writes regress to legacy project_manager or mutable slides.json.</condition-2>
       <condition-3>Stop if LLM mode silently falls back to basic processing.</condition-3>
     </stop-conditions>
-  </V-REF-CLI-ADAPTER>
+  </V-M-REF-CLI-ADAPTER>
 
-  <V-REF-GUI-ADAPTER MODULE="M-GUI-PROJECT-CTRL" PRIORITY="high" STATUS="passed">
+  <V-M-REF-GUI-ADAPTER MODULE="M-GUI-PROJECT-CTRL" PRIORITY="high" STATUS="passed">
     <purpose>Step 8.5 proves that the real MainWindow uses one canonical project state, asynchronous operation-scoped services, SlideId-only domain mutations, persistent ArtifactRef frames, and non-blocking Qt integration.</purpose>
     <test-files><file>tests/gui/test_project_controller.py</file><file>tests/gui/test_pipeline_controller.py</file><file>tests/gui/test_timeline_controller.py</file><file>tests/gui/test_main_window_integration.py</file><file>tests/e2e/test_mcp_startup_characterization.py</file></test-files>
     <module-checks><check-1>python -m pytest tests/gui/test_project_controller.py tests/gui/test_pipeline_controller.py tests/gui/test_timeline_controller.py tests/gui/test_main_window_integration.py -q</check-1><check-2>ruff check src/ tests/</check-2></module-checks>
@@ -1080,32 +1100,32 @@
       <condition-5>Stop if MainWindow is 600 or more physical lines.</condition-5>
       <condition-6>Stop if any required GitHub workflow remains red.</condition-6>
     </stop-conditions>
-  </V-REF-GUI-ADAPTER>
+  </V-M-REF-GUI-ADAPTER>
 
-  <V-ARCH-IMPORTS MODULE="Phase-16" PRIORITY="medium" STATUS="planned">
+  <V-M-ARCH-IMPORTS MODULE="Phase-16" PRIORITY="medium" STATUS="planned">
     <scenarios>
       <scenario-1 kind="success">domain/ does not import application, infrastructure, adapters, PySide6.</scenario-1>
       <scenario-2 kind="success">application/ does not import gui, mcp, cli, PySide6.</scenario-2>
       <scenario-3 kind="success">GUI does not import direct json.load/json.dump from persistence.</scenario-3>
       <scenario-4 kind="success">MCP does not import MainWindow.</scenario-4>
     </scenarios>
-  </V-ARCH-IMPORTS>
+  </V-M-ARCH-IMPORTS>
 
-  <V-REF-LEGACY MODULE="Phase-16/Step-9" PRIORITY="high" STATUS="passed">
+  <V-M-REF-LEGACY MODULE="Phase-16/Step-9" PRIORITY="high" STATUS="passed">
     <purpose>Dead legacy modules removed, @mcp_action/ActionRegistry gone, architecture tests enforce clean layering.</purpose>
     <evidence><result>Deleted 6 dead modules (1982 lines), removed ActionRegistry (253 lines), 9 architecture tests pass,
     928 non-E2E tests pass, 11 MCP char tests pass.</result></evidence>
-  </V-REF-LEGACY>
+  </V-M-REF-LEGACY>
 
-  <V-REF-CANONICAL-ROUTE MODULE="Phase-16/Step-9.5" PRIORITY="high" STATUS="passed">
+  <V-M-REF-CANONICAL-ROUTE MODULE="Phase-16/Step-9.5" PRIORITY="high" STATUS="passed">
     <purpose>Canonical route closure, DetectionConfig propagation, operation lifecycle.</purpose>
     <evidence><result>DetectionConfig added to domain/Project. DetectionService resolves all inputs from Project.
     PipelineController/CLI/MCP use None defaults. Effective config logged in ServiceResult.
     F-0075/F-0076 resolved. CI: 10/13 green (3 Qt segfault/Xvfb env limitations).
     928 non-E2E tests + 20 architecture tests pass.</result></evidence>
-  </V-REF-CANONICAL-ROUTE>
+  </V-M-REF-CANONICAL-ROUTE>
 
-  <V-REF-DETECTION-INPUT MODULE="Phase-16/Step-10" PRIORITY="high" STATUS="passed">
+  <V-M-REF-DETECTION-INPUT MODULE="Phase-16/Step-10" PRIORITY="high" STATUS="passed">
     <purpose>DetectionConfig schema 2.0 persistence round-trip, input resolution contract across all services.</purpose>
     <scenarios>
       <scenario-1 kind="persistence">DetectionConfigDocument in project.json, to_domain→Project.detection, to_document→schema 2.0.</scenario-1>
@@ -1116,28 +1136,28 @@
       <scenario-6 kind="regression">None override→project value, explicit override wins, missing project→PreconditionError.</scenario-6>
     </scenarios>
     <test-files><file>tests/application/test_detection_service.py</file><file>tests/application/test_preview_service.py</file><file>tests/gui/test_main_window_integration.py</file></test-files>
-  </V-REF-DETECTION-INPUT>
+  </V-M-REF-DETECTION-INPUT>
 
-  <V-REF-PRODUCT-IDENTITY MODULE="Phase-17/Step-0" PRIORITY="high" STATUS="passed">
+  <V-M-REF-PRODUCT-IDENTITY MODULE="Phase-17/Step-0" PRIORITY="high" STATUS="passed">
     <purpose>Application identity, version consistency, About dialog, Help menu, diagnostic info.</purpose>
     <evidence><result>ApplicationIdentity with version/build/repository. AboutDialog shows version, build SHA, runtime.
     Help menu has About/Logs/GitHub. __version__ is single source. MainWindow under 600 LOC.</result></evidence>
     <test-files><file>tests/gui/test_main_window_integration.py</file><file>tests/test_branding.py</file></test-files>
     <scenarios><scenario-1 kind="runtime">AboutDialog and MainWindow construct with canonical runtime branding imports and visible logo wiring.</scenario-1></scenarios>
-  </V-REF-PRODUCT-IDENTITY>
+  </V-M-REF-PRODUCT-IDENTITY>
 
-  <V-REF-PACKAGING-INVENTORY MODULE="Phase-17/Step-1" PRIORITY="high" STATUS="passed">
+  <V-M-REF-PACKAGING-INVENTORY MODULE="Phase-17/Step-1" PRIORITY="high" STATUS="passed">
     <purpose>Runtime dependency map, dynamic imports, Qt plugins, native DLLs, video backends.</purpose>
     <evidence><result>packaging/windows/inventory.md documents all dependencies, Qt plugins, native DLLs, backend requirements, dynamic imports, and excluded dev packages.</result></evidence>
-  </V-REF-PACKAGING-INVENTORY>
+  </V-M-REF-PACKAGING-INVENTORY>
 
-  <V-REF-STANDALONE-BUILD MODULE="Phase-17/Step-2" PRIORITY="high" STATUS="passed">
+  <V-M-REF-STANDALONE-BUILD MODULE="Phase-17/Step-2" PRIORITY="high" STATUS="passed">
     <purpose>Desktop entry point, PyInstaller onedir spec, COLLECT output, canonical layout.</purpose>
     <evidence><result>dist/windows/Video2PPTX/Video2PPTX.exe is the canonical standalone path. spec produces onedir with COLLECT. build.ps1 validates layout.</result></evidence>
     <test-files><file>packaging/windows/pyinstaller/video2pptx.spec</file><file>packaging/windows/build.ps1</file></test-files>
-  </V-REF-STANDALONE-BUILD>
+  </V-M-REF-STANDALONE-BUILD>
 
-  <V-REF-UPDATE-CHECKER MODULE="M-UPDATE-CHECKER" PRIORITY="high" STATUS="passed">
+  <V-M-REF-UPDATE-CHECKER MODULE="M-UPDATE-CHECKER" PRIORITY="high" STATUS="passed">
     <purpose>Update checker: UpdateService, GitHubReleaseProvider, UpdateController, UpdateAvailableDialog.</purpose>
     <test-files>
       <file>tests/test_update_service.py</file>
@@ -1168,9 +1188,9 @@
       <scenario-17 kind="success">empty assets tuple when no assets</scenario-17>
       <scenario-18 kind="success">installer asset found by expected pattern</scenario-18>
     </scenarios>
-  </V-REF-UPDATE-CHECKER>
+  </V-M-REF-UPDATE-CHECKER>
 
-  <V-REF-PACKAGED-MCP MODULE="Phase-17/Step-8" PRIORITY="high" STATUS="passed">
+  <V-M-REF-PACKAGED-MCP MODULE="Phase-17/Step-8" PRIORITY="high" STATUS="passed">
     <purpose>Packaged MCP smoke test: port discovery, initialize, tools/list, state read, shutdown.</purpose>
     <test-files><file>packaging/windows/smoke-test.ps1</file></test-files>
     <scenarios>
@@ -1180,9 +1200,9 @@
       <scenario-4 kind="success">application state readable</scenario-4>
       <scenario-5 kind="success">clean process exit</scenario-5>
     </scenarios>
-  </V-REF-PACKAGED-MCP>
+  </V-M-REF-PACKAGED-MCP>
 
-  <V-REF-PACKAGING-PARITY MODULE="Phase-17/Step-10.5" PRIORITY="high" STATUS="passed">
+  <V-M-REF-PACKAGING-PARITY MODULE="Phase-17/Step-10.5" PRIORITY="high" STATUS="passed">
     <purpose>Packaged runtime capability verification, BuildInfo propagation, --diagnostics flag.</purpose>
     <test-files><file>src/video2pptx/desktop.py</file><file>src/video2pptx/application/identity.py</file></test-files>
     <scenarios>
@@ -1191,9 +1211,9 @@
       <scenario-3 kind="success">About dialog shows packaging_tool when available</scenario-3>
       <scenario-4 kind="success">source mode shows BuildType.SOURCE without error</scenario-4>
     </scenarios>
-  </V-REF-PACKAGING-PARITY>
+  </V-M-REF-PACKAGING-PARITY>
 
-  <V-REF-CLEAN-WINDOWS MODULE="Phase-17/Step-6" PRIORITY="high" STATUS="pending">
+  <V-M-REF-CLEAN-WINDOWS MODULE="Phase-17/Step-6" PRIORITY="high" STATUS="pending">
     <purpose>Clean Windows VM/Sandbox verification of installer and portable ZIP.</purpose>
     <scenarios>
       <scenario-1 kind="pending">installer starts and installs on clean Windows without Python</scenario-1>
@@ -1203,9 +1223,9 @@
       <scenario-5 kind="pending">update checker offline behavior works</scenario-5>
       <scenario-6 kind="pending">uninstall removes application but preserves user projects</scenario-6>
     </scenarios>
-  </V-REF-CLEAN-WINDOWS>
+  </V-M-REF-CLEAN-WINDOWS>
 
-  <V-REF-WIN-INSTALLER MODULE="Phase-17/Step-7" PRIORITY="high" STATUS="passed">
+  <V-M-REF-WIN-INSTALLER MODULE="Phase-17/Step-7" PRIORITY="high" STATUS="passed">
     <purpose>Inno Setup installer: canonical layout and icon, accepted README payload, no dead .v2pp association, no invalid --uninstall hook.</purpose>
     <test-files><file>packaging/windows/installer/video2pptx.iss</file><file>tests/test_windows_installer.py</file></test-files>
     <module-checks><check-1>pytest tests/test_windows_installer.py -v</check-1></module-checks>
@@ -1217,9 +1237,9 @@
       <scenario-4 kind="payload">Repository README.md is installed exactly once.</scenario-4>
       <scenario-5 kind="configuration">SetupIconFile occurs exactly once and names the canonical Video2PPTX.ico asset.</scenario-5>
     </scenarios>
-  </V-REF-WIN-INSTALLER>
+  </V-M-REF-WIN-INSTALLER>
 
-  <V-REF-WIN-RELEASE MODULE="Phase-17/Step-9" PRIORITY="high" STATUS="passed">
+  <V-M-REF-WIN-RELEASE MODULE="Phase-17/Step-9" PRIORITY="high" STATUS="passed">
     <purpose>GitHub Actions release workflow: correct deps, version validation, prerelease parsing.</purpose>
     <test-files><file>.github/workflows/release-windows.yml</file></test-files>
     <scenarios>
@@ -1230,11 +1250,11 @@
       <scenario-5 kind="success">build metadata uses build_type=standalone (not installer)</scenario-5>
       <scenario-6 kind="success">workflow_dispatch does not create GitHub Release</scenario-6>
     </scenarios>
-  </V-REF-WIN-RELEASE>
+  </V-M-REF-WIN-RELEASE>
 
   <!-- ===== Phase 18 — Detect Performance ===== -->
 
-  <V-PERF-DETECT-BASELINE MODULE="Phase-18/Step-18.1" PRIORITY="high" STATUS="passed">
+  <V-M-PERF-DETECT-BASELINE MODULE="Phase-18/Step-18.1" PRIORITY="high" STATUS="passed">
     <purpose>Performance baseline instrumentation: DetectionRunMetrics schema, to_dict/from_dict round-trip,
       measure() context manager, per-frame timers/counters, backend counters (frames_decoded, ndarray_conversions,
       rgb_transfer_bytes), RssSampler peak RSS (rss_before_mb, rss_peak_mb, rss_after_mb),
@@ -1272,9 +1292,9 @@
     <notes>Step 18.1 is done. Deterministic instrumentation evidence and the accepted recovered-tree
       r2 benchmark close the baseline gate; F-0093 and F-0094 remain documented environment/test
       isolation gaps and do not change the passed baseline status.</notes>
-  </V-PERF-DETECT-BASELINE>
+  </V-M-PERF-DETECT-BASELINE>
 
-  <V-PERF-DETECT-TWO-PASS MODULE="Phase-18/Step-18.2" PRIORITY="high" STATUS="passed">
+  <V-M-PERF-DETECT-TWO-PASS MODULE="Phase-18/Step-18.2" PRIORITY="high" STATUS="passed">
     <purpose>Two-pass detection: collapse Pass 3 (screenshot save) into Pass 2 (dedup frame grab).
       decoder.iter_frames() called exactly 2 times regardless of dedup mode.
       Output parity verified against pre-TwoPass 3-pass reference from commit 3472e62.</purpose>
@@ -1303,9 +1323,9 @@
       <artifact>benchmarks/detect/reference/pre-twopass-3472e62.json</artifact>
       <parity-test>tests/test_twopass_parity.py::test_two_pass_matches_pre_twopass</parity-test>
     </reference>
-  </V-PERF-DETECT-TWO-PASS>
+  </V-M-PERF-DETECT-TWO-PASS>
 
-  <V-PERF-DETECT-SHORT-BENCHMARK MODULE="Phase-18/Step-18.3" PRIORITY="high" STATUS="passed">
+  <V-M-PERF-DETECT-SHORT-BENCHMARK MODULE="Phase-18/Step-18.3" PRIORITY="high" STATUS="passed">
     <purpose>Run the immutable short-video benchmark on the recovered tree; historical 8623cd2
       evidence is context only and cannot select an optimization. The c372ced series is
       SUPERSEDED_FOR_STEP_18_3_ACCEPTANCE; r2 series (BENCHMARK_CODE_HEAD=465d89e) completed.</purpose>
@@ -1327,9 +1347,9 @@
       <profile-supporting-evidence>NON_EMPTY; supporting only and excluded from stage accounting</profile-supporting-evidence>
       <decision>PENDING</decision>
     </evidence>
-  </V-PERF-DETECT-SHORT-BENCHMARK>
+  </V-M-PERF-DETECT-SHORT-BENCHMARK>
 
-  <V-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="done">
+  <V-M-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="done">
     <purpose>Select a bottleneck class only from accepted recovered-tree benchmark evidence, or honestly report insufficient discrimination.</purpose>
     <verification-contract>
       1. Wall-clock stage timers from median run (run-01, 272.57s) are the primary evidence.
@@ -1379,15 +1399,15 @@
       Step 18.6 output parity gates defined in bottleneck_decision.json step18_6_output_parity_gates.
         Optimization-specific performance gate: PENDING_SELECTED_OPTIMIZATION.
         Broad quality tolerances (missed_slide_rate &lt;= 5%, false_split_rate &lt;= 10%)
-        remain under V-PERF-DETECT-ACCEPTANCE / Step 18.8 only.
+        remain under V-M-PERF-DETECT-ACCEPTANCE / Step 18.8 only.
       Artifacts:
         - benchmarks/detect/evidence/aggregate_evidence.json
         - benchmarks/detect/evidence/bottleneck_decision.json
         - benchmarks/detect/evidence/bottleneck_decision.md
     </result></evidence>
-  </V-PERF-DETECT-BOTTLENECK>
+  </V-M-PERF-DETECT-BOTTLENECK>
 
-  <V-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION MODULE="M-DETECT-TARGET-DISCRIMINATION-R2" PRIORITY="medium" STATUS="passed">
+  <V-M-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION MODULE="M-DETECT-TARGET-DISCRIMINATION-R2" PRIORITY="medium" STATUS="passed">
     <purpose>Discriminate remaining DECODE_FRAME_PIPELINE optimization candidates (C1-C4)
       using source semantics, exact frame parity, resource evidence, and focused
       microbenchmarks.</purpose>
@@ -1430,24 +1450,24 @@
       C2 taxonomy corrected: NOT_VIABLE_PERFORMANCE_FAIL (not NOT_VIABLE_RESOURCE_MODEL).
       Median terminology clarified: median_of_paired_differences vs difference_of_medians explicitly separated.
     </result></evidence>
-  </V-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION>
+  </V-M-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION>
 
-  <V-PERF-DETECT-TARGETED MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
+  <V-M-PERF-DETECT-TARGETED MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
     <purpose>Verify the single targeted optimization selected by Step 18.4. No optimization is
       selected while the bottleneck decision is incomplete. Step 18.5 remains blocked until
       Step 18.4 selects exactly one optimization with name, code boundaries, and hypothesis.</purpose>
-  </V-PERF-DETECT-TARGETED>
+  </V-M-PERF-DETECT-TARGETED>
 
-  <V-PERF-DETECT-SHORT-REBENCHMARK MODULE="Phase-18/Step-18.6" PRIORITY="high" STATUS="planned">
+  <V-M-PERF-DETECT-SHORT-REBENCHMARK MODULE="Phase-18/Step-18.6" PRIORITY="high" STATUS="planned">
     <purpose>Compare immutable short-video performance and quality before and after optimization.</purpose>
-  </V-PERF-DETECT-SHORT-REBENCHMARK>
+  </V-M-PERF-DETECT-SHORT-REBENCHMARK>
 
-  <V-PERF-DETECT-HERMES-REBENCHMARK MODULE="Phase-18/Step-18.7" PRIORITY="high" STATUS="planned">
+  <V-M-PERF-DETECT-HERMES-REBENCHMARK MODULE="Phase-18/Step-18.7" PRIORITY="high" STATUS="planned">
     <purpose>Run the full Hermes benchmark only after short-video re-benchmark acceptance.</purpose>
-  </V-PERF-DETECT-HERMES-REBENCHMARK>
+  </V-M-PERF-DETECT-HERMES-REBENCHMARK>
 
-  <V-PERF-DETECT-ACCEPTANCE MODULE="Phase-18/Step-18.8" PRIORITY="high" STATUS="planned">
+  <V-M-PERF-DETECT-ACCEPTANCE MODULE="Phase-18/Step-18.8" PRIORITY="high" STATUS="planned">
     <purpose>Detect performance acceptance gate: Hermes full run &lt; 30 min, missed_slide_rate &lt;= 5%,
       false_split_rate &lt;= 10%, timestamp_error &lt;= 1.5s.</purpose>
-  </V-PERF-DETECT-ACCEPTANCE>
+  </V-M-PERF-DETECT-ACCEPTANCE>
 </VerificationPlan>
