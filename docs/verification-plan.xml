@@ -158,7 +158,7 @@
             <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[PyAV][_pick_hw_device]`.</assertion><assertion>Successful execution path emits structured log line containing `[PyAV][_create_hwaccel]`.</assertion><assertion>V-M-BACKENDS scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
     </V-M-BACKENDS>
 
-    <V-M-VIDEO-DECODE MODULE="M-VIDEO-DECODE" PRIORITY="high" STATUS="passed">
+    <V-M-VIDEO-DECODE MODULE="M-VIDEO-DECODE" PRIORITY="high" STATUS="blocked">
       <test-files><file>tests/test_video_decode.py</file></test-files>
       <module-checks><check-1>pytest tests/test_video_decode.py -v</check-1></module-checks>
       <wave-follow-up>python -m pytest tests/test_video_decode.py -q</wave-follow-up>
@@ -168,6 +168,7 @@
         <scenario-1 kind="success">VideoDecode fulfills its contract: Video frame decoding and sampling at given fps with multi-backend support.</scenario-1>
         <scenario-2 kind="failure">VideoDecode rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
       </scenarios>
+      <blocked-reason>The recorded Windows/Python environment has PyAV available and selects PyAV for auto/fallback paths, while two tests in tests/test_video_decode.py expect OpenCV. The declared module-check is therefore not reproducibly green at the recorded HEAD. A separate decision is required: update backend-selection policy or make the tests environment-independent.</blocked-reason>
     </V-M-VIDEO-DECODE>
 
     <V-M-ROI MODULE="M-ROI" PRIORITY="high" STATUS="passed">
@@ -2107,7 +2108,7 @@
 
     <blocked-reason>Prior 'passed' status was based on direct src/ imports, not executable pytest evidence. STATUS downgraded to blocked until a dedicated test is created.</blocked-reason></V-M-REF-PACKAGING-PARITY>
 
-  <V-M-REF-CLEAN-WINDOWS MODULE="Phase-17/Step-6" PRIORITY="high" STATUS="pending">
+  <V-M-REF-CLEAN-WINDOWS MODULE="Phase-17/Step-6" PRIORITY="high" STATUS="planned">
     <purpose>Clean Windows VM/Sandbox verification of installer and portable ZIP.</purpose>
     <scenarios>
       <scenario-1 kind="pending">installer starts and installs on clean Windows without Python</scenario-1>
@@ -2158,11 +2159,12 @@
 
   <!-- ===== Phase 18 — Detect Performance ===== -->
 
-  <V-M-PERF-DETECT-BASELINE MODULE="Phase-18/Step-18.1" PRIORITY="high" STATUS="passed">
+  <V-M-PERF-DETECT-BASELINE MODULE="Phase-18/Step-18.1" PRIORITY="high" STATUS="blocked">
     <purpose>Performance baseline instrumentation: DetectionRunMetrics schema, to_dict/from_dict round-trip,
       measure() context manager, per-frame timers/counters, backend counters (frames_decoded, ndarray_conversions,
       rgb_transfer_bytes), RssSampler peak RSS (rss_before_mb, rss_peak_mb, rss_after_mb),
       representative frame evidence (representative_frames, representative_frame_bytes).</purpose>
+    <blocked-reason>Declared module-check `python -m pytest tests/test_detection_metrics.py -q` is not green in the recorded phase run: three TestPyAVMetrics cases fail because the fake stream/test double lacks stream.codec_context (STALE_PYAV_CODEC_CONTEXT_TEST_DOUBLE). No separate green targeted evidence covers those failures. Status cannot remain passed until the test doubles are updated or the contract is isolated from the failing surface.</blocked-reason>
     <evidence><result>
       Metrics typed round-trip PASS: to_dict() → from_dict() → exact values.
       measure() records time, inactive overhead negligible.

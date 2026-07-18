@@ -1,186 +1,105 @@
-# Stage 2 Verification Cleanup — Summary
+# Stage 2 Verification — Evidence Alignment Correction Summary
 
-- **Generated at HEAD:** `34250e7e9e1803e10447a6f5710b3bb571994cb7`
+- **Parent HEAD:** `3101dd423a7f279c212bb0c58e381f38d4732da9`
 - **Stage 2 verification coverage:** SUFFICIENT_FOR_CONTROLLED_AGENT_USE
 - **Full autonomy readiness:** INCOMPLETE
-- **GRACE integrity:** ACTIVE
-- **Remaining autonomy blockers:** HONEST_TECHNICAL_DEBT
+- **GRACE documentation truthfulness:** CORRECTED AGAINST RAW TEST EVIDENCE
 - **Product runtime changed:** NO
+- **Tests changed:** NO
+- **Raw pytest TXT changed:** NO
 - **New user-visible capability:** NO
-- **Single cleanup commit:** YES (on top of `34250e7`)
-- **Consistency checks:** 17/17 PASS
+- **Phase 18 product work changed:** NO
+- **Full pytest rerun:** NO
+- **Single correction commit:** YES (on top of `3101dd4`)
 
 ## Status counts
 
-| Status     | Before | After | Delta |
-|------------|-------:|------:|------:|
-| passed     |     79 |    69 |   -10 |
-| blocked    |     28 |    38 |   +10 |
-| planned    |     33 |    33 |     0 |
-| in_progress|      2 |     2 |     0 |
-| failed     |      0 |     0 |     0 |
-| **total V-M** | **144** | **144** | **0** |
+| Status | Before (reported) | Before (actual raw) | After correction |
+|--------|------------------:|--------------------:|-----------------:|
+| passed | 69 | 69 | 67 |
+| blocked | 38 | 38 | 40 |
+| planned | 33 | 33 | 34 |
+| in_progress | 2 | 2 | 2 |
+| failed | 0 | 0 | 0 |
+| pending | *(omitted)* | 1 | 0 (→ planned) |
+| done | *(omitted)* | 1 | 1 (`unknown_or_other`) |
+| unknown_or_other | — | — | 1 |
+| **status sum** | **142 (bug)** | **144** | **144** |
+| **total V-M** | **144** | **144** | **144** |
 
-The -10/+10 delta is honest disclosure: 10 entries that previously held
-"passed" without executable evidence are now correctly blocked.
+### Previously omitted entries
 
-## Per-requirement results
+| verification_id | raw_status | resolution |
+|-----------------|------------|------------|
+| V-M-REF-CLEAN-WINDOWS | `pending` | Normalized to `planned` (unambiguous synonym; scenarios are kind=pending, not executed). |
+| V-M-PERF-DETECT-BOTTLENECK | `done` | Left as `done`. Not mapped to `passed` (no pytest surface; would invent a false green gate). Listed under `unknown_or_other`. |
 
-### Req 1 — Module coverage generator
+## Module vs entry coverage
 
-- **Type:** tooling fix (deterministic generator)
-- **User feature:** not affected
-- **What was wrong:** `build_coverage_map.py` consumed legacy `<wave-checks>`
-  and `<phase-checks>` elements and depended on `baseline-autonomy.json`
-  instead of the final reports.
-- **What was fixed:** Rewrote the generator to consume only current canonical
-  tags (`module-checks`, `wave-follow-up`, `phase-follow-up`,
-  `required-trace-assertions`, `test-files`) and read `final-autonomy.json`
-  + `final-status.json`. Metrics are computed dynamically on every run.
-- **How verified:** `python build_coverage_map.py` regenerates
-  `module-coverage.json` and `module-coverage.md`; counts match
-  `grace status` output.
-- **What remains:** none.
-- **Practical effect:** Future agents can re-run the coverage generator and
-  get a trustworthy picture; baseline drift can no longer poison the report.
+| Metric | Value |
+|--------|------:|
+| unique M-* modules | 120 |
+| total V-M-* entries | 144 |
+| modules with multiple V-M entries | 0 |
+| module-level missing-wave (all linked entries empty) | 35 |
+| entry-level missing-wave | **47** |
+| V-M entries lost by aggregation | 0 |
+| module and entry metrics separated | yes |
 
-### Req 2 — Remove dead module-checks
+`build_coverage_map.py` no longer last-write-wins on `module_to_vm[module] = vid`.
+It uses `module_to_vm: dict[str, list[str]]` and reports two levels explicitly.
 
-- **Type:** verification-plan cleanup
-- **User feature:** not affected
-- **What was wrong:** 17 module-check commands referenced missing test files
-  or non-executable targets (`tests/test_debug_action.py`,
-  `tests/test_debug_mcp.py`, `tests/test_gui_timeline.py`,
-  `packaging/windows/smoke-test.ps1`, `*.yml`, `*.spec`, `*.ipynb`).
-- **What was fixed:** Removed every non-executable module-check. Each affected
-  entry keeps its STATUS (blocked/planned) or was downgraded from `passed`
-  to `blocked` with a specific `<blocked-reason>` naming the missing test and
-  the next action ("create a dedicated test").
-- **How verified:** Consistency check 6 reports zero broken module-checks;
-  `final-summary.json` `verification_test_file_missing_on_disk: 0`.
-- **What remains:** 26 entries legitimately have no module-check (planned or
-  blocked entries without a dedicated test). These are flagged honestly by
-  the autonomy profile as `autonomy.verification-missing-module-checks`.
-- **Practical effect:** No `module-check` in the verification plan will fail
-  at run time just because the target file does not exist.
+## Downgrades (passed → blocked)
 
-### Req 3 — Bounded wave follow-up
+### V-M-VIDEO-DECODE
 
-- **Type:** verification-plan cleanup
-- **User feature:** not affected
-- **What was wrong:** 110 entries had the unbounded wave command
-  `python -m pytest tests -q` — wider than the phase check and useless as a
-  per-wave gate.
-- **What was fixed:** 97 entries now have a bounded wave surface derived
-  from their declared test-files (e.g. `tests/test_models.py`) or their
-  architecture layer (`tests/application`, `tests/infra`, …). 47 entries
-  with no honest bounded surface have empty `<wave-follow-up></wave-follow-up>`
-  and are blocked/planned.
-- **How verified:** Consistency check 7 reports zero unbounded waves; the
-  autonomy profile flags the 47 empty-wave entries as
-  `autonomy.verification-missing-wave-follow-up` (honest disclosure).
-- **What remains:** 47 entries have no bounded wave surface — these need a
-  dedicated test or a deliberate architectural decision to define one.
-- **Practical effect:** A wave check now actually exercises a narrow surface
-  around the changed module instead of re-running the whole suite.
+- **Previous status:** passed
+- **Final status:** blocked
+- **Failed tests:** `test_auto_returns_opencv`, `test_fallback_log` in `tests/test_video_decode.py`
+- **blocked-reason:** recorded environment has PyAV available and selects PyAV for auto/fallback paths, while those tests expect OpenCV. Declared module-check is not reproducibly green. Separate decision required: update backend-selection policy or make tests environment-independent.
+- **Runtime or test fix:** none (metadata only)
 
-### Req 4 — Concrete observable evidence
+### V-M-PERF-DETECT-BASELINE
 
-- **Type:** verification-plan cleanup
-- **User feature:** not affected
-- **What was wrong:** Many passed entries' `<required-trace-assertions>`
-  contained only generic phrases like "contract honored" or "fulfills its
-  contract" — not observable evidence.
-- **What was fixed:** 53 passed entries now have concrete observable
-  evidence referencing specific assert statements, log markers, JSON fields,
-  mock calls, signals, or stable artifacts (committed benchmark JSONs,
-  architecture-test assertions). 4 entries whose only declared test does not
-  actually assert the contract were downgraded to blocked with the reason
-  `NO_EXECUTABLE_EVIDANCE`. 2 architecture-only entries (V-M-REF-LEGACY,
-  V-M-REF-CANONICAL-ROUTE) were given `<test-files>` declarations linking
-  their architecture-test evidence.
-- **How verified:** Consistency checks 8/9/10 PASS — every `passed` entry
-  has an existing test file AND non-generic evidence.
-- **What remains:** None for in-scope entries. Future tests may let some
-  blocked entries become passed.
-- **Practical effect:** An agent (or reviewer) reading a `passed` entry's
-  evidence can point at the exact assertion that proves the contract.
+- **Previous status:** passed
+- **Final status:** blocked
+- **Failed tests:** three `TestPyAVMetrics` cases in `tests/test_detection_metrics.py` (stale codec_context test double)
+- **Reason:** declared module-check is not green; no separate green targeted evidence covers the failing surface.
+- **Runtime or test fix:** none (metadata only)
 
-### Req 5 — `total_vm_entries` computed integer
+## Passed-entry evidence audit
 
-- **Type:** report fix
-- **User feature:** not affected
-- **What was wrong:** `final-summary.json` had `"total_vm_entries": true`
-  (boolean) instead of an integer count.
-- **What was fixed:** `total_vm_entries` is now computed dynamically by
-  counting `<V-M-*>` elements in the verification plan. Current value:
-  `144` (integer).
-- **How verified:** Consistency checks 4 and 5 PASS; `144 == 144`.
-- **What remains:** none.
-- **Practical effect:** Summary reports are machine-checkable; downstream
-  tooling can rely on the type.
+Checked against failed test files from `phase-tests.json`:
 
-### Req 6 — Raw pytest output preserved
+| Test file | Linked V-M (status after) | Action |
+|-----------|---------------------------|--------|
+| tests/test_video_decode.py | V-M-VIDEO-DECODE (blocked) | downgraded |
+| tests/test_detection_metrics.py | V-M-DETECT-METRICS (blocked), V-M-BACKEND-PYAV (blocked), V-M-PERF-DETECT-BASELINE (blocked) | baseline downgraded; others already blocked |
+| tests/test_backends.py | V-M-BACKENDS (in_progress) | no change (not passed) |
 
-- **Type:** evidence artifact
-- **User feature:** not affected
-- **What was wrong:** No raw pytest output was preserved for the six targeted
-  checks, the bounded wave, or the bounded phase.
-- **What was fixed:** Created `test-runs/` with six files:
-  - `targeted-tests.txt` / `.json` — 83 passed (the six Stage 2 target files)
-  - `wave-tests.txt` / `.json` — 238 passed (bounded Stage 2 wave)
-  - `phase-tests.txt` / `.json` — 1165 passed, 7 failed, 1 skipped
-- **How verified:** Counts reproduced: 13+19+12+14+14+11 = 83 targeted;
-  wave and phase match Stage 2 baselines.
-- **Pre-existing failures (7):** all are `codec_context` PyAV backend issues
-  documented in `docs/findings.md` F-0103 (OPEN / NON_BLOCKING),
-  `docs/verification-plan.xml` V-M-BACKEND-PYAV blocked-reason, and
-  `docs/development-plan.xml` Phase 18 Step 18.4 references. Not caused by
-  this cleanup; not fixed by this cleanup.
-- **What remains:** The 7 pre-existing failures stay open under F-0103.
-- **Practical effect:** Reviewers can audit the exact stdout+stderr that
-  backed the Stage 2 evidence decisions.
+- Remaining passed/failing contradictions: **none**
 
-## Autonomy profile delta
+## Failure groups (7 pre-existing phase failures)
 
-| Code                                                          | Before | After | Δ    |
-|--------------------------------------------------------------|-------:|------:|-----:|
-| autonomy.verification-missing-wave-follow-up                 |      0 |    47 |  +47 |
-| autonomy.verification-missing-module-checks                  |     26 |    43 |  +17 |
-| autonomy.verification-module-check-does-not-reference-test-file | 5      |    18 |  +13 |
-| autonomy.verification-test-file-missing-on-disk             |      0 |     0 |    0 |
-| autonomy.verification-test-file-unlinked-module             |     31 |    31 |    0 |
-| autonomy.module-missing-implementation-files                 |     24 |    24 |    0 |
-| **summary.autonomyBlockers**                                 | **128** | **145** | **+17** |
-| **summary.autonomyWarnings**                                 | **5**   | **65**   | **+60** |
+**Not** all classified as F-0103.
 
-The blocker/warning count increase is **honest disclosure**, not regression:
-entries that previously held *fake compliance* (a broken module-check or an
-unbounded wave) now have *no fake command*, so the autonomy profile
-correctly flags them as missing. Per the task, blocker-count change is not
-the acceptance criterion — coverage honesty is.
+| Classification | Count | Related finding | Runtime regression proven |
+|----------------|------:|-----------------|---------------------------|
+| STALE_PYAV_CODEC_CONTEXT_TEST_DOUBLE | 3 | F-0103_CONTEXT_ONLY | false |
+| ENVIRONMENT_DEPENDENT_BACKEND_SELECTION_EXPECTATION | 4 | null | false |
 
-## Files added / modified
+Raw `phase-tests.txt` is unchanged evidence of the original run.
 
-All paths stay inside the allowed cleanup surface:
+## Consistency
 
-- `docs/verification-plan.xml` (modified)
-- `docs/grace-reports/stage2-verification-20260718/` (modified + added)
-- No changes under `src/`, `tests/`, `benchmarks/`, `AGENTS.md`,
-  `.opencode/commands/project-status.md`, `docs/product-roadmap.md`,
-  `docs/requirements.xml`, `docs/development-plan.xml`,
-  `docs/knowledge-graph.xml`, `docs/operational-packets.xml`,
-  `docs/findings.md`.
+| Check set | Result |
+|-----------|--------|
+| cleanup-consistency-check.txt | 17/17 PASS |
+| cleanup-correction-consistency-check.txt | 12/12 PASS (A–G) |
 
-See `cleanup-summary.json` for the full file inventory.
+Correction checks cover: entry count preservation, status arithmetic including `unknown_or_other`, module vs entry distinction, multi-entry preservation, failed-test contradiction, V-M-VIDEO-DECODE not passed, failure-group classification.
 
-## What this commit does NOT do
+## What this correction is / is not
 
-- Does not implement a new user-visible feature.
-- Does not change runtime code or test logic.
-- Does not rewrite history (no reset / rebase / amend / force push).
-- Does not attempt to bring autonomy blockers to zero.
-- Does not retrofit all 144 entries — only the in-scope set per task.
-- Does not fix the 7 pre-existing phase failures (F-0103 codec_context).
-- Does not start Phase 18 Step 18.5, Windows packaging, or any next product
-  phase.
+- **Is:** metadata honesty against already-recorded raw pytest evidence
+- **Is not:** Stage 2 redo, Phase 18 Step 18.5, runtime fix, test fix, GRACE blocker reduction campaign

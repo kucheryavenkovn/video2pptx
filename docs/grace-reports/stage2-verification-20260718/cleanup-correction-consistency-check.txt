@@ -1,0 +1,46 @@
+# Stage 2 Evidence Alignment — Correction Consistency Checks
+
+Total checks: 12
+Passed: 12
+Failed: 0
+
+## Detail
+
+[PASS] A0_xml_parse
+        verification-plan.xml parses
+[PASS] A_entry_count_preservation
+        all V-M entries parsed = 144 (expected 144)
+[PASS] A2_no_duplicate_ids
+        duplicates=[]
+[PASS] B_status_arithmetic
+        sum(status counts including unknown_or_other)=144 total=144 counts={'passed': 67, 'blocked': 40, 'planned': 34, 'in_progress': 2, 'failed': 0, 'unknown_or_other': 1} unknown_or_other_entries=[('V-M-PERF-DETECT-BOTTLENECK', 'Phase-18/Step-18.4', 'done')]
+[PASS] C_module_vs_entry_distinction
+        module count=120 entry count=144 levels_present=True entry_missing_wave=47 module_missing_wave=35
+[PASS] C2_entry_level_missing_wave_matches_xml
+        module-coverage entry-level missing-wave=47 xml empty/missing wave=47 (must not report module-level 35 as entry-level)
+[PASS] D_multi_entry_modules_preserved
+        multi_entry_modules={} coverage_multi={} lost=[] missing_from_entry_coverage=[] entry_coverage_count=144
+[PASS] E_failed_test_contradiction
+        passed entries with failing test files and no separate green targeted evidence: []
+[PASS] F_vm_video_decode_not_passed
+        V-M-VIDEO-DECODE status='blocked' video_failures_present=True separate_green=False
+[PASS] G_failure_group_classification
+        codec_context_group count=3 tests=['tests/test_detection_metrics.py::TestPyAVMetrics::test_decode_failure_closes_container_and_propagates', 'tests/test_detection_metrics.py::TestPyAVMetrics::test_exact_decode_conversion_and_transfer_metrics[False-key_frames0-2]', 'tests/test_detection_metrics.py::TestPyAVMetrics::test_exact_decode_conversion_and_transfer_metrics[True-key_frames1-2]'] backend_selection count=4 tests=['tests/test_backends.py::TestResolveBackend::test_auto_returns_opencv', 'tests/test_backends.py::TestResolveBackend::test_unsupported_falls_back', 'tests/test_video_decode.py::TestSelectBackend::test_auto_returns_opencv', 'tests/test_video_decode.py::TestSelectBackend::test_fallback_log'] total_failed=7 legacy_classification='SPLIT: 3 STALE_PYAV_CODEC_CONTEXT_TEST_DOUBLE (F-0103_CONTEXT_ONLY) + 4 ENVIRONMENT_DEPENDENT_BACKEND_SELECTION_EXPECTATION; not a single F-0103 bucket; product runtime and tests unchanged by the correction commit.' all_as_f0103_only=False | expected: 3 STALE_PYAV_CODEC_CONTEXT_TEST_DOUBLE + 4 ENVIRONMENT_DEPENDENT_BACKEND_SELECTION_EXPECTATION
+[PASS] B2_coverage_status_sum
+        coverage metrics status_sum=144 passed=67 blocked=40 planned=34 in_progress=2 failed=0 unknown_or_other=1
+[PASS] C3_empty_wave_is_entry_level_47_if_xml_has_47
+        xml_empty_wave=47 entry_level_missing_wave=47
+
+## Notes
+
+- Total V-M parsed: 144
+- Status counts: {'passed': 67, 'blocked': 40, 'planned': 34, 'in_progress': 2, 'failed': 0, 'unknown_or_other': 1}
+- Status sum: 144
+- unknown_or_other_entries: [('V-M-PERF-DETECT-BOTTLENECK', 'Phase-18/Step-18.4', 'done')]
+- XML empty/missing wave-follow-up entries: 47
+- Module-level missing-wave (all entries empty): 35
+- Entry-level missing-wave: 47
+- Multi-entry modules: (none)
+- Passed/failing contradictions remaining: []
+- V-M-VIDEO-DECODE status: blocked
+- Product runtime and tests were not modified by this correction.

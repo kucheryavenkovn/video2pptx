@@ -18,10 +18,10 @@
   "output_file": "test-runs/phase-tests.txt",
   "pre_existing_failure": true,
   "pre_existing_failure_basis": [
-    "docs/findings.md F-0103 (OPEN / NON_BLOCKING): codec_context access provenance gap",
-    "docs/verification-plan.xml V-M-BACKEND-PYAV blocked-reason: 3 codec_context failures in test_detection_metrics.py",
-    "docs/verification-plan.xml V-M-DETECT-METRICS blocked-reason: 3 pre-existing codec_context failures",
-    "docs/development-plan.xml Phase-18 Step 18.4 references F-0103 as accepted non-blocking technical debt"
+    "Failures recorded in phase-tests.txt at HEAD 34250e7 before this correction commit",
+    "docs/findings.md F-0103 (OPEN / NON_BLOCKING): codec_context access provenance gap — CONTEXT ONLY for the three stale test-double failures",
+    "docs/verification-plan.xml V-M-BACKEND-PYAV / V-M-DETECT-METRICS already blocked for the codec_context surface",
+    "Backend-selection failures are environment-dependent (PyAV present selects PyAV; tests expect OpenCV) — not F-0103"
   ],
   "failed_tests": [
     "tests/test_backends.py::TestResolveBackend::test_auto_returns_opencv",
@@ -32,5 +32,32 @@
     "tests/test_video_decode.py::TestSelectBackend::test_auto_returns_opencv",
     "tests/test_video_decode.py::TestSelectBackend::test_fallback_log"
   ],
-  "failure_classification": "CODEC_CONTEXT_PROVENANCE (F-0103); not caused by this cleanup; product runtime and tests unchanged by this commit."
+  "failure_groups": [
+    {
+      "classification": "STALE_PYAV_CODEC_CONTEXT_TEST_DOUBLE",
+      "count": 3,
+      "tests": [
+        "tests/test_detection_metrics.py::TestPyAVMetrics::test_exact_decode_conversion_and_transfer_metrics[False-key_frames0-2]",
+        "tests/test_detection_metrics.py::TestPyAVMetrics::test_exact_decode_conversion_and_transfer_metrics[True-key_frames1-2]",
+        "tests/test_detection_metrics.py::TestPyAVMetrics::test_decode_failure_closes_container_and_propagates"
+      ],
+      "related_finding": "F-0103_CONTEXT_ONLY",
+      "runtime_regression_proven": false,
+      "reason": "fake stream/test double does not provide stream.codec_context; AttributeError on types.SimpleNamespace"
+    },
+    {
+      "classification": "ENVIRONMENT_DEPENDENT_BACKEND_SELECTION_EXPECTATION",
+      "count": 4,
+      "tests": [
+        "tests/test_backends.py::TestResolveBackend::test_auto_returns_opencv",
+        "tests/test_backends.py::TestResolveBackend::test_unsupported_falls_back",
+        "tests/test_video_decode.py::TestSelectBackend::test_auto_returns_opencv",
+        "tests/test_video_decode.py::TestSelectBackend::test_fallback_log"
+      ],
+      "related_finding": null,
+      "runtime_regression_proven": false,
+      "reason": "current environment has PyAV available and implementation selects PyAV, while tests expect OpenCV fallback"
+    }
+  ],
+  "failure_classification": "SPLIT: 3 STALE_PYAV_CODEC_CONTEXT_TEST_DOUBLE (F-0103_CONTEXT_ONLY) + 4 ENVIRONMENT_DEPENDENT_BACKEND_SELECTION_EXPECTATION; not a single F-0103 bucket; product runtime and tests unchanged by the correction commit."
 }

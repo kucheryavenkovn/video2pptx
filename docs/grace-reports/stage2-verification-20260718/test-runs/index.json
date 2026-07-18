@@ -1,6 +1,7 @@
 {
   "head": "34250e7e9e1803e10447a6f5710b3bb571994cb7",
   "generated_at": "2026-07-18T06:26:12.696605+00:00",
+  "correction_note": "failure_groups reclassified against raw phase-tests.txt; raw TXT output unchanged. Metadata-only correction on top of 3101dd4.",
   "scopes": [
     {
       "head": "34250e7e9e1803e10447a6f5710b3bb571994cb7",
@@ -57,7 +58,19 @@
       "xfailed": 0,
       "xpassed": 0,
       "rationale": "Prior bounded phase command excluding E2E and tools (no benchmarks, no media-heavy runs, no new performance benchmark).",
-      "output_file": "test-runs/phase-tests.txt"
+      "output_file": "test-runs/phase-tests.txt",
+      "failure_groups": [
+        {
+          "classification": "STALE_PYAV_CODEC_CONTEXT_TEST_DOUBLE",
+          "count": 3,
+          "related_finding": "F-0103_CONTEXT_ONLY"
+        },
+        {
+          "classification": "ENVIRONMENT_DEPENDENT_BACKEND_SELECTION_EXPECTATION",
+          "count": 4,
+          "related_finding": null
+        }
+      ]
     }
   ]
 }
