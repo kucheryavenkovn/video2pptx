@@ -1,0 +1,11 @@
+{
+  "selected_analysis_scale": 480,
+  "selected_sample_fps": 2.0,
+  "selected_label": "side=480_fps=2",
+  "reason": "highest wall speedup among gate-passers with >=5% wall reduction",
+  "wall_reduction_pct": 53.555312985969664,
+  "extract_features_reduction_pct": 93.40752736461565,
+  "speedup_vs_native_wall": 2.1530988026637212,
+  "phase18_reopened": false,
+  "phase18_selected_optimization": "NONE (unchanged)"
+}

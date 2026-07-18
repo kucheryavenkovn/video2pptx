@@ -1,8 +1,9 @@
 # Phase 19 — Analysis Resolution & Golden Mean
 
 **Branch:** `plan/phase19-analysis-resolution-golden-mean`  
-**Status:** IN PROGRESS — user approved 2026-07-18; Steps 19.0–19.4 implemented  
+**Status:** DECISION DONE — Steps 19.0–19.8 complete; 19.9 acceptance remaining  
 **Date:** 2026-07-18  
+**Hermes result:** `analysis_max_side=480` → ~**2.15×** wall, extract **−93%**, gates PASS  
 **Does not reopen Phase 18.** Phase 18 terminal outcome remains  
 `T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION` / `selected_optimization=NONE`.
 
@@ -300,7 +301,8 @@ Phase 19 may later unlock a **different** optimization class without rewriting 1
 - [x] User approves this plan (scope, gates, dual-res invariant).
 - [x] On approval: treat Step 19.0 as done; start 19.1 implementation via grace-execute.
 - [x] Steps 19.1–19.4 implemented (config, helper, dual-res path, metrics).
-- [ ] Steps 19.5–19.9: sweep tool, discrimination, decision, optional defaults, acceptance.
+- [x] Steps 19.5–19.8: sweep tool, Hermes measurements, decision 480, config.example note.
+- [ ] Step 19.9: formal acceptance / optional product default flip.
 
 ### Implemented API (19.1–19.4)
 

@@ -62,7 +62,7 @@
       <depends>M-CONFIG</depends>
     </M-ANALYSIS-SCALE>
 
-    <M-GOLDEN-MEAN-SWEEP NAME="GoldenMeanSweep" TYPE="TOOL" LAYER="0" ORDER="2.6" STATUS="planned">
+    <M-GOLDEN-MEAN-SWEEP NAME="GoldenMeanSweep" TYPE="TOOL" LAYER="0" ORDER="2.6" STATUS="implemented">
       <contract>
         <purpose>Grid-sweep analysis_max_side × sample_fps; compare detected segments to native reference; emit quality and wall-clock metrics for golden-mean decision.</purpose>
         <inputs>
@@ -81,9 +81,9 @@
       <depends>M-ANALYSIS-SCALE, M-DETECT-SLIDES, M-DETECT-METRICS</depends>
     </M-GOLDEN-MEAN-SWEEP>
 
-    <M-GOLDEN-MEAN-DECISION NAME="GoldenMeanDecision" TYPE="DECISION" LAYER="0" ORDER="2.7" STATUS="planned">
+    <M-GOLDEN-MEAN-DECISION NAME="GoldenMeanDecision" TYPE="DECISION" LAYER="0" ORDER="2.7" STATUS="done">
       <contract>
-        <purpose>Select golden-mean defaults from sweep evidence under hard quality gates, or accept selected_analysis_scale=NONE.</purpose>
+        <purpose>Select golden-mean defaults from sweep evidence under hard quality gates, or accept selected_analysis_scale=NONE. Hermes 2026-07-18: analysis_max_side=480 (~2.15× wall).</purpose>
         <outputs>
           <param name="golden_mean_decision.json" type="decision artifact" />
           <param name="golden_mean_decision.md" type="human rationale" />
@@ -96,7 +96,7 @@
         </gates>
       </contract>
       <target>
-        <source>benchmarks/detect/evidence/phase19-*/golden_mean_decision.json</source>
+        <source>benchmarks/detect/evidence/phase19-hermes-600s-20260718/golden_mean_decision.json</source>
       </target>
       <verification-ref>V-M-GOLDEN-MEAN-DECISION</verification-ref>
       <depends>M-GOLDEN-MEAN-SWEEP</depends>
@@ -1567,24 +1567,25 @@
       <step-19.4 name="MetricsTags" status="done" verification="V-M-DETECT-ANALYSIS-SCALE">
         Gauges: analysis_max_side, analysis_height, analysis_width, analysis_scale_factor.
       </step-19.4>
-      <step-19.5 name="GoldenMeanSweepTool" status="planned" verification="V-M-GOLDEN-MEAN-SWEEP">
-        tools/sweep_analysis_resolution.py: grid analysis_max_side × sample_fps; compare segments
-        to native reference; emit missed/false_split/timestamp_error/wall-clock artifacts under
-        benchmarks/detect/evidence/phase19-*/.
+      <step-19.5 name="GoldenMeanSweepTool" status="done" verification="V-M-GOLDEN-MEAN-SWEEP">
+        tools/sweep_analysis_resolution.py: grid analysis_max_side × sample_fps; wall-clock +
+        stage timers (extract_features, p1/p2 decode); quality vs native; evidence under
+        benchmarks/detect/evidence/phase19-*/. tests/test_golden_mean_sweep.py.
       </step-19.5>
-      <step-19.6 name="ShortClipDiscrimination" status="planned" verification="V-M-GOLDEN-MEAN-SWEEP">
-        Run sweep on synthetic fixture (CI) and Hermes 600s when local media available.
-        Minimum grid: max_side in {null,960,640,480,320} × sample_fps in {2.0,1.0,0.5}.
+      <step-19.6 name="ShortClipDiscrimination" status="done" verification="V-M-GOLDEN-MEAN-SWEEP">
+        Fixture smoke + Hermes 600s (1920×1080, sample_fps=2, 2-run median, warmup).
+        Grid max_side in {null,960,640,480,320}. Evidence:
+        phase19-fixture-smoke/, phase19-hermes-600s-20260718/.
       </step-19.6>
-      <step-19.7 name="GoldenMeanDecision" status="planned" verification="V-M-GOLDEN-MEAN-DECISION">
-        Write golden_mean_decision.json + .md: selected analysis_max_side and sample_fps defaults,
-        or selected_analysis_scale=NONE with negative terminal rationale. Hard gates:
-        missed_slide_rate &lt;= 5%, false_split_rate &lt;= 10%, timestamp_error within budget.
-        Prefer max speedup among passers; tie-break higher max_side then higher sample_fps.
+      <step-19.7 name="GoldenMeanDecision" status="done" verification="V-M-GOLDEN-MEAN-DECISION">
+        Hermes decision: analysis_max_side=480, sample_fps=2.0 — wall −53.6% (~2.15×),
+        extract_features −93.4%, quality gates PASS vs native, full-res PNG OK.
+        960/640/320 fail false_split (6 vs 4 slides). Phase 18 not reopened.
+        Artifacts: golden_mean_decision.json + .md.
       </step-19.7>
-      <step-19.8 name="AdoptDefaults" status="planned" verification="V-M-GOLDEN-MEAN-DECISION">
-        Only if Step 19.7 selects non-NONE: update config.example.yaml and documented project
-        defaults. Native remains available via analysis_max_side=null.
+      <step-19.8 name="AdoptDefaults" status="done" verification="V-M-GOLDEN-MEAN-DECISION">
+        config.example.yaml documents recommended analysis_max_side=480 (commented);
+        runtime default remains null (native) until product opt-in.
       </step-19.8>
       <step-19.9 name="Phase19Acceptance" status="planned" verification="V-M-PHASE19-ACCEPTANCE">
         grace-refresh docs; confirm screenshot full-res invariant; quality gates; no Phase 18

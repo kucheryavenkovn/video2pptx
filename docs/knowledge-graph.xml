@@ -1025,22 +1025,22 @@
         <param-analysis_max_side PURPOSE="Optional max side length for Pass1 feature extraction only" />
       </annotations>
     </M-ANALYSIS-SCALE>
-    <M-GOLDEN-MEAN-SWEEP NAME="GoldenMeanSweep" TYPE="TOOL" STATUS="planned">
-      <purpose>Phase 19: grid-sweep analysis_max_side × sample_fps; segment quality vs native reference; wall-clock and DetectionRunMetrics; evidence under benchmarks/detect/evidence/phase19-*/</purpose>
+    <M-GOLDEN-MEAN-SWEEP NAME="GoldenMeanSweep" TYPE="TOOL" STATUS="implemented">
+      <purpose>Phase 19: grid-sweep analysis_max_side × sample_fps; wall-clock + stage timers; segment quality vs native; evidence under benchmarks/detect/evidence/phase19-*/</purpose>
       <path>tools/sweep_analysis_resolution.py</path>
       <depends>M-ANALYSIS-SCALE, M-DETECT-SLIDES, M-DETECT-METRICS</depends>
       <verification-ref>V-M-GOLDEN-MEAN-SWEEP</verification-ref>
       <cross-links>M-DETECT-SLIDES, M-DETECT-BENCHMARK, M-ANALYSIS-SCALE</cross-links>
     </M-GOLDEN-MEAN-SWEEP>
-    <M-GOLDEN-MEAN-DECISION NAME="GoldenMeanDecision" TYPE="DECISION" STATUS="planned">
-      <purpose>Phase 19: select golden-mean defaults under missed&lt;=5%, false_split&lt;=10%, timestamp budget, full-res screenshot invariant; or selected_analysis_scale=NONE. Does not reopen Phase 18 T3 / selected_optimization=NONE.</purpose>
-      <path>benchmarks/detect/evidence/phase19-*/golden_mean_decision.json</path>
+    <M-GOLDEN-MEAN-DECISION NAME="GoldenMeanDecision" TYPE="DECISION" STATUS="done">
+      <purpose>Phase 19 Hermes: selected analysis_max_side=480 (sample_fps=2) — wall −53.6% / ~2.15×, extract_features −93.4%, gates PASS vs native; phase18_reopened=false. Evidence: phase19-hermes-600s-20260718/</purpose>
+      <path>benchmarks/detect/evidence/phase19-hermes-600s-20260718/golden_mean_decision.json</path>
       <depends>M-GOLDEN-MEAN-SWEEP</depends>
       <verification-ref>V-M-GOLDEN-MEAN-DECISION</verification-ref>
       <cross-links>M-GOLDEN-MEAN-SWEEP, M-DETECT-PERF-DECISION, M-ANALYSIS-SCALE</cross-links>
     </M-GOLDEN-MEAN-DECISION>
     <M-PHASE19-PLAN NAME="Phase19Plan" TYPE="PLAN" STATUS="active">
-      <purpose>Human + GRACE plan for analysis resolution golden mean. Authoritative narrative: docs/plans/phase19-analysis-resolution-golden-mean.md. Steps 19.0–19.4 done; 19.5–19.9 remaining (sweep + decision).</purpose>
+      <purpose>Human + GRACE plan for analysis resolution golden mean. Steps 19.0–19.8 done; 19.9 acceptance remaining. Hermes decision: analysis_max_side=480 recommended (default still null).</purpose>
       <path>docs/plans/phase19-analysis-resolution-golden-mean.md</path>
       <depends>M-DETECT-PERF-DECISION</depends>
       <verification-ref>V-M-PHASE19-PLAN, V-M-PHASE19-ACCEPTANCE</verification-ref>

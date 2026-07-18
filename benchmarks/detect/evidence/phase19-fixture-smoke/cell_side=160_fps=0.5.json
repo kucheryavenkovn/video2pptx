@@ -1,0 +1,169 @@
+{
+  "analysis_max_side": 160,
+  "sample_fps": 0.5,
+  "label": "side=160_fps=0.5",
+  "is_reference": false,
+  "n_runs": 2,
+  "wall_clock_seconds_median": 0.5670705999982601,
+  "wall_clock_seconds": {
+    "values": [
+      0.5731753999971261,
+      0.5609657999993942
+    ],
+    "median": 0.5670705999982601,
+    "mean": 0.5670705999982601,
+    "stdev": 0.008633490953971451,
+    "min": 0.5609657999993942,
+    "max": 0.5731753999971261
+  },
+  "detect_timer_total_median": 0.5668310500004736,
+  "timers_focus_median": {
+    "pass1_decode_or_frame_advance": 0.277238299999226,
+    "extract_features": 0.006847249998827465,
+    "pass2_decode_or_frame_advance": 0.2760505000005651,
+    "pass2_dedupe": 1.8499995348975062e-06,
+    "pass2_screenshots": 0.0015182999995886348,
+    "roi": 5.185000190977007e-05,
+    "visual_distance": 0.0009249500017176615,
+    "threshold": 0.00014769999688724056,
+    "debounce": 3.800001650233753e-06,
+    "pass2_match_and_collect": 1.930000144056976e-05
+  },
+  "slides_count": 1,
+  "score_count": 5,
+  "segments": [
+    {
+      "index": 1,
+      "start": 0.0,
+      "end": 12.0,
+      "representative_timestamp": 9.600000000000001
+    }
+  ],
+  "gauges": {
+    "rgb_transfer_bytes": 11059200,
+    "rss_before_mb": 0,
+    "rss_peak_mb": 0,
+    "rss_after_mb": 0,
+    "peak_in_flight": 0,
+    "analysis_max_side": 160,
+    "analysis_height": 120,
+    "analysis_width": 160,
+    "analysis_scale_factor": 0.25
+  },
+  "counters": {
+    "frames_decoded": 720,
+    "frames_sampled": 6,
+    "features_full": 6,
+    "features_quick": 0,
+    "slides_detected": 1,
+    "screenshots_written": 1,
+    "ndarray_conversions": 12,
+    "representative_frames": 1,
+    "pass2_frames_sampled": 6,
+    "representative_frame_bytes": 921600
+  },
+  "png_shapes": [
+    [
+      480,
+      640
+    ]
+  ],
+  "full_res_screenshot_ok": true,
+  "quality_vs_native": {
+    "ref_count": 1,
+    "cand_count": 1,
+    "matched": 1,
+    "missed": 0,
+    "false_splits": 0,
+    "missed_slide_rate": 0.0,
+    "false_split_rate": 0.0,
+    "mean_iou": 1.0,
+    "timestamp_error_start": {
+      "mean": 0.0,
+      "median": 0.0,
+      "max": 0.0
+    },
+    "timestamp_error_end": {
+      "mean": 0.0,
+      "median": 0.0,
+      "max": 0.0
+    },
+    "timestamp_error_all": {
+      "mean": 0.0,
+      "median": 0.0,
+      "max": 0.0
+    },
+    "iou_threshold": 0.3
+  },
+  "quality_gates": {
+    "pass": true,
+    "gates": {
+      "missed_slide_rate": true,
+      "false_split_rate": true,
+      "timestamp_error_median": true
+    },
+    "thresholds": {
+      "missed_slide_rate": 0.05,
+      "false_split_rate": 0.1,
+      "timestamp_error_median": 1.5
+    }
+  },
+  "per_run": [
+    {
+      "wall_clock_seconds": 0.5731753999971261,
+      "detect_timer_total": 0.5730427000016789,
+      "slides_count": 1,
+      "timers_focus": {
+        "pass1_decode_or_frame_advance": 0.27968930000133696,
+        "extract_features": 0.007033999998384388,
+        "pass2_decode_or_frame_advance": 0.279702299994824,
+        "pass2_dedupe": 1.7999991541728377e-06,
+        "pass2_screenshots": 0.0015218999978969805,
+        "roi": 7.919999916339293e-05,
+        "visual_distance": 0.0009400000017194543,
+        "threshold": 0.000146999995195074,
+        "debounce": 3.9000005926936865e-06,
+        "pass2_match_and_collect": 2.000000313273631e-05
+      },
+      "gauges": {
+        "rgb_transfer_bytes": 11059200,
+        "rss_before_mb": 0,
+        "rss_peak_mb": 0,
+        "rss_after_mb": 0,
+        "peak_in_flight": 0,
+        "analysis_max_side": 160,
+        "analysis_height": 120,
+        "analysis_width": 160,
+        "analysis_scale_factor": 0.25
+      }
+    },
+    {
+      "wall_clock_seconds": 0.5609657999993942,
+      "detect_timer_total": 0.5606193999992684,
+      "slides_count": 1,
+      "timers_focus": {
+        "pass1_decode_or_frame_advance": 0.27478729999711504,
+        "extract_features": 0.006660499999270542,
+        "pass2_decode_or_frame_advance": 0.27239870000630617,
+        "pass2_dedupe": 1.8999999156221747e-06,
+        "pass2_screenshots": 0.0015147000012802891,
+        "roi": 2.4500004656147212e-05,
+        "visual_distance": 0.0009099000017158687,
+        "threshold": 0.0001483999985794071,
+        "debounce": 3.7000027077738196e-06,
+        "pass2_match_and_collect": 1.8599999748403206e-05
+      },
+      "gauges": {
+        "rgb_transfer_bytes": 11059200,
+        "rss_before_mb": 0,
+        "rss_peak_mb": 0,
+        "rss_after_mb": 0,
+        "peak_in_flight": 0,
+        "analysis_max_side": 160,
+        "analysis_height": 120,
+        "analysis_width": 160,
+        "analysis_scale_factor": 0.25
+      }
+    }
+  ]
+}

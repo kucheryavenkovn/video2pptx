@@ -2540,14 +2540,19 @@
     </scenarios>
   </V-M-DETECT-ANALYSIS-SCALE>
 
-  <V-M-GOLDEN-MEAN-SWEEP MODULE="M-GOLDEN-MEAN-SWEEP" PRIORITY="medium" STATUS="planned">
-    <purpose>Sweep tool emits grid evidence with quality metrics vs native reference.</purpose>
+  <V-M-GOLDEN-MEAN-SWEEP MODULE="M-GOLDEN-MEAN-SWEEP" PRIORITY="medium" STATUS="passed">
+    <purpose>Sweep tool emits grid evidence with quality metrics vs native reference and real wall-clock/stage timers.</purpose>
     <verification-contract>
       <scenario-1 kind="success">Tool accepts grid of analysis_max_side × sample_fps and writes per-cell JSON.</scenario-1>
       <scenario-2 kind="success">Each cell records wall_clock, slides_count, missed_slide_rate, false_split_rate, timestamp_error.</scenario-2>
       <scenario-3 kind="success">Reference cell is native max_side + baseline sample_fps on same code HEAD.</scenario-3>
       <scenario-4 kind="failure">Missing reference or empty video path fails with structured error (non-zero exit).</scenario-4>
     </verification-contract>
+    <evidence><result>
+      PASSED 2026-07-18. Unit tests test_golden_mean_sweep.py. Live runs:
+      phase19-fixture-smoke (extract −72…91%, wall −10…14%);
+      phase19-hermes-600s-20260718 (native wall 243.85s → 480: 113.25s, extract 85.95→5.67s).
+    </result></evidence>
     <test-files>
       <file>tests/test_golden_mean_sweep.py</file>
     </test-files>
@@ -2565,7 +2570,7 @@
     </scenarios>
   </V-M-GOLDEN-MEAN-SWEEP>
 
-  <V-M-GOLDEN-MEAN-DECISION MODULE="M-GOLDEN-MEAN-DECISION" PRIORITY="high" STATUS="planned">
+  <V-M-GOLDEN-MEAN-DECISION MODULE="M-GOLDEN-MEAN-DECISION" PRIORITY="high" STATUS="passed">
     <purpose>Select golden-mean defaults under hard gates or accept selected_analysis_scale=NONE.</purpose>
     <verification-contract>
       <scenario-1 kind="success">Decision artifact lists selected analysis_max_side and sample_fps when a gate-passing cell exists.</scenario-1>
@@ -2573,6 +2578,12 @@
       <scenario-3 kind="success">Tie-break: among passers prefer higher speedup, then higher max_side, then higher sample_fps.</scenario-3>
       <scenario-4 kind="success">Decision explicitly does not modify Phase 18 selected_optimization=NONE.</scenario-4>
     </verification-contract>
+    <evidence><result>
+      PASSED 2026-07-18 Hermes decision: selected_analysis_scale=480, sample_fps=2.0,
+      wall_reduction_pct≈53.6, extract_features_reduction_pct≈93.4, phase18_reopened=false.
+      960/640/320 rejected on false_split_rate=0.33 vs native 4-slide reference.
+      See benchmarks/detect/evidence/phase19-hermes-600s-20260718/golden_mean_decision.md.
+    </result></evidence>
     <test-files />
     <module-checks>
       <check-1>Validate golden_mean_decision.json schema when evidence package present</check-1>

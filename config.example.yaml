@@ -4,8 +4,11 @@
 video:
   sample_fps: 0.5
   decoder_backend: auto
-  # Pass1 analysis only; None = native. Screenshots always full-res (Pass2).
-  # analysis_max_side: 640
+  # Pass1 analysis only; null = native. Screenshots always full-res (Pass2).
+  # Phase 19 Hermes 600s (1080p, sample_fps=2): analysis_max_side=480 → ~2.15× wall,
+  # extract_features −93%, quality gates PASS vs native. See:
+  # benchmarks/detect/evidence/phase19-hermes-600s-20260718/golden_mean_decision.md
+  # analysis_max_side: 480
 
 detection:
   slide_roi: auto
