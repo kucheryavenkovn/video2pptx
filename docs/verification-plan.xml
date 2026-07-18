@@ -2453,7 +2453,7 @@
   <!-- ===== Phase 19 — Analysis Resolution & Golden Mean ===== -->
   <!-- Does NOT reopen Phase 18. Separate optimization class: analysis_max_side × sample_fps. -->
 
-  <V-M-PHASE19-PLAN MODULE="Phase-19/Step-19.0" PRIORITY="high" STATUS="planned">
+  <V-M-PHASE19-PLAN MODULE="Phase-19/Step-19.0" PRIORITY="high" STATUS="passed">
     <purpose>Phase 19 plan freeze: human plan + GRACE artifacts exist; no production code before approval.</purpose>
     <verification-contract>
       <scenario-1 kind="success">docs/plans/phase19-analysis-resolution-golden-mean.md exists and states dual-res invariant and non-reopen of Phase 18.</scenario-1>
@@ -2477,7 +2477,7 @@
     </scenarios>
   </V-M-PHASE19-PLAN>
 
-  <V-M-ANALYSIS-SCALE MODULE="M-ANALYSIS-SCALE" PRIORITY="high" STATUS="planned">
+  <V-M-ANALYSIS-SCALE MODULE="M-ANALYSIS-SCALE" PRIORITY="high" STATUS="passed">
     <purpose>Unit contract for analysis downscale helper and VideoConfig.analysis_max_side schema.</purpose>
     <verification-contract>
       <scenario-1 kind="success">scale_for_analysis with max_side=None returns identical array (or equal content) and scale_factor=1.0.</scenario-1>
@@ -2486,6 +2486,10 @@
       <scenario-4 kind="failure">Invalid analysis_max_side (negative, non-int) rejected by config validation.</scenario-4>
       <scenario-5 kind="success">Default analysis_max_side is null/None — native parity with pre-Phase-19 behavior.</scenario-5>
     </verification-contract>
+    <evidence><result>
+      PASSED 2026-07-18: pytest tests/test_analysis_scale.py tests/test_config.py — scale identity,
+      no-upscale, landscape/portrait max_side, config default None, rejects 0/negative.
+    </result></evidence>
     <test-files>
       <file>tests/test_analysis_scale.py</file>
       <file>tests/test_config.py</file>
@@ -2505,7 +2509,7 @@
     </scenarios>
   </V-M-ANALYSIS-SCALE>
 
-  <V-M-DETECT-ANALYSIS-SCALE MODULE="M-DETECT-SLIDES" PRIORITY="high" STATUS="planned">
+  <V-M-DETECT-ANALYSIS-SCALE MODULE="M-DETECT-SLIDES" PRIORITY="high" STATUS="passed">
     <purpose>Dual-resolution detect path: Pass1 analysis scale; Pass2 full-res screenshots.</purpose>
     <verification-contract>
       <scenario-1 kind="success">With analysis_max_side set, detect completes and metrics report analysis dimensions ≤ max_side.</scenario-1>
@@ -2513,6 +2517,10 @@
       <scenario-3 kind="success">analysis_max_side=None preserves prior two-pass detect semantics on fixture video (segment count stable within existing tests).</scenario-3>
       <scenario-4 kind="failure">If scale were incorrectly applied to Pass2 writes, test asserts PNG shape != expected native crop and fails.</scenario-4>
     </verification-contract>
+    <evidence><result>
+      PASSED 2026-07-18: analysis_max_side=64 on fixture yields metrics width=64 scale_factor&lt;1;
+      PNG shape equals native 640x480; iter_frames called twice.
+    </result></evidence>
     <test-files>
       <file>tests/test_detect_slides.py</file>
       <file>tests/test_analysis_scale.py</file>

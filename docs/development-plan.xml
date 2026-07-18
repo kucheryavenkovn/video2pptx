@@ -36,7 +36,7 @@
       <depends>M-MODELS</depends>
     </M-CONFIG>
 
-    <M-ANALYSIS-SCALE NAME="AnalysisScale" TYPE="UTILITY" LAYER="0" ORDER="2.5" STATUS="planned">
+    <M-ANALYSIS-SCALE NAME="AnalysisScale" TYPE="UTILITY" LAYER="0" ORDER="2.5" STATUS="implemented">
       <contract>
         <purpose>Pure analysis-resolution policy: downscale frames for detection features without changing screenshot export resolution.</purpose>
         <inputs>
@@ -55,7 +55,7 @@
         </rules>
       </contract>
       <target>
-        <source>src/video2pptx/ (helper module or frame_features/roi extension — decide at 19.1)</source>
+        <source>src/video2pptx/analysis_scale.py</source>
         <tests>tests/test_analysis_scale.py</tests>
       </target>
       <verification-ref>V-M-ANALYSIS-SCALE</verification-ref>
@@ -1540,7 +1540,7 @@
         Accept performance work only when the recovered-tree quality and timing gates pass.
       </step-18.8>
     </Phase-18>
-    <Phase-19 name="AnalysisResolutionGoldenMean" status="planned">
+    <Phase-19 name="AnalysisResolutionGoldenMean" status="in_progress">
       <goal>
         Discriminate analysis-path resolution reduction and sample_fps tradeoffs for slide
         detection. Separate analysis quality budget from screenshot quality budget. Select a
@@ -1549,26 +1549,23 @@
         Does NOT reopen Phase 18: T3 / selected_optimization=NONE remains accepted for C1/C2/C3.
       </goal>
       <plan-doc>docs/plans/phase19-analysis-resolution-golden-mean.md</plan-doc>
-      <step-19.0 name="PlanFreeze" status="planned" verification="V-M-PHASE19-PLAN">
+      <step-19.0 name="PlanFreeze" status="done" verification="V-M-PHASE19-PLAN">
         Freeze GRACE plan artifacts: human plan, development-plan Phase-19, verification entries,
-        knowledge-graph modules, finding F-0104. Awaiting user approval before any production code.
+        knowledge-graph modules, finding F-0104. User approved 2026-07-18.
       </step-19.0>
-      <step-19.1 name="AnalysisScaleConfig" status="planned" verification="V-M-ANALYSIS-SCALE">
-        Add VideoConfig.analysis_max_side (None|int, no upscale). YAML + CLI merge. Contract for
-        M-ANALYSIS-SCALE pure helper scale_for_analysis. Default None = native (behavior parity).
+      <step-19.1 name="AnalysisScaleConfig" status="done" verification="V-M-ANALYSIS-SCALE">
+        VideoConfig.analysis_max_side (None|int ge=1). YAML + CLI --analysis-max-side. Domain
+        DetectionConfig + DTO/mapper persistence. Default None = native (behavior parity).
       </step-19.1>
-      <step-19.2 name="ScaleHelperAndTests" status="planned" verification="V-M-ANALYSIS-SCALE">
-        Implement scale_for_analysis(image, max_side) with INTER_AREA, identity when max_side
-        unset or frame already smaller. Unit tests: aspect, no-upscale, dtype, empty edge cases.
+      <step-19.2 name="ScaleHelperAndTests" status="done" verification="V-M-ANALYSIS-SCALE">
+        scale_for_analysis in analysis_scale.py (INTER_AREA, no upscale). tests/test_analysis_scale.py.
       </step-19.2>
-      <step-19.3 name="DualResolutionDetectPath" status="planned" verification="V-M-DETECT-ANALYSIS-SCALE">
-        Pass 1: ROI/masks on native frame, then analysis_scale before extract_features.
-        Pass 2: representative capture remains full-res crop; PNG dimensions must match native ROI.
-        Log analysis_max_side and scale_factor. Preserve two-pass structure.
+      <step-19.3 name="DualResolutionDetectPath" status="done" verification="V-M-DETECT-ANALYSIS-SCALE">
+        Pass 1: ROI then analysis_scale then extract. Pass 2 full-res PNG invariant tested.
+        Two-pass iter_frames still exactly twice. CLI detect / detect-slides wired.
       </step-19.3>
-      <step-19.4 name="MetricsTags" status="planned" verification="V-M-DETECT-ANALYSIS-SCALE">
-        Extend DetectionRunMetrics / gauges: analysis_height, analysis_width, scale_factor applied.
-        Stage timers remain non-overlapping with Phase 18 instrumentation.
+      <step-19.4 name="MetricsTags" status="done" verification="V-M-DETECT-ANALYSIS-SCALE">
+        Gauges: analysis_max_side, analysis_height, analysis_width, analysis_scale_factor.
       </step-19.4>
       <step-19.5 name="GoldenMeanSweepTool" status="planned" verification="V-M-GOLDEN-MEAN-SWEEP">
         tools/sweep_analysis_resolution.py: grid analysis_max_side × sample_fps; compare segments

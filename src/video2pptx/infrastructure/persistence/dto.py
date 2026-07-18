@@ -166,6 +166,7 @@ class DetectionConfigDocument(BaseModel):
     min_slide_duration: float = 2.0
     min_stable_duration: float = 2.0
     dedupe_enabled: bool = True
+    analysis_max_side: int | None = None
 
 
 class ProjectDocumentV2(_StrictDocument):

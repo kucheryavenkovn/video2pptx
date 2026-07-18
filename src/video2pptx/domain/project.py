@@ -54,6 +54,8 @@ class DetectionConfig:
     min_slide_duration: float = 2.0
     min_stable_duration: float = 2.0
     dedupe_enabled: bool = True
+    # Phase 19: Pass1 analysis max side; None = native. Screenshots remain full-res.
+    analysis_max_side: int | None = None
 
 
 class Project:

@@ -4,6 +4,8 @@
 video:
   sample_fps: 0.5
   decoder_backend: auto
+  # Pass1 analysis only; None = native. Screenshots always full-res (Pass2).
+  # analysis_max_side: 640
 
 detection:
   slide_roi: auto

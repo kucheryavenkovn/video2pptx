@@ -11,7 +11,7 @@
 #
 # START_MODULE_MAP
 #   AppConfig - root typed config aggregating all subsections
-#   VideoConfig - video source and decoding backend config
+#   VideoConfig - video source and decoding backend config (sample_fps, decoder_backend, analysis_max_side)
 #   DetectionConfig - slide detection parameters
 #   ExportConfig - output format configuration
 #   DebugConfig - debug artifact toggle flags
@@ -32,13 +32,19 @@ from pydantic import BaseModel, Field
 class VideoConfig(BaseModel):
     # START_CONTRACT: VideoConfig
     #   PURPOSE: Video source and decoding backend configuration
-    #   INPUTS: { sample_fps: float, decoder_backend: str }
+    #   INPUTS: { sample_fps: float, decoder_backend: str, analysis_max_side: int|None }
     #   OUTPUTS: { VideoConfig }
     #   SIDE_EFFECTS: none
-    #   LINKS: M-CONFIG
+    #   LINKS: M-CONFIG, M-ANALYSIS-SCALE
     # END_CONTRACT: VideoConfig
     sample_fps: float = Field(default=0.5, ge=0.1, le=30.0, description="Frame sampling rate")
     decoder_backend: str = Field(default="auto", description="Decoder backend: auto, opencv, pyav, decord, pynv")
+    analysis_max_side: int | None = Field(
+        default=None,
+        ge=1,
+        le=8192,
+        description="Max side length for Pass1 analysis frames only; None = native (full-res screenshots always)",
+    )
 
 
 class DetectionConfig(BaseModel):

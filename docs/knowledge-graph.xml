@@ -1013,14 +1013,15 @@
     </M-DETECT-TARGET-DISCRIMINATION-R2>
     <!-- ===== DETECT PERFORMANCE (Phase-18) ===== -->
     <!-- ===== ANALYSIS RESOLUTION / GOLDEN MEAN (Phase-19) ===== -->
-    <M-ANALYSIS-SCALE NAME="AnalysisScale" TYPE="UTILITY" STATUS="planned">
-      <purpose>Phase 19: pure analysis-resolution policy — downscale frames for detection features after ROI; never upscale; default null = native. Screenshot export resolution remains full-res (Pass 2).</purpose>
-      <path>src/video2pptx/ (helper TBD at Step 19.1; config field analysis_max_side on VideoConfig)</path>
+    <M-ANALYSIS-SCALE NAME="AnalysisScale" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Phase 19: pure analysis-resolution policy — downscale frames for detection features after ROI; never upscale; default null = native. Screenshot export resolution remains full-res (Pass 2). Wired into slide_detector.detect_changes + detect_slides + DetectionService.</purpose>
+      <path>src/video2pptx/analysis_scale.py</path>
       <depends>M-CONFIG</depends>
-      <verification-ref>V-M-ANALYSIS-SCALE</verification-ref>
+      <verification-ref>V-M-ANALYSIS-SCALE, V-M-DETECT-ANALYSIS-SCALE</verification-ref>
       <cross-links>M-FRAME-FEATURES, M-SLIDE-DETECTOR, M-DETECT-SLIDES, M-CONFIG</cross-links>
       <annotations>
         <fn-scale_for_analysis PURPOSE="Downscale RGB frame to analysis_max_side with INTER_AREA; identity if None/smaller" />
+        <fn-normalize_analysis_max_side PURPOSE="Coerce 0/negative/None to None" />
         <param-analysis_max_side PURPOSE="Optional max side length for Pass1 feature extraction only" />
       </annotations>
     </M-ANALYSIS-SCALE>
@@ -1038,8 +1039,8 @@
       <verification-ref>V-M-GOLDEN-MEAN-DECISION</verification-ref>
       <cross-links>M-GOLDEN-MEAN-SWEEP, M-DETECT-PERF-DECISION, M-ANALYSIS-SCALE</cross-links>
     </M-GOLDEN-MEAN-DECISION>
-    <M-PHASE19-PLAN NAME="Phase19Plan" TYPE="PLAN" STATUS="planned">
-      <purpose>Human + GRACE plan for analysis resolution golden mean. Authoritative narrative: docs/plans/phase19-analysis-resolution-golden-mean.md. Steps 19.0–19.9.</purpose>
+    <M-PHASE19-PLAN NAME="Phase19Plan" TYPE="PLAN" STATUS="active">
+      <purpose>Human + GRACE plan for analysis resolution golden mean. Authoritative narrative: docs/plans/phase19-analysis-resolution-golden-mean.md. Steps 19.0–19.4 done; 19.5–19.9 remaining (sweep + decision).</purpose>
       <path>docs/plans/phase19-analysis-resolution-golden-mean.md</path>
       <depends>M-DETECT-PERF-DECISION</depends>
       <verification-ref>V-M-PHASE19-PLAN, V-M-PHASE19-ACCEPTANCE</verification-ref>

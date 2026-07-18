@@ -14,7 +14,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.4.0 - Restored protected persistence lifecycle and deterministic RSS peak semantics
+#   LAST_CHANGE: v0.5.0 - Phase 19 dual-res: Pass1 analysis_max_side; Pass2 full-res screenshots
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -76,9 +76,11 @@ def run_detect_slides(
                 backend=cfg.video.decoder_backend,
             )
             info = decoder.get_info()
+            analysis_max_side = cfg.video.analysis_max_side
             logger.info(
                 f"[DetectSlides][run_detect_slides] Video opened | "
-                f"duration={info.duration:.2f}s {info.width}x{info.height} fps={info.fps:.2f}"
+                f"duration={info.duration:.2f}s {info.width}x{info.height} fps={info.fps:.2f} "
+                f"analysis_max_side={analysis_max_side}"
             )
 
             ignore_rois = parse_ignore_rois(cfg.detection.ignore_rois)
@@ -115,6 +117,7 @@ def run_detect_slides(
                 extract_fn=_extract,
                 distance_fn=_dist,
                 quick_mode=quick_mode,
+                analysis_max_side=analysis_max_side,
             )
 
             segments: list[SlideSegment] = build_segments(

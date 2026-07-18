@@ -1,7 +1,7 @@
 # Phase 19 — Analysis Resolution & Golden Mean
 
 **Branch:** `plan/phase19-analysis-resolution-golden-mean`  
-**Status:** PLANNED — awaiting user approval before implementation  
+**Status:** IN PROGRESS — user approved 2026-07-18; Steps 19.0–19.4 implemented  
 **Date:** 2026-07-18  
 **Does not reopen Phase 18.** Phase 18 terminal outcome remains  
 `T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION` / `selected_optimization=NONE`.
@@ -297,9 +297,18 @@ Phase 19 may later unlock a **different** optimization class without rewriting 1
 
 ## 14. Approval checklist
 
-- [ ] User approves this plan (scope, gates, dual-res invariant).
-- [ ] On approval: treat Step 19.0 as done; start 19.1 implementation via grace-execute.
-- [ ] No production code lands before approval.
+- [x] User approves this plan (scope, gates, dual-res invariant).
+- [x] On approval: treat Step 19.0 as done; start 19.1 implementation via grace-execute.
+- [x] Steps 19.1–19.4 implemented (config, helper, dual-res path, metrics).
+- [ ] Steps 19.5–19.9: sweep tool, discrimination, decision, optional defaults, acceptance.
+
+### Implemented API (19.1–19.4)
+
+- `VideoConfig.analysis_max_side: int | None = None`
+- `scale_for_analysis(image, max_side) -> (image, scale_factor)` in `analysis_scale.py`
+- CLI: `--analysis-max-side` on `detect` / `detect-slides`
+- Domain `DetectionConfig.analysis_max_side` + project.json DTO/mapper
+- Metrics gauges: `analysis_max_side`, `analysis_height`, `analysis_width`, `analysis_scale_factor`
 
 ---
 
