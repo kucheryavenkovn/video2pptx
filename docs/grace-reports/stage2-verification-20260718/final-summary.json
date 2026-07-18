@@ -1,15 +1,17 @@
 {
+  "total_vm_entries": 144,
   "standard_lint_errors": 403,
   "standard_lint_warnings": 226,
   "autonomy_blockers": 128,
   "autonomy_warnings": 5,
-  "total_vm_entries": true,
   "verification_missing_wave_follow_up": 0,
   "verification_missing_phase_follow_up": 0,
   "verification_missing_observable_evidence": 0,
   "verification_missing_scenarios": 0,
+  "verification_missing_module_checks": 26,
   "module_missing_verification": 0,
   "module_missing_implementation_files": 24,
   "verification_test_file_missing_on_disk": 0,
-  "verification_test_file_unlinked_module": 31
+  "verification_test_file_unlinked_module": 31,
+  "verification_module_check_no_test_ref": 5
 }

@@ -3,19 +3,25 @@
 Reads:
 - docs/knowledge-graph.xml
 - docs/development-plan.xml
-- docs/verification-plan.xml
-- baseline-autonomy.json (from grace lint --profile autonomous --format json)
+- docs/verification-plan.xml (current tags: module-checks, wave-follow-up,
+  phase-follow-up, required-trace-assertions, test-files)
+- final-autonomy.json (NOT baseline)
+- final-status.json (NOT baseline)
 - tests/ directory
 
 Writes:
 - module-coverage.json
 - module-coverage.md
+
+Output metrics are computed dynamically from the actual verification plan +
+final autonomy/status reports, never from baseline. No hardcoding.
 """
 from __future__ import annotations
 
 import json
 import re
 import xml.etree.ElementTree as ET
+from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -70,7 +76,7 @@ for node in dp.iter():
     }
 
 
-# --- Load verification plan V-M entries ---
+# --- Load verification plan V-M entries (current canonical tags only) ---
 vp = load_xml(DOCS / "verification-plan.xml")
 vm_entries: dict[str, dict] = {}
 for node in vp.iter():
@@ -86,18 +92,18 @@ for node in vp.iter():
         "status": node.get("STATUS") or "",
         "has_test_files": False,
         "has_module_checks": False,
-        "has_wave_checks": False,
-        "has_phase_checks": False,
+        "has_wave_follow_up": False,
+        "has_phase_follow_up": False,
         "has_scenarios": False,
-        "has_required_log_markers": False,
         "has_required_trace_assertions": False,
+        "has_blocked_reason": False,
         "test_files": [],
         "module_checks": [],
-        "wave_checks": [],
-        "phase_checks": [],
+        "wave_follow_up": [],
+        "phase_follow_up": [],
         "scenarios": [],
-        "required_log_markers": [],
         "required_trace_assertions": [],
+        "blocked_reason": "",
     }
     for child in node:
         ctag = strip_ns(child.tag)
@@ -111,36 +117,27 @@ for node in vp.iter():
             for c in child:
                 if (c.text or "").strip():
                     entry["module_checks"].append((c.text or "").strip())
-        elif ctag == "wave-checks":
-            entry["has_wave_checks"] = True
-            for c in child:
-                if (c.text or "").strip():
-                    entry["wave_checks"].append((c.text or "").strip())
-        elif ctag == "phase-checks":
-            entry["has_phase_checks"] = True
-            for c in child:
-                if (c.text or "").strip():
-                    entry["phase_checks"].append((c.text or "").strip())
+        elif ctag == "wave-follow-up":
+            entry["has_wave_follow_up"] = True
+            if (child.text or "").strip():
+                entry["wave_follow_up"].append((child.text or "").strip())
+        elif ctag == "phase-follow-up":
+            entry["has_phase_follow_up"] = True
+            if (child.text or "").strip():
+                entry["phase_follow_up"].append((child.text or "").strip())
         elif ctag == "scenarios":
             entry["has_scenarios"] = True
             for s in child:
                 if (s.text or "").strip():
                     entry["scenarios"].append((s.text or "").strip())
-        elif ctag == "required-log-markers":
-            entry["has_required_log_markers"] = True
-            # may contain <marker> children or text
-            if (child.text or "").strip():
-                entry["required_log_markers"].append((child.text or "").strip())
-            for m in child:
-                if (m.text or "").strip():
-                    entry["required_log_markers"].append((m.text or "").strip())
         elif ctag == "required-trace-assertions":
             entry["has_required_trace_assertions"] = True
-            if (child.text or "").strip():
-                entry["required_trace_assertions"].append((child.text or "").strip())
-            for m in child:
-                if (m.text or "").strip():
-                    entry["required_trace_assertions"].append((m.text or "").strip())
+            for a in child:
+                if (a.text or "").strip():
+                    entry["required_trace_assertions"].append((a.text or "").strip())
+        elif ctag == "blocked-reason":
+            entry["has_blocked_reason"] = True
+            entry["blocked_reason"] = (child.text or "").strip()
     vm_entries[vid] = entry
 
 
@@ -150,12 +147,12 @@ for vid, entry in vm_entries.items():
     module_to_vm[entry["module"]] = vid
 
 
-# --- Load autonomy lint issues for per-module/per-entry signals ---
-with open(REPORT_DIR / "baseline-autonomy.json", "r", encoding="utf-8") as f:
+# --- Load final autonomy lint issues for per-module/per-entry signals ---
+with open(REPORT_DIR / "final-autonomy.json", "r", encoding="utf-8") as f:
     auto = json.load(f)
 
 autonomy_by_code: dict[str, list] = {}
-for issue in auto["issues"]:
+for issue in auto.get("issues", []):
     code = issue.get("code", "")
     autonomy_by_code.setdefault(code, []).append(issue)
 
@@ -180,21 +177,22 @@ for p in (ROOT / "tests").rglob("test_*.py"):
 all_module_ids = sorted(set(kg_modules.keys()) | set(dp_modules.keys()))
 coverage = []
 for mid in all_module_ids:
-    kg = kg_modules.get(mid, {})
-    dp = dp_modules.get(mid, {})
+    kgm = kg_modules.get(mid, {})
+    dpm = dp_modules.get(mid, {})
     vid = module_to_vm.get(mid, "")
     vm = vm_entries.get(vid, None)
-    status = kg.get("status") or dp.get("status") or ""
-    paths = kg.get("paths", [])
+    status = kgm.get("status") or dpm.get("status") or ""
+    paths = kgm.get("paths", [])
     source_paths = [p for p in paths if "test" not in p.lower().split("/")[-1]]
     test_paths_decl = list(vm["test_files"]) if vm else []
-    # check test files exist on disk
     test_paths_existing = [
         t for t in test_paths_decl if (ROOT / t).exists() or t in test_files_on_disk
     ]
     test_paths_missing = [t for t in test_paths_decl if t not in test_paths_existing]
 
-    obs_evidence = bool(vm and (vm["has_required_log_markers"] or vm["has_required_trace_assertions"]))
+    obs_evidence = bool(
+        vm and vm["has_required_trace_assertions"] and vm["required_trace_assertions"]
+    )
 
     # autonomy signals for this module
     mod_missing_verif = any(
@@ -202,7 +200,6 @@ for mid in all_module_ids:
         for i in autonomy_by_code.get("autonomy.module-missing-verification", [])
     )
 
-    # autonomy signals for this V-M entry
     vm_missing_wave = False
     vm_missing_phase = False
     vm_missing_obs = False
@@ -251,14 +248,16 @@ for mid in all_module_ids:
         classification = "VERIFICATION_BLOCKED"
     elif vm["status"] == "planned":
         classification = "VERIFICATION_PLANNED"
+    elif vm["status"] == "in_progress":
+        classification = "VERIFICATION_IN_PROGRESS"
     else:
         classification = "NO_EXECUTABLE_EVIDENCE"
 
     coverage.append({
         "module-id": mid,
         "module-status": status,
-        "module-name": kg.get("name", ""),
-        "phase": dp.get("layer", ""),
+        "module-name": kgm.get("name", ""),
+        "phase": dpm.get("layer", ""),
         "source-paths": source_paths,
         "test-paths": test_paths_decl,
         "test-paths-existing": test_paths_existing,
@@ -268,10 +267,11 @@ for mid in all_module_ids:
         "verification-status": vm["status"] if vm else "",
         "verification-priority": vm["priority"] if vm else "",
         "has-module-checks": bool(vm and vm["has_module_checks"]) if vm else False,
-        "has-wave-checks": bool(vm and vm["has_wave_checks"]) if vm else False,
-        "has-phase-checks": bool(vm and vm["has_phase_checks"]) if vm else False,
+        "has-wave-follow-up": bool(vm and vm["has_wave_follow_up"] and vm["wave_follow_up"]) if vm else False,
+        "has-phase-follow-up": bool(vm and vm["has_phase_follow_up"] and vm["phase_follow_up"]) if vm else False,
         "has-scenarios": bool(vm and vm["has_scenarios"]) if vm else False,
         "observable-evidence-defined": obs_evidence,
+        "has-blocked-reason": bool(vm and vm["has_blocked_reason"]) if vm else False,
         "autonomy_signals": {
             "module-missing-verification": mod_missing_verif,
             "vm-missing-wave-follow-up": vm_missing_wave,
@@ -286,65 +286,110 @@ for mid in all_module_ids:
     })
 
 
-# --- Write JSON ---
-out = {
-    "generated_at": REPORT_DIR.name,
+# --- Aggregate metrics ---
+cls_counts = Counter(c["coverage-classification"] for c in coverage)
+status_counts = Counter(c["verification-status"] for c in coverage if c["verification-entry-exists"])
+
+ent = [c for c in coverage if c["verification-entry-exists"]]
+metrics = {
     "total-modules": len(all_module_ids),
     "total-vm-entries": len(vm_entries),
     "modules-without-verification": sum(1 for c in coverage if not c["verification-entry-exists"]),
+    "passed": status_counts.get("passed", 0),
+    "blocked": status_counts.get("blocked", 0),
+    "planned": status_counts.get("planned", 0),
+    "failed": status_counts.get("failed", 0),
+    "in_progress": status_counts.get("in_progress", 0),
+    "entries-missing-module-checks": sum(1 for c in ent if not c["has-module-checks"]),
+    "entries-missing-wave-follow-up": sum(1 for c in ent if not c["has-wave-follow-up"]),
+    "entries-missing-phase-follow-up": sum(1 for c in ent if not c["has-phase-follow-up"]),
+    "entries-missing-observable-evidence": sum(1 for c in ent if not c["observable-evidence-defined"]),
+    "entries-missing-scenarios": sum(1 for c in ent if not c["has-scenarios"]),
+    "entries-with-test-files-missing-on-disk": sum(1 for c in ent if c["test-paths-missing"]),
+}
+
+
+# --- Write JSON ---
+out = {
+    "generated_at": REPORT_DIR.name,
+    "source_of_truth": {
+        "verification_plan": "docs/verification-plan.xml",
+        "knowledge_graph": "docs/knowledge-graph.xml",
+        "development_plan": "docs/development-plan.xml",
+        "autonomy_lint": "final-autonomy.json",
+        "status": "final-status.json",
+    },
+    "metrics": metrics,
     "coverage": coverage,
 }
 with open(REPORT_DIR / "module-coverage.json", "w", encoding="utf-8") as f:
     json.dump(out, f, indent=2, ensure_ascii=False)
 
+
 # --- Write Markdown summary ---
 lines = []
 lines.append("# Stage 2 — Module Coverage Map")
 lines.append("")
-lines.append(f"- Total modules: {out['total-modules']}")
-lines.append(f"- Total V-M entries: {out['total-vm-entries']}")
-lines.append(f"- Modules without verification entry: {out['modules-without-verification']}")
+lines.append(f"- Total modules: {metrics['total-modules']}")
+lines.append(f"- Total V-M entries: {metrics['total-vm-entries']}")
+lines.append(f"- Modules without verification entry: {metrics['modules-without-verification']}")
 lines.append("")
-from collections import Counter
-cls_counts = Counter(c["coverage-classification"] for c in coverage)
+lines.append("## Verification status counts")
+for k in ("passed", "blocked", "planned", "in_progress", "failed"):
+    lines.append(f"- {k}: {metrics[k]}")
+lines.append("")
 lines.append("## Coverage classification")
-for k in ["VERIFIED_PASSED", "VERIFIED_FAILED", "VERIFICATION_PLANNED", "VERIFICATION_BLOCKED",
-          "MISSING_VERIFICATION_ENTRY", "STALE_VERIFICATION_ENTRY", "NO_EXECUTABLE_EVIDENCE"]:
+for k in ["VERIFIED_PASSED", "VERIFICATION_BLOCKED", "VERIFICATION_PLANNED",
+          "VERIFICATION_IN_PROGRESS", "VERIFIED_FAILED",
+          "MISSING_VERIFICATION_ENTRY", "NO_EXECUTABLE_EVIDENCE"]:
     lines.append(f"- {k}: {cls_counts.get(k, 0)}")
 lines.append("")
 lines.append("## Existing V-M entries missing follow-up structure")
-ent = [c for c in coverage if c["verification-entry-exists"]]
-lines.append(f"- entries missing wave-checks: {sum(1 for c in ent if not c['has-wave-checks'])}")
-lines.append(f"- entries missing phase-checks: {sum(1 for c in ent if not c['has-phase-checks'])}")
-lines.append(f"- entries missing observable-evidence: {sum(1 for c in ent if not c['observable-evidence-defined'])}")
-lines.append(f"- entries missing scenarios: {sum(1 for c in ent if not c['has-scenarios'])}")
-lines.append(f"- entries with test files missing on disk: {sum(1 for c in ent if c['test-paths-missing'])}")
+lines.append(f"- entries missing module-checks: {metrics['entries-missing-module-checks']}")
+lines.append(f"- entries missing wave-follow-up: {metrics['entries-missing-wave-follow-up']}")
+lines.append(f"- entries missing phase-follow-up: {metrics['entries-missing-phase-follow-up']}")
+lines.append(f"- entries missing observable-evidence: {metrics['entries-missing-observable-evidence']}")
+lines.append(f"- entries missing scenarios: {metrics['entries-missing-scenarios']}")
+lines.append(f"- entries with test files missing on disk: {metrics['entries-with-test-files-missing-on-disk']}")
 lines.append("")
 lines.append("## Modules without verification entry")
 for c in coverage:
     if not c["verification-entry-exists"]:
-        lines.append(f"- **{c['module-id']}** ({c['module-name']}) — status={c['module-status'] or 'n/a'}, phase={c['phase'] or 'n/a'}")
+        lines.append(
+            f"- **{c['module-id']}** ({c['module-name']}) — "
+            f"status={c['module-status'] or 'n/a'}, phase={c['phase'] or 'n/a'}"
+        )
 lines.append("")
 lines.append("## Full coverage table")
 lines.append("")
-lines.append("| Module | Status | V-M | V-Status | Wave | Phase | Obs | Scen | Test-missing | Classification |")
-lines.append("|--------|--------|-----|----------|------|-------|-----|------|--------------|----------------|")
+lines.append("| Module | Status | V-M | V-Status | Module-chk | Wave | Phase | Obs | Scen | Test-missing | Classification |")
+lines.append("|--------|--------|-----|----------|-----------|------|-------|-----|------|--------------|----------------|")
 for c in sorted(coverage, key=lambda x: x["module-id"]):
-    lines.append("| {mid} | {st} | {vid} | {vst} | {w} | {p} | {o} | {s} | {tm} | {cl} |".format(
-        mid=c["module-id"], st=c["module-status"] or "n/a", vid=c["verification-id"] or "—",
-        vst=c["verification-status"] or "—",
-        w="yes" if c["has-wave-checks"] else "NO",
-        p="yes" if c["has-phase-checks"] else "NO",
-        o="yes" if c["observable-evidence-defined"] else "NO",
-        s="yes" if c["has-scenarios"] else "NO",
-        tm=",".join(c["test-paths-missing"]) or "—",
-        cl=c["coverage-classification"],
-    ))
+    lines.append(
+        "| {mid} | {st} | {vid} | {vst} | {mc} | {w} | {p} | {o} | {s} | {tm} | {cl} |".format(
+            mid=c["module-id"], st=c["module-status"] or "n/a", vid=c["verification-id"] or "—",
+            vst=c["verification-status"] or "—",
+            mc="yes" if c["has-module-checks"] else "NO",
+            w="yes" if c["has-wave-follow-up"] else "NO",
+            p="yes" if c["has-phase-follow-up"] else "NO",
+            o="yes" if c["observable-evidence-defined"] else "NO",
+            s="yes" if c["has-scenarios"] else "NO",
+            tm=",".join(c["test-paths-missing"]) or "—",
+            cl=c["coverage-classification"],
+        )
+    )
 with open(REPORT_DIR / "module-coverage.md", "w", encoding="utf-8") as f:
     f.write("\n".join(lines))
 
-print(f"Modules: {out['total-modules']}")
-print(f"V-M entries: {out['total-vm-entries']}")
-print(f"Modules without verification: {out['modules-without-verification']}")
-print("Classification:", dict(cls_counts))
+print(f"Modules: {metrics['total-modules']}")
+print(f"V-M entries: {metrics['total-vm-entries']}")
+print(f"Modules without verification: {metrics['modules-without-verification']}")
+print(f"Status counts: {dict(status_counts)}")
+print(f"Classification: {dict(cls_counts)}")
+print(f"Missing module-checks: {metrics['entries-missing-module-checks']}")
+print(f"Missing wave-follow-up: {metrics['entries-missing-wave-follow-up']}")
+print(f"Missing phase-follow-up: {metrics['entries-missing-phase-follow-up']}")
+print(f"Missing observable evidence: {metrics['entries-missing-observable-evidence']}")
+print(f"Missing scenarios: {metrics['entries-missing-scenarios']}")
+print(f"Test files missing on disk: {metrics['entries-with-test-files-missing-on-disk']}")
 print("Wrote module-coverage.json and module-coverage.md")

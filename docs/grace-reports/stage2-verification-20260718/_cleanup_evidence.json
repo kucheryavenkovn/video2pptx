@@ -1,0 +1,513 @@
+{
+  "V-M-MODELS": {
+    "action": "replace",
+    "new_assertions": [
+      "test_models.py asserts VideoInfo rejects duration=-1.0 with pydantic.ValidationError.",
+      "test_models.py asserts Roi rejects negative coordinates and SlideSegment rejects confidence=1.5 via ValidationError.",
+      "test_models.py asserts SlidesDocument.model_validate raises ValidationError on negative video duration.",
+      "test_models.py asserts SlidesDocument JSON round-trip preserves slides[0].representative_timestamp == 40.0."
+    ],
+    "reason": "Previous 'Models contract honored' was generic; replaced with concrete ValidationError and JSON round-trip assertions from test_models.py."
+  },
+  "V-M-CONFIG": {
+    "action": "replace",
+    "new_assertions": [
+      "test_config.py asserts VideoConfig rejects sample_fps=-1.0 and sample_fps=60.0 via ValidationError.",
+      "test_config.py asserts merge_config overrides video.sample_fps to 5.0 while preserving base decoder_backend.",
+      "test_config.py asserts load_config with CLI overrides yields cfg.video.sample_fps == 10.0 over YAML value 2.0.",
+      "test_config.py asserts AppConfig JSON round-trip preserves cfg.video.sample_fps == 0.5."
+    ],
+    "reason": "Previous 'Config contract honored' was generic; replaced with concrete ValidationError, merge, and round-trip assertions from test_config.py."
+  },
+  "V-M-FRAME-FEATURES": {
+    "action": "replace",
+    "new_assertions": [
+      "test_frame_features.py asserts extract_features returns len(ff.hist) == 768 bins summing to ~3.0 on solid RGB input.",
+      "test_frame_features.py asserts visual_distance(ff, ff) == 0.0 and 0.0 <= dist <= 1.0 on random frames.",
+      "test_frame_features.py asserts compute_threshold([0.1, 0.2]) returns default 0.3 for short input lists."
+    ],
+    "reason": "Previous 'FrameFeatures contract honored' was generic; replaced with concrete hist-bucket, distance, and threshold assertions from test_frame_features.py."
+  },
+  "V-M-SLIDE-DETECTOR": {
+    "action": "replace",
+    "new_assertions": [
+      "test_slide_detector.py asserts identical 128-value frames produce zero changes via detect_changes.",
+      "test_slide_detector.py asserts evidence_observer that mutates payload['image'] to 128 collapses detected changes to zero (trusted-intrusive hook contract).",
+      "test_slide_detector.py asserts src/video2pptx/slide_detector.py contains EVIDENCE_OBSERVER_CONTRACT, MUTABLE, and TRUSTED INTRUSIVE DIAGNOSTIC HOOK markers.",
+      "test_slide_detector.py asserts governed START_/END_ CONTRACT and BLOCK markers are paired and ordered in slide_detector.py source."
+    ],
+    "reason": "Previous 'SlideDetector contract honored' was generic; replaced with concrete frame-comparison, observer-contract, and semantic-marker assertions from test_slide_detector.py."
+  },
+  "V-M-SEGMENTER": {
+    "action": "replace",
+    "new_assertions": [
+      "test_segmenter.py asserts choose_representative_timestamp(0.0, 10.0) == 8.0 (80% rule) and (0.0, 4.0) == 2.0 (50% rule).",
+      "test_segmenter.py asserts build_segments with no changes returns single segment 0.0-100.0 with confidence 0.9.",
+      "test_segmenter.py asserts build_segments filters segments shorter than min_slide_duration=3.0 (changes at 1.0s collapses to one segment)."
+    ],
+    "reason": "Previous 'Segmenter contract honored' was generic; replaced with concrete representative-timestamp and min-duration-filter assertions from test_segmenter.py."
+  },
+  "V-M-DEDUPE": {
+    "action": "replace",
+    "new_assertions": [
+      "test_dedupe.py asserts deduplicate_segments merges two identical-frame segments into one with start=0.0, end=20.0.",
+      "test_dedupe.py asserts merged segments are reindexed so result[0].index == 1 and result[1].index == 2.",
+      "test_dedupe.py asserts merged segment preserves higher confidence value 0.95 from the second source segment."
+    ],
+    "reason": "Previous 'Dedupe contract honored' was generic; replaced with concrete merge, reindex, and confidence-preservation assertions from test_dedupe.py."
+  },
+  "V-M-MD-EXPORT": {
+    "action": "replace",
+    "new_assertions": [
+      "test_markdown_export.py asserts export_to_markdown writes deck.md containing 'marp: true' and both slide image filenames.",
+      "test_markdown_export.py asserts render_slide does not duplicate path as 'slides/slides/slide_001.png' when base_dir is 'out'.",
+      "test_markdown_export.py asserts format_time(65.0) == '1:05' and format_time(3661.0) == '1:01:01'."
+    ],
+    "reason": "Previous 'MarkdownExport contract honored' was generic; replaced with concrete Marp output, double-path fix, and time-format assertions from test_markdown_export.py."
+  },
+  "V-M-PPTX-EXPORT": {
+    "action": "replace",
+    "new_assertions": [
+      "test_pptx_export.py asserts export_to_pptx returns the output Path and produces a non-empty .pptx file.",
+      "test_pptx_export.py asserts generated pptx has len(prs.slides) == 2 and slide notes contain '[ 0:00 – 0:10 ]' plus joined cue text.",
+      "test_pptx_export.py asserts _group_cues splits cues whose gap > threshold into separate groups."
+    ],
+    "reason": "Previous 'PptxExport contract honored' was generic; replaced with concrete slide-count, notes-text, and cue-grouping assertions from test_pptx_export.py."
+  },
+  "V-M-NOTES-PROCESSOR": {
+    "action": "replace",
+    "new_assertions": [
+      "test_notes_processor.py asserts _build_raw_text joins cue texts 'Hello world' and falls back to seg.transcript when no cues.",
+      "test_notes_processor.py asserts _basic_cleanup removes ' ,' spacing and deduplicates repeated 'the the'.",
+      "test_notes_processor.py asserts SYSTEM_PROMPT_REPHRASE length > 50 and LLM_REQUEST_TEMPLATE contains '{text}', '{start}', '{end}' placeholders."
+    ],
+    "reason": "Previous 'NotesProcessor contract honored' was generic; replaced with concrete cue-join, cleanup, and prompt-template assertions from test_notes_processor.py."
+  },
+  "V-M-GUI-MAIN": {
+    "action": "replace",
+    "new_assertions": [
+      "test_gui_main.py asserts MainWindow is a QMainWindow instance whose toolbar contains New/Open actions.",
+      "test_gui_main_window.py asserts MainWindow starts with _model.is_open False and _btn_detect.isEnabled() False.",
+      "test_gui_main_window.py asserts after _on_project_opened, _btn_detect.isEnabled() is True and windowTitle contains project name.",
+      "test_gui_main_window.py asserts project_changed handler.assert_called_once() on _on_project_opened (MagicMock)."
+    ],
+    "reason": "Previous 'MainWindow contract honored' was generic; replaced with concrete MainWindow state and signal assertions from test_gui_main.py and test_gui_main_window.py."
+  },
+  "V-M-GUI-SETTINGS": {
+    "action": "replace",
+    "new_assertions": [
+      "test_gui_settings.py asserts SettingsDialog is a QDialog with a QTabWidget of count >= 2.",
+      "test_gui_settings.py asserts LLM tab contains >= 1 QPlainTextEdit with non-empty content.",
+      "test_gui_settings.py asserts SettingsDialog.save() persists project and open_project returns reloaded.name == proj.name."
+    ],
+    "reason": "Previous 'SettingsDialog contract honored' was generic; replaced with concrete QDialog, tab, and save-persist assertions from test_gui_settings.py."
+  },
+  "V-M-GUI-APPCONFIG": {
+    "action": "replace",
+    "new_assertions": [
+      "test_gui_app_config.py asserts AppConfigModel defaults version='1.0', snap_mode='hybrid', snap_flat_threshold=0.05.",
+      "test_gui_app_config.py asserts save_app_config writes app-config.yaml and load_app_config round-trips snap_mode and backend.",
+      "test_gui_app_config.py asserts apply_defaults_to_project passes app_cfg.llm.model through and does not override backend='auto'."
+    ],
+    "reason": "Previous 'AppConfigManager contract honored' was generic; replaced with concrete defaults, save/load round-trip, and project-inheritance assertions from test_gui_app_config.py."
+  },
+  "V-M-GUI-SMART-SNAP": {
+    "action": "replace",
+    "new_assertions": [
+      "test_gui_smart_snap.py asserts smart_snap(12.0, proj, snap_mode='diff_only') returns 10.0 (nearest CSV peak within ±5s window).",
+      "test_gui_smart_snap.py asserts _find_peak_in_window returns None when no scores fall within the window.",
+      "test_gui_smart_snap.py asserts smart_snap dispatches to diff_only/fallback_analyze/hybrid and unknown mode falls back to hybrid."
+    ],
+    "reason": "Previous 'SmartSnap contract honored' was generic; replaced with concrete peak-snap, no-peak, and mode-dispatch assertions from test_gui_smart_snap.py."
+  },
+  "V-M-GUI-MARKER-MANAGER": {
+    "action": "replace",
+    "new_assertions": [
+      "test_gui_marker_manager.py asserts add_marker with mocked smart_snap=11.0 stores original_ts=12.0 and snapped_ts=11.0 in project.markers.",
+      "test_gui_marker_manager.py asserts delete_marker(existing_ts) returns True and reduces len(project.markers) from 2 to 1.",
+      "test_gui_marker_manager.py asserts after delete, reloaded project.json contains one marker with original_ts=20.0."
+    ],
+    "reason": "Previous 'MarkerManager contract honored' was generic; replaced with concrete add/delete/persist assertions from test_gui_marker_manager.py."
+  },
+  "V-M-GUI-SETTINGS-PROJECT": {
+    "action": "replace",
+    "new_assertions": [
+      "test_gui_settings_project.py asserts ProjectSettingsDialog windowTitle == 'Project Settings'.",
+      "test_gui_settings_project.py asserts dialog loads config into _roi_edit, _fps_spin, _min_dur_spin, and _dedupe_check widgets.",
+      "test_gui_settings_project.py asserts _on_accept populates result_config with slide_roi, threshold=0.15, sample_fps=3.0."
+    ],
+    "reason": "Previous 'ProjectSettingsDialog contract honored' was generic; replaced with concrete title, widget-population, and accept-result assertions from test_gui_settings_project.py."
+  },
+  "V-M-GUI-SETTINGS-APP": {
+    "action": "replace",
+    "new_assertions": [
+      "test_gui_settings_app.py asserts AppSettingsDialog windowTitle == 'App Settings' and findChild(QTabWidget).count() == 5.",
+      "test_gui_settings_app.py asserts _on_accept calls save_app_config exactly once (mock_save.assert_called_once).",
+      "test_gui_settings_app.py asserts _llm_api_token_edit is in Password echo mode and a 'Test Connection' button exists."
+    ],
+    "reason": "Previous 'AppSettingsDialog contract honored' was generic; replaced with concrete title, save-call, and LLM-tab widget assertions from test_gui_settings_app.py."
+  },
+  "V-M-GUI-VIDEOPLAYER": {
+    "action": "replace",
+    "new_assertions": [
+      "test_gui_video_player.py asserts VideoPlayerWidget creates _video_item, _view, _play_btn, _seek_slider, _volume_slider all non-None.",
+      "test_gui_video_player.py asserts _on_position_changed(15000) emits positionChanged with 15.0 (mock_handler.assert_called_once_with(15.0)).",
+      "test_gui_video_player.py asserts set_subtitle_text(None) hides _subtitle_item and clears its plain text."
+    ],
+    "reason": "Previous 'VideoPlayer contract honored' was generic; replaced with concrete widget-creation, positionChanged signal, and subtitle-hide assertions from test_gui_video_player.py."
+  },
+  "V-M-GUI-SUBTITLE-OVERLAY": {
+    "action": "replace",
+    "new_assertions": [
+      "test_gui_subtitle_overlay.py asserts load_subtitles(srt_file) parses SRT into len(_subs) == 2.",
+      "test_gui_subtitle_overlay.py asserts _get_text_at_time(2.0) == 'Hello world' and between-cue position 4.5 returns None.",
+      "test_gui_subtitle_overlay.py asserts sync_to_position(4.5) hides widget between cues and sync without subtitles stays hidden."
+    ],
+    "reason": "Previous 'SubtitleOverlay contract honored' was generic; replaced with concrete SRT-loading, cue-text, and sync-hide assertions from test_gui_subtitle_overlay.py."
+  },
+  "V-M-GUI-MENUBAR": {
+    "action": "replace",
+    "new_assertions": [
+      "test_gui_menu_bar.py asserts MenuBarWidget exposes act_new_project, act_open_project, act_save_project, act_exit, act_project_settings, act_app_settings.",
+      "test_gui_menu_bar.py asserts shortcut strings: Ctrl+N (new), Ctrl+O (open), Ctrl+S (save), Ctrl+Q (exit), Ctrl+, (project settings).",
+      "test_gui_menu_bar.py asserts each menu action's triggered.emit() calls the connected MagicMock handler exactly once."
+    ],
+    "reason": "Previous 'MenuBar contract honored' was generic; replaced with concrete action-presence, shortcut, and signal-fire assertions from test_gui_menu_bar.py."
+  },
+  "V-M-APP-BOOTSTRAP": {
+    "action": "replace",
+    "new_assertions": [
+      "test_bootstrap.py asserts ApplicationServices.context.repository is svc.repository (single shared context).",
+      "test_bootstrap.py asserts each service (_preview, _detect, _align, _notes, _export, _validate, _auto) is None until first access (lazy).",
+      "test_bootstrap.py asserts auto_service._preview/_detect/_align/_notes/_export/_validate reference the same singletons as svc.*_service."
+    ],
+    "reason": "Previous 'composes deterministically' and 'stable service references' were vague; replaced with concrete shared-context, lazy, and singleton-identity assertions from test_bootstrap.py."
+  },
+  "V-M-APP-COMMON": {
+    "action": "replace",
+    "new_assertions": [
+      "test_common.py asserts ServiceResult.ok('detect', data={'count': 3}, revision='rev-1') yields success=True with data and revision set.",
+      "test_common.py asserts ProgressUpdate rejects percent=-1 and percent=101 with ValueError.",
+      "test_common.py asserts CancellationToken.trigger() sets is_cancelled True and check('detect') raises CancellationError."
+    ],
+    "reason": "Previous 'stable deterministic results' and 'structured error' phrases were vague; replaced with concrete factory, validation, and cancellation assertions from test_common.py."
+  },
+  "V-M-GUI-PIPELINE-CTRL": {
+    "action": "replace",
+    "new_assertions": [
+      "test_pipeline_controller.py asserts run_detect forwards service-reported progress (42, 'Detected candidates') to controller.progress signal.",
+      "test_pipeline_controller.py asserts each stage method calls matching service.execute exactly once and emits stageFinished with ServiceResult.ok(stage).",
+      "test_pipeline_controller.py asserts ServiceResult.fail emits error signal and stageFinished is NOT emitted on error (len(finished_calls) == 0)."
+    ],
+    "reason": "Previous 'emits exactly one worker signal' and 'serialized, not dropped silently' were vague; replaced with concrete progress, dispatch, and error-path assertions from test_pipeline_controller.py."
+  },
+  "V-M-GUI-TIMELINE-CTRL": {
+    "action": "replace",
+    "new_assertions": [
+      "test_timeline_controller.py asserts add_slide at 12.0 inside a real 3-slide project increases slide_count to 4 and emits slidesChanged.",
+      "test_timeline_controller.py asserts delete_slide(first_id) returns True and reduces reloaded slide_count from 3 to 2.",
+      "test_timeline_controller.py asserts move_slide with overlapping interval (5.0-15.0) returns False and emits errorOccurred.",
+      "test_timeline_controller.py asserts resize_slide persists interval.end == 7.0 after reload."
+    ],
+    "reason": "Previous 'deterministic block updates' and 'selection state round-trips' did not match the actual tests; replaced with concrete add/delete/move/resize assertions from test_timeline_controller.py."
+  },
+  "V-M-DETECT-BENCHMARK": {
+    "action": "replace",
+    "new_assertions": [
+      "test_benchmark_provenance.py asserts _validate_provenance_sha accepts full 40-char hex SHAs and rejects abbreviated, uppercase, and non-hex.",
+      "test_benchmark_provenance.py asserts _validate_provenance_sha with expected_type='commit' rejects known tree SHA with 'Expected git object type'.",
+      "test_benchmark_provenance.py asserts build_aggregate_evidence effective_config equals median_run.effective_config without benchmark_id or wall_clock_seconds contamination."
+    ],
+    "reason": "Previous 'round-trips canonical metadata' and 'equals committed signature' were vague; replaced with concrete SHA-validation and effective-config-contamination assertions from test_benchmark_provenance.py."
+  },
+  "V-M-GITHUB-PROVIDER": {
+    "action": "replace",
+    "new_assertions": [
+      "test_github_release_provider.py asserts fetch_releases on a 2-item mocked response returns releases ordered v0.6.0 then v0.5.0 with Version objects.",
+      "test_github_release_provider.py asserts HTTP 403/404/429/500 raises httpx.HTTPStatusError via mocked response.",
+      "test_github_release_provider.py asserts malformed tag 'not-a-version' raises ValueError with 'Invalid version tag'."
+    ],
+    "reason": "Previous 'structured errors, not raw exceptions' was inaccurate (tests raise httpx errors); replaced with concrete ordering, HTTP-error, and tag-validation assertions from test_github_release_provider.py."
+  },
+  "V-M-TIMELINE-MODEL": {
+    "action": "replace",
+    "new_assertions": [
+      "test_timeline_model.py asserts generated Clip.uid is 8 chars and Clip(5, 15).duration == 10.",
+      "test_timeline_model.py asserts SlideClip.from_segment round-trips index/start_sec/transcript back through to_segment().",
+      "test_timeline_model.py asserts Timeline.duration = 120.0 emits durationChanged (qtbot.waitSignal)."
+    ],
+    "reason": "Previous 'TimelineModel contract honored' was generic; replaced with concrete uid/duration, round-trip, and signal-emission assertions from test_timeline_model.py."
+  },
+  "V-M-GUI-LOG-BRIDGE": {
+    "action": "replace",
+    "new_assertions": [
+      "test_gui_log_bridge.py asserts LogBridge.instance() returns identical singleton (lb1 is lb2).",
+      "test_gui_log_bridge.py asserts logger.info via LogBridge emits newLog signal within 2000ms (qtbot.waitSignal).",
+      "test_gui_log_bridge.py asserts recent(5) contains entries whose 'message' field includes 'LogBridge test message 2'."
+    ],
+    "reason": "Previous 'LogBridge contract honored' was generic; replaced with concrete singleton, signal-emission, and recent-buffer assertions from test_gui_log_bridge.py."
+  },
+  "V-M-GUI-DEBUG-DOCK": {
+    "action": "replace",
+    "new_assertions": [
+      "test_gui_debug_dock.py asserts LogPanel.LEVEL_COLORS['ERROR'] contains '#ff' and filter combo contains 'ALL' and 'ERROR'.",
+      "test_gui_debug_dock.py asserts StatePanel.set_targets with a slides track yields root.topLevelItem(0).childCount() >= 1.",
+      "test_gui_debug_dock.py asserts DebugDock windowTitle == 'Debug', _tabs.count() == 2, and append_log writes 'crash!' to log panel text."
+    ],
+    "reason": "Previous 'DebugDock contract honored' was generic; replaced with concrete color/filter, tree-population, and tab/append assertions from test_gui_debug_dock.py."
+  },
+  "V-M-GUI-SIGNAL-SPY": {
+    "action": "replace",
+    "new_assertions": [
+      "test_gui_signal_spy.py asserts SignalSpy.watch(timeline, 'trackAdded') executes without raising on a Timeline instance.",
+      "test_gui_signal_spy.py asserts SignalSpy.watch_all(timeline) and watch_all(track) execute without raising.",
+      "test_gui_signal_spy.py asserts SignalSpy.watch(timeline, 'no_such_signal') does not raise on a missing signal name."
+    ],
+    "reason": "Previous 'SignalSpy contract honored' was generic; tests only verify no-exception behavior on watch/watch_all (LogBridge emission is not asserted)."
+  },
+  "V-M-OPERATION-REGISTRY": {
+    "action": "replace",
+    "new_assertions": [
+      "test_operation_registry.py asserts OperationRegistry.create returns op with operation_id set, tool='detect', status='queued'.",
+      "test_operation_registry.py asserts queued→running→succeeded transition sets finished_at and stores result['slides']=5.",
+      "test_operation_registry.py asserts cancel() on running op sets status='cancelled' but leaves terminal succeeded op unchanged.",
+      "test_operation_registry.py asserts reg.update with status='invalid' raises ValueError."
+    ],
+    "reason": "Previous 'OperationRegistry contract honored' was generic; replaced with concrete create, transition, cancel, and invalid-status assertions from test_operation_registry.py."
+  },
+  "V-M-PERSIST-DTO": {
+    "action": "replace",
+    "new_assertions": [
+      "test_persistence_dto.py asserts ProjectDocumentV2 JSON round-trip preserves full pipeline including StageStatus.FAILED on notes and StageStatus.SKIPPED on pptx_export.",
+      "test_persistence_dto.py asserts ProjectDocumentV2 rejects 'output_dir' and unknown top-level 'backend' with ValidationError.",
+      "test_persistence_dto.py asserts PipelineDocument rejects missing canonical stage 'auto' (ValidationError match='missing=.*auto').",
+      "test_persistence_dto.py asserts SlideDocument rejects start == end with 'greater than start' ValidationError."
+    ],
+    "reason": "Previous 'PersistenceDtoV2 contract honored' was generic; replaced with concrete round-trip, field-rejection, and stage-validation assertions from test_persistence_dto.py."
+  },
+  "V-M-PERSIST-MIGRATIONS": {
+    "action": "replace",
+    "new_assertions": [
+      "test_migrations.py asserts migrate_v1_to_v2 produces deterministic 32-char UIDs for missing slides and preserves existing 'existing-legacy-id'.",
+      "test_migrations.py asserts migration maps legacy state flags: preview/detect→SUCCEEDED, align→NOT_STARTED, notes→SUCCEEDED.",
+      "test_migrations.py asserts unknown project fields (video_config, detection, llm, markers, backend) preserved under extensions['legacy'] without output_dir.",
+      "test_migrations.py asserts absolute slide image inside project root becomes relative 'slides/slide_001.png' after migration."
+    ],
+    "reason": "Previous 'PersistenceMigrations contract honored' was generic; replaced with concrete UID, pipeline-flag, legacy-preservation, and path-normalization assertions from test_migrations.py."
+  },
+  "V-M-FILE-REPO": {
+    "action": "replace",
+    "new_assertions": [
+      "test_file_repository.py asserts repo.create then repo.load round-trips project name and slide_count == 2 with uids 's1', 's2' present.",
+      "test_file_repository.py asserts save writes project.json schema_version='2.0' with revision and slides.json source_revision matching.",
+      "test_file_repository.py asserts derived slides.json write failure raises ProjectAtomicWriteError and leaves canonical project.json valid.",
+      "test_file_repository.py asserts stale expected_revision raises ProjectRevisionConflict and corrupt document raises ProjectDocumentCorrupted."
+    ],
+    "reason": "Previous 'FileProjectRepository contract honored' was generic; replaced with concrete round-trip, schema-write, atomicity, and conflict assertions from test_file_repository.py."
+  },
+  "V-M-REF-PERSISTENCE-STABILIZATION": {
+    "action": "replace",
+    "new_assertions": [
+      "tests/infra/test_persistence_dto.py asserts ProjectDocumentV2 strict schema 2.0 round-trip and rejects unknown canonical fields (see V-M-PERSIST-DTO).",
+      "tests/infra/test_migrations.py asserts deterministic v1→v2 migration with stable UIDs and legacy-field preservation (see V-M-PERSIST-MIGRATIONS).",
+      "tests/infra/test_file_repository.py asserts atomic revisioned commit, derived slides.json consistency, and revision-conflict protection (see V-M-FILE-REPO).",
+      "tests/infra/test_mapper.py asserts ProjectMapper.to_domain does not invoke replace_detected_slides during rehydration (monkeypatch fail_if_called)."
+    ],
+    "reason": "Previous assertion only stated 'No production import...' which was a generic layer-boundary claim; replaced with concrete schema, migration, atomicity, and mapper assertions from the four infra tests."
+  },
+  "V-M-APP-PREVIEW": {
+    "action": "replace",
+    "new_assertions": [
+      "test_preview_service.py asserts PreviewService.execute succeeds with result.revision not None and reloaded project retains slide_count == 2 with uid 's1'.",
+      "test_preview_service.py asserts CancellationToken.trigger before execute raises StageFailureError('cancel') and leaves slide_count == 2 unchanged.",
+      "test_preview_service.py asserts adapter RuntimeError('decoder failed') raises StageFailureError and observer receives ProgressUpdate percent 10 and 100."
+    ],
+    "reason": "Previous 'PreviewService contract honored' was generic; replaced with concrete success, cancellation, and adapter-failure assertions from test_preview_service.py."
+  },
+  "V-M-APP-DETECT": {
+    "action": "replace",
+    "new_assertions": [
+      "test_detection_service.py asserts detect replaces slides (old1 gone, d1/d2 present) and marks pipeline.status('align') as StageStatus.STALE.",
+      "test_detection_service.py asserts cancellation before mutation preserves old slide_count == 1 and uid 'old1' is still present.",
+      "test_detection_service.py asserts CapturingDetector receives project config: sample_fps=0.5, threshold='auto', min_slide_duration=10.0."
+    ],
+    "reason": "Previous 'contract honored' was generic; replaced with concrete replacement, cancellation, and config-propagation assertions from test_detection_service.py."
+  },
+  "V-M-APP-ALIGN": {
+    "action": "replace",
+    "new_assertions": [
+      "test_alignment_service.py asserts dry_run returns success with revision=None and leaves slides[0].interval.end at 5.0 (no save).",
+      "test_alignment_service.py asserts apply updates slides[0].interval.end to 5.5, sets pipeline.status('align') to SUCCEEDED, and data['boundaries_moved'] == 1.",
+      "test_alignment_service.py asserts missing subtitles returns success=False with 'Subtitles' in result.error."
+    ],
+    "reason": "Previous 'contract honored' was generic; replaced with concrete dry-run, apply, and no-subtitles assertions from test_alignment_service.py."
+  },
+  "V-M-APP-NOTES": {
+    "action": "replace",
+    "new_assertions": [
+      "test_notes_service.py asserts basic mode sets get_slide('s1').notes == 'cleaned notes' and pipeline.status('notes') to SUCCEEDED.",
+      "test_notes_service.py asserts LLM failure raises StageFailureError('LLM gateway') and leaves get_slide('s1').notes == ''.",
+      "test_notes_service.py asserts result.data['raw_cues_preserved'] is True and transcript remains 'raw' after processing."
+    ],
+    "reason": "Previous 'NotesService contract honored' was generic; replaced with concrete basic-mode, LLM-failure, and raw-cue-preservation assertions from test_notes_service.py."
+  },
+  "V-M-APP-EXPORT": {
+    "action": "replace",
+    "new_assertions": [
+      "test_export_service.py asserts markdown export succeeds with slide_count == 2, image_count == 1, and exporter.title == 'export-test' (project name).",
+      "test_export_service.py asserts overwrite=False with existing file returns success=False with 'overwrite=False' in error.",
+      "test_export_service.py asserts dry_run leaves pipeline.status('markdown_export') as NOT_STARTED."
+    ],
+    "reason": "Previous 'ExportService contract honored' was generic; replaced with concrete markdown, overwrite-guard, and dry-run assertions from test_export_service.py."
+  },
+  "V-M-APP-VALIDATE": {
+    "action": "replace",
+    "new_assertions": [
+      "test_validation_service.py asserts a valid canonical project returns result.data['valid'] is True.",
+      "test_validation_service.py asserts removing slides.json produces errors containing 'slides.json' and result.data['valid'] is False.",
+      "test_validation_service.py asserts disabling all checks (check_storage=False, etc.) returns valid is True."
+    ],
+    "reason": "Previous 'ValidationService contract honored' was generic; replaced with concrete valid-project, missing-artifact, and disabled-check assertions from test_validation_service.py."
+  },
+  "V-M-APP-AUTO": {
+    "action": "replace",
+    "new_assertions": [
+      "test_auto_service.py asserts mode='full' runs stages in order: ['preview','detect','align','notes','export','validate'] with each success True.",
+      "test_auto_service.py asserts mode='resume' marks already-SUCCEEDED detect as skipped while preview success remains True.",
+      "test_auto_service.py asserts detect failure halts pipeline: align/notes/export/validate marked skipped and data['failed_stage'] == 'detect'."
+    ],
+    "reason": "Previous 'contract honored' was generic; replaced with concrete full, resume, and failure-halt assertions from test_auto_service.py."
+  },
+  "V-M-REF-APP-SERVICES": {
+    "action": "replace",
+    "new_assertions": [
+      "test_common.py asserts ServiceResult.ok/fail factories produce frozen DTOs with success/stage/data/revision fields.",
+      "test_common.py asserts ServiceContext with triggered CancellationToken propagates CancellationError on check_cancelled('align').",
+      "test_common.py asserts ServiceContext.report_progress calls observer.on_progress with ProgressUpdate(25, 'quarter')."
+    ],
+    "reason": "Previous assertion only stated 'No production import...' which was a generic layer-boundary claim; replaced with concrete DTO, cancellation, and observer assertions from test_common.py."
+  },
+  "V-M-REF-MCP-ADAPTER": {
+    "action": "replace",
+    "new_assertions": [
+      "test_app_service_runner.py asserts McpServiceAdapter.execute_command('nonexistent', ...) returns {'success': False} with 'unknown' in error.",
+      "test_app_service_runner.py asserts 'preview' and 'auto_align' commands dispatch and return dict containing 'stage' key.",
+      "test_app_service_runner.py asserts AppServiceRunner._dispatch with project_model=None raises RuntimeError('No open project').",
+      "test_app_service_runner.py asserts _dispatch on nonexistent project path raises OperationError."
+    ],
+    "reason": "Previous assertion only stated 'No production import...' which was a generic layer-boundary claim; replaced with concrete adapter-dispatch and runner-error assertions from test_app_service_runner.py."
+  },
+  "V-M-REF-CLI-ADAPTER": {
+    "action": "replace",
+    "new_assertions": [
+      "test_cli_adapter_core.py asserts CliExitCode has exactly 8 members with SUCCESS=0, CANCELLED=7, and classify_error maps each error type to expected code+label.",
+      "test_cli_adapter_commands.py asserts all 8 commands (preview/detect/align/notes/export-md/export-pptx/validate/auto) are registered and accept PROJECT_DIR.",
+      "test_cli_adapter_commands.py asserts missing project dir returns exit code 3 (PRECONDITION_ERROR) for preview/detect/align and 1 for auto.",
+      "test_cli_architecture.py asserts src/video2pptx/adapters/cli, bootstrap, and gui/controllers source files contain no forbidden legacy imports (video2pptx.cli, detect_slides, etc.)."
+    ],
+    "reason": "Previous 'CliAdapter contract honored' was generic; replaced with concrete exit-code, command-registration, missing-project, and forbidden-import assertions from the cli_adapter test suite."
+  },
+  "V-M-REF-LEGACY": {
+    "action": "replace",
+    "reason": "architecture tests are concrete layering assertions",
+    "new_assertions": [
+      "tests/test_architecture.py::TestArchitectureConstraints::test_gui_no_legacy_pipeline asserts no gui/*.py module imports {detect_slides, notes_pipeline, markdown_export, pptx_export, debug_export} at module level.",
+      "tests/test_architecture.py::TestArchitectureConstraints::test_gui_controllers_no_legacy_project asserts no gui/controllers/*.py imports project_manager.",
+      "tests/test_architecture.py::TestArchitectureConstraints::test_mcp_no_legacy_pipeline_at_module_level asserts no debug/*.py module imports legacy pipeline at module level.",
+      "tests/test_architecture.py::TestArchitectureConstraints::test_mcp_no_mainwindow asserts src/video2pptx/debug/mcp_server.py does not import main_window at module level.",
+      "tests/test_architecture.py::TestArchitectureConstraints::test_qt_write_cmds_only_ui_ops asserts _QT_WRITE_CMDS contains none of {project_save, video_import, subtitle_load, subtitle_import, slide_add, slide_delete, slide_move, slide_resize}."
+    ]
+  },
+  "V-M-REF-CANONICAL-ROUTE": {
+    "action": "replace",
+    "reason": "canonical-route enforcement is concretely asserted by architecture tests",
+    "new_assertions": [
+      "tests/test_architecture.py::TestArchitectureConstraints::test_cli_adapter_no_legacy_pipeline asserts src/video2pptx/adapters/cli/app.py module-level imports none of {detect_slides, notes_pipeline, markdown_export, pptx_export, llm_orchestrator, project_manager}.",
+      "tests/test_architecture.py::TestArchitectureConstraints::test_cli_no_gui asserts src/video2pptx/cli.py does not import PySide6 at module level.",
+      "tests/test_architecture.py::TestArchitectureConstraints::test_detect_slides_no_gui asserts src/video2pptx/detect_slides.py imports neither gui nor PySide6."
+    ]
+  },
+  "V-M-REF-DETECTION-INPUT": {
+    "action": "replace",
+    "new_assertions": [
+      "test_main_window_integration.py test_f0076_full_detect_path_propagates_unicode_video asserts fake detector receives video_path == '05_4. Hermes.mp4' unchanged.",
+      "test_detection_service.py asserts CapturingDetector receives project.detection config (sample_fps=0.5, threshold='auto') without explicit overrides.",
+      "test_main_window_integration.py test_f0075_gui_persistence_round_trip asserts saved DetectionConfig (sample_fps=3.5, threshold=0.123) survives close/reopen and reaches fake detector unchanged."
+    ],
+    "reason": "Previous assertion only stated 'No production import...' which was a generic layer-boundary claim; replaced with concrete Unicode-path, config-propagation, and persistence round-trip assertions."
+  },
+  "V-M-REF-PRODUCT-IDENTITY": {
+    "action": "replace",
+    "new_assertions": [
+      "test_branding.py asserts QIcon(':/branding/Video2PPTX-icon.png') and QPixmap(':/branding/Video2PPTX-logo.png') load non-null from registered resources.",
+      "test_branding.py asserts AboutDialog windowTitle == f'About {identity.name}' and aboutLogo QLabel shows a non-null pixmap.",
+      "test_branding.py asserts MainWindow compact applicationLogo pixmap width is 150-250 and height 40-80 with all header buttons present."
+    ],
+    "reason": "Previous assertion only stated 'No production import...' which was a generic layer-boundary claim; replaced with concrete resource-load, About-dialog, and MainWindow-logo assertions from test_branding.py."
+  },
+  "V-M-REF-WIN-INSTALLER": {
+    "action": "replace",
+    "new_assertions": [
+      "test_windows_installer.py asserts packaging/windows/installer/video2pptx.iss contains exactly one README.md and one dist/windows/Video2PPTX/* Source directive.",
+      "test_windows_installer.py asserts SetupIconFile directive equals exactly '..\\..\\..\\assets\\branding\\Video2PPTX.ico'.",
+      "test_windows_installer.py asserts the .iss file omits '[UninstallRun]', '[Registry]', and '.v2pp'."
+    ],
+    "reason": "Previous assertion only stated 'No production import...' which was a generic layer-boundary claim; replaced with concrete payload, icon-directive, and removed-section assertions from test_windows_installer.py."
+  },
+  "V-M-PERF-DETECT-BASELINE": {
+    "action": "replace",
+    "new_assertions": [
+      "test_detect_slides.py asserts run_detect_slides produces SlidesDocument with non-empty slides and PNG screenshots matching '\\x89PNG' header.",
+      "test_detect_slides.py TestRssLifecycle asserts sampler_start precedes document/persist and sampler_stop runs in all exit paths (normal, detector exception, persistence exception).",
+      "Committed benchmarks/detect/evidence/aggregate_evidence.json effective_config is the median_run config without benchmark_id or wall_clock_seconds contamination (see test_benchmark_provenance.py)."
+    ],
+    "reason": "Previous assertion only stated 'No production import...' which was a generic layer-boundary claim; replaced with concrete screenshot, RSS-lifecycle, and benchmark-evidence assertions from test_detect_slides.py and the committed benchmark artifacts."
+  },
+  "V-M-PERF-DETECT-TWO-PASS": {
+    "action": "replace",
+    "new_assertions": [
+      "test_twopass_parity.py asserts run_detect_slides output matches benchmarks/detect/reference/pre-twopass-3472e62.json within 1e-4 tolerance on score_timestamps, score_values, and segment start/end/representative_timestamp.",
+      "test_twopass_parity.py asserts each screenshot's relative path and SHA-256 exactly matches the pre-twopass reference artifact.",
+      "test_detect_slides.py asserts VideoDecoder.iter_frames is called exactly 2 times for both dedup-enabled and dedup-disabled runs and log output never contains 'Pass 3/3'."
+    ],
+    "reason": "Previous assertion only stated 'No production import...' which was a generic layer-boundary claim; replaced with concrete parity, SHA-256, and iter_frames-count assertions from test_twopass_parity.py and test_detect_slides.py."
+  },
+  "V-M-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION": {
+    "action": "replace",
+    "new_assertions": [
+      "test_target_optimization_discrimination.py asserts compute_median/mean/sample_stdev/paired_absolute_savings produce exact canonical arithmetic results.",
+      "test_target_optimization_discrimination.py asserts check_frame_parity detects single-byte, timestamp, missing-target, and shape mismatches.",
+      "test_target_optimization_discrimination.py asserts bottleneck_decision.json carries outcome='T3', terminal_outcome='T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION', selected_optimization='NONE', while raw discrimination_evidence.json retains immutable outcome='PENDING'."
+    ],
+    "reason": "Previous 'TargetOptimizationDiscriminationR2 contract honored' was generic; replaced with concrete statistics, parity-check, and decision-artifact assertions from test_target_optimization_discrimination.py."
+  },
+  "V-M-REF-UPDATE-CHECKER": {
+    "action": "replace",
+    "new_assertions": [
+      "test_update_service.py asserts normalize_tag strips 'v' prefix and returns None for invalid tags like 'not-a-version'.",
+      "test_update_service.py asserts UpdateService.check returns UPDATE_AVAILABLE when latest > current and UP_TO_DATE when current >= latest.",
+      "test_update_service.py asserts STABLE channel ignores prereleases while BETA channel includes them."
+    ],
+    "reason": "Previous 'UpdateService contract honored' was generic; replaced with concrete normalize_tag, version-comparison, and channel-filter assertions from test_update_service.py."
+  },
+  "V-M-GUI-STATUS": {
+    "action": "insufficient",
+    "new_assertions": [],
+    "reason": "Declared test_gui_main.py is a MainWindow smoke test (window creation, toolbar, detect button); it never references StatusBarManager, progress, elapsed time, or ETA. Contract claim is not asserted."
+  },
+  "V-M-GUI-SUBTITLE-EDITOR": {
+    "action": "insufficient",
+    "new_assertions": [],
+    "reason": "Declared test_gui_main.py is a MainWindow smoke test; it never references SubtitleEditor, LLM vision analysis, or transcript correction. Contract claim is not asserted."
+  },
+  "V-M-GUI-MARKER-PANEL": {
+    "action": "insufficient",
+    "new_assertions": [],
+    "reason": "Declared test_gui_main.py is a MainWindow smoke test; it never references MarkerPanel, the marker table, or per-row seek/re-snap/delete actions. Contract claim is not asserted."
+  },
+  "V-M-GUI-ROI-SELECTOR": {
+    "action": "insufficient",
+    "new_assertions": [],
+    "reason": "Declared test_gui_main.py is a MainWindow smoke test; it never references RoiSelector, rectangle drawing, or ignore-ROI definition. Contract claim is not asserted."
+  }
+}

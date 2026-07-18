@@ -1,0 +1,36 @@
+{
+  "head": "34250e7e9e1803e10447a6f5710b3bb571994cb7",
+  "scope": "phase",
+  "command": "python -m pytest tests --ignore=tests/e2e --ignore=tests/tools -q",
+  "working_directory": "D:\\git\\video2pptx",
+  "python_version": "3.14.6 (tags/v3.14.6:c63aec6, Jun 10 2026, 10:26:10) [MSC v.1944 64 bit (AMD64)]",
+  "pytest_version": "pytest 9.0.3",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "started_at": "2026-07-18T06:25:48.983278+00:00",
+  "finished_at": "2026-07-18T06:26:12.695778+00:00",
+  "exit_code": 1,
+  "passed": 1165,
+  "failed": 7,
+  "skipped": 1,
+  "xfailed": 0,
+  "xpassed": 0,
+  "rationale": "Prior bounded phase command excluding E2E and tools (no benchmarks, no media-heavy runs, no new performance benchmark).",
+  "output_file": "test-runs/phase-tests.txt",
+  "pre_existing_failure": true,
+  "pre_existing_failure_basis": [
+    "docs/findings.md F-0103 (OPEN / NON_BLOCKING): codec_context access provenance gap",
+    "docs/verification-plan.xml V-M-BACKEND-PYAV blocked-reason: 3 codec_context failures in test_detection_metrics.py",
+    "docs/verification-plan.xml V-M-DETECT-METRICS blocked-reason: 3 pre-existing codec_context failures",
+    "docs/development-plan.xml Phase-18 Step 18.4 references F-0103 as accepted non-blocking technical debt"
+  ],
+  "failed_tests": [
+    "tests/test_backends.py::TestResolveBackend::test_auto_returns_opencv",
+    "tests/test_backends.py::TestResolveBackend::test_unsupported_falls_back",
+    "tests/test_detection_metrics.py::TestPyAVMetrics::test_exact_decode_conversion_and_transfer_metrics[False-key_frames0-2]",
+    "tests/test_detection_metrics.py::TestPyAVMetrics::test_exact_decode_conversion_and_transfer_metrics[True-key_frames1-2]",
+    "tests/test_detection_metrics.py::TestPyAVMetrics::test_decode_failure_closes_container_and_propagates",
+    "tests/test_video_decode.py::TestSelectBackend::test_auto_returns_opencv",
+    "tests/test_video_decode.py::TestSelectBackend::test_fallback_log"
+  ],
+  "failure_classification": "CODEC_CONTEXT_PROVENANCE (F-0103); not caused by this cleanup; product runtime and tests unchanged by this commit."
+}

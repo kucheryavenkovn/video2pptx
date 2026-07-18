@@ -1,0 +1,309 @@
+Repository HEAD: 34250e7e9e1803e10447a6f5710b3bb571994cb7
+Command: python -m pytest tests --ignore=tests/e2e --ignore=tests/tools -q
+Working directory: D:\git\video2pptx
+Python version: 3.14.6 (tags/v3.14.6:c63aec6, Jun 10 2026, 10:26:10) [MSC v.1944 64 bit (AMD64)]
+Pytest version: pytest 9.0.3
+Platform: Windows-11-10.0.26200-SP0
+Started at: 2026-07-18T06:25:48.983278+00:00
+Finished at: 2026-07-18T06:26:12.695778+00:00
+Exit code: 1
+Rationale: Prior bounded phase command excluding E2E and tools (no benchmarks, no media-heavy runs, no new performance benchmark).
+
+RAW OUTPUT:
+........................................................................ [  6%]
+........................................................................ [ 12%]
+........................................................................ [ 18%]
+.............................................................F...F...... [ 24%]
+........................................................................ [ 30%]
+........................................................................ [ 36%]
+........................................................................ [ 42%]
+............................................................s..........F [ 49%]
+FF...................................................................... [ 55%]
+........................................................................ [ 61%]
+........................................................................ [ 67%]
+........................................................................ [ 73%]
+........................................................................ [ 79%]
+........................................................................ [ 85%]
+........................................................................ [ 92%]
+........................................................................ [ 98%]
+........F.F..........                                                    [100%]
+================================== FAILURES ===================================
+_________________ TestResolveBackend.test_auto_returns_opencv _________________
+
+self = <test_backends.TestResolveBackend object at 0x00000249B3E8F110>
+
+    def test_auto_returns_opencv(self):
+        name, info = _resolve_backend("auto")
+>       assert name == "opencv"
+E       AssertionError: assert 'pyav' == 'opencv'
+E         
+E         - opencv
+E         + pyav
+
+tests\test_backends.py:50: AssertionError
+---------------------------- Captured stderr call -----------------------------
+2026-07-18 09:25:51.237 | DEBUG    | video2pptx.backends:_resolve_backend:88 - [Backends][_resolve_backend] Selected backend=pyav
+_______________ TestResolveBackend.test_unsupported_falls_back ________________
+
+self = <test_backends.TestResolveBackend object at 0x00000249B3E9DA30>
+loguru_sink = []
+
+    def test_unsupported_falls_back(self, loguru_sink):
+        _resolve_backend("pyav")
+>       assert any("not available" in msg for msg in loguru_sink)
+E       assert False
+E        +  where False = any(<generator object TestResolveBackend.test_unsupported_falls_back.<locals>.<genexpr> at 0x00000249B521B9F0>)
+
+tests\test_backends.py:67: AssertionError
+_ TestPyAVMetrics.test_exact_decode_conversion_and_transfer_metrics[False-key_frames0-2] _
+
+self = <test_detection_metrics.TestPyAVMetrics object at 0x00000249B46A1E50>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000249B91071D0>
+keyframes_only = False, key_frames = [True, True, True, True, True, True, ...]
+expected_yields = 2
+
+    @pytest.mark.parametrize(
+        ("keyframes_only", "key_frames", "expected_yields"),
+        [(False, [True] * 7, 2), (True, [True, False, True, False], 2)],
+    )
+    def test_exact_decode_conversion_and_transfer_metrics(
+        self, monkeypatch, keyframes_only, key_frames, expected_yields
+    ):
+        backend, frames, container = self._install_fake_av(monkeypatch, key_frames)
+        with collect() as metrics:
+>           sampled = list(
+                backend.pyav_iter_frames(
+                    "unused.mp4", sample_fps=2.0, keyframes_only=keyframes_only
+                )
+            )
+
+tests\test_detection_metrics.py:425: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+video_path = 'unused.mp4', sample_fps = 2.0, keyframes_only = False
+
+    def pyav_iter_frames(
+        video_path: str | Path,
+        sample_fps: float = 2.0,
+        keyframes_only: bool = False,
+    ) -> Iterator[VideoFrame]:
+        # START_BLOCK_INIT
+        import av
+    
+        hw_device = _pick_hw_device()
+        hwaccel_requested = hw_device is not None
+        hwaccel_creation_error_type = None
+        hwaccel_creation_error_message = None
+        hwaccel = None
+        if hw_device is not None:
+            hwaccel, hwaccel_creation_error_type, hwaccel_creation_error_message = _create_hwaccel_with_evidence(hw_device)
+        hwaccel_object_created = hwaccel is not None
+        if not hwaccel_requested:
+            hwaccel_creation_error_type = "NOT_APPLICABLE"
+            hwaccel_creation_error_message = "NOT_APPLICABLE"
+    
+        open_error = None
+        container = None
+        try:
+            container = av.open(str(video_path), hwaccel=hwaccel)
+        except Exception as e:
+            open_error = str(e)
+            raise
+        # END_BLOCK_INIT
+    
+        # START_BLOCK_CALC_INTERVAL
+        stream = container.streams.video[0]
+>       codec_ctx = stream.codec_context
+                    ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'codec_context'
+
+src\video2pptx\backends\pyav_backend.py:233: AttributeError
+_ TestPyAVMetrics.test_exact_decode_conversion_and_transfer_metrics[True-key_frames1-2] _
+
+self = <test_detection_metrics.TestPyAVMetrics object at 0x00000249B46A1F90>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000249B4623D50>
+keyframes_only = True, key_frames = [True, False, True, False]
+expected_yields = 2
+
+    @pytest.mark.parametrize(
+        ("keyframes_only", "key_frames", "expected_yields"),
+        [(False, [True] * 7, 2), (True, [True, False, True, False], 2)],
+    )
+    def test_exact_decode_conversion_and_transfer_metrics(
+        self, monkeypatch, keyframes_only, key_frames, expected_yields
+    ):
+        backend, frames, container = self._install_fake_av(monkeypatch, key_frames)
+        with collect() as metrics:
+>           sampled = list(
+                backend.pyav_iter_frames(
+                    "unused.mp4", sample_fps=2.0, keyframes_only=keyframes_only
+                )
+            )
+
+tests\test_detection_metrics.py:425: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+video_path = 'unused.mp4', sample_fps = 2.0, keyframes_only = True
+
+    def pyav_iter_frames(
+        video_path: str | Path,
+        sample_fps: float = 2.0,
+        keyframes_only: bool = False,
+    ) -> Iterator[VideoFrame]:
+        # START_BLOCK_INIT
+        import av
+    
+        hw_device = _pick_hw_device()
+        hwaccel_requested = hw_device is not None
+        hwaccel_creation_error_type = None
+        hwaccel_creation_error_message = None
+        hwaccel = None
+        if hw_device is not None:
+            hwaccel, hwaccel_creation_error_type, hwaccel_creation_error_message = _create_hwaccel_with_evidence(hw_device)
+        hwaccel_object_created = hwaccel is not None
+        if not hwaccel_requested:
+            hwaccel_creation_error_type = "NOT_APPLICABLE"
+            hwaccel_creation_error_message = "NOT_APPLICABLE"
+    
+        open_error = None
+        container = None
+        try:
+            container = av.open(str(video_path), hwaccel=hwaccel)
+        except Exception as e:
+            open_error = str(e)
+            raise
+        # END_BLOCK_INIT
+    
+        # START_BLOCK_CALC_INTERVAL
+        stream = container.streams.video[0]
+>       codec_ctx = stream.codec_context
+                    ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'codec_context'
+
+src\video2pptx\backends\pyav_backend.py:233: AttributeError
+_____ TestPyAVMetrics.test_decode_failure_closes_container_and_propagates _____
+
+self = <test_detection_metrics.TestPyAVMetrics object at 0x00000249B461ED70>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000249CDA17CD0>
+
+    def test_decode_failure_closes_container_and_propagates(self, monkeypatch):
+        import sys
+        from types import SimpleNamespace
+    
+        from video2pptx.backends import pyav_backend
+    
+        class FakePacket:
+            def decode(self):
+                raise RuntimeError("decode failed")
+    
+        class FakeContainer:
+            def __init__(self):
+                stream = SimpleNamespace(average_rate=10.0)
+                self.streams = SimpleNamespace(video=[stream])
+                self.close_calls = 0
+    
+            def demux(self, stream):
+                return [FakePacket()]
+    
+            def close(self):
+                self.close_calls += 1
+    
+        container = FakeContainer()
+        fake_av = SimpleNamespace(open=lambda path, hwaccel=None: container)
+        monkeypatch.setitem(sys.modules, "av", fake_av)
+        monkeypatch.setattr(pyav_backend, "_pick_hw_device", lambda: None)
+    
+        with pytest.raises(RuntimeError, match="decode failed"):
+>           list(pyav_backend.pyav_iter_frames("unused.mp4", sample_fps=2.0))
+
+tests\test_detection_metrics.py:467: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+video_path = 'unused.mp4', sample_fps = 2.0, keyframes_only = False
+
+    def pyav_iter_frames(
+        video_path: str | Path,
+        sample_fps: float = 2.0,
+        keyframes_only: bool = False,
+    ) -> Iterator[VideoFrame]:
+        # START_BLOCK_INIT
+        import av
+    
+        hw_device = _pick_hw_device()
+        hwaccel_requested = hw_device is not None
+        hwaccel_creation_error_type = None
+        hwaccel_creation_error_message = None
+        hwaccel = None
+        if hw_device is not None:
+            hwaccel, hwaccel_creation_error_type, hwaccel_creation_error_message = _create_hwaccel_with_evidence(hw_device)
+        hwaccel_object_created = hwaccel is not None
+        if not hwaccel_requested:
+            hwaccel_creation_error_type = "NOT_APPLICABLE"
+            hwaccel_creation_error_message = "NOT_APPLICABLE"
+    
+        open_error = None
+        container = None
+        try:
+            container = av.open(str(video_path), hwaccel=hwaccel)
+        except Exception as e:
+            open_error = str(e)
+            raise
+        # END_BLOCK_INIT
+    
+        # START_BLOCK_CALC_INTERVAL
+        stream = container.streams.video[0]
+>       codec_ctx = stream.codec_context
+                    ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'codec_context'
+
+src\video2pptx\backends\pyav_backend.py:233: AttributeError
+_________________ TestSelectBackend.test_auto_returns_opencv __________________
+
+self = <test_video_decode.TestSelectBackend object at 0x00000249B517DA90>
+
+    def test_auto_returns_opencv(self):
+        name = select_backend("auto")
+>       assert name == "opencv"
+E       AssertionError: assert 'pyav' == 'opencv'
+E         
+E         - opencv
+E         + pyav
+
+tests\test_video_decode.py:40: AssertionError
+---------------------------- Captured stderr call -----------------------------
+2026-07-18 09:26:11.273 | DEBUG    | video2pptx.backends:_resolve_backend:88 - [Backends][_resolve_backend] Selected backend=pyav
+2026-07-18 09:26:11.274 | INFO     | video2pptx.video_decode:select_backend:39 - [VideoDecode][select_backend] Backend selected | backend=pyav requested=auto
+_____________________ TestSelectBackend.test_fallback_log _____________________
+
+self = <test_video_decode.TestSelectBackend object at 0x00000249B511AEA0>
+loguru_sink = ['2026-07-18 09:26:11.278 | WARNING  | video2pptx.backends:_resolve_backend:99 - [Backends][_resolve_backend] Backend=...elect_backend:41 - [VideoDecode][select_backend][BLOCK_FALLBACK_CPU] Requested backend=pynv unavailable, using pyav\n']
+
+    def test_fallback_log(self, loguru_sink):
+        name = select_backend("pynv")
+>       assert name == "opencv"
+E       AssertionError: assert 'pyav' == 'opencv'
+E         
+E         - opencv
+E         + pyav
+
+tests\test_video_decode.py:48: AssertionError
+---------------------------- Captured stderr call -----------------------------
+2026-07-18 09:26:11.278 | WARNING  | video2pptx.backends:_resolve_backend:99 - [Backends][_resolve_backend] Backend=pynv not available, falling back
+2026-07-18 09:26:11.278 | DEBUG    | video2pptx.backends:_resolve_backend:88 - [Backends][_resolve_backend] Selected backend=pyav
+2026-07-18 09:26:11.278 | INFO     | video2pptx.video_decode:select_backend:39 - [VideoDecode][select_backend] Backend selected | backend=pyav requested=pynv
+2026-07-18 09:26:11.278 | WARNING  | video2pptx.video_decode:select_backend:41 - [VideoDecode][select_backend][BLOCK_FALLBACK_CPU] Requested backend=pynv unavailable, using pyav
+============================== warnings summary ===============================
+tests/test_config.py::TestLoadConfig::test_missing_file_falls_back
+  D:\git\video2pptx\src\video2pptx\config.py:170: UserWarning: Config file not found: /nonexistent/config.yaml
+    warnings.warn(f"Config file not found: {config_path}")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_backends.py::TestResolveBackend::test_auto_returns_opencv
+FAILED tests/test_backends.py::TestResolveBackend::test_unsupported_falls_back
+FAILED tests/test_detection_metrics.py::TestPyAVMetrics::test_exact_decode_conversion_and_transfer_metrics[False-key_frames0-2]
+FAILED tests/test_detection_metrics.py::TestPyAVMetrics::test_exact_decode_conversion_and_transfer_metrics[True-key_frames1-2]
+FAILED tests/test_detection_metrics.py::TestPyAVMetrics::test_decode_failure_closes_container_and_propagates
+FAILED tests/test_video_decode.py::TestSelectBackend::test_auto_returns_opencv
+FAILED tests/test_video_decode.py::TestSelectBackend::test_fallback_log - Ass...
+7 failed, 1165 passed, 1 skipped, 1 warning in 22.97s

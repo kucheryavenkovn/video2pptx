@@ -1,0 +1,141 @@
+{
+  "stage": "Stage 2 verification cleanup",
+  "generated_at_head": "34250e7e9e1803e10447a6f5710b3bb571994cb7",
+  "stage_2_verification_coverage": "SUFFICIENT_FOR_CONTROLLED_AGENT_USE",
+  "full_autonomy_readiness": "INCOMPLETE",
+  "grace_integrity": "ACTIVE",
+  "remaining_autonomy_blockers": "HONEST_TECHNICAL_DEBT",
+  "product_runtime_changed": false,
+  "new_user_visible_capability": false,
+  "single_cleanup_commit": true,
+  "parent_commit": "34250e7e9e1803e10447a6f5710b3bb571994cb7",
+  "status_counts_after_cleanup": {
+    "passed": 69,
+    "blocked": 38,
+    "planned": 33,
+    "in_progress": 2,
+    "failed": 0,
+    "total_vm_entries": 144
+  },
+  "status_counts_before_cleanup": {
+    "passed": 79,
+    "blocked": 28,
+    "planned": 33,
+    "in_progress": 2,
+    "failed": 0,
+    "total_vm_entries": 144
+  },
+  "downgrades_passed_to_blocked": [
+    "V-M-COLAB",
+    "V-M-REF-PACKAGING-INVENTORY",
+    "V-M-REF-STANDALONE-BUILD",
+    "V-M-REF-PACKAGED-MCP",
+    "V-M-REF-PACKAGING-PARITY",
+    "V-M-REF-WIN-RELEASE",
+    "V-M-GUI-STATUS",
+    "V-M-GUI-SUBTITLE-EDITOR",
+    "V-M-GUI-MARKER-PANEL",
+    "V-M-GUI-ROI-SELECTOR"
+  ],
+  "autonomy_blocker_delta": {
+    "before": 128,
+    "after": 145,
+    "delta": 17,
+    "delta_reason": "honest disclosure — entries that previously held fake compliance (broken module-checks / unbounded wave) now have NO command, so autonomy correctly flags them"
+  },
+  "autonomy_warning_delta": {
+    "before": 5,
+    "after": 65,
+    "delta": 60,
+    "delta_reason": "new warnings from missing-wave-follow-up on 47 entries with no bounded surface, and missing-test-file / module-check-no-test-ref on entries whose broken commands were removed"
+  },
+  "consistency_checks": {
+    "total": 17,
+    "passed": 17,
+    "failed": 0,
+    "report": "cleanup-consistency-check.txt"
+  },
+  "phase_test_pre_existing_failures": {
+    "count": 7,
+    "pre_existing_failure": true,
+    "classification": "CODEC_CONTEXT_PROVENANCE (F-0103)",
+    "basis": [
+      "docs/findings.md F-0103 (OPEN / NON_BLOCKING)",
+      "docs/verification-plan.xml V-M-BACKEND-PYAV blocked-reason",
+      "docs/verification-plan.xml V-M-DETECT-METRICS blocked-reason",
+      "docs/development-plan.xml Phase-18 Step 18.4 references F-0103"
+    ],
+    "failed_tests": [
+      "tests/test_backends.py::TestResolveBackend::test_auto_returns_opencv",
+      "tests/test_backends.py::TestResolveBackend::test_unsupported_falls_back",
+      "tests/test_detection_metrics.py::TestPyAVMetrics::test_exact_decode_conversion_and_transfer_metrics[False-key_frames0-2]",
+      "tests/test_detection_metrics.py::TestPyAVMetrics::test_exact_decode_conversion_and_transfer_metrics[True-key_frames1-2]",
+      "tests/test_detection_metrics.py::TestPyAVMetrics::test_decode_failure_closes_container_and_propagates",
+      "tests/test_video_decode.py::TestSelectBackend::test_auto_returns_opencv",
+      "tests/test_video_decode.py::TestSelectBackend::test_fallback_log"
+    ]
+  },
+  "requirements": {
+    "req_1_module_coverage_generator": {
+      "status": "DONE",
+      "summary": "Rewrote build_coverage_map.py to consume current canonical tags (module-checks, wave-follow-up, phase-follow-up, required-trace-assertions, test-files) and final-* reports; removed legacy wave-checks/phase-checks consumption and baseline-autonomy dependency."
+    },
+    "req_2_remove_dead_module_checks": {
+      "status": "DONE",
+      "summary": "Removed 17 module-checks that referenced missing test files or non-executable targets (.ps1, .yml, .spec, .ipynb, src/ files). Kept STATUS on already-blocked entries; downgraded 6 prior 'passed' entries to blocked where no executable evidence remains. Added specific blocked-reason per entry."
+    },
+    "req_3_bounded_wave_follow_up": {
+      "status": "DONE",
+      "summary": "Replaced all 110 unbounded `python -m pytest tests -q` wave-follow-up commands. 97 entries now use a bounded surface derived from declared test-files or layer mapping; 47 entries with no honest bounded surface have empty wave-follow-up and are blocked/planned (flagged by autonomy profile as missing-wave-follow-up)."
+    },
+    "req_4_concrete_observable_evidence": {
+      "status": "DONE",
+      "summary": "Replaced generic 'contract honored' / 'fulfills its contract' assertions with concrete observable evidence in 53 passed entries. Evidence now references specific assert statements, log markers, JSON fields, mock calls, or stable artifacts. 4 entries whose only declared test does not actually assert the contract were downgraded to blocked; 2 architecture-only entries (V-M-REF-LEGACY, V-M-REF-CANONICAL-ROUTE) were given concrete test-files declarations linking their architecture-test evidence."
+    },
+    "req_5_total_vm_entries": {
+      "status": "DONE",
+      "summary": "final-summary.json now computes total_vm_entries dynamically from verification-plan.xml (144, integer). Removed the prior `true` placeholder. Added build_final_summary.py as the deterministic generator."
+    },
+    "req_6_raw_pytest_output": {
+      "status": "DONE",
+      "summary": "Created test-runs/ with targeted/wave/phase .txt + .json. Targeted=83 passed, Wave=238 passed, Phase=1165 passed + 7 pre-existing F-0103 codec_context failures (basis documented). Full raw stdout+stderr preserved."
+    }
+  },
+  "files_changed_in_commit": {
+    "modified": [
+      "docs/verification-plan.xml",
+      "docs/grace-reports/stage2-verification-20260718/build_coverage_map.py",
+      "docs/grace-reports/stage2-verification-20260718/final-summary.json",
+      "docs/grace-reports/stage2-verification-20260718/module-coverage.json",
+      "docs/grace-reports/stage2-verification-20260718/module-coverage.md"
+    ],
+    "added": [
+      "docs/grace-reports/stage2-verification-20260718/build_final_summary.py",
+      "docs/grace-reports/stage2-verification-20260718/run_cleanup_tests.py",
+      "docs/grace-reports/stage2-verification-20260718/run_consistency_checks.py",
+      "docs/grace-reports/stage2-verification-20260718/_apply_xml_cleanup.py",
+      "docs/grace-reports/stage2-verification-20260718/_cleanup_analysis.py",
+      "docs/grace-reports/stage2-verification-20260718/_cleanup_decisions.py",
+      "docs/grace-reports/stage2-verification-20260718/_cleanup_analysis.json",
+      "docs/grace-reports/stage2-verification-20260718/_cleanup_broken_module_checks.json",
+      "docs/grace-reports/stage2-verification-20260718/_cleanup_evidence.json",
+      "docs/grace-reports/stage2-verification-20260718/_cleanup_legacy_tags.json",
+      "docs/grace-reports/stage2-verification-20260718/_cleanup_unbounded_wave.json",
+      "docs/grace-reports/stage2-verification-20260718/_test_files_on_disk.txt",
+      "docs/grace-reports/stage2-verification-20260718/cleanup-consistency-check.txt",
+      "docs/grace-reports/stage2-verification-20260718/cleanup-grace-autonomy.json",
+      "docs/grace-reports/stage2-verification-20260718/cleanup-grace-autonomy.txt",
+      "docs/grace-reports/stage2-verification-20260718/cleanup-grace-lint.json",
+      "docs/grace-reports/stage2-verification-20260718/cleanup-grace-lint.txt",
+      "docs/grace-reports/stage2-verification-20260718/cleanup-grace-status.json",
+      "docs/grace-reports/stage2-verification-20260718/cleanup-grace-status.txt",
+      "docs/grace-reports/stage2-verification-20260718/test-runs/index.json",
+      "docs/grace-reports/stage2-verification-20260718/test-runs/targeted-tests.txt",
+      "docs/grace-reports/stage2-verification-20260718/test-runs/targeted-tests.json",
+      "docs/grace-reports/stage2-verification-20260718/test-runs/wave-tests.txt",
+      "docs/grace-reports/stage2-verification-20260718/test-runs/wave-tests.json",
+      "docs/grace-reports/stage2-verification-20260718/test-runs/phase-tests.txt",
+      "docs/grace-reports/stage2-verification-20260718/test-runs/phase-tests.json"
+    ]
+  }
+}

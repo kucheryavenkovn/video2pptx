@@ -1,0 +1,199 @@
+{
+  "schemaVersion": "1.0.0",
+  "tool": "grace-status",
+  "generatedAt": "2026-07-18T06:27:51.553Z",
+  "root": "D:\\git\\video2pptx",
+  "summary": {
+    "moduleSummaryLoaded": false,
+    "moduleCount": 120,
+    "readyModules": 0,
+    "attentionModules": 0,
+    "blockedModules": 0,
+    "integrityErrors": 403,
+    "integrityWarnings": 226,
+    "autonomyBlockers": 145,
+    "autonomyWarnings": 65
+  },
+  "artifacts": [
+    {
+      "path": "AGENTS.md",
+      "exists": true
+    },
+    {
+      "path": "docs/requirements.xml",
+      "exists": true,
+      "version": "0.5.0",
+      "countLabel": "use cases",
+      "count": 16
+    },
+    {
+      "path": "docs/technology.xml",
+      "exists": true,
+      "version": "0.3.0"
+    },
+    {
+      "path": "docs/knowledge-graph.xml",
+      "exists": true,
+      "version": "0.6.0",
+      "countLabel": "modules",
+      "count": 120
+    },
+    {
+      "path": "docs/development-plan.xml",
+      "exists": true,
+      "version": "0.5.0",
+      "countLabel": "modules",
+      "count": 95
+    },
+    {
+      "path": "docs/verification-plan.xml",
+      "exists": true,
+      "version": "0.5.0",
+      "countLabel": "verification entries",
+      "count": 144
+    },
+    {
+      "path": "docs/operational-packets.xml",
+      "exists": true,
+      "version": "0.2.0"
+    }
+  ],
+  "metrics": {
+    "sourceFiles": 4231,
+    "sourceFilesWithModuleContract": 134,
+    "sourceFilesWithoutModuleContract": 4097,
+    "testFiles": 1258,
+    "testFilesWithModuleContract": 91,
+    "governedFiles": 225,
+    "semanticBlocks": 155,
+    "unpairedBlockIssues": 0,
+    "filesWithStableLogMarkers": 2,
+    "testFilesWithEvidenceAssertions": 7
+  },
+  "health": {
+    "graphModules": 120,
+    "planModules": 95,
+    "codebaseModules": 101,
+    "graphOnlyModules": [
+      "M-ADAPTERS",
+      "M-APP-BUILD-META",
+      "M-APP-IDENTITY",
+      "M-APP-INPUT-RESOLVER",
+      "M-BACKEND-OPENCV",
+      "M-DESKTOP-BOOTSTRAP",
+      "M-DETECT-BENCHMARK",
+      "M-DETECT-METRICS",
+      "M-DETECT-PERF-DECISION",
+      "M-DETECT-TARGET-DISCRIMINATION-R2",
+      "M-DOMAIN-EVENTS",
+      "M-DOMAIN-SLIDE",
+      "M-DOMAIN-STATE",
+      "M-GITHUB-PROVIDER",
+      "M-GUI-ABOUT",
+      "M-GUI-HELP-MENU",
+      "M-GUI-MARKER-PANEL",
+      "M-GUI-ROI-SELECTOR",
+      "M-GUI-STATUS",
+      "M-GUI-SUBTITLE-EDITOR",
+      "M-MCP-ADAPTER",
+      "M-MCP-COMPOSITION",
+      "M-PERSIST-DETECTION",
+      "M-PORT-EVENTS",
+      "M-PORT-LLM"
+    ],
+    "planOnlyModules": [],
+    "sharedModulesWithoutGovernedFiles": [
+      "M-APP-LLM",
+      "M-APP-PROJECT",
+      "M-APP-SERVICE",
+      "M-ARCH-OVERVIEW",
+      "M-CANONICAL-COMMANDS",
+      "M-COLAB",
+      "M-DEBUG-ACTION",
+      "M-DETECT-TARGET-DISCRIMINATION-R2",
+      "M-DOMAIN-EVENTS",
+      "M-E2E-RUNNER",
+      "M-E2E-SCENARIOS",
+      "M-GITHUB-PROVIDER",
+      "M-GUI-CANONICAL-BUTTONS",
+      "M-GUI-HELP-MENU",
+      "M-GUI-TIMELINE",
+      "M-GUI-TIMELINE-V2",
+      "M-GUI-UPDATE-CTRL",
+      "M-GUI-WORKER",
+      "M-MCP-COMPOSITION",
+      "M-PERSIST-DETECTION",
+      "M-PIPELINE",
+      "M-PIPELINE-STATES",
+      "M-PORT-EVENTS",
+      "M-PORT-LLM"
+    ],
+    "governedModulesMissingFromSharedDocs": [
+      "M-BACKEND-DECORD",
+      "M-BACKEND-PYNV",
+      "M-PATHS",
+      "M-PKG",
+      "M-REVIEW"
+    ],
+    "modulesWithoutVerification": [],
+    "staleVerificationEntries": [],
+    "pendingPhases": 0,
+    "pendingSteps": 2
+  },
+  "integrity": {
+    "errors": 403,
+    "warnings": 226,
+    "topIssues": [
+      "graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-BACKEND-OPENCV` exists in the knowledge graph but not in the development plan.",
+      "graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-GUI-STATUS` exists in the knowledge graph but not in the development plan.",
+      "graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-GUI-SUBTITLE-EDITOR` exists in the knowledge graph but not in the development plan.",
+      "graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-GUI-MARKER-PANEL` exists in the knowledge graph but not in the development plan.",
+      "graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-GUI-ROI-SELECTOR` exists in the knowledge graph but not in the development plan."
+    ]
+  },
+  "autonomy": {
+    "ready": false,
+    "blockers": [
+      "autonomy.module-missing-implementation-files: docs/knowledge-graph.xml Module `M-APP-LLM` has no linked non-test governed files. Autonomous execution needs a real implementation surface, not only tests or shared-doc declarations.",
+      "autonomy.module-missing-implementation-files: docs/knowledge-graph.xml Module `M-APP-PROJECT` has no linked non-test governed files. Autonomous execution needs a real implementation surface, not only tests or shared-doc declarations.",
+      "autonomy.module-missing-implementation-files: docs/knowledge-graph.xml Module `M-APP-SERVICE` has no linked non-test governed files. Autonomous execution needs a real implementation surface, not only tests or shared-doc declarations.",
+      "autonomy.module-missing-implementation-files: docs/knowledge-graph.xml Module `M-ARCH-OVERVIEW` has no linked non-test governed files. Autonomous execution needs a real implementation surface, not only tests or shared-doc declarations.",
+      "autonomy.step-missing-verification: docs/development-plan.xml Phase-5 / step-15 for module `M-BACKEND-PYAV` is missing an explicit verification reference. Autonomous packets should name the verification gate they rely on."
+    ],
+    "warnings": [
+      "autonomy.verification-missing-wave-follow-up: docs/verification-plan.xml Verification entry `V-M-ADAPTERS` does not define a wave-level follow-up check. Long autonomous runs are safer when merged surfaces have an explicit post-merge gate.",
+      "autonomy.verification-missing-wave-follow-up: docs/verification-plan.xml Verification entry `V-M-APP-BUILD-META` does not define a wave-level follow-up check. Long autonomous runs are safer when merged surfaces have an explicit post-merge gate.",
+      "autonomy.verification-missing-wave-follow-up: docs/verification-plan.xml Verification entry `V-M-APP-IDENTITY` does not define a wave-level follow-up check. Long autonomous runs are safer when merged surfaces have an explicit post-merge gate.",
+      "autonomy.verification-missing-wave-follow-up: docs/verification-plan.xml Verification entry `V-M-APP-INPUT-RESOLVER` does not define a wave-level follow-up check. Long autonomous runs are safer when merged surfaces have an explicit post-merge gate.",
+      "autonomy.verification-missing-wave-follow-up: docs/verification-plan.xml Verification entry `V-M-APP-LLM` does not define a wave-level follow-up check. Long autonomous runs are safer when merged surfaces have an explicit post-merge gate."
+    ]
+  },
+  "recentChanges": [
+    {
+      "path": "tests/test_target_optimization_discrimination.py",
+      "summary": "[v2.2.0 - Step 18.4 closeout: accept negative terminal outcome",
+      "modifiedAt": "2026-07-18T04:43:17.943Z"
+    },
+    {
+      "path": "tests/test_slide_detector.py",
+      "summary": "v0.2.2 - Add trusted-intrusive evidence_observer contract coverage (mutable ndarray, before extract)",
+      "modifiedAt": "2026-07-18T04:43:17.942Z"
+    },
+    {
+      "path": "tests/test_detection_metrics.py",
+      "summary": "v1.3.0 - Added deterministic PyAV decode-failure cleanup coverage",
+      "modifiedAt": "2026-07-18T04:43:17.935Z"
+    },
+    {
+      "path": "tests/test_detect_slides.py",
+      "summary": "v0.3.0 - Completed RSS maximum branches and detector-work cleanup evidence",
+      "modifiedAt": "2026-07-18T04:43:17.935Z"
+    },
+    {
+      "path": "tests/infra/test_mapper.py",
+      "summary": "v1.0.0 - Add canonical mapper round-trip and no-side-effect tests",
+      "modifiedAt": "2026-07-18T04:43:17.932Z"
+    }
+  ],
+  "nextAction": "Run grace lint --path <project-root> and fix the reported GRACE integrity issues. Use $grace-refresh if shared docs drifted from the codebase."
+}

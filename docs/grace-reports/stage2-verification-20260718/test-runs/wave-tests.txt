@@ -1,0 +1,17 @@
+Repository HEAD: 34250e7e9e1803e10447a6f5710b3bb571994cb7
+Command: python -m pytest tests/infra tests/domain tests/application tests/gui -q
+Working directory: D:\git\video2pptx
+Python version: 3.14.6 (tags/v3.14.6:c63aec6, Jun 10 2026, 10:26:10) [MSC v.1944 64 bit (AMD64)]
+Pytest version: pytest 9.0.3
+Platform: Windows-11-10.0.26200-SP0
+Started at: 2026-07-18T06:25:46.676679+00:00
+Finished at: 2026-07-18T06:25:48.982772+00:00
+Exit code: 0
+Rationale: Prior bounded Stage 2 wave command (controller-managed layer sweep).
+
+RAW OUTPUT:
+........................................................................ [ 30%]
+........................................................................ [ 60%]
+........................................................................ [ 90%]
+......................                                                   [100%]
+238 passed in 1.65s

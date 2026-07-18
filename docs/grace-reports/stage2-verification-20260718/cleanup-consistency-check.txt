@@ -1,0 +1,52 @@
+# Stage 2 Cleanup — Consistency Checks
+
+Total checks: 17
+Passed: 17
+Failed: 0
+
+## Detail
+
+[PASS] 11_xml_parses
+[PASS] 12_no_duplicate_ids
+        duplicates=[]
+[PASS] 13_no_dangling_module_refs
+        dangling=[]
+[PASS] 1_coverage_reads_wave_follow_up
+        build_coverage_map.py must read wave-follow-up
+[PASS] 2_coverage_reads_phase_follow_up
+        build_coverage_map.py must read phase-follow-up
+[PASS] 3_coverage_uses_final_reports
+        build_coverage_map.py must use final-* reports, not baseline-*
+[PASS] 3b_coverage_no_legacy_wave_checks
+        build_coverage_map.py should not consume legacy <wave-checks>
+[PASS] 4_total_vm_entries_is_int
+        got 144 (int)
+[PASS] 5_total_vm_entries_matches
+        summary=144, actual=144
+[PASS] 6_no_module_check_references_missing_file
+        broken=[]
+[PASS] 7_no_unbounded_wave_follow_up
+        unbounded=[]
+[PASS] 8_passed_entries_have_existing_test_file
+        passed_no_test=[]
+[PASS] 9_passed_entries_have_concrete_evidence
+        generic_only=[]
+[PASS] 10_no_generic_only_evidence_for_passed
+        generic_only=[]
+[PASS] 14_phase18_dev_plan_unchanged
+        changed=[]
+[PASS] 15_src_and_tests_unchanged
+        src_changes=[], tests_changes=[]
+[PASS] 16_human_readable_status_unchanged
+        changed=[]
+
+## Notes
+
+- Entries with empty <wave-follow-up>: 47
+  (These are entries where bounded wave surface cannot be honestly
+   determined. They are blocked or planned and flagged by the autonomy
+   profile as `autonomy.verification-missing-wave-follow-up`.)
+- Autonomy blocker count after cleanup: see cleanup-grace-status.json
+- The blocker count increase is honest disclosure: entries that previously
+  had broken/non-executable module-checks or unbounded waves now have NO
+  fake command, so the autonomy check correctly flags them.

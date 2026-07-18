@@ -1,0 +1,20 @@
+{
+  "head": "34250e7e9e1803e10447a6f5710b3bb571994cb7",
+  "scope": "targeted",
+  "command": "python -m pytest tests/test_bootstrap.py tests/application/test_common.py tests/gui/test_pipeline_controller.py tests/gui/test_timeline_controller.py tests/test_benchmark_provenance.py tests/test_github_release_provider.py -q",
+  "working_directory": "D:\\git\\video2pptx",
+  "python_version": "3.14.6 (tags/v3.14.6:c63aec6, Jun 10 2026, 10:26:10) [MSC v.1944 64 bit (AMD64)]",
+  "pytest_version": "pytest 9.0.3",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "started_at": "2026-07-18T06:25:45.119719+00:00",
+  "finished_at": "2026-07-18T06:25:46.632816+00:00",
+  "exit_code": 0,
+  "passed": 83,
+  "failed": 0,
+  "skipped": 0,
+  "xfailed": 0,
+  "xpassed": 0,
+  "rationale": "Six targeted checks that justified Stage 2 'passed' transitions (V-M-APP-BOOTSTRAP, V-M-APP-COMMON, V-M-GUI-PIPELINE-CTRL, V-M-GUI-TIMELINE-CTRL, V-M-DETECT-BENCHMARK, V-M-GITHUB-PROVIDER).",
+  "output_file": "test-runs/targeted-tests.txt",
+  "pre_existing_failure": false
+}
