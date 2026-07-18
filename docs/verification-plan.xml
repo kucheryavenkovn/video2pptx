@@ -2195,10 +2195,15 @@
       <file>src/video2pptx/backends/opencv_backend.py</file>
       <file>tests/test_detect_slides.py</file>
     </test-files>
-    <notes>Step 18.1 is done. Deterministic instrumentation evidence and the accepted recovered-tree
-      r2 benchmark close the baseline gate; F-0093 and F-0094 remain documented environment/test
-      isolation gaps and do not change the passed baseline status.</notes>
-      <module-checks><check-1>python -m pytest tests/test_detection_metrics.py -q</check-1><check-2>python -m pytest src/video2pptx/detection_metrics.py -q</check-2><check-3>python -m pytest src/video2pptx/detect_slides.py -q</check-3><check-4>python -m pytest src/video2pptx/slide_detector.py -q</check-4><check-5>python -m pytest src/video2pptx/backends/pyav_backend.py -q</check-5><check-6>python -m pytest src/video2pptx/backends/opencv_backend.py -q</check-6><check-7>python -m pytest tests/test_detect_slides.py -q</check-7></module-checks>
+    <notes>Step 18.1 management milestone remains done.
+      The current V-M-PERF-DETECT-BASELINE verification entry is blocked because
+      its declared tests/test_detection_metrics.py surface is not reproducibly
+      green in the recorded environment (three TestPyAVMetrics failures;
+      STALE_PYAV_CODEC_CONTEXT_TEST_DOUBLE — fake stream/test double lacks stream.codec_context).
+      This verification blockage does not reopen the accepted Phase 18 management
+      decision and does not change the accepted Phase 18 terminal outcome.
+      F-0093 and F-0094 remain documented environment/test isolation gaps only.</notes>
+      <module-checks><check-1>python -m pytest tests/test_detection_metrics.py -q</check-1><check-2>python -m pytest tests/test_detect_slides.py -q</check-2></module-checks>
       <wave-follow-up>python -m pytest tests/test_detection_metrics.py tests/test_detect_slides.py -q</wave-follow-up>
       <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
       <required-trace-assertions><assertion>test_detect_slides.py asserts run_detect_slides produces SlidesDocument with non-empty slides and PNG screenshots matching '\x89PNG' header.</assertion><assertion>test_detect_slides.py TestRssLifecycle asserts sampler_start precedes document/persist and sampler_stop runs in all exit paths (normal, detector exception, persistence exception).</assertion><assertion>Committed benchmarks/detect/evidence/aggregate_evidence.json effective_config is the median_run config without benchmark_id or wall_clock_seconds contamination (see test_benchmark_provenance.py).</assertion></required-trace-assertions>
@@ -2237,7 +2242,7 @@
       <artifact>benchmarks/detect/reference/pre-twopass-3472e62.json</artifact>
       <parity-test>tests/test_twopass_parity.py::test_two_pass_matches_pre_twopass</parity-test>
     </reference>
-      <module-checks><check-1>python -m pytest tests/test_twopass_parity.py -q</check-1><check-2>python -m pytest tests/test_detect_slides.py -q</check-2><check-3>python -m pytest src/video2pptx/detect_slides.py -q</check-3><check-4>python -m pytest src/video2pptx/slide_detector.py -q</check-4></module-checks>
+      <module-checks><check-1>python -m pytest tests/test_twopass_parity.py -q</check-1><check-2>python -m pytest tests/test_detect_slides.py -q</check-2></module-checks>
       <wave-follow-up>python -m pytest tests/test_twopass_parity.py tests/test_detect_slides.py -q</wave-follow-up>
       <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
       <required-trace-assertions><assertion>test_twopass_parity.py asserts run_detect_slides output matches benchmarks/detect/reference/pre-twopass-3472e62.json within 1e-4 tolerance on score_timestamps, score_values, and segment start/end/representative_timestamp.</assertion><assertion>test_twopass_parity.py asserts each screenshot's relative path and SHA-256 exactly matches the pre-twopass reference artifact.</assertion><assertion>test_detect_slides.py asserts VideoDecoder.iter_frames is called exactly 2 times for both dedup-enabled and dedup-disabled runs and log output never contains 'Pass 3/3'.</assertion></required-trace-assertions>

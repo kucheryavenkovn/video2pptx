@@ -1,7 +1,7 @@
 {
   "stage": "Stage 2 verification evidence alignment correction",
-  "generated_at_head_parent": "3101dd423a7f279c212bb0c58e381f38d4732da9",
-  "parent_commit": "3101dd423a7f279c212bb0c58e381f38d4732da9",
+  "generated_at_head_parent": "8eec38537ec4bd53feacd33ae531c8909f030311",
+  "parent_commit": "8eec38537ec4bd53feacd33ae531c8909f030311",
   "stage_2_verification_coverage": "SUFFICIENT_FOR_CONTROLLED_AGENT_USE",
   "full_autonomy_readiness": "INCOMPLETE",
   "grace_documentation_truthfulness": "CORRECTED AGAINST RAW TEST EVIDENCE",
@@ -9,7 +9,12 @@
   "tests_changed": false,
   "raw_pytest_txt_changed": false,
   "new_user_visible_capability": false,
-  "phase_18_changed": false,
+  "phase_18_management_state_changed": false,
+  "phase_18_development_plan_changed": false,
+  "phase_18_verification_metadata_changed": true,
+  "phase_18_terminal_outcome_changed": false,
+  "phase_18_step_18_5_started": false,
+  "phase_18_reopened": false,
   "full_pytest_rerun": false,
   "single_correction_commit": true,
   "status_counts_after_correction": {
@@ -134,8 +139,8 @@
     },
     "correction_consistency": {
       "report": "cleanup-correction-consistency-check.txt",
-      "total": 12,
-      "passed": 12,
+      "total": 14,
+      "passed": 14,
       "failed": 0,
       "checks": [
         "A_entry_count_preservation",
@@ -144,8 +149,16 @@
         "D_multi_entry_modules_preserved",
         "E_failed_test_contradiction",
         "F_vm_video_decode_not_passed",
-        "G_failure_group_classification"
-      ]
+        "G_failure_group_classification",
+        "H_pytest_module_check_no_src_py_targets",
+        "I_vm_perf_detect_baseline_invariants"
+      ],
+      "acceptance_excerpt": {
+        "invalid_pytest_src_targets": 0,
+        "vm_perf_detect_baseline_status": "blocked",
+        "baseline_notes_claim_passed": false,
+        "baseline_blocked_reason_present": true
+      }
     }
   },
   "requirements": {
@@ -171,7 +184,42 @@
     },
     "fix_6_correction_consistency": {
       "status": "DONE",
-      "summary": "run_correction_consistency_checks.py implements checks A–G; cleanup-correction-consistency-check.txt is 12/12 PASS."
+      "summary": "run_correction_consistency_checks.py implements checks A–G plus H (pytest must not target src/**/*.py) and I (V-M-PERF-DETECT-BASELINE invariants)."
     }
+  },
+  "final_localized_correction": {
+    "result_type": "VERIFICATION_DOCUMENTATION",
+    "user_visible_capability": "Not changed directly.",
+    "what_was_wrong": "V-M-PERF-DETECT-BASELINE had STATUS=blocked while notes still claimed passed status. Module-checks also ran pytest against production src/*.py files.",
+    "what_was_fixed": "Notes aligned with blocked status. Invalid pytest src targets removed. Only real test modules retained. Analogous invalid src pytest targets removed from V-M-PERF-DETECT-TWO-PASS.",
+    "removal_rationale": {
+      "production_files_lack_pytest_cases": true,
+      "no_doctest_or_plugin_scenario_dependency": true,
+      "runtime_and_test_logic_unchanged": true,
+      "reason_recorded_in_summary": true
+    },
+    "how_verified": "Consistency check confirms zero pytest module-checks on src/*.py, blocked status preserved, and notes do not claim passed verification status.",
+    "practical_effect": "Next agent will not treat the completed management milestone as a green current verification entry and will not run pytest against production files.",
+    "baseline_entry": {
+      "verification_id": "V-M-PERF-DETECT-BASELINE",
+      "status": "blocked",
+      "retained_module_checks": [
+        "python -m pytest tests/test_detection_metrics.py -q",
+        "python -m pytest tests/test_detect_slides.py -q"
+      ],
+      "removed_pytest_src_targets": [
+        "src/video2pptx/detection_metrics.py",
+        "src/video2pptx/detect_slides.py",
+        "src/video2pptx/slide_detector.py",
+        "src/video2pptx/backends/pyav_backend.py",
+        "src/video2pptx/backends/opencv_backend.py"
+      ]
+    },
+    "other_entries_changed_for_same_defect_only": [
+      {
+        "verification_id": "V-M-PERF-DETECT-TWO-PASS",
+        "change": "Removed pytest module-checks targeting production src/*.py; kept tests/test_twopass_parity.py and tests/test_detect_slides.py."
+      }
+    ]
   }
 }

@@ -1,7 +1,7 @@
 # Stage 2 Evidence Alignment — Correction Consistency Checks
 
-Total checks: 12
-Passed: 12
+Total checks: 14
+Passed: 14
 Failed: 0
 
 ## Detail
@@ -30,6 +30,10 @@ Failed: 0
         coverage metrics status_sum=144 passed=67 blocked=40 planned=34 in_progress=2 failed=0 unknown_or_other=1
 [PASS] C3_empty_wave_is_entry_level_47_if_xml_has_47
         xml_empty_wave=47 entry_level_missing_wave=47
+[PASS] H_pytest_module_check_no_src_py_targets
+        invalid pytest src targets = 0; detail=[]; module-check commands inspected=108; pytest commands inspected=107
+[PASS] I_vm_perf_detect_baseline_invariants
+        V-M-PERF-DETECT-BASELINE status = blocked; baseline notes claim passed = false; baseline blocked reason present = true; module-checks src targets = []; test_detection_metrics declared = True; test_detect_slides declared = True
 
 ## Notes
 
@@ -43,4 +47,10 @@ Failed: 0
 - Multi-entry modules: (none)
 - Passed/failing contradictions remaining: []
 - V-M-VIDEO-DECODE status: blocked
+- invalid pytest src targets = 0
+- V-M-PERF-DETECT-BASELINE status = blocked
+- baseline notes claim passed = false
+- baseline blocked reason present = true
+- module-check commands inspected = 108
+- pytest commands inspected = 107
 - Product runtime and tests were not modified by this correction.

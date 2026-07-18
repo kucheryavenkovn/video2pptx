@@ -1,6 +1,6 @@
 # Stage 2 Verification — Evidence Alignment Correction Summary
 
-- **Parent HEAD:** `3101dd423a7f279c212bb0c58e381f38d4732da9`
+- **Parent HEAD:** `8eec38537ec4bd53feacd33ae531c8909f030311`
 - **Stage 2 verification coverage:** SUFFICIENT_FOR_CONTROLLED_AGENT_USE
 - **Full autonomy readiness:** INCOMPLETE
 - **GRACE documentation truthfulness:** CORRECTED AGAINST RAW TEST EVIDENCE
@@ -8,9 +8,20 @@
 - **Tests changed:** NO
 - **Raw pytest TXT changed:** NO
 - **New user-visible capability:** NO
-- **Phase 18 product work changed:** NO
 - **Full pytest rerun:** NO
-- **Single correction commit:** YES (on top of `3101dd4`)
+- **Single correction commit:** YES (on top of `8eec385`)
+
+### Phase 18 change matrix
+
+| Dimension | Changed |
+|-----------|---------|
+| Phase 18 management state changed | **NO** |
+| Phase 18 development plan changed | **NO** |
+| Phase 18 verification metadata changed | **YES** |
+| Phase 18 terminal outcome changed | **NO** |
+| Step 18.5 started | **NO** |
+
+Phase 18 was **not** reopened. Only verification documentation metadata for existing Phase 18 entries was corrected.
 
 ## Status counts
 
@@ -95,11 +106,38 @@ Raw `phase-tests.txt` is unchanged evidence of the original run.
 | Check set | Result |
 |-----------|--------|
 | cleanup-consistency-check.txt | 17/17 PASS |
-| cleanup-correction-consistency-check.txt | 12/12 PASS (A–G) |
+| cleanup-correction-consistency-check.txt | **14/14 PASS** (A–G + H no pytest src targets + I baseline invariants) |
 
-Correction checks cover: entry count preservation, status arithmetic including `unknown_or_other`, module vs entry distinction, multi-entry preservation, failed-test contradiction, V-M-VIDEO-DECODE not passed, failure-group classification.
+Correction checks cover: entry count preservation, status arithmetic including `unknown_or_other`, module vs entry distinction, multi-entry preservation, failed-test contradiction, V-M-VIDEO-DECODE not passed, failure-group classification, pytest module-check must not target production `src/**/*.py`, and V-M-PERF-DETECT-BASELINE blocked/notes/module-check invariants.
+
+## Final localized correction
+
+**Тип результата:** `VERIFICATION_DOCUMENTATION`
+
+**Пользовательская функция:** Непосредственно не изменяется.
+
+**Что было неправильно:**
+`V-M-PERF-DETECT-BASELINE` имела `STATUS=blocked`, но notes продолжали
+утверждать passed status. Module-checks также запускали pytest против
+production `src/*.py` файлов.
+
+**Что исправлено:**
+Notes согласованы со статусом blocked. Невалидные pytest src targets удалены.
+Оставлены только реальные test modules (`tests/test_detection_metrics.py`,
+`tests/test_detect_slides.py`). Аналогичные invalid `pytest src/...` targets
+удалены из `V-M-PERF-DETECT-TWO-PASS` (тот же дефект module-check).
+Причина: production `.py` не содержит pytest test cases; entry не зависит от
+doctest/plugin сценария; runtime/test logic не менялись.
+
+**Как проверено:**
+Consistency check подтверждает отсутствие pytest module-checks на `src/*.py`,
+сохранение blocked status и отсутствие текста о passed verification status.
+
+**Практический эффект:**
+Следующий агент не примет завершённый management milestone за зелёную
+текущую verification entry и не будет запускать pytest против production-файлов.
 
 ## What this correction is / is not
 
 - **Is:** metadata honesty against already-recorded raw pytest evidence
-- **Is not:** Stage 2 redo, Phase 18 Step 18.5, runtime fix, test fix, GRACE blocker reduction campaign
+- **Is not:** Stage 2 redo, Phase 18 reopening, Phase 18 Step 18.5, runtime fix, test fix, GRACE blocker reduction campaign

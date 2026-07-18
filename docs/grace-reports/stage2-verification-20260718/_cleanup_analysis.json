@@ -3652,11 +3652,6 @@
       "test_files_missing": [],
       "module_checks": [
         "python -m pytest tests/test_detection_metrics.py -q",
-        "python -m pytest src/video2pptx/detection_metrics.py -q",
-        "python -m pytest src/video2pptx/detect_slides.py -q",
-        "python -m pytest src/video2pptx/slide_detector.py -q",
-        "python -m pytest src/video2pptx/backends/pyav_backend.py -q",
-        "python -m pytest src/video2pptx/backends/opencv_backend.py -q",
         "python -m pytest tests/test_detect_slides.py -q"
       ],
       "module_checks_broken": [],
@@ -3689,9 +3684,7 @@
       "test_files_missing": [],
       "module_checks": [
         "python -m pytest tests/test_twopass_parity.py -q",
-        "python -m pytest tests/test_detect_slides.py -q",
-        "python -m pytest src/video2pptx/detect_slides.py -q",
-        "python -m pytest src/video2pptx/slide_detector.py -q"
+        "python -m pytest tests/test_detect_slides.py -q"
       ],
       "module_checks_broken": [],
       "wave_checks_legacy": [],

@@ -75,6 +75,102 @@ def entry_test_files(node: ET.Element) -> list[str]:
     return out
 
 
+def entry_text(node: ET.Element, tag_name: str) -> str:
+    parts: list[str] = []
+    for child in node:
+        if strip_ns(child.tag) == tag_name:
+            parts.append((child.text or "").strip())
+            for sub in child.iter():
+                if sub is child:
+                    continue
+                if sub.text:
+                    parts.append(sub.text.strip())
+                if sub.tail:
+                    parts.append(sub.tail.strip())
+    return " ".join(p for p in parts if p)
+
+
+def entry_module_checks(node: ET.Element) -> list[str]:
+    out: list[str] = []
+    for child in node:
+        if strip_ns(child.tag) != "module-checks":
+            continue
+        for chk in child:
+            cmd = (chk.text or "").strip()
+            if cmd:
+                out.append(cmd)
+    return out
+
+
+# Pytest command prefix: bare `pytest` or `python -m pytest` / `python3 -m pytest`.
+_PYTEST_CMD_RE = re.compile(
+    r"^(?:python(?:3)?\s+-m\s+)?pytest\b",
+    re.IGNORECASE,
+)
+# Positional path-like tokens after pytest options (stop at flags starting with -).
+_PATH_TOKEN_RE = re.compile(r"(?:src|tests)/[^\s\"']+")
+
+
+def extract_pytest_positional_paths(cmd: str) -> list[str]:
+    """Return path-like tokens from a pytest command (src/ or tests/)."""
+    text = cmd.strip()
+    if not _PYTEST_CMD_RE.search(text):
+        return []
+    return _PATH_TOKEN_RE.findall(text)
+
+
+def is_src_py_pytest_target(path: str) -> bool:
+    """True if path is a direct production src/**/*.py pytest target."""
+    p = path.replace("\\", "/")
+    if not p.startswith("src/"):
+        return False
+    # Directory targets like src/video2pptx/ also count as production surfaces.
+    if p.endswith(".py") or p.endswith("/") or "/" in p:
+        # Require at least src/<something>; bare "src" alone is rare but invalid.
+        return True
+    return p == "src" or p.startswith("src/")
+
+
+def collect_invalid_pytest_src_targets(
+    entries: list[tuple[str, ET.Element]],
+) -> list[dict[str, str]]:
+    """Find module-check pytest commands that target production src files."""
+    invalid: list[dict[str, str]] = []
+    for vid, node in entries:
+        for cmd in entry_module_checks(node):
+            if not _PYTEST_CMD_RE.search(cmd.strip()):
+                continue
+            for path in extract_pytest_positional_paths(cmd):
+                if is_src_py_pytest_target(path):
+                    invalid.append(
+                        {
+                            "verification_id": vid,
+                            "command": cmd,
+                            "path": path,
+                        }
+                    )
+    return invalid
+
+
+def notes_claim_passed_status(notes: str) -> bool:
+    """Heuristic: notes claim the verification entry itself is/remains passed."""
+    n = " ".join(notes.lower().split())
+    if not n:
+        return False
+    patterns = (
+        r"\bpassed baseline status\b",
+        r"\bdo not change the passed\b",
+        r"\bdoes not change the passed\b",
+        r"\bstatus remains passed\b",
+        r"\bstatus is passed\b",
+        r"\bverification (?:entry )?status is passed\b",
+        r"\bverification (?:entry )?remains passed\b",
+        r"\bentry (?:status )?remains passed\b",
+        r"\bremains? passed\b",
+    )
+    return any(re.search(p, n) for p in patterns)
+
+
 def targeted_green_files() -> set[str]:
     """Test files covered by a green targeted run (exit_code 0)."""
     path = REPORT_DIR / "test-runs" / "targeted-tests.json"
@@ -397,6 +493,76 @@ def main() -> int:
         )
     )
 
+    # H: pytest module-check must not target production src/**/*.py files
+    all_module_check_cmds: list[tuple[str, str]] = []
+    pytest_cmds: list[tuple[str, str]] = []
+    for vid, node in entries:
+        for cmd in entry_module_checks(node):
+            all_module_check_cmds.append((vid, cmd))
+            if _PYTEST_CMD_RE.search(cmd.strip()):
+                pytest_cmds.append((vid, cmd))
+    invalid_src = collect_invalid_pytest_src_targets(entries)
+    results.append(
+        check(
+            "H_pytest_module_check_no_src_py_targets",
+            len(invalid_src) == 0,
+            f"invalid pytest src targets = {len(invalid_src)}; "
+            f"detail={invalid_src}; "
+            f"module-check commands inspected={len(all_module_check_cmds)}; "
+            f"pytest commands inspected={len(pytest_cmds)}",
+        )
+    )
+
+    # I: V-M-PERF-DETECT-BASELINE localized correction invariants
+    baseline_node = None
+    for vid, node in entries:
+        if vid == "V-M-PERF-DETECT-BASELINE":
+            baseline_node = node
+            break
+    bl_status = (baseline_node.get("STATUS") if baseline_node is not None else None) or ""
+    bl_notes = entry_text(baseline_node, "notes") if baseline_node is not None else ""
+    bl_blocked_reason = (
+        entry_text(baseline_node, "blocked-reason") if baseline_node is not None else ""
+    )
+    bl_checks = entry_module_checks(baseline_node) if baseline_node is not None else []
+    bl_test_files = entry_test_files(baseline_node) if baseline_node is not None else []
+    bl_notes_claim_passed = notes_claim_passed_status(bl_notes)
+    bl_src_targets = [
+        p
+        for cmd in bl_checks
+        if _PYTEST_CMD_RE.search(cmd.strip())
+        for p in extract_pytest_positional_paths(cmd)
+        if is_src_py_pytest_target(p)
+    ]
+    bl_has_metrics = "tests/test_detection_metrics.py" in bl_test_files or any(
+        "tests/test_detection_metrics.py" in c for c in bl_checks
+    )
+    bl_has_detect = "tests/test_detect_slides.py" in bl_test_files or any(
+        "tests/test_detect_slides.py" in c for c in bl_checks
+    )
+    bl_ok = (
+        baseline_node is not None
+        and bl_status == "blocked"
+        and not bl_notes_claim_passed
+        and len(bl_src_targets) == 0
+        and bl_has_metrics
+        and bl_has_detect
+        and bool(bl_blocked_reason.strip())
+    )
+    results.append(
+        check(
+            "I_vm_perf_detect_baseline_invariants",
+            bl_ok,
+            f"V-M-PERF-DETECT-BASELINE status = {bl_status}; "
+            f"baseline notes claim passed = {str(bl_notes_claim_passed).lower()}; "
+            f"baseline blocked reason present = "
+            f"{str(bool(bl_blocked_reason.strip())).lower()}; "
+            f"module-checks src targets = {bl_src_targets}; "
+            f"test_detection_metrics declared = {bl_has_metrics}; "
+            f"test_detect_slides declared = {bl_has_detect}",
+        )
+    )
+
     return _write(
         results,
         extra_notes=[
@@ -410,6 +576,13 @@ def main() -> int:
             f"Multi-entry modules: {dict(multi) if multi else '(none)'}",
             f"Passed/failing contradictions remaining: {contradictions}",
             f"V-M-VIDEO-DECODE status: {vd_status}",
+            f"invalid pytest src targets = {len(invalid_src)}",
+            f"V-M-PERF-DETECT-BASELINE status = {bl_status}",
+            f"baseline notes claim passed = {str(bl_notes_claim_passed).lower()}",
+            f"baseline blocked reason present = "
+            f"{str(bool(bl_blocked_reason.strip())).lower()}",
+            f"module-check commands inspected = {len(all_module_check_cmds)}",
+            f"pytest commands inspected = {len(pytest_cmds)}",
             "Product runtime and tests were not modified by this correction.",
         ],
     )
