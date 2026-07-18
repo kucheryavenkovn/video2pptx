@@ -1,0 +1,57 @@
+{
+  "entries_added": [
+    "V-M-ADAPTERS", "V-M-APP-BOOTSTRAP", "V-M-APP-BUILD-META", "V-M-APP-COMMON",
+    "V-M-APP-IDENTITY", "V-M-APP-INPUT-RESOLVER", "V-M-APP-LLM", "V-M-BACKEND-OPENCV",
+    "V-M-BACKEND-PYAV", "V-M-DESKTOP-BOOTSTRAP", "V-M-DETECT-BENCHMARK",
+    "V-M-DETECT-METRICS", "V-M-DETECT-PERF-DECISION", "V-M-GITHUB-PROVIDER",
+    "V-M-GUI-ABOUT", "V-M-GUI-HELP-MENU", "V-M-GUI-PIPELINE-CTRL",
+    "V-M-GUI-PIPELINE-WORKER", "V-M-GUI-TIMELINE-CTRL", "V-M-GUI-UPDATE-CTRL",
+    "V-M-GUI-WINDOW-UI", "V-M-MCP-ADAPTER", "V-M-MCP-COMPOSITION",
+    "V-M-PERSIST-DETECTION", "V-M-PORT-ALIGNMENT", "V-M-PORT-DETECTOR",
+    "V-M-PORT-EXPORT", "V-M-PORT-LLM", "V-M-PORT-NOTES", "V-M-PORT-PREVIEW"
+  ],
+  "entries_updated_count": 114,
+  "statuses_changed": [
+    {"vid": "V-M-DEBUG-ACTION", "from": "passed", "to": "blocked", "reason": "referenced test tests/test_debug_action.py does not exist; prior 'passed' status was not reproducible"},
+    {"vid": "V-M-DEBUG-MCP", "from": "passed", "to": "blocked", "reason": "referenced test tests/test_debug_action.py does not exist; prior 'passed' status was not reproducible"},
+    {"vid": "V-M-GUI-TIMELINE", "from": "passed", "to": "blocked", "reason": "referenced test tests/test_gui_timeline.py does not exist; prior 'passed' status was not reproducible"},
+    {"vid": "V-M-GUI-TIMELINE-V2", "from": "passed", "to": "blocked", "reason": "referenced test tests/test_gui_timeline_v2.py does not exist; prior 'passed' status was not reproducible"},
+    {"vid": "V-M-GUI-WORKER", "from": "passed", "to": "blocked", "reason": "referenced test tests/test_gui_workers.py does not exist; prior 'passed' status was not reproducible"},
+    {"vid": "V-M-REF-CHAR-TESTS", "from": "passed", "to": "blocked", "reason": "referenced test tests/test_characterization_adapters.py does not exist; prior 'passed' status was not reproducible"}
+  ],
+  "module_checks_added": 51,
+  "wave_checks_added": 114,
+  "phase_checks_added": 114,
+  "observable_evidence_added": 144,
+  "scenarios_added": 35,
+  "test_files_added": 3,
+  "test_files_repointed": [
+    {"vid": "V-M-APP-SERVICE", "to": "tests/test_app_service_runner.py"},
+    {"vid": "V-M-CANONICAL-COMMANDS", "to": "tests/test_app_service_runner.py"},
+    {"vid": "V-M-E2E-SNAPSHOT", "to": "tests/e2e/test_mcp_gui_workflow.py"}
+  ],
+  "test_files_unlinked_resolved_count": 63,
+  "failed_modules": [],
+  "blocked_modules": [
+    "V-M-DEBUG-ACTION", "V-M-DEBUG-MCP", "V-M-GUI-TIMELINE", "V-M-GUI-TIMELINE-V2",
+    "V-M-GUI-WORKER", "V-M-REF-CHAR-TESTS",
+    "V-M-ADAPTERS", "V-M-APP-BUILD-META", "V-M-APP-IDENTITY", "V-M-APP-INPUT-RESOLVER",
+    "V-M-BACKEND-OPENCV", "V-M-BACKEND-PYAV", "V-M-DESKTOP-BOOTSTRAP",
+    "V-M-DETECT-METRICS", "V-M-DETECT-PERF-DECISION", "V-M-GUI-ABOUT",
+    "V-M-GUI-HELP-MENU", "V-M-GUI-PIPELINE-WORKER", "V-M-GUI-UPDATE-CTRL",
+    "V-M-GUI-WINDOW-UI", "V-M-MCP-ADAPTER", "V-M-MCP-COMPOSITION",
+    "V-M-PERSIST-DETECTION", "V-M-PORT-ALIGNMENT", "V-M-PORT-DETECTOR",
+    "V-M-PORT-EXPORT", "V-M-PORT-NOTES", "V-M-PORT-PREVIEW"
+  ],
+  "planned_modules": [
+    "V-M-APP-LLM", "V-M-PORT-LLM"
+  ],
+  "statuses_changed_to_passed": [
+    {"vid": "V-M-APP-BOOTSTRAP", "evidence": "tests/test_bootstrap.py: 13 passed"},
+    {"vid": "V-M-APP-COMMON", "evidence": "tests/application/test_common.py: 19 passed"},
+    {"vid": "V-M-GUI-PIPELINE-CTRL", "evidence": "tests/gui/test_pipeline_controller.py: 12 passed"},
+    {"vid": "V-M-GUI-TIMELINE-CTRL", "evidence": "tests/gui/test_timeline_controller.py: 14 passed"},
+    {"vid": "V-M-DETECT-BENCHMARK", "evidence": "tests/test_benchmark_provenance.py: 14 passed"},
+    {"vid": "V-M-GITHUB-PROVIDER", "evidence": "tests/test_github_release_provider.py: 11 passed"}
+  ]
+}

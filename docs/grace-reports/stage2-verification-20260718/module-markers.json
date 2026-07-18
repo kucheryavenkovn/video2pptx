@@ -1,0 +1,1415 @@
+{
+  "M-MODELS": {
+    "name": "Models",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/models.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-CLI": {
+    "name": "CLI",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/cli.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/cli.py": [
+        "[CLI][detect]",
+        "[CLI][notes]",
+        "[CLI][export_md]",
+        "[CLI][export_pptx]",
+        "[CLI][debug]",
+        "[CLI][llm_process]"
+      ]
+    },
+    "markers": [
+      "[CLI][detect]",
+      "[CLI][notes]",
+      "[CLI][export_md]",
+      "[CLI][export_pptx]",
+      "[CLI][debug]",
+      "[CLI][llm_process]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-CONFIG": {
+    "name": "Config",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/config.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-VIDEO-DECODE": {
+    "name": "VideoDecode",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/video_decode.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/video_decode.py": [
+        "[VideoDecode][select_backend]",
+        "[VideoDecode][select_backend][BLOCK_FALLBACK_CPU]"
+      ]
+    },
+    "markers": [
+      "[VideoDecode][select_backend]",
+      "[VideoDecode][select_backend][BLOCK_FALLBACK_CPU]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-BACKENDS": {
+    "name": "Backends",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/backends/"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/backends/pyav_backend.py": [
+        "[PyAV][_pick_hw_device]",
+        "[PyAV][_create_hwaccel]"
+      ],
+      "src/video2pptx/backends/__init__.py": [
+        "[Backends][_resolve_backend]",
+        "[Backends][_resolve_backend][BLOCK_FALLBACK_CPU]",
+        "[Backends][detect_best_backend]",
+        "[Backends][iter_frames]",
+        "[Backends][video_info]"
+      ]
+    },
+    "markers": [
+      "[PyAV][_pick_hw_device]",
+      "[PyAV][_create_hwaccel]",
+      "[Backends][_resolve_backend]",
+      "[Backends][_resolve_backend][BLOCK_FALLBACK_CPU]",
+      "[Backends][detect_best_backend]",
+      "[Backends][iter_frames]",
+      "[Backends][video_info]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-BACKEND-OPENCV": {
+    "name": "OpenCVBackend",
+    "status": "implemented",
+    "paths": [],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-BACKEND-PYAV": {
+    "name": "PyAVBackend",
+    "status": "implemented",
+    "paths": [],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-ROI": {
+    "name": "ROI",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/roi.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/roi.py": [
+        "[ROI][parse_roi]",
+        "[ROI][parse_ignore_rois]"
+      ]
+    },
+    "markers": [
+      "[ROI][parse_roi]",
+      "[ROI][parse_ignore_rois]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-FRAME-FEATURES": {
+    "name": "FrameFeatures",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/frame_features.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-SLIDE-DETECTOR": {
+    "name": "SlideDetector",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/slide_detector.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-SEGMENTER": {
+    "name": "Segmenter",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/segmenter.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DEDUPE": {
+    "name": "Dedupe",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/dedupe.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-SUBTITLES": {
+    "name": "Subtitles",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/subtitles.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/subtitles.py": [
+        "[Subtitles][parse_subtitles]"
+      ]
+    },
+    "markers": [
+      "[Subtitles][parse_subtitles]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-MD-EXPORT": {
+    "name": "MarkdownExport",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/markdown_export.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PPTX-EXPORT": {
+    "name": "PptxExport",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/pptx_export.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-NOTES-PROCESSOR": {
+    "name": "NotesProcessor",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/notes_processor.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DEBUG-EXPORT": {
+    "name": "DebugExport",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/debug_export.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/debug_export.py": [
+        "[DebugExport][export_debug_csv]",
+        "[DebugExport][export_debug_report]",
+        "[DebugExport][export_contact_sheet]"
+      ]
+    },
+    "markers": [
+      "[DebugExport][export_debug_csv]",
+      "[DebugExport][export_debug_report]",
+      "[DebugExport][export_contact_sheet]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-LLM-CLIENT": {
+    "name": "LlmClient",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/llm_client.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/llm_client.py": [
+        "[LlmClient][fetch_models]",
+        "[LlmClient][load_model]",
+        "[LlmClient][unload_model]",
+        "[LlmClient][close]"
+      ]
+    },
+    "markers": [
+      "[LlmClient][fetch_models]",
+      "[LlmClient][load_model]",
+      "[LlmClient][unload_model]",
+      "[LlmClient][close]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-SLIDE-ANALYZER": {
+    "name": "SlideAnalyzer",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/slide_analyzer.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/slide_analyzer.py": [
+        "[SlideAnalyzer][_parse_vision_response]"
+      ]
+    },
+    "markers": [
+      "[SlideAnalyzer][_parse_vision_response]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-LLM-ORCHESTRATOR": {
+    "name": "LlmOrchestrator",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/llm_orchestrator.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/llm_orchestrator.py": [
+        "[LlmOrchestrator][run_llm_pipeline]"
+      ]
+    },
+    "markers": [
+      "[LlmOrchestrator][run_llm_pipeline]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-PIPELINE": {
+    "name": "PipelineOrchestrator",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/cli.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/cli.py": [
+        "[CLI][detect]",
+        "[CLI][notes]",
+        "[CLI][export_md]",
+        "[CLI][export_pptx]",
+        "[CLI][debug]",
+        "[CLI][llm_process]"
+      ]
+    },
+    "markers": [
+      "[CLI][detect]",
+      "[CLI][notes]",
+      "[CLI][export_md]",
+      "[CLI][export_pptx]",
+      "[CLI][debug]",
+      "[CLI][llm_process]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-DETECT-SLIDES": {
+    "name": "DetectSlides",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/detect_slides.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/detect_slides.py": [
+        "[DetectSlides][run_detect_slides]"
+      ]
+    },
+    "markers": [
+      "[DetectSlides][run_detect_slides]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-NOTES": {
+    "name": "Notes",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/notes_pipeline.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/notes_pipeline.py": [
+        "[Notes][run_notes]"
+      ]
+    },
+    "markers": [
+      "[Notes][run_notes]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-ROI-TOOL": {
+    "name": "RoiTool",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/roi_tool.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/roi_tool.py": [
+        "[RoiTool][roi_tool_main]"
+      ]
+    },
+    "markers": [
+      "[RoiTool][roi_tool_main]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-PROJECT": {
+    "name": "ProjectManager",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/project_manager.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/project_manager.py": [
+        "[ProjectManager][create_project]",
+        "[ProjectManager][open_project]",
+        "[ProjectManager][import_video]",
+        "[ProjectManager][import_subtitles]",
+        "[ProjectManager][load_slides_into_project]"
+      ]
+    },
+    "markers": [
+      "[ProjectManager][create_project]",
+      "[ProjectManager][open_project]",
+      "[ProjectManager][import_video]",
+      "[ProjectManager][import_subtitles]",
+      "[ProjectManager][load_slides_into_project]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-GUI-MAIN": {
+    "name": "MainWindow",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/main_window.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-TIMELINE": {
+    "name": "TimelineWidget",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/timeline_widget.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-SETTINGS": {
+    "name": "SettingsDialog",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/settings_dialog.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-WORKER": {
+    "name": "Workers",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/workers.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-APPCONFIG": {
+    "name": "AppConfigManager",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/app_config.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-STATUS": {
+    "name": "StatusBarManager",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/status_manager.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-SUBTITLE-EDITOR": {
+    "name": "SubtitleEditor",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/subtitle_editor.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-SMART-SNAP": {
+    "name": "SmartSnap",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/smart_snap.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-MARKER-MANAGER": {
+    "name": "MarkerManager",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/marker_manager.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-SETTINGS-PROJECT": {
+    "name": "ProjectSettingsDialog",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/settings_project.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-SETTINGS-APP": {
+    "name": "AppSettingsDialog",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/settings_app.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-VIDEOPLAYER": {
+    "name": "VideoPlayer",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/video_player.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-SUBTITLE-OVERLAY": {
+    "name": "SubtitleOverlay",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/subtitle_overlay.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-TIMELINE-V2": {
+    "name": "TimelineV2",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/timeline_v2.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-TIMELINE3": {
+    "name": "Timeline3",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/timeline3/"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/gui/timeline3/view.py": [
+        "[Timeline3][_add_manual_slide]"
+      ]
+    },
+    "markers": [
+      "[Timeline3][_add_manual_slide]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-GUI-MENUBAR": {
+    "name": "MenuBar",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/menu_bar.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-MARKER-PANEL": {
+    "name": "MarkerPanel",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/marker_panel.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-ROI-SELECTOR": {
+    "name": "RoiSelector",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/roi_selector.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-TIMELINE-MODEL": {
+    "name": "TimelineModel",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/timeline_model.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PROJECT-MODEL": {
+    "name": "ProjectModel",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/project_model.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/project_model.py": [
+        "[ProjectModel][open]",
+        "[ProjectModel][refresh_from_disk]"
+      ]
+    },
+    "markers": [
+      "[ProjectModel][open]",
+      "[ProjectModel][refresh_from_disk]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-GUI-LOG-BRIDGE": {
+    "name": "LogBridge",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/log_bridge.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-DEBUG-DOCK": {
+    "name": "DebugDock",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/debug_dock.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-SIGNAL-SPY": {
+    "name": "SignalSpy",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/signal_spy.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DEBUG-MCP": {
+    "name": "McpServer",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/debug/mcp_server.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DEBUG-ACTION": {
+    "name": "ActionRegistry",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/debug/action_registry.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-COLAB": {
+    "name": "ColabDeployment",
+    "status": "implemented",
+    "paths": [
+      "colab/video2pptx_colab.ipynb"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-SERVICE": {
+    "name": "AppService",
+    "status": "partial",
+    "paths": [
+      "src/video2pptx/app_service.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-AUTO-ALIGN": {
+    "name": "AutoAlign",
+    "status": "partial",
+    "paths": [
+      "src/video2pptx/auto_align.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/auto_align.py": [
+        "[AutoAlign][rollback]"
+      ]
+    },
+    "markers": [
+      "[AutoAlign][rollback]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-OPERATION-REGISTRY": {
+    "name": "OperationRegistry",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/debug/operation_registry.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-STRUCTURED-ERRORS": {
+    "name": "StructuredErrors",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/debug/errors.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-CONFIRM-POLICY": {
+    "name": "ConfirmPolicy",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/debug/confirm.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-ATOMIC-JSON": {
+    "name": "AtomicJson",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/utils/json_io.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-MCP-OPERATIONS": {
+    "name": "McpOperations",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/debug/mcp_operations.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-MCP-READ-TOOLS": {
+    "name": "McpReadTools",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/debug/mcp_read_tools.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-MCP-WRITE-TOOLS": {
+    "name": "McpWriteTools",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/debug/mcp_write_tools.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-UI-STATE-READER": {
+    "name": "UiStateReader",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/gui/ui_state.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PROJECT-VALIDATOR": {
+    "name": "ProjectValidator",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/validators/project_validator.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PIPELINE-STATES": {
+    "name": "PipelineStates",
+    "status": "partial",
+    "paths": [
+      "src/video2pptx/project_manager.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/project_manager.py": [
+        "[ProjectManager][create_project]",
+        "[ProjectManager][open_project]",
+        "[ProjectManager][import_video]",
+        "[ProjectManager][import_subtitles]",
+        "[ProjectManager][load_slides_into_project]"
+      ]
+    },
+    "markers": [
+      "[ProjectManager][create_project]",
+      "[ProjectManager][open_project]",
+      "[ProjectManager][import_video]",
+      "[ProjectManager][import_subtitles]",
+      "[ProjectManager][load_slides_into_project]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-CANONICAL-COMMANDS": {
+    "name": "CommandRouter",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/command_router.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-PROJECT-CTRL": {
+    "name": "ProjectController",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/gui/controllers/project_controller.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/gui/controllers/project_controller.py": [
+        "[ProjectController][create]",
+        "[ProjectController][open]",
+        "[ProjectController][save]",
+        "[ProjectController][reload]"
+      ]
+    },
+    "markers": [
+      "[ProjectController][create]",
+      "[ProjectController][open]",
+      "[ProjectController][save]",
+      "[ProjectController][reload]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-GUI-PIPELINE-CTRL": {
+    "name": "PipelineController",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/gui/controllers/pipeline_controller.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/gui/controllers/pipeline_controller.py": [
+        "[PipelineController][_fail]"
+      ]
+    },
+    "markers": [
+      "[PipelineController][_fail]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-GUI-TIMELINE-CTRL": {
+    "name": "TimelineController",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/gui/controllers/timeline_controller.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/gui/controllers/timeline_controller.py": [
+        "[TimelineController][add_slide]",
+        "[TimelineController][delete_slide]",
+        "[TimelineController][move_slide]",
+        "[TimelineController][resize_slide]",
+        "[TimelineController][clear_slide_image]",
+        "[TimelineController][set_slide_image]"
+      ]
+    },
+    "markers": [
+      "[TimelineController][add_slide]",
+      "[TimelineController][delete_slide]",
+      "[TimelineController][move_slide]",
+      "[TimelineController][resize_slide]",
+      "[TimelineController][clear_slide_image]",
+      "[TimelineController][set_slide_image]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-GUI-PIPELINE-WORKER": {
+    "name": "GuiPipelineWorker",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/gui/controllers/pipeline_worker.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-WINDOW-UI": {
+    "name": "MainWindowUiBuilder",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/gui/main_window_ui.py"
+    ],
+    "source_files_with_markers": {
+      "src/video2pptx/gui/main_window_ui.py": [
+        "[MainWindowHost][_setup_debug_dock]",
+        "[MainWindowHost][_setup_mcp_server]"
+      ]
+    },
+    "markers": [
+      "[MainWindowHost][_setup_debug_dock]",
+      "[MainWindowHost][_setup_mcp_server]"
+    ],
+    "has_runtime_markers": true
+  },
+  "M-GUI-CANONICAL-BUTTONS": {
+    "name": "CanonicalButtons",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/gui/main_window.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-MCP-RELIABILITY": {
+    "name": "McpReliability",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/debug/mcp_server.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-E2E-RUNNER": {
+    "name": "McpE2eRunner",
+    "status": "partial",
+    "paths": [
+      "tools/mcp_e2e_runner.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-E2E-SNAPSHOT": {
+    "name": "Snapshot",
+    "status": "planned",
+    "paths": [
+      "tools/e2e_snapshot.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-E2E-SCENARIOS": {
+    "name": "E2eScenarios",
+    "status": "planned",
+    "paths": [
+      "tests/e2e/test_mcp_gui_workflow.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-INPUT-RESOLVER": {
+    "name": "InputResolver",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/application/base.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PERSIST-DETECTION": {
+    "name": "DetectionConfigPersistence",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/infrastructure/persistence/"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-IDENTITY": {
+    "name": "ApplicationIdentity",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/application/identity.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-BUILD-META": {
+    "name": "BuildMeta",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/build_meta.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-ABOUT": {
+    "name": "AboutDialog",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/gui/about_dialog.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-HELP-MENU": {
+    "name": "HelpMenu",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/gui/menu_bar.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DESKTOP-BOOTSTRAP": {
+    "name": "DesktopBootstrap",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/desktop.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DETECT-METRICS": {
+    "name": "DetectMetrics",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/detection_metrics.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DETECT-BENCHMARK": {
+    "name": "DetectBenchmarkPlan",
+    "status": "active",
+    "paths": [
+      "tools/benchmark_detect.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DETECT-PERF-DECISION": {
+    "name": "BottleneckDecision",
+    "status": "done",
+    "paths": [
+      "benchmarks/detect/evidence/bottleneck_decision.json"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DETECT-TARGET-DISCRIMINATION-R2": {
+    "name": "TargetOptimizationDiscriminationR2",
+    "status": "verified",
+    "paths": [
+      "tools/probe_target_optimization_discrimination_r2.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-ARCH-OVERVIEW": {
+    "name": "ArchitectureOverview",
+    "status": "planned",
+    "paths": [
+      "docs/architecture.md"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DOMAIN-VALUE": {
+    "name": "ValueObjects",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/domain/value_objects.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DOMAIN-PROJECT": {
+    "name": "ProjectAggregate",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/domain/project.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DOMAIN-SLIDE": {
+    "name": "SlideEntity",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/domain/slide.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DOMAIN-STATE": {
+    "name": "PipelineState",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/domain/pipeline_state.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-DOMAIN-EVENTS": {
+    "name": "DomainEvents",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/domain/events.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-ADAPTERS": {
+    "name": "LegacyPortAdapters",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/adapters/"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-MCP-ADAPTER": {
+    "name": "McpServiceAdapter",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/debug/app_service_adapter.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-MCP-COMPOSITION": {
+    "name": "McpComposition",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/debug/mcp_composition.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-CLI-ADAPTER": {
+    "name": "CliAdapter",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/adapters/cli/"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-BOOTSTRAP": {
+    "name": "ApplicationServicesBootstrap",
+    "status": "active",
+    "paths": [
+      "src/video2pptx/bootstrap/__init__.py, src/video2pptx/bootstrap/application.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-LLM": {
+    "name": "LlmEnrichmentService",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/application/services/llm_service.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PORT-LLM": {
+    "name": "LlmEnricherPort",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/application/ports/llm_enricher.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-PROJECT": {
+    "name": "",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/application/services/project_service.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-DETECT": {
+    "name": "",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/services/detection_service.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-ALIGN": {
+    "name": "",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/services/alignment_service.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-AUTO": {
+    "name": "",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/services/auto_service.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-NOTES": {
+    "name": "NotesService",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/services/notes_service.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-EXPORT": {
+    "name": "ExportService",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/services/export_service.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-VALIDATE": {
+    "name": "ValidationService",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/services/validation_service.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PORT-REPO": {
+    "name": "",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/ports/project_repository.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PERSIST-DTO": {
+    "name": "PersistenceDtoV2",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/infrastructure/persistence/dto.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PERSIST-MIGRATIONS": {
+    "name": "PersistenceMigrations",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/infrastructure/persistence/migrations.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-FILE-REPO": {
+    "name": "FileProjectRepository",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/infrastructure/persistence/file_project_repository.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-COMMON": {
+    "name": "ApplicationCommon",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PORT-PREVIEW": {
+    "name": "PreviewAnalyzerPort",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/ports/preview_analyzer.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PORT-DETECTOR": {
+    "name": "SlideDetectorPort",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/ports/slide_detector.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PORT-ALIGNMENT": {
+    "name": "AlignmentPort",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/ports/alignment.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PORT-NOTES": {
+    "name": "NotesProcessorPort",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/ports/notes_processor.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PORT-EXPORT": {
+    "name": "PresentationExporterPort",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/ports/presentation_exporter.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-APP-PREVIEW": {
+    "name": "PreviewService",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/services/preview_service.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-PORT-EVENTS": {
+    "name": "",
+    "status": "planned",
+    "paths": [
+      "src/video2pptx/application/ports/event_bus.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-UPDATE-CHECKER": {
+    "name": "UpdateService",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/application/update_service.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GITHUB-PROVIDER": {
+    "name": "GitHubReleaseProvider",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/infrastructure/github_release_provider.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  },
+  "M-GUI-UPDATE-CTRL": {
+    "name": "UpdateController",
+    "status": "implemented",
+    "paths": [
+      "src/video2pptx/gui/update_controller.py",
+      "src/video2pptx/gui/update_dialog.py"
+    ],
+    "source_files_with_markers": {},
+    "markers": [],
+    "has_runtime_markers": false
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "schemaVersion": "1.0.0",
+  "tool": "grace-status",
+  "generatedAt": "2026-07-18T02:32:22.627Z",
+  "root": "D:\\git\\video2pptx",
+  "summary": {
+    "moduleSummaryLoaded": false,
+    "moduleCount": 120,
+    "readyModules": 0,
+    "attentionModules": 0,
+    "blockedModules": 0,
+    "integrityErrors": 403,
+    "integrityWarnings": 226,
+    "autonomyBlockers": 385,
+    "autonomyWarnings": 297
+  },
+  "artifacts": [
+    {
+      "path": "AGENTS.md",
+      "exists": true
+    },
+    {
+      "path": "docs/requirements.xml",
+      "exists": true,
+      "version": "0.5.0",
+      "countLabel": "use cases",
+      "count": 16
+    },
+    {
+      "path": "docs/technology.xml",
+      "exists": true,
+      "version": "0.3.0"
+    },
+    {
+      "path": "docs/knowledge-graph.xml",
+      "exists": true,
+      "version": "0.6.0",
+      "countLabel": "modules",
+      "count": 120
+    },
+    {
+      "path": "docs/development-plan.xml",
+      "exists": true,
+      "version": "0.5.0",
+      "countLabel": "modules",
+      "count": 95
+    },
+    {
+      "path": "docs/verification-plan.xml",
+      "exists": true,
+      "version": "0.5.0",
+      "countLabel": "verification entries",
+      "count": 114
+    },
+    {
+      "path": "docs/operational-packets.xml",
+      "exists": true,
+      "version": "0.2.0"
+    }
+  ],
+  "metrics": {
+    "sourceFiles": 4212,
+    "sourceFilesWithModuleContract": 134,
+    "sourceFilesWithoutModuleContract": 4078,
+    "testFiles": 1258,
+    "testFilesWithModuleContract": 91,
+    "governedFiles": 225,
+    "semanticBlocks": 155,
+    "unpairedBlockIssues": 0,
+    "filesWithStableLogMarkers": 2,
+    "testFilesWithEvidenceAssertions": 7
+  },
+  "health": {
+    "graphModules": 120,
+    "planModules": 95,
+    "codebaseModules": 101,
+    "graphOnlyModules": [
+      "M-ADAPTERS",
+      "M-APP-BUILD-META",
+      "M-APP-IDENTITY",
+      "M-APP-INPUT-RESOLVER",
+      "M-BACKEND-OPENCV",
+      "M-DESKTOP-BOOTSTRAP",
+      "M-DETECT-BENCHMARK",
+      "M-DETECT-METRICS",
+      "M-DETECT-PERF-DECISION",
+      "M-DETECT-TARGET-DISCRIMINATION-R2",
+      "M-DOMAIN-EVENTS",
+      "M-DOMAIN-SLIDE",
+      "M-DOMAIN-STATE",
+      "M-GITHUB-PROVIDER",
+      "M-GUI-ABOUT",
+      "M-GUI-HELP-MENU",
+      "M-GUI-MARKER-PANEL",
+      "M-GUI-ROI-SELECTOR",
+      "M-GUI-STATUS",
+      "M-GUI-SUBTITLE-EDITOR",
+      "M-MCP-ADAPTER",
+      "M-MCP-COMPOSITION",
+      "M-PERSIST-DETECTION",
+      "M-PORT-EVENTS",
+      "M-PORT-LLM"
+    ],
+    "planOnlyModules": [],
+    "sharedModulesWithoutGovernedFiles": [
+      "M-APP-LLM",
+      "M-APP-PROJECT",
+      "M-APP-SERVICE",
+      "M-ARCH-OVERVIEW",
+      "M-CANONICAL-COMMANDS",
+      "M-COLAB",
+      "M-DEBUG-ACTION",
+      "M-DETECT-TARGET-DISCRIMINATION-R2",
+      "M-DOMAIN-EVENTS",
+      "M-E2E-RUNNER",
+      "M-E2E-SCENARIOS",
+      "M-GITHUB-PROVIDER",
+      "M-GUI-CANONICAL-BUTTONS",
+      "M-GUI-HELP-MENU",
+      "M-GUI-TIMELINE",
+      "M-GUI-TIMELINE-V2",
+      "M-GUI-UPDATE-CTRL",
+      "M-GUI-WORKER",
+      "M-MCP-COMPOSITION",
+      "M-PERSIST-DETECTION",
+      "M-PIPELINE",
+      "M-PIPELINE-STATES",
+      "M-PORT-EVENTS",
+      "M-PORT-LLM"
+    ],
+    "governedModulesMissingFromSharedDocs": [
+      "M-BACKEND-DECORD",
+      "M-BACKEND-PYNV",
+      "M-PATHS",
+      "M-PKG",
+      "M-REVIEW"
+    ],
+    "modulesWithoutVerification": [
+      "M-ADAPTERS",
+      "M-APP-BOOTSTRAP",
+      "M-APP-BUILD-META",
+      "M-APP-COMMON",
+      "M-APP-IDENTITY",
+      "M-APP-INPUT-RESOLVER",
+      "M-APP-LLM",
+      "M-BACKEND-OPENCV",
+      "M-BACKEND-PYAV",
+      "M-DESKTOP-BOOTSTRAP",
+      "M-DETECT-BENCHMARK",
+      "M-DETECT-METRICS",
+      "M-DETECT-PERF-DECISION",
+      "M-GITHUB-PROVIDER",
+      "M-GUI-ABOUT",
+      "M-GUI-HELP-MENU",
+      "M-GUI-PIPELINE-CTRL",
+      "M-GUI-PIPELINE-WORKER",
+      "M-GUI-TIMELINE-CTRL",
+      "M-GUI-UPDATE-CTRL",
+      "M-GUI-WINDOW-UI",
+      "M-MCP-ADAPTER",
+      "M-MCP-COMPOSITION",
+      "M-PERSIST-DETECTION",
+      "M-PORT-ALIGNMENT",
+      "M-PORT-DETECTOR",
+      "M-PORT-EXPORT",
+      "M-PORT-LLM",
+      "M-PORT-NOTES",
+      "M-PORT-PREVIEW"
+    ],
+    "staleVerificationEntries": [],
+    "pendingPhases": 0,
+    "pendingSteps": 2
+  },
+  "integrity": {
+    "errors": 403,
+    "warnings": 226,
+    "topIssues": [
+      "graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-BACKEND-OPENCV` exists in the knowledge graph but not in the development plan.",
+      "graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-GUI-STATUS` exists in the knowledge graph but not in the development plan.",
+      "graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-GUI-SUBTITLE-EDITOR` exists in the knowledge graph but not in the development plan.",
+      "graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-GUI-MARKER-PANEL` exists in the knowledge graph but not in the development plan.",
+      "graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-GUI-ROI-SELECTOR` exists in the knowledge graph but not in the development plan."
+    ]
+  },
+  "autonomy": {
+    "ready": false,
+    "blockers": [
+      "autonomy.module-missing-verification: docs/verification-plan.xml Module `M-ADAPTERS` has shared planning or graph context but no matching verification entry. Autonomous runs require a V-M entry per shared module.",
+      "autonomy.module-missing-verification: docs/verification-plan.xml Module `M-APP-BOOTSTRAP` has shared planning or graph context but no matching verification entry. Autonomous runs require a V-M entry per shared module.",
+      "autonomy.module-missing-verification: docs/verification-plan.xml Module `M-APP-BUILD-META` has shared planning or graph context but no matching verification entry. Autonomous runs require a V-M entry per shared module.",
+      "autonomy.module-missing-verification: docs/verification-plan.xml Module `M-APP-COMMON` has shared planning or graph context but no matching verification entry. Autonomous runs require a V-M entry per shared module.",
+      "autonomy.module-missing-verification: docs/verification-plan.xml Module `M-APP-IDENTITY` has shared planning or graph context but no matching verification entry. Autonomous runs require a V-M entry per shared module."
+    ],
+    "warnings": [
+      "autonomy.verification-module-check-does-not-reference-test-file: docs/verification-plan.xml Verification entry `V-M-APP-ALIGN` does not have a module-check that clearly targets `tests/application/test_alignment_service.py` or its containing directory.",
+      "autonomy.verification-missing-wave-follow-up: docs/verification-plan.xml Verification entry `V-M-APP-ALIGN` does not define a wave-level follow-up check. Long autonomous runs are safer when merged surfaces have an explicit post-merge gate.",
+      "autonomy.verification-missing-phase-follow-up: docs/verification-plan.xml Verification entry `V-M-APP-ALIGN` does not define a phase-level follow-up check. Autonomous execution benefits from an explicit broader gate before phase completion.",
+      "autonomy.verification-module-check-does-not-reference-test-file: docs/verification-plan.xml Verification entry `V-M-APP-AUTO` does not have a module-check that clearly targets `tests/application/test_auto_service.py` or its containing directory.",
+      "autonomy.verification-missing-wave-follow-up: docs/verification-plan.xml Verification entry `V-M-APP-AUTO` does not define a wave-level follow-up check. Long autonomous runs are safer when merged surfaces have an explicit post-merge gate."
+    ]
+  },
+  "recentChanges": [
+    {
+      "path": "tests/tools/test_benchmark_detect.py",
+      "summary": "v2.2.0 - Proved benchmark routing through the production backend resolver.",
+      "modifiedAt": "2026-07-17T04:23:36.119Z"
+    },
+    {
+      "path": "tests/infra/test_persistence_dto.py",
+      "summary": "v1.0.0 - Add schema 2.0 DTO contract tests",
+      "modifiedAt": "2026-07-17T04:23:36.117Z"
+    },
+    {
+      "path": "tests/infra/test_migrations.py",
+      "summary": "v1.0.0 - Add schema 1.0 to 2.0 migration tests",
+      "modifiedAt": "2026-07-17T04:23:36.116Z"
+    },
+    {
+      "path": "tests/infra/test_mapper.py",
+      "summary": "v1.0.0 - Add canonical mapper round-trip and no-side-effect tests",
+      "modifiedAt": "2026-07-17T04:23:36.114Z"
+    },
+    {
+      "path": "tests/application/test_validation_service.py",
+      "summary": "v1.0.0 - Add validation service tests",
+      "modifiedAt": "2026-07-17T04:23:36.030Z"
+    }
+  ],
+  "nextAction": "Run grace lint --path <project-root> and fix the reported GRACE integrity issues. Use $grace-refresh if shared docs drifted from the codebase."
+}

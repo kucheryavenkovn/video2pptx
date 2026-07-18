@@ -1,0 +1,71 @@
+GRACE Status
+============
+Root: D:\git\video2pptx
+
+Artifacts
+- AGENTS.md: present
+- docs/requirements.xml: present, version 0.5.0, use cases: 16
+- docs/technology.xml: present, version 0.3.0
+- docs/knowledge-graph.xml: present, version 0.6.0, modules: 120
+- docs/development-plan.xml: present, version 0.5.0, modules: 95
+- docs/verification-plan.xml: present, version 0.5.0, verification entries: 144
+- docs/operational-packets.xml: present, version 0.2.0
+
+Summary
+- Modules: 120 shared modules discovered (use --with modules for health states)
+- Integrity: 403 errors, 226 warnings
+- Autonomy: 128 blockers, 5 warnings
+
+Codebase Metrics
+- Source files: 4226
+- Source files with MODULE_CONTRACT: 134
+- Source files without MODULE_CONTRACT: 4092
+- Test files: 1258
+- Test files with MODULE_CONTRACT: 91
+- Governed files: 225
+- Semantic blocks: 155
+- Unpaired block issues: 0
+- Files with stable log markers: 2
+- Test files with evidence assertions: 7
+
+Knowledge Graph and Verification Health
+- Graph modules: 120
+- Plan modules: 95
+- Codebase-linked modules: 101
+- Pending phases: 0
+- Pending steps: 2
+- Graph-only modules: M-ADAPTERS, M-APP-BUILD-META, M-APP-IDENTITY, M-APP-INPUT-RESOLVER, M-BACKEND-OPENCV, M-DESKTOP-BOOTSTRAP, M-DETECT-BENCHMARK, M-DETECT-METRICS, M-DETECT-PERF-DECISION, M-DETECT-TARGET-DISCRIMINATION-R2, M-DOMAIN-EVENTS, M-DOMAIN-SLIDE, M-DOMAIN-STATE, M-GITHUB-PROVIDER, M-GUI-ABOUT, M-GUI-HELP-MENU, M-GUI-MARKER-PANEL, M-GUI-ROI-SELECTOR, M-GUI-STATUS, M-GUI-SUBTITLE-EDITOR, M-MCP-ADAPTER, M-MCP-COMPOSITION, M-PERSIST-DETECTION, M-PORT-EVENTS, M-PORT-LLM
+- Plan-only modules: none
+- Shared modules without governed files: M-APP-LLM, M-APP-PROJECT, M-APP-SERVICE, M-ARCH-OVERVIEW, M-CANONICAL-COMMANDS, M-COLAB, M-DEBUG-ACTION, M-DETECT-TARGET-DISCRIMINATION-R2, M-DOMAIN-EVENTS, M-E2E-RUNNER, M-E2E-SCENARIOS, M-GITHUB-PROVIDER, M-GUI-CANONICAL-BUTTONS, M-GUI-HELP-MENU, M-GUI-TIMELINE, M-GUI-TIMELINE-V2, M-GUI-UPDATE-CTRL, M-GUI-WORKER, M-MCP-COMPOSITION, M-PERSIST-DETECTION, M-PIPELINE, M-PIPELINE-STATES, M-PORT-EVENTS, M-PORT-LLM
+- Governed modules missing from shared docs: M-BACKEND-DECORD, M-BACKEND-PYNV, M-PATHS, M-PKG, M-REVIEW
+- Modules without verification: none
+- Stale verification entries: none
+
+Integrity Snapshot
+- Standard lint: 403 errors, 226 warnings
+- Autonomy gate: BLOCKED
+- Integrity issue: graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-BACKEND-OPENCV` exists in the knowledge graph but not in the development plan.
+- Integrity issue: graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-GUI-STATUS` exists in the knowledge graph but not in the development plan.
+- Integrity issue: graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-GUI-SUBTITLE-EDITOR` exists in the knowledge graph but not in the development plan.
+- Integrity issue: graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-GUI-MARKER-PANEL` exists in the knowledge graph but not in the development plan.
+- Integrity issue: graph.module-missing-from-plan: docs/knowledge-graph.xml Module `M-GUI-ROI-SELECTOR` exists in the knowledge graph but not in the development plan.
+- Autonomy blocker: autonomy.module-missing-implementation-files: docs/knowledge-graph.xml Module `M-APP-LLM` has no linked non-test governed files. Autonomous execution needs a real implementation surface, not only tests or shared-doc declarations.
+- Autonomy blocker: autonomy.module-missing-implementation-files: docs/knowledge-graph.xml Module `M-APP-PROJECT` has no linked non-test governed files. Autonomous execution needs a real implementation surface, not only tests or shared-doc declarations.
+- Autonomy blocker: autonomy.module-missing-implementation-files: docs/knowledge-graph.xml Module `M-APP-SERVICE` has no linked non-test governed files. Autonomous execution needs a real implementation surface, not only tests or shared-doc declarations.
+- Autonomy blocker: autonomy.module-missing-implementation-files: docs/knowledge-graph.xml Module `M-ARCH-OVERVIEW` has no linked non-test governed files. Autonomous execution needs a real implementation surface, not only tests or shared-doc declarations.
+- Autonomy blocker: autonomy.step-missing-verification: docs/development-plan.xml Phase-5 / step-15 for module `M-BACKEND-PYAV` is missing an explicit verification reference. Autonomous packets should name the verification gate they rely on.
+- Autonomy warning: autonomy.verification-module-check-does-not-reference-test-file: docs/verification-plan.xml Verification entry `V-M-REF-GUI-ADAPTER` does not have a module-check that clearly targets `tests/e2e/test_mcp_startup_characterization.py` or its containing directory.
+- Autonomy warning: autonomy.verification-module-check-does-not-reference-test-file: docs/verification-plan.xml Verification entry `V-M-REF-MCP-ADAPTER` does not have a module-check that clearly targets `tests/e2e/test_mcp_startup_characterization.py` or its containing directory.
+- Autonomy warning: autonomy.verification-module-check-does-not-reference-test-file: docs/verification-plan.xml Verification entry `V-M-REF-UPDATE-CHECKER` does not have a module-check that clearly targets `src/video2pptx/application/update_service.py` or its containing directory.
+- Autonomy warning: autonomy.verification-module-check-does-not-reference-test-file: docs/verification-plan.xml Verification entry `V-M-REF-UPDATE-CHECKER` does not have a module-check that clearly targets `src/video2pptx/infrastructure/github_release_provider.py` or its containing directory.
+- Autonomy warning: autonomy.verification-module-check-does-not-reference-test-file: docs/verification-plan.xml Verification entry `V-M-REF-WIN-INSTALLER` does not have a module-check that clearly targets `packaging/windows/installer/video2pptx.iss` or its containing directory.
+
+Recent Changes
+- tests/test_target_optimization_discrimination.py: [v2.2.0 - Step 18.4 closeout: accept negative terminal outcome
+- tests/test_slide_detector.py: v0.2.2 - Add trusted-intrusive evidence_observer contract coverage (mutable ndarray, before extract)
+- tests/test_detection_metrics.py: v1.3.0 - Added deterministic PyAV decode-failure cleanup coverage
+- tests/test_detect_slides.py: v0.3.0 - Completed RSS maximum branches and detector-work cleanup evidence
+- tests/infra/test_mapper.py: v1.0.0 - Add canonical mapper round-trip and no-side-effect tests
+
+Suggested Next Action
+- Run grace lint --path <project-root> and fix the reported GRACE integrity issues. Use $grace-refresh if shared docs drifted from the codebase.

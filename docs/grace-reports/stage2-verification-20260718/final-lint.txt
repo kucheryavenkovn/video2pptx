@@ -1,0 +1,641 @@
+GRACE Lint Report
+=================
+Root: D:\git\video2pptx
+Profile: standard
+Code files checked: 5484
+Governed files checked: 225
+XML files checked: 5
+Issues: 629 (errors: 403, warnings: 226)
+
+Errors:
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-BACKEND-OPENCV` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-GUI-STATUS` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-GUI-SUBTITLE-EDITOR` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-GUI-MARKER-PANEL` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-GUI-ROI-SELECTOR` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-APP-INPUT-RESOLVER` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-PERSIST-DETECTION` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-APP-IDENTITY` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-APP-BUILD-META` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-GUI-ABOUT` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-GUI-HELP-MENU` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-DESKTOP-BOOTSTRAP` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-DETECT-METRICS` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-DETECT-BENCHMARK` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-DETECT-PERF-DECISION` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-DETECT-TARGET-DISCRIMINATION-R2` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-DOMAIN-SLIDE` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-DOMAIN-STATE` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-DOMAIN-EVENTS` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-ADAPTERS` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-MCP-ADAPTER` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-MCP-COMPOSITION` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-PORT-LLM` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-PORT-EVENTS` exists in the knowledge graph but not in the development plan.
+- [graph.module-missing-from-plan] docs/knowledge-graph.xml Module `M-GITHUB-PROVIDER` exists in the knowledge graph but not in the development plan.
+- [markup.missing-change-summary] .opencode\scripts\decompile_pyc.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] .opencode\scripts\decompile_pyc.py Unsupported ROLE `DATA_LAYER`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.invalid-role] src\video2pptx\adapters\cli\app.py Unsupported ROLE `ENTRY_POINT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\adapters\cli\context.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\adapters\cli\errors.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\adapters\cli\exit_codes.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\adapters\cli\observer.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\adapters\cli\renderer.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\adapters\cli\__init__.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.unknown-function-contract-field] src\video2pptx\application\base.py:40 START_CONTRACT section uses non-canonical field `field`. Use exact GRACE field labels only.
+- [markup.invalid-role] src\video2pptx\application\base.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.invalid-role] src\video2pptx\application\identity.py Unsupported ROLE `UTILITY`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.unknown-function-contract-field] src\video2pptx\application\services\detection_service.py:46 START_CONTRACT section uses non-canonical field `slide_roi`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\application\services\detection_service.py:47 START_CONTRACT section uses non-canonical field `min_stable_duration`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\application\services\detection_service.py:48 START_CONTRACT section uses non-canonical field `dedupe_enabled`. Use exact GRACE field labels only.
+- [markup.invalid-role] src\video2pptx\application\services\detection_service.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.invalid-role] src\video2pptx\application\services\preview_service.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.invalid-role] src\video2pptx\application\services\validation_service.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\application\update_service.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\application\update_service.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\auto_align.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.unknown-function-contract-field] src\video2pptx\auto_align.py:265 START_CONTRACT section uses non-canonical field `slides`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\auto_align.py:266 START_CONTRACT section uses non-canonical field `subtitles_path`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\auto_align.py:267 START_CONTRACT section uses non-canonical field `max_shift_sec`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\auto_align.py:268 START_CONTRACT section uses non-canonical field `dry_run`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\auto_align.py:269 START_CONTRACT section uses non-canonical field `include_manual`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\auto_align.py:270 START_CONTRACT section uses non-canonical field `video_duration`. Use exact GRACE field labels only.
+- [markup.invalid-role] src\video2pptx\auto_align.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\backends\decord_backend.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] src\video2pptx\backends\decord_backend.py Governed files with ROLE RUNTIME and MAP_MODE EXPORTS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] src\video2pptx\backends\pyav_backend.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\backends\pynv_backend.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] src\video2pptx\backends\pynv_backend.py Governed files with ROLE RUNTIME and MAP_MODE EXPORTS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] src\video2pptx\backends\__init__.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\bootstrap\__init__.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\build_meta.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.incomplete-module-contract] src\video2pptx\build_meta.py MODULE_CONTRACT should include PURPOSE, SCOPE, DEPENDS, and LINKS fields. Missing: SCOPE.
+- [markup.invalid-role] src\video2pptx\build_meta.py Unsupported ROLE `UTILITY`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\cli.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\cli.py Unsupported ROLE `LEGACY_COMPATIBILITY`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\config.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.unknown-function-contract-field] src\video2pptx\config.py:47 START_CONTRACT section uses non-canonical field `SCOPE`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\config.py:48 START_CONTRACT section uses non-canonical field `DEPENDS`. Use exact GRACE field labels only.
+- [markup.missing-change-summary] src\video2pptx\debug\confirm.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\debug\confirm.py Unsupported ROLE `UTILITY`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\debug\errors.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\debug\errors.py Unsupported ROLE `UTILITY`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\debug\mcp_read_tools.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\debug\mcp_read_tools.py Unsupported ROLE `INTEGRATION`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.invalid-role] src\video2pptx\debug\mcp_write_tools.py Unsupported ROLE `INTEGRATION`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\debug\operation_registry.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\debug\operation_registry.py Unsupported ROLE `UTILITY`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\debug_export.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\dedupe.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.unknown-function-contract-field] src\video2pptx\dedupe.py:32 START_CONTRACT section uses non-canonical field `segments`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\dedupe.py:33 START_CONTRACT section uses non-canonical field `frames`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\dedupe.py:34 START_CONTRACT section uses non-canonical field `max_distance`. Use exact GRACE field labels only.
+- [markup.invalid-role] src\video2pptx\desktop.py Unsupported ROLE `ENTRY_POINT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.invalid-role] src\video2pptx\detection_metrics.py Unsupported ROLE `UTILITY`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.invalid-role] src\video2pptx\detect_slides.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.invalid-role] src\video2pptx\domain\project.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\domain\__init__.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `DOWNSTREAM`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `DomainError`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `DuplicateSlideId`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `InvalidRepresentativeTimestamp`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `InvalidSlideConfidence`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `InvalidSlideOrder`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `OverlappingSlides`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `PIPELINE_STAGES`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `ProjectInvariantError`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `SlideNotFound`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `SlideView`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `StageState`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `TIME_EPSILON`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `TimestampOutsideVideo`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `VALID_TRANSITIONS`.
+- [markup.module-map-missing-export] src\video2pptx\domain\__init__.py MODULE_MAP is missing the exported symbol `migrate_legacy_artifact`.
+- [markup.missing-change-summary] src\video2pptx\frame_features.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\about_dialog.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\app_config.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\app_config.py Unsupported ROLE `DATA_LAYER`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\controllers\pipeline_controller.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\gui\controllers\pipeline_worker.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\gui\controllers\project_controller.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\gui\controllers\timeline_controller.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\gui\controllers\__init__.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.module-map-missing-export] src\video2pptx\gui\controllers\__init__.py MODULE_MAP is missing the exported symbol `PipelineController`.
+- [markup.module-map-missing-export] src\video2pptx\gui\controllers\__init__.py MODULE_MAP is missing the exported symbol `TimelineController`.
+- [markup.missing-change-summary] src\video2pptx\gui\debug_dock.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\debug_dock.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\log_bridge.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\log_bridge.py Unsupported ROLE `UTILITY`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.invalid-role] src\video2pptx\gui\main_window.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\main_window_ui.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\main_window_ui.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\marker_manager.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\marker_manager.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\marker_panel.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\marker_panel.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\menu_bar.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\menu_bar.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\roi_selector.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\roi_selector.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\settings_app.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\settings_app.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\settings_dialog.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\settings_dialog.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.invalid-role] src\video2pptx\gui\settings_project.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\signal_spy.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\signal_spy.py Unsupported ROLE `UTILITY`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\smart_snap.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.unknown-function-contract-field] src\video2pptx\gui\smart_snap.py:50 START_CONTRACT section uses non-canonical field `timestamp`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\gui\smart_snap.py:51 START_CONTRACT section uses non-canonical field `project`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\gui\smart_snap.py:52 START_CONTRACT section uses non-canonical field `snap_mode`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\gui\smart_snap.py:53 START_CONTRACT section uses non-canonical field `snap_flat_threshold`. Use exact GRACE field labels only.
+- [markup.invalid-role] src\video2pptx\gui\smart_snap.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\status_manager.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\status_manager.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\subtitle_editor.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\subtitle_editor.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-module-map] src\video2pptx\gui\subtitle_editor.py Governed files with ROLE BARREL and MAP_MODE EXPORTS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] src\video2pptx\gui\subtitle_overlay.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\subtitle_overlay.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.invalid-role] src\video2pptx\gui\timeline3\items.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-module-map] src\video2pptx\gui\timeline3\items.py Governed files with ROLE RUNTIME and MAP_MODE EXPORTS must include a paired MODULE_MAP section.
+- [markup.empty-change-summary] src\video2pptx\gui\timeline3\items.py CHANGE_SUMMARY must contain at least one LAST_CHANGE entry.
+- [markup.missing-change-summary] src\video2pptx\gui\timeline3\view.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\timeline3\view.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-module-map] src\video2pptx\gui\timeline3\view.py Governed files with ROLE BARREL and MAP_MODE EXPORTS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] src\video2pptx\gui\timeline3\widget.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\timeline3\widget.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-module-map] src\video2pptx\gui\timeline3\widget.py Governed files with ROLE BARREL and MAP_MODE EXPORTS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] src\video2pptx\gui\timeline3\__init__.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] src\video2pptx\gui\timeline3\__init__.py Governed files with ROLE BARREL and MAP_MODE EXPORTS must include a paired MODULE_MAP section.
+- [markup.module-map-missing-symbol-entries] src\video2pptx\gui\timeline3\__init__.py MODULE_MAP should list concrete symbol names when MAP_MODE resolves to EXPORTS.
+- [markup.missing-change-summary] src\video2pptx\gui\ui_state.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\ui_state.py Unsupported ROLE `UTILITY`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\update_controller.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\update_controller.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\update_dialog.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\update_dialog.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\video_player.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\gui\video_player.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\gui\__init__.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] src\video2pptx\gui\__init__.py Governed files with ROLE BARREL and MAP_MODE EXPORTS must include a paired MODULE_MAP section.
+- [markup.module-map-missing-symbol-entries] src\video2pptx\gui\__init__.py MODULE_MAP should list concrete symbol names when MAP_MODE resolves to EXPORTS.
+- [markup.missing-change-summary] src\video2pptx\infrastructure\github_release_provider.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\infrastructure\github_release_provider.py Unsupported ROLE `INTEGRATION`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\infrastructure\persistence\errors.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\infrastructure\persistence\migrations.py Unsupported ROLE `DATA_LAYER`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\llm_client.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.unknown-function-contract-field] src\video2pptx\llm_client.py:133 START_CONTRACT section uses non-canonical field `messages`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\llm_client.py:184 START_CONTRACT section uses non-canonical field `image_path`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\llm_client.py:185 START_CONTRACT section uses non-canonical field `prompt`. Use exact GRACE field labels only.
+- [markup.invalid-role] src\video2pptx\llm_client.py Unsupported ROLE `INTEGRATION`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\llm_orchestrator.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.unknown-function-contract-field] src\video2pptx\llm_orchestrator.py:39 START_CONTRACT section uses non-canonical field `slides_path`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\llm_orchestrator.py:40 START_CONTRACT section uses non-canonical field `llm_config`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\llm_orchestrator.py:41 START_CONTRACT section uses non-canonical field `slides_dir`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\llm_orchestrator.py:42 START_CONTRACT section uses non-canonical field `output_path`. Use exact GRACE field labels only.
+- [markup.invalid-role] src\video2pptx\llm_orchestrator.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\markdown_export.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.unknown-function-contract-field] src\video2pptx\markdown_export.py:40 START_CONTRACT section uses non-canonical field `document`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\markdown_export.py:41 START_CONTRACT section uses non-canonical field `output_path`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\markdown_export.py:42 START_CONTRACT section uses non-canonical field `slides_dir`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\markdown_export.py:43 START_CONTRACT section uses non-canonical field `title`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\markdown_export.py:44 START_CONTRACT section uses non-canonical field `image_as_background`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\markdown_export.py:45 START_CONTRACT section uses non-canonical field `transcript_location`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\markdown_export.py:46 START_CONTRACT section uses non-canonical field `include_timecodes`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\models.py:121 START_CONTRACT section uses non-canonical field `representative_timestamp`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\models.py:122 START_CONTRACT section uses non-canonical field `ocr_text`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\models.py:123 START_CONTRACT section uses non-canonical field `confidence`. Use exact GRACE field labels only.
+- [markup.missing-change-summary] src\video2pptx\notes_pipeline.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_pipeline.py:38 START_CONTRACT section uses non-canonical field `slides_json`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_pipeline.py:39 START_CONTRACT section uses non-canonical field `subtitles_path`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_pipeline.py:40 START_CONTRACT section uses non-canonical field `slides_dir`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_pipeline.py:41 START_CONTRACT section uses non-canonical field `notes_mode`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_pipeline.py:42 START_CONTRACT section uses non-canonical field `llm_config`. Use exact GRACE field labels only.
+- [markup.invalid-role] src\video2pptx\notes_pipeline.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\notes_processor.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_processor.py:72 START_CONTRACT section uses non-canonical field `seg`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_processor.py:73 START_CONTRACT section uses non-canonical field `mode`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_processor.py:74 START_CONTRACT section uses non-canonical field `llm_client`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_processor.py:75 START_CONTRACT section uses non-canonical field `slide_description`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_processor.py:76 START_CONTRACT section uses non-canonical field `slide_context`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_processor.py:168 START_CONTRACT section uses non-canonical field `text`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_processor.py:169 START_CONTRACT section uses non-canonical field `seg`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_processor.py:170 START_CONTRACT section uses non-canonical field `client`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_processor.py:171 START_CONTRACT section uses non-canonical field `slide_description`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\notes_processor.py:172 START_CONTRACT section uses non-canonical field `slide_context`. Use exact GRACE field labels only.
+- [markup.missing-change-summary] src\video2pptx\paths.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.unknown-function-contract-field] src\video2pptx\paths.py:31 START_CONTRACT section uses non-canonical field `base_dir`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\paths.py:32 START_CONTRACT section uses non-canonical field `artifact_path`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\paths.py:72 START_CONTRACT section uses non-canonical field `base_dir`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\paths.py:73 START_CONTRACT section uses non-canonical field `artifact_path`. Use exact GRACE field labels only.
+- [markup.invalid-role] src\video2pptx\paths.py Unsupported ROLE `UTILITY`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.unknown-function-contract-field] src\video2pptx\pptx_export.py:42 START_CONTRACT section uses non-canonical field `document`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\pptx_export.py:43 START_CONTRACT section uses non-canonical field `output_path`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\pptx_export.py:44 START_CONTRACT section uses non-canonical field `slides_dir`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\pptx_export.py:45 START_CONTRACT section uses non-canonical field `title`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\pptx_export.py:46 START_CONTRACT section uses non-canonical field `notes_mode`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\project_manager.py:47 START_CONTRACT section uses non-canonical field `preview_done`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\project_manager.py:48 START_CONTRACT section uses non-canonical field `pptx_exported`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\project_manager.py:130 START_CONTRACT section uses non-canonical field `project_dir`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\project_manager.py:131 START_CONTRACT section uses non-canonical field `video_path`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\project_manager.py:132 START_CONTRACT section uses non-canonical field `subtitles_path`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\project_manager.py:133 START_CONTRACT section uses non-canonical field `name`. Use exact GRACE field labels only.
+- [markup.invalid-role] src\video2pptx\project_manager.py Unsupported ROLE `DATA_LAYER`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\review\__init__.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] src\video2pptx\review\__init__.py Governed files with ROLE RUNTIME and MAP_MODE SUMMARY must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] src\video2pptx\roi.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\roi_tool.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\roi_tool.py Unsupported ROLE `UI_COMPONENT`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\segmenter.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\slide_analyzer.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.unknown-function-contract-field] src\video2pptx\slide_analyzer.py:73 START_CONTRACT section uses non-canonical field `seg`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\slide_analyzer.py:74 START_CONTRACT section uses non-canonical field `image_path`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\slide_analyzer.py:75 START_CONTRACT section uses non-canonical field `llm_client`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] src\video2pptx\slide_analyzer.py:76 START_CONTRACT section uses non-canonical field `slides_dir`. Use exact GRACE field labels only.
+- [markup.invalid-role] src\video2pptx\slide_analyzer.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.unknown-function-contract-field] src\video2pptx\slide_detector.py:73 START_CONTRACT section uses non-canonical field `EVIDENCE_OBSERVER_CONTRACT`. Use exact GRACE field labels only.
+- [markup.missing-change-summary] src\video2pptx\subtitles.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\timeline_model.py Unsupported ROLE `DATA_LAYER`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\utils\json_io.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\utils\json_io.py Unsupported ROLE `UTILITY`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\validators\project_validator.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] src\video2pptx\validators\project_validator.py Unsupported ROLE `CORE_LOGIC`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] src\video2pptx\video_decode.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] src\video2pptx\__init__.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\application\test_alignment_service.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-module-map] tests\application\test_auto_service.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-module-map] tests\application\test_common.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-module-map] tests\application\test_detection_service.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-module-map] tests\application\test_notes_service.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-module-map] tests\application\test_preview_service.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-module-map] tests\application\test_validation_service.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\conftest.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\conftest.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\domain\test_pipeline_state.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\domain\test_pipeline_state.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\domain\test_project.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\domain\test_project.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\domain\test_value_objects.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\domain\test_value_objects.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\e2e\test_mcp_startup_characterization.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\e2e\test_mcp_startup_characterization.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\gui\test_main_window_integration.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\gui\test_pipeline_controller.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\gui\test_project_controller.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\gui\test_timeline_controller.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\infra\test_file_repository.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\infra\test_file_repository.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-module-map] tests\infra\test_mapper.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-module-map] tests\infra\test_migrations.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-module-map] tests\infra\test_persistence_dto.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_architecture.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_architecture.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_atomic_json.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_atomic_json.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_auto_align.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_auto_align.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_backends.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_backends.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_benchmark_provenance.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_benchmark_provenance.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_bootstrap.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\test_branding.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.incomplete-module-contract] tests\test_branding.py MODULE_CONTRACT should include PURPOSE, SCOPE, DEPENDS, and LINKS fields. Missing: SCOPE, LINKS.
+- [markup.missing-change-summary] tests\test_characterization_fixtures.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_characterization_fixtures.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_cli.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_cli.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_cli_adapter_commands.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\test_cli_adapter_core.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\test_cli_architecture.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\test_cli_e2e.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_cli_e2e.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_config.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_config.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_confirm_policy.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_confirm_policy.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_debug_export.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_debug_export.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_dedupe.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_dedupe.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_frame_features.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_frame_features.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_github_release_provider.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.incomplete-module-contract] tests\test_github_release_provider.py MODULE_CONTRACT should include PURPOSE, SCOPE, DEPENDS, and LINKS fields. Missing: SCOPE, LINKS.
+- [markup.missing-change-summary] tests\test_gui_app_config.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\test_gui_debug_dock.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_gui_debug_dock.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_gui_log_bridge.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_gui_log_bridge.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_gui_main.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_gui_main.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.empty-change-summary] tests\test_gui_main_window.py CHANGE_SUMMARY must contain at least one LAST_CHANGE entry.
+- [markup.missing-change-summary] tests\test_gui_marker_manager.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\test_gui_menu_bar.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\test_gui_settings.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_gui_settings.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_gui_settings_app.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\test_gui_settings_project.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\test_gui_signal_spy.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_gui_signal_spy.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_gui_smart_snap.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\test_gui_subtitle_overlay.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\test_gui_video_player.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tests\test_llm_client.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_llm_client.py Governed files with ROLE TEST and MAP_MODE EXPORTS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_llm_orchestrator.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_llm_orchestrator.py Governed files with ROLE TEST and MAP_MODE EXPORTS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_markdown_export.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_markdown_export.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_mcp_operations.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_mcp_operations.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_mcp_qt_operations.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_mcp_qt_operations.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_mcp_read_tools.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_mcp_read_tools.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_mcp_write_tools.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_mcp_write_tools.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_models.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_models.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_notes_pipeline.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_notes_pipeline.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_notes_processor.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_notes_processor.py Governed files with ROLE TEST and MAP_MODE EXPORTS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_operation_registry.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_operation_registry.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_paths.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_paths.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_pipeline_states.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_pipeline_states.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_pptx_export.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_pptx_export.py Governed files with ROLE TEST and MAP_MODE EXPORTS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_project_manager.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_project_manager.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_project_model.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_project_model.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_project_model_crud.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_project_model_crud.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_project_validator.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_project_validator.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_roi.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_roi.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_roi_tool.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_roi_tool.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_segmenter.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_segmenter.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_slide_analyzer.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_slide_analyzer.py Governed files with ROLE TEST and MAP_MODE EXPORTS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_strict_fallback_control.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_strict_fallback_control.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_structured_errors.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_structured_errors.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_subtitles.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_subtitles.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_timeline_model.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_timeline_model.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_ui_state.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_ui_state.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tests\test_update_service.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.incomplete-module-contract] tests\test_update_service.py MODULE_CONTRACT should include PURPOSE, SCOPE, DEPENDS, and LINKS fields. Missing: SCOPE, LINKS.
+- [markup.missing-change-summary] tests\test_video_decode.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-module-map] tests\test_video_decode.py Governed files with ROLE TEST and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tools\discrimination_helpers.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tools\e2e_snapshot.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.invalid-role] tools\e2e_snapshot.py Unsupported ROLE `UTILITY`. Use RUNTIME, TEST, BARREL, CONFIG, TYPES, or SCRIPT.
+- [markup.missing-change-summary] tools\probe_pass2_retrieval.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.missing-change-summary] tools\probe_pyav_hwaccel.py Governed files must include a paired CHANGE_SUMMARY section.
+- [markup.incomplete-module-contract] tools\probe_pyav_hwaccel.py MODULE_CONTRACT should include PURPOSE, SCOPE, DEPENDS, and LINKS fields. Missing: SCOPE.
+- [markup.unknown-function-contract-field] tools\probe_pyav_hwaccel.py:135 START_CONTRACT section uses non-canonical field `_av`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] tools\probe_pyav_hwaccel.py:139 START_CONTRACT section uses non-canonical field `TERMINAL_STATES`. Use exact GRACE field labels only.
+- [markup.unknown-function-contract-field] tools\probe_pyav_hwaccel.py:142 START_CONTRACT section uses non-canonical field `NOTE`. Use exact GRACE field labels only.
+- [markup.missing-module-map] tools\probe_pyav_hwaccel.py Governed files with ROLE SCRIPT and MAP_MODE LOCALS must include a paired MODULE_MAP section.
+- [markup.missing-change-summary] tools\probe_target_optimization_discrimination_r2.py Governed files must include a paired CHANGE_SUMMARY section.
+
+Warnings:
+- [analysis.heuristic-export-surface] .opencode\scripts\decompile_pyc.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] .opencode\scripts\decompile_pyc.py MODULE_MAP is missing the exported symbol `decompile`.
+- [markup.module-map-missing-export] .opencode\scripts\decompile_pyc.py MODULE_MAP is missing the exported symbol `decompile_basic_block`.
+- [markup.module-map-missing-export] .opencode\scripts\decompile_pyc.py MODULE_MAP is missing the exported symbol `decompile_class`.
+- [markup.module-map-missing-export] .opencode\scripts\decompile_pyc.py MODULE_MAP is missing the exported symbol `decompile_import_block`.
+- [markup.module-map-missing-export] .opencode\scripts\decompile_pyc.py MODULE_MAP is missing the exported symbol `decompile_method`.
+- [markup.module-map-missing-export] .opencode\scripts\decompile_pyc.py MODULE_MAP is missing the exported symbol `decompile_module`.
+- [markup.module-map-missing-export] .opencode\scripts\decompile_pyc.py MODULE_MAP is missing the exported symbol `get_const`.
+- [markup.module-map-missing-export] .opencode\scripts\decompile_pyc.py MODULE_MAP is missing the exported symbol `main`.
+- [markup.module-map-missing-export] .opencode\scripts\decompile_pyc.py MODULE_MAP is missing the exported symbol `read_pyc`.
+- [markup.module-map-missing-export] .opencode\scripts\decompile_pyc.py MODULE_MAP is missing the exported symbol `reconstruct_log_bridge`.
+- [markup.module-map-missing-export] .opencode\scripts\decompile_pyc.py MODULE_MAP is missing the exported symbol `reconstruct_project_model`.
+- [markup.module-map-missing-export] .opencode\scripts\decompile_pyc.py MODULE_MAP is missing the exported symbol `reconstruct_timeline_model`.
+- [markup.module-map-missing-export] .opencode\scripts\decompile_pyc.py MODULE_MAP is missing the exported symbol `split_basic_blocks`.
+- [markup.module-map-extra-export] .opencode\scripts\decompile_pyc.py:331 MODULE_MAP lists `Clip`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] .opencode\scripts\decompile_pyc.py:332 MODULE_MAP lists `SlideClip`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] .opencode\scripts\decompile_pyc.py:333 MODULE_MAP lists `SubtitleClip`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] .opencode\scripts\decompile_pyc.py:334 MODULE_MAP lists `MarkerClip`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] .opencode\scripts\decompile_pyc.py:335 MODULE_MAP lists `ScoreClip`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] .opencode\scripts\decompile_pyc.py:336 MODULE_MAP lists `Track`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] .opencode\scripts\decompile_pyc.py:337 MODULE_MAP lists `ScoreTrack`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] .opencode\scripts\decompile_pyc.py:338 MODULE_MAP lists `Timeline`, but no matching export was found by the python adapter.
+- [analysis.heuristic-export-surface] src\video2pptx\adapters\cli\app.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\adapters\cli\app.py MODULE_MAP is missing the exported symbol `app`.
+- [markup.module-map-missing-export] src\video2pptx\adapters\cli\app.py MODULE_MAP is missing the exported symbol `run`.
+- [markup.module-map-extra-export] src\video2pptx\adapters\cli\app.py:14 MODULE_MAP lists `_run_service`, but no matching export was found by the python adapter.
+- [analysis.heuristic-export-surface] src\video2pptx\adapters\cli\context.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\adapters\cli\errors.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\adapters\cli\exit_codes.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\adapters\cli\observer.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\adapters\cli\renderer.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\adapters\legacy_aligner.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\adapters\legacy_detector.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\adapters\legacy_exporter.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\adapters\legacy_notes.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\adapters\legacy_preview.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\base.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\cancellation.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\dto.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\errors.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\identity.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\application\identity.py MODULE_MAP is missing the exported symbol `BuildInfo`.
+- [markup.module-map-missing-export] src\video2pptx\application\identity.py MODULE_MAP is missing the exported symbol `application_identity`.
+- [analysis.heuristic-export-surface] src\video2pptx\application\observer.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\ports\alignment.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\ports\notes_processor.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\ports\presentation_exporter.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\ports\preview_analyzer.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\ports\project_repository.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\ports\slide_detector.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\services\alignment_service.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\services\auto_service.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\services\detection_service.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\services\export_service.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\services\notes_service.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\services\preview_service.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\services\validation_service.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\application\update_service.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\application\update_service.py MODULE_MAP is missing the exported symbol `ReleaseAsset`.
+- [markup.module-map-missing-export] src\video2pptx\application\update_service.py MODULE_MAP is missing the exported symbol `UpdateCheckResultType`.
+- [markup.module-map-missing-export] src\video2pptx\application\update_service.py MODULE_MAP is missing the exported symbol `normalize_tag`.
+- [analysis.heuristic-export-surface] src\video2pptx\auto_align.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\auto_align.py MODULE_MAP is missing the exported symbol `AlignmentAnchorProvider`.
+- [markup.module-map-missing-export] src\video2pptx\auto_align.py MODULE_MAP is missing the exported symbol `AlignmentBoundary`.
+- [markup.module-map-missing-export] src\video2pptx\auto_align.py MODULE_MAP is missing the exported symbol `rollback_alignment`.
+- [analysis.heuristic-export-surface] src\video2pptx\backends\decord_backend.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\backends\opencv_backend.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\backends\pyav_backend.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-extra-export] src\video2pptx\backends\pyav_backend.py:15 MODULE_MAP lists `_hwaccel_evidence_observer`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] src\video2pptx\backends\pyav_backend.py:16 MODULE_MAP lists `_register_hwaccel_evidence_observer`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] src\video2pptx\backends\pyav_backend.py:17 MODULE_MAP lists `_create_hwaccel_with_evidence`, but no matching export was found by the python adapter.
+- [analysis.heuristic-export-surface] src\video2pptx\backends\pynv_backend.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\bootstrap\application.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\build_meta.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\config.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\config.py MODULE_MAP is missing the exported symbol `LlmConfig`.
+- [analysis.heuristic-export-surface] src\video2pptx\debug\app_service_adapter.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\debug\confirm.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\debug\errors.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\debug\mcp_operations.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\debug\mcp_read_tools.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\debug\mcp_server.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\debug\mcp_write_tools.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\debug\operation_registry.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\debug\operation_registry.py MODULE_MAP is missing the exported symbol `TERMINAL_STATUSES`.
+- [markup.module-map-missing-export] src\video2pptx\debug\operation_registry.py MODULE_MAP is missing the exported symbol `VALID_STATUSES`.
+- [analysis.heuristic-export-surface] src\video2pptx\debug_export.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\dedupe.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\desktop.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-extra-export] src\video2pptx\desktop.py:17 MODULE_MAP lists `_print_diagnostics`, but no matching export was found by the python adapter.
+- [analysis.heuristic-export-surface] src\video2pptx\detection_metrics.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\detection_metrics.py MODULE_MAP is missing the exported symbol `InstrumentedIterator`.
+- [markup.module-map-missing-export] src\video2pptx\detection_metrics.py MODULE_MAP is missing the exported symbol `MetricsCounter`.
+- [markup.module-map-missing-export] src\video2pptx\detection_metrics.py MODULE_MAP is missing the exported symbol `MetricsGauge`.
+- [markup.module-map-missing-export] src\video2pptx\detection_metrics.py MODULE_MAP is missing the exported symbol `MetricsTimer`.
+- [markup.module-map-missing-export] src\video2pptx\detection_metrics.py MODULE_MAP is missing the exported symbol `get`.
+- [markup.module-map-missing-export] src\video2pptx\detection_metrics.py MODULE_MAP is missing the exported symbol `reset`.
+- [markup.module-map-missing-export] src\video2pptx\detection_metrics.py MODULE_MAP is missing the exported symbol `set_active`.
+- [analysis.heuristic-export-surface] src\video2pptx\detect_slides.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\domain\artifacts.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\domain\artifacts.py MODULE_MAP is missing the exported symbol `migrate_legacy_artifact`.
+- [analysis.heuristic-export-surface] src\video2pptx\domain\errors.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\domain\identifiers.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\domain\pipeline_state.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\domain\project.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\domain\slide.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\domain\time.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\domain\time.py MODULE_MAP is missing the exported symbol `TIME_EPSILON`.
+- [analysis.heuristic-export-surface] src\video2pptx\frame_features.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\frame_features.py MODULE_MAP is missing the exported symbol `DISTANCE_WEIGHTS`.
+- [markup.module-map-missing-export] src\video2pptx\frame_features.py MODULE_MAP is missing the exported symbol `QuickFrame`.
+- [markup.module-map-missing-export] src\video2pptx\frame_features.py MODULE_MAP is missing the exported symbol `array_to_pil`.
+- [markup.module-map-missing-export] src\video2pptx\frame_features.py MODULE_MAP is missing the exported symbol `compute_histogram`.
+- [markup.module-map-missing-export] src\video2pptx\frame_features.py MODULE_MAP is missing the exported symbol `cv2_calc_hist`.
+- [markup.module-map-missing-export] src\video2pptx\frame_features.py MODULE_MAP is missing the exported symbol `cv2_resize`.
+- [markup.module-map-missing-export] src\video2pptx\frame_features.py MODULE_MAP is missing the exported symbol `cv2_to_gray`.
+- [markup.module-map-missing-export] src\video2pptx\frame_features.py MODULE_MAP is missing the exported symbol `quick_extract`.
+- [markup.module-map-missing-export] src\video2pptx\frame_features.py MODULE_MAP is missing the exported symbol `quick_visual_distance`.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\about_dialog.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\app_config.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\gui\app_config.py MODULE_MAP is missing the exported symbol `add_recent_project`.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\controllers\pipeline_controller.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\gui\controllers\pipeline_controller.py MODULE_MAP is missing the exported symbol `PipelineStartResult`.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\controllers\pipeline_worker.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\controllers\project_controller.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\controllers\timeline_controller.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\debug_dock.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\log_bridge.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\main_window.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\main_window_ui.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\marker_manager.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\marker_panel.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\menu_bar.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\roi_selector.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\settings_app.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\settings_dialog.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\settings_project.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\signal_spy.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\smart_snap.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\gui\smart_snap.py MODULE_MAP is missing the exported symbol `DIFF_WINDOW_SECONDS`.
+- [markup.module-map-missing-export] src\video2pptx\gui\smart_snap.py MODULE_MAP is missing the exported symbol `FALLBACK_SAMPLE_FPS`.
+- [markup.module-map-missing-export] src\video2pptx\gui\smart_snap.py MODULE_MAP is missing the exported symbol `FALLBACK_WINDOW_SECONDS`.
+- [markup.module-map-missing-export] src\video2pptx\gui\smart_snap.py MODULE_MAP is missing the exported symbol `HYBRID_SAMPLE_FPS`.
+- [markup.module-map-missing-export] src\video2pptx\gui\smart_snap.py MODULE_MAP is missing the exported symbol `HYBRID_WINDOW_SECONDS`.
+- [markup.module-map-extra-export] src\video2pptx\gui\smart_snap.py:14 MODULE_MAP lists `_snap_diff_only`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] src\video2pptx\gui\smart_snap.py:15 MODULE_MAP lists `_snap_fallback_analyze`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] src\video2pptx\gui\smart_snap.py:16 MODULE_MAP lists `_snap_hybrid`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] src\video2pptx\gui\smart_snap.py:17 MODULE_MAP lists `_load_diff_scores`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] src\video2pptx\gui\smart_snap.py:18 MODULE_MAP lists `_find_peak_in_window`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] src\video2pptx\gui\smart_snap.py:19 MODULE_MAP lists `_decode_and_analyze_window`, but no matching export was found by the python adapter.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\status_manager.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\subtitle_editor.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-symbol-entries] src\video2pptx\gui\subtitle_editor.py MODULE_MAP should list concrete symbol names when MAP_MODE resolves to EXPORTS.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\subtitle_overlay.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\timeline3\items.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-symbol-entries] src\video2pptx\gui\timeline3\items.py MODULE_MAP should list concrete symbol names when MAP_MODE resolves to EXPORTS.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\timeline3\view.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-symbol-entries] src\video2pptx\gui\timeline3\view.py MODULE_MAP should list concrete symbol names when MAP_MODE resolves to EXPORTS.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\timeline3\widget.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-symbol-entries] src\video2pptx\gui\timeline3\widget.py MODULE_MAP should list concrete symbol names when MAP_MODE resolves to EXPORTS.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\ui_state.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\update_controller.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\update_dialog.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\gui\video_player.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\infrastructure\github_release_provider.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\infrastructure\persistence\dto.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\infrastructure\persistence\dto.py MODULE_MAP is missing the exported symbol `DetectionConfigDocument`.
+- [analysis.heuristic-export-surface] src\video2pptx\infrastructure\persistence\errors.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\infrastructure\persistence\file_project_repository.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\infrastructure\persistence\mapper.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\infrastructure\persistence\migrations.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\llm_client.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\llm_orchestrator.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\markdown_export.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\models.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\models.py MODULE_MAP is missing the exported symbol `VideoFrame`.
+- [analysis.heuristic-export-surface] src\video2pptx\notes_pipeline.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\notes_processor.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\notes_processor.py MODULE_MAP is missing the exported symbol `LLM_REQUEST_TEMPLATE`.
+- [markup.module-map-missing-export] src\video2pptx\notes_processor.py MODULE_MAP is missing the exported symbol `LLM_REQUEST_TEMPLATE_WITH_CONTEXT`.
+- [analysis.heuristic-export-surface] src\video2pptx\paths.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\paths.py MODULE_MAP is missing the exported symbol `resolve_markdown_image_path`.
+- [analysis.heuristic-export-surface] src\video2pptx\pptx_export.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\project_manager.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\project_manager.py MODULE_MAP is missing the exported symbol `SUBTITLE_EXTS`.
+- [analysis.heuristic-export-surface] src\video2pptx\project_model.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\roi.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] src\video2pptx\roi.py MODULE_MAP is missing the exported symbol `parse_ignore_rois`.
+- [markup.module-map-extra-export] src\video2pptx\roi.py:15 MODULE_MAP lists `apply_roi`, but no matching export was found by the python adapter.
+- [markup.module-map-extra-export] src\video2pptx\roi.py:16 MODULE_MAP lists `apply_ignore_masks`, but no matching export was found by the python adapter.
+- [analysis.heuristic-export-surface] src\video2pptx\roi_tool.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\segmenter.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\slide_analyzer.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\slide_detector.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\subtitles.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\timeline_model.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\utils\json_io.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\validators\project_validator.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] src\video2pptx\video_decode.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] tests\test_llm_client.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-symbol-entries] tests\test_llm_client.py MODULE_MAP should list concrete symbol names when MAP_MODE resolves to EXPORTS.
+- [analysis.heuristic-export-surface] tests\test_llm_orchestrator.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-symbol-entries] tests\test_llm_orchestrator.py MODULE_MAP should list concrete symbol names when MAP_MODE resolves to EXPORTS.
+- [analysis.heuristic-export-surface] tests\test_notes_processor.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-symbol-entries] tests\test_notes_processor.py MODULE_MAP should list concrete symbol names when MAP_MODE resolves to EXPORTS.
+- [analysis.heuristic-export-surface] tests\test_pptx_export.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-symbol-entries] tests\test_pptx_export.py MODULE_MAP should list concrete symbol names when MAP_MODE resolves to EXPORTS.
+- [analysis.heuristic-export-surface] tests\test_slide_analyzer.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-symbol-entries] tests\test_slide_analyzer.py MODULE_MAP should list concrete symbol names when MAP_MODE resolves to EXPORTS.
+- [analysis.heuristic-export-surface] tools\benchmark_detect.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] tools\discrimination_helpers.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] tools\discrimination_helpers.py MODULE_MAP is missing the exported symbol `collect_git_provenance`.
+- [markup.module-map-missing-export] tools\discrimination_helpers.py MODULE_MAP is missing the exported symbol `representative_timestamp`.
+- [markup.module-map-missing-export] tools\discrimination_helpers.py MODULE_MAP is missing the exported symbol `select_first_strict_match`.
+- [analysis.heuristic-export-surface] tools\e2e_snapshot.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [analysis.heuristic-export-surface] tools\probe_pass2_retrieval.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] tools\probe_pass2_retrieval.py MODULE_MAP is missing the exported symbol `Pass1Result`.
+- [analysis.heuristic-export-surface] tools\probe_pyav_decode_config.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] tools\probe_pyav_decode_config.py MODULE_MAP is missing the exported symbol `EXPECTED_CLIP_SHA256`.
+- [markup.module-map-extra-export] tools\probe_pyav_decode_config.py:17 MODULE_MAP lists `select_c3_variants`, but no matching export was found by the python adapter.
+- [analysis.heuristic-export-surface] tools\probe_target_optimization_discrimination_r2.py The python adapter inferred exports heuristically for this file. Exact MODULE_MAP parity may require explicit file ROLE/MAP_MODE or stronger language-specific export declarations.
+- [markup.module-map-missing-export] tools\probe_target_optimization_discrimination_r2.py MODULE_MAP is missing the exported symbol `CANONICAL_SIGNATURE`.
+- [markup.module-map-missing-export] tools\probe_target_optimization_discrimination_r2.py MODULE_MAP is missing the exported symbol `EXPECTED_CLIP_SHA256`.
+- [markup.module-map-missing-export] tools\probe_target_optimization_discrimination_r2.py MODULE_MAP is missing the exported symbol `REPRESENTATIVE_FRAME_BYTES`.
+- [markup.module-map-missing-export] tools\probe_target_optimization_discrimination_r2.py MODULE_MAP is missing the exported symbol `RETAIN_ALL_UPPER_BOUND_BYTES`.
+- [markup.module-map-missing-export] tools\probe_target_optimization_discrimination_r2.py MODULE_MAP is missing the exported symbol `run_c1`.

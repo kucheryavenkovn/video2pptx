@@ -1,0 +1,437 @@
+{
+  "M-ADAPTERS": {
+    "name": "LegacyPortAdapters",
+    "module_status": "implemented",
+    "purpose": "Translate Phase 16 port contracts to legacy CV, alignment, notes, and export functions.",
+    "source_paths": [
+      "src/video2pptx/adapters/"
+    ],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-APP-BOOTSTRAP": {
+    "name": "ApplicationServicesBootstrap",
+    "module_status": "active",
+    "purpose": "Build one service bundle and operation-scoped context shared by CLI and MCP.",
+    "source_paths": [
+      "src/video2pptx/bootstrap/__init__.py, src/video2pptx/bootstrap/application.py"
+    ],
+    "candidate_tests": [
+      "tests/test_bootstrap.py"
+    ],
+    "layer": "4",
+    "type": "UTILITY",
+    "test_run": {
+      "path": "tests/test_bootstrap.py",
+      "passed": true,
+      "summary": ".............                                                            [100%]"
+    },
+    "honest_status": "passed"
+  },
+  "M-APP-BUILD-META": {
+    "name": "BuildMeta",
+    "module_status": "active",
+    "purpose": "Build-time injected metadata (commit SHA, build type). Overwritten by CI/CD pipeline.",
+    "source_paths": [
+      "src/video2pptx/build_meta.py"
+    ],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-APP-COMMON": {
+    "name": "ApplicationCommon",
+    "module_status": "implemented",
+    "purpose": "Shared DTOs, errors, cancellation, observer, and service context for all stage services.",
+    "source_paths": [
+      "src/video2pptx/application/"
+    ],
+    "candidate_tests": [
+      "tests/application/test_common.py"
+    ],
+    "layer": "2",
+    "type": "UTILITY",
+    "test_run": {
+      "path": "tests/application/test_common.py",
+      "passed": true,
+      "summary": "...................                                                      [100%]"
+    },
+    "honest_status": "passed"
+  },
+  "M-APP-IDENTITY": {
+    "name": "ApplicationIdentity",
+    "module_status": "active",
+    "purpose": "Canonical application identity: version, build SHA, repository, runtime info. Single source of product metadata.",
+    "source_paths": [
+      "src/video2pptx/application/identity.py"
+    ],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-APP-INPUT-RESOLVER": {
+    "name": "InputResolver",
+    "module_status": "active",
+    "purpose": "Common input resolution helpers for project-bound operations: resolve_project_input, resolve_project_path, resolve_detection_override, normalize_roi.",
+    "source_paths": [
+      "src/video2pptx/application/base.py"
+    ],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-APP-LLM": {
+    "name": "LlmEnrichmentService",
+    "module_status": "planned",
+    "purpose": "Canonical explicit LLM enrichment use case with no silent basic-mode fallback.",
+    "source_paths": [
+      "src/video2pptx/application/services/llm_service.py"
+    ],
+    "candidate_tests": [],
+    "layer": "2",
+    "type": "CORE_LOGIC",
+    "test_run": null,
+    "honest_status": "planned"
+  },
+  "M-BACKEND-OPENCV": {
+    "name": "OpenCVBackend",
+    "module_status": "implemented",
+    "purpose": "",
+    "source_paths": [],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-BACKEND-PYAV": {
+    "name": "PyAVBackend",
+    "module_status": "implemented",
+    "purpose": "",
+    "source_paths": [],
+    "candidate_tests": [],
+    "layer": "1",
+    "type": "INTEGRATION",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-DESKTOP-BOOTSTRAP": {
+    "name": "DesktopBootstrap",
+    "module_status": "active",
+    "purpose": "Canonical desktop GUI entry point for source and packaged modes.",
+    "source_paths": [
+      "src/video2pptx/desktop.py"
+    ],
+    "candidate_tests": [
+      "tests/test_bootstrap.py"
+    ],
+    "layer": "",
+    "type": "",
+    "test_run": {
+      "path": "tests/test_bootstrap.py",
+      "passed": true,
+      "summary": ".............                                                            [100%]"
+    },
+    "honest_status": "passed"
+  },
+  "M-DETECT-BENCHMARK": {
+    "name": "DetectBenchmarkPlan",
+    "module_status": "active",
+    "purpose": "Evidence-driven Phase 18 sequence: recovered-tree short benchmark (Step 18.3 — done), bottleneck decision (Step 18.4 — done: DECODE_FRAME_PIPELINE, HIGH confidence, accepted negative terminal outcome T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION, no optimization selected), HWAccel runtime evidence (Step 18.4A — done: canonical Hermes H.264 runtime evidence, OBSERVATION_COMPLETE, OUTCOME_D; actual_hardware_decode_active UNKNOWN_NOT_PROVEN by observer design), strict no-software-fallback control (Step 18.4B — done: corrected control, FIRST_FRAME_DECODED, OUTCOME_S1; F-0098 RESOLVED for activation-defect discrimination; PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX contradicted; bounded — does not prove all production decode was hardware), one targeted optimization (Step 18.5 — blocked pending Step 18.4), short re-benchmark (Step 18.6), Hermes full re-benchmark (Step 18.7), and quality acceptance (Step 18.8). Step 18.3 evidence: mean detect 237.7s (3 runs), historical signature match, 6/6 invariants PASS.",
+    "source_paths": [
+      "tools/benchmark_detect.py"
+    ],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-DETECT-METRICS": {
+    "name": "DetectMetrics",
+    "module_status": "active",
+    "purpose": "Low-overhead aggregated performance telemetry with deterministic RSS lifecycle and backend cleanup evidence. Phase 18 baseline remains in progress until recovered-tree benchmark evidence exists.",
+    "source_paths": [
+      "src/video2pptx/detection_metrics.py"
+    ],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-DETECT-PERF-DECISION": {
+    "name": "BottleneckDecision",
+    "module_status": "done",
+    "purpose": "Step 18.4: DECODE_FRAME_PIPELINE (172.46s, 63.27%) remains selected with HIGH confidence. F-0097 RESOLVED. PYAV_HWACCEL_CUDA is REJECTED_SOURCE_MODEL_MISMATCH. PYAV_HARDWARE_DECODE_ACTIVATION_OR_FALLBACK_FIX is CONTRADICTED_BY_STRICT_NO_FALLBACK_CONTROL. Step 18.4A and 18.4B DONE. Step 18.4C IN_PROGRESS/blocked_on_canonical_signature_provenance. The b869464/4b6eba5 package remains REJECTED_FOR_STEP_18_4C_ACCEPTANCE and F-0102 is rejected draft context. Corrected r2 evidence from code 0bcfe54/raw b4ed0e4: REFERENCE_EXACTLY_REPEATABLE; C1 NOT_VIABLE_EXACT_PARITY_FAIL — causal_classification=ROOT_CAUSE_UNKNOWN_NOT_ISOLATED, codec_context_causal=false, codec_context_access=LEADING_HYPOTHESIS_NOT_PROVEN (the historical path at acb424f did not access stream.codec_context while the current path does — a proven code-path difference and leading hypothesis, NOT an isolated cause); C2 NOT_VIABLE_PERFORMANCE_FAIL (corrected from NOT_VIABLE_RESOURCE_MODEL) — ROLLING_WINDOW_EXACT_MODEL_PROVEN (peak 15 frames), candidate slower (median of paired differences -46.81963299999916s, difference of medians -40.19553279999673s / -13.835416931263438%); C3 NOT_VIABLE_PERFORMANCE_FAIL — thread_count_1/4/8 exact parity PASS but all performance FAIL. Canonical signature provenance: 8cc06c6a (original) vs 5a7c4538 (current), match=false — ROOT_CAUSE_UNKNOWN_NOT_ISOLATED. Accepted negative terminal outcome T3_NO_EVIDENCE_SUPPORTED_TARGET_OPTIMIZATION (no tested candidate viable). F-0103 OPEN / NON_BLOCKING. selected_optimization=NONE; Step 18.4 done; Step 18.5 planned/blocked and not started.",
+    "source_paths": [
+      "benchmarks/detect/evidence/bottleneck_decision.json"
+    ],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-GITHUB-PROVIDER": {
+    "name": "GitHubReleaseProvider",
+    "module_status": "implemented",
+    "purpose": "Fetch GitHub Releases API, parse into ReleaseInfo. No Qt, no GUI.",
+    "source_paths": [
+      "src/video2pptx/infrastructure/github_release_provider.py"
+    ],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-GUI-ABOUT": {
+    "name": "AboutDialog",
+    "module_status": "active",
+    "purpose": "About dialog with version, build SHA, runtime capabilities, diagnostic info copy, GitHub/logs actions.",
+    "source_paths": [
+      "src/video2pptx/gui/about_dialog.py"
+    ],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-GUI-HELP-MENU": {
+    "name": "HelpMenu",
+    "module_status": "active",
+    "purpose": "Help menu: About, Check for Updates, Open Logs, GitHub Repository.",
+    "source_paths": [
+      "src/video2pptx/gui/menu_bar.py"
+    ],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-GUI-PIPELINE-CTRL": {
+    "name": "PipelineController",
+    "module_status": "active",
+    "purpose": "Schedule stage services through operation-scoped ApplicationServices in QThread with queued progress, cancellation, completion, and error signals.",
+    "source_paths": [
+      "src/video2pptx/gui/controllers/pipeline_controller.py"
+    ],
+    "candidate_tests": [
+      "tests/gui/test_pipeline_controller.py"
+    ],
+    "layer": "1",
+    "type": "CORE_LOGIC",
+    "test_run": {
+      "path": "tests/gui/test_pipeline_controller.py",
+      "passed": true,
+      "summary": "............                                                             [100%]"
+    },
+    "honest_status": "passed"
+  },
+  "M-GUI-PIPELINE-WORKER": {
+    "name": "GuiPipelineWorker",
+    "module_status": "active",
+    "purpose": "Execute one operation-scoped ApplicationServices stage on a QThread without blocking Qt's main thread.",
+    "source_paths": [
+      "src/video2pptx/gui/controllers/pipeline_worker.py"
+    ],
+    "candidate_tests": [],
+    "layer": "1",
+    "type": "UTILITY",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-GUI-TIMELINE-CTRL": {
+    "name": "TimelineController",
+    "module_status": "active",
+    "purpose": "Perform revision-safe slide mutations by SlideId only, including canonical ArtifactRef image assignment.",
+    "source_paths": [
+      "src/video2pptx/gui/controllers/timeline_controller.py"
+    ],
+    "candidate_tests": [
+      "tests/gui/test_timeline_controller.py"
+    ],
+    "layer": "1",
+    "type": "CORE_LOGIC",
+    "test_run": {
+      "path": "tests/gui/test_timeline_controller.py",
+      "passed": true,
+      "summary": "..............                                                           [100%]"
+    },
+    "honest_status": "passed"
+  },
+  "M-GUI-UPDATE-CTRL": {
+    "name": "UpdateController",
+    "module_status": "implemented",
+    "purpose": "GUI adapter: orchestrate fetch→compare→dialog. No business logic.",
+    "source_paths": [
+      "src/video2pptx/gui/update_controller.py",
+      "src/video2pptx/gui/update_dialog.py"
+    ],
+    "candidate_tests": [],
+    "layer": "6",
+    "type": "UI_COMPONENT",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-GUI-WINDOW-UI": {
+    "name": "MainWindowUiBuilder",
+    "module_status": "active",
+    "purpose": "Build MainWindow UI and optional host adapters while keeping lifecycle and pipeline logic outside construction code.",
+    "source_paths": [
+      "src/video2pptx/gui/main_window_ui.py"
+    ],
+    "candidate_tests": [],
+    "layer": "0",
+    "type": "UI_COMPONENT",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-MCP-ADAPTER": {
+    "name": "McpServiceAdapter",
+    "module_status": "implemented",
+    "purpose": "Map MCP tool arguments and results to Phase 16 Application Services without legacy pipeline dispatch.",
+    "source_paths": [
+      "src/video2pptx/debug/app_service_adapter.py"
+    ],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-MCP-COMPOSITION": {
+    "name": "McpComposition",
+    "module_status": "implemented",
+    "purpose": "Wire application services to FileProjectRepository and concrete legacy port adapters.",
+    "source_paths": [
+      "src/video2pptx/debug/mcp_composition.py"
+    ],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-PERSIST-DETECTION": {
+    "name": "DetectionConfigPersistence",
+    "module_status": "active",
+    "purpose": "Canonical DetectionConfigDocument in schema 2.0 with to_domain/to_document round-trip and legacy migration.",
+    "source_paths": [
+      "src/video2pptx/infrastructure/persistence/"
+    ],
+    "candidate_tests": [
+      "tests/test_config.py"
+    ],
+    "layer": "",
+    "type": "",
+    "test_run": {
+      "path": "tests/test_config.py",
+      "passed": true,
+      "summary": "y:170: UserWarning: Config file not found: /nonexistent/config.yaml\n    warnings.warn(f\"Config file not found: {config_path}\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html"
+    },
+    "honest_status": "passed"
+  },
+  "M-PORT-ALIGNMENT": {
+    "name": "AlignmentPort",
+    "module_status": "implemented",
+    "purpose": "Compute immutable alignment plans and metrics without aggregate mutation.",
+    "source_paths": [
+      "src/video2pptx/application/ports/alignment.py"
+    ],
+    "candidate_tests": [],
+    "layer": "3",
+    "type": "INTEGRATION",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-PORT-DETECTOR": {
+    "name": "SlideDetectorPort",
+    "module_status": "implemented",
+    "purpose": "Return a complete immutable candidate slide set from video input.",
+    "source_paths": [
+      "src/video2pptx/application/ports/slide_detector.py"
+    ],
+    "candidate_tests": [
+      "tests/test_slide_detector.py"
+    ],
+    "layer": "3",
+    "type": "INTEGRATION",
+    "test_run": {
+      "path": "tests/test_slide_detector.py",
+      "passed": true,
+      "summary": "..............                                                           [100%]"
+    },
+    "honest_status": "passed"
+  },
+  "M-PORT-EXPORT": {
+    "name": "PresentationExporterPort",
+    "module_status": "implemented",
+    "purpose": "Stage Markdown or PPTX output from immutable project snapshots.",
+    "source_paths": [
+      "src/video2pptx/application/ports/presentation_exporter.py"
+    ],
+    "candidate_tests": [],
+    "layer": "3",
+    "type": "INTEGRATION",
+    "test_run": null,
+    "honest_status": "blocked"
+  },
+  "M-PORT-LLM": {
+    "name": "LlmEnricherPort",
+    "module_status": "planned",
+    "purpose": "Enrich immutable slide snapshots and return descriptions/transcripts without persistence.",
+    "source_paths": [
+      "src/video2pptx/application/ports/llm_enricher.py"
+    ],
+    "candidate_tests": [],
+    "layer": "",
+    "type": "",
+    "test_run": null,
+    "honest_status": "planned"
+  },
+  "M-PORT-NOTES": {
+    "name": "NotesProcessorPort",
+    "module_status": "implemented",
+    "purpose": "Produce basic or LLM notes while preserving raw subtitle cues.",
+    "source_paths": [
+      "src/video2pptx/application/ports/notes_processor.py"
+    ],
+    "candidate_tests": [
+      "tests/test_notes_processor.py"
+    ],
+    "layer": "3",
+    "type": "INTEGRATION",
+    "test_run": {
+      "path": "tests/test_notes_processor.py",
+      "passed": true,
+      "summary": "..................                                                       [100%]"
+    },
+    "honest_status": "passed"
+  },
+  "M-PORT-PREVIEW": {
+    "name": "PreviewAnalyzerPort",
+    "module_status": "implemented",
+    "purpose": "Produce immutable preview score data without project or persistence mutation.",
+    "source_paths": [
+      "src/video2pptx/application/ports/preview_analyzer.py"
+    ],
+    "candidate_tests": [],
+    "layer": "3",
+    "type": "INTEGRATION",
+    "test_run": null,
+    "honest_status": "blocked"
+  }
+}

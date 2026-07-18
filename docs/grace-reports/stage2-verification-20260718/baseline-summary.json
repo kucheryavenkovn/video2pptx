@@ -1,0 +1,14 @@
+{
+  "starting_head": "96b97ec905acf84300d8127713ae688a2ad39bd5",
+  "standard_lint_errors": 403,
+  "standard_lint_warnings": 226,
+  "autonomy_blockers": 385,
+  "autonomy_warnings": 297,
+  "missing_verification_entries": 30,
+  "verification_missing_wave_follow_up": 114,
+  "verification_missing_phase_follow_up": 114,
+  "verification_missing_observable_evidence": 114,
+  "module_missing_verification": 29,
+  "graph_missing_verification_entry": 0,
+  "plan_missing_verification_entry": 0
+}
