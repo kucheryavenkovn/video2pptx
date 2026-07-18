@@ -201,6 +201,21 @@ authoritative wording lives in `docs/development-plan.xml`,
 `docs/verification-plan.xml`, `docs/knowledge-graph.xml`, and `docs/findings.md`
 (F-0103).
 
+### Phase 19 — Analysis Resolution & Golden Mean
+
+**Status: planned** (plan branch; no production code until approval).
+
+A **new** performance/quality research track that does **not** reopen Phase 18.
+
+- Motivation: detector decisions already use 48×48 features, but Pass 1 still
+  processes full-resolution RGB after ROI; screenshots need full res only in Pass 2.
+- Lever: `analysis_max_side` (analysis path only) × `sample_fps` grid sweep.
+- Method: hard quality gates (missed ≤5%, false_split ≤10%, timestamp budget);
+  golden mean = best speedup among passers; screenshots stay full-res.
+- Outcome: selected defaults **or** documented `selected_analysis_scale=NONE`.
+- Plan: `docs/plans/phase19-analysis-resolution-golden-mean.md`
+- Finding: F-0104 (analysis resolution not discriminated in Phase 18)
+
 ### GRACE Stabilization
 
 A body of work whose purpose is **trust in the engineering frame itself**, not

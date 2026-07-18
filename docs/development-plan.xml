@@ -8,6 +8,8 @@
     <risk-3>detect-slides is the longest step (2 video passes). Notes and export are fast.</risk-3>
     <risk-4>PySide6 adds ~50MB dependency — must be optional via extras.</risk-4>
     <risk-5>QThread lifecycle bugs may cause crashes when switching projects mid-operation.</risk-5>
+    <risk-6>Analysis downscale may miss text-only or dense-code slide changes; quality must be gated by missed/false_split, not assumed from speedup.</risk-6>
+    <risk-7>Phase 19 dual-res path must never reduce Pass 2 screenshot resolution; analysis and export quality budgets stay separate.</risk-7>
   </ArchitectureNotes>
 
   <Modules>
@@ -25,7 +27,7 @@
 
     <M-CONFIG NAME="Config" TYPE="UTILITY" LAYER="0" ORDER="2" STATUS="implemented">
       <contract>
-        <purpose>Load configuration from YAML file and merge with CLI arguments.</purpose>
+        <purpose>Load configuration from YAML file and merge with CLI arguments. Phase 19 extends VideoConfig with analysis_max_side (optional analysis downscale; default null = native).</purpose>
         <inputs><param name="config_path" type="Path|None" /><param name="cli_kwargs" type="dict" /></inputs>
         <outputs><param name="Config" type="Config object with validated fields" /></outputs>
       </contract>
@@ -33,6 +35,72 @@
       <verification-ref>V-M-CONFIG</verification-ref>
       <depends>M-MODELS</depends>
     </M-CONFIG>
+
+    <M-ANALYSIS-SCALE NAME="AnalysisScale" TYPE="UTILITY" LAYER="0" ORDER="2.5" STATUS="planned">
+      <contract>
+        <purpose>Pure analysis-resolution policy: downscale frames for detection features without changing screenshot export resolution.</purpose>
+        <inputs>
+          <param name="image" type="np.ndarray RGB" />
+          <param name="analysis_max_side" type="int|None" />
+        </inputs>
+        <outputs>
+          <param name="scaled_image" type="np.ndarray RGB" />
+          <param name="scale_factor" type="float" />
+        </outputs>
+        <rules>
+          <rule>None/0 max_side = identity</rule>
+          <rule>Never upscale</rule>
+          <rule>INTER_AREA for downscale; preserve aspect ratio</rule>
+          <rule>Applied after ROI/masks on native coordinates</rule>
+        </rules>
+      </contract>
+      <target>
+        <source>src/video2pptx/ (helper module or frame_features/roi extension — decide at 19.1)</source>
+        <tests>tests/test_analysis_scale.py</tests>
+      </target>
+      <verification-ref>V-M-ANALYSIS-SCALE</verification-ref>
+      <depends>M-CONFIG</depends>
+    </M-ANALYSIS-SCALE>
+
+    <M-GOLDEN-MEAN-SWEEP NAME="GoldenMeanSweep" TYPE="TOOL" LAYER="0" ORDER="2.6" STATUS="planned">
+      <contract>
+        <purpose>Grid-sweep analysis_max_side × sample_fps; compare detected segments to native reference; emit quality and wall-clock metrics for golden-mean decision.</purpose>
+        <inputs>
+          <param name="video_path" type="Path" />
+          <param name="grid" type="analysis_max_side list × sample_fps list" />
+        </inputs>
+        <outputs>
+          <param name="evidence package" type="JSON + MD under benchmarks/detect/evidence/phase19-*/" />
+        </outputs>
+      </contract>
+      <target>
+        <source>tools/sweep_analysis_resolution.py</source>
+        <tests>tests/test_golden_mean_sweep.py</tests>
+      </target>
+      <verification-ref>V-M-GOLDEN-MEAN-SWEEP</verification-ref>
+      <depends>M-ANALYSIS-SCALE, M-DETECT-SLIDES, M-DETECT-METRICS</depends>
+    </M-GOLDEN-MEAN-SWEEP>
+
+    <M-GOLDEN-MEAN-DECISION NAME="GoldenMeanDecision" TYPE="DECISION" LAYER="0" ORDER="2.7" STATUS="planned">
+      <contract>
+        <purpose>Select golden-mean defaults from sweep evidence under hard quality gates, or accept selected_analysis_scale=NONE.</purpose>
+        <outputs>
+          <param name="golden_mean_decision.json" type="decision artifact" />
+          <param name="golden_mean_decision.md" type="human rationale" />
+        </outputs>
+        <gates>
+          <gate name="missed_slide_rate" value="&lt;=5%" />
+          <gate name="false_split_rate" value="&lt;=10%" />
+          <gate name="timestamp_error" value="within fps-scaled budget; &lt;=1.5s at sample_fps=2" />
+          <gate name="screenshots_full_res" value="Pass2 PNG crop matches native ROI size" />
+        </gates>
+      </contract>
+      <target>
+        <source>benchmarks/detect/evidence/phase19-*/golden_mean_decision.json</source>
+      </target>
+      <verification-ref>V-M-GOLDEN-MEAN-DECISION</verification-ref>
+      <depends>M-GOLDEN-MEAN-SWEEP</depends>
+    </M-GOLDEN-MEAN-DECISION>
 
     <M-CLI NAME="CLI" TYPE="ENTRY_POINT" LAYER="0" ORDER="3" STATUS="implemented">
       <contract>
@@ -1472,6 +1540,60 @@
         Accept performance work only when the recovered-tree quality and timing gates pass.
       </step-18.8>
     </Phase-18>
+    <Phase-19 name="AnalysisResolutionGoldenMean" status="planned">
+      <goal>
+        Discriminate analysis-path resolution reduction and sample_fps tradeoffs for slide
+        detection. Separate analysis quality budget from screenshot quality budget. Select a
+        reproducible golden-mean configuration that passes MVP quality gates with the best
+        measured speedup, or accept a documented negative outcome if no cell passes.
+        Does NOT reopen Phase 18: T3 / selected_optimization=NONE remains accepted for C1/C2/C3.
+      </goal>
+      <plan-doc>docs/plans/phase19-analysis-resolution-golden-mean.md</plan-doc>
+      <step-19.0 name="PlanFreeze" status="planned" verification="V-M-PHASE19-PLAN">
+        Freeze GRACE plan artifacts: human plan, development-plan Phase-19, verification entries,
+        knowledge-graph modules, finding F-0104. Awaiting user approval before any production code.
+      </step-19.0>
+      <step-19.1 name="AnalysisScaleConfig" status="planned" verification="V-M-ANALYSIS-SCALE">
+        Add VideoConfig.analysis_max_side (None|int, no upscale). YAML + CLI merge. Contract for
+        M-ANALYSIS-SCALE pure helper scale_for_analysis. Default None = native (behavior parity).
+      </step-19.1>
+      <step-19.2 name="ScaleHelperAndTests" status="planned" verification="V-M-ANALYSIS-SCALE">
+        Implement scale_for_analysis(image, max_side) with INTER_AREA, identity when max_side
+        unset or frame already smaller. Unit tests: aspect, no-upscale, dtype, empty edge cases.
+      </step-19.2>
+      <step-19.3 name="DualResolutionDetectPath" status="planned" verification="V-M-DETECT-ANALYSIS-SCALE">
+        Pass 1: ROI/masks on native frame, then analysis_scale before extract_features.
+        Pass 2: representative capture remains full-res crop; PNG dimensions must match native ROI.
+        Log analysis_max_side and scale_factor. Preserve two-pass structure.
+      </step-19.3>
+      <step-19.4 name="MetricsTags" status="planned" verification="V-M-DETECT-ANALYSIS-SCALE">
+        Extend DetectionRunMetrics / gauges: analysis_height, analysis_width, scale_factor applied.
+        Stage timers remain non-overlapping with Phase 18 instrumentation.
+      </step-19.4>
+      <step-19.5 name="GoldenMeanSweepTool" status="planned" verification="V-M-GOLDEN-MEAN-SWEEP">
+        tools/sweep_analysis_resolution.py: grid analysis_max_side × sample_fps; compare segments
+        to native reference; emit missed/false_split/timestamp_error/wall-clock artifacts under
+        benchmarks/detect/evidence/phase19-*/.
+      </step-19.5>
+      <step-19.6 name="ShortClipDiscrimination" status="planned" verification="V-M-GOLDEN-MEAN-SWEEP">
+        Run sweep on synthetic fixture (CI) and Hermes 600s when local media available.
+        Minimum grid: max_side in {null,960,640,480,320} × sample_fps in {2.0,1.0,0.5}.
+      </step-19.6>
+      <step-19.7 name="GoldenMeanDecision" status="planned" verification="V-M-GOLDEN-MEAN-DECISION">
+        Write golden_mean_decision.json + .md: selected analysis_max_side and sample_fps defaults,
+        or selected_analysis_scale=NONE with negative terminal rationale. Hard gates:
+        missed_slide_rate &lt;= 5%, false_split_rate &lt;= 10%, timestamp_error within budget.
+        Prefer max speedup among passers; tie-break higher max_side then higher sample_fps.
+      </step-19.7>
+      <step-19.8 name="AdoptDefaults" status="planned" verification="V-M-GOLDEN-MEAN-DECISION">
+        Only if Step 19.7 selects non-NONE: update config.example.yaml and documented project
+        defaults. Native remains available via analysis_max_side=null.
+      </step-19.8>
+      <step-19.9 name="Phase19Acceptance" status="planned" verification="V-M-PHASE19-ACCEPTANCE">
+        grace-refresh docs; confirm screenshot full-res invariant; quality gates; no Phase 18
+        outcome rewrite. Close Phase 19 with selected defaults or accepted negative outcome.
+      </step-19.9>
+    </Phase-19>
   </ImplementationOrder>
 
   <DeploymentScenarios>
