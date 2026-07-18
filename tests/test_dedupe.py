@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for duplicate slide segment removal
 #   SCOPE: Deduplication of similar segments, edge cases
 #   DEPENDS: pytest, numpy, video2pptx.dedupe
-#   LINKS: V-M-DEDUPE
+#   LINKS: V-M-DEDUPE, M-DEDUPE
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

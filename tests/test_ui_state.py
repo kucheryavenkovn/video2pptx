@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for UI state reader — read_ui_state with/without main_window
 #   SCOPE: Default state, button state reading
 #   DEPENDS: pytest, video2pptx.gui.ui_state
-#   LINKS: V-M-UI-STATE-READER
+#   LINKS: V-M-UI-STATE-READER, M-UI-STATE-READER
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

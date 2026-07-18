@@ -5,7 +5,7 @@
 #            reload-mutate-save cycle, revision checking, and error propagation.
 #   SCOPE: add/delete/move/resize slides, clear image, signals, error cases
 #   DEPENDS: TimelineController, pytest, PySide6, pytest-mock, tmp_path
-#   LINKS: M-GUI-TIMELINE-CTRL
+#   LINKS: M-GUI-TIMELINE-CTRL, M-GUI-PROJECT-CTRL
 #   ROLE: TEST
 #   MAP_MODE: NONE
 # END_MODULE_CONTRACT

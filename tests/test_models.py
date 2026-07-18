@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for Pydantic data models
 #   SCOPE: VideoInfo, Roi, SubtitleCue, FrameFeatures, SlideSegment, SlidesDocument serialization and validation
 #   DEPENDS: pytest, pydantic, video2pptx.models
-#   LINKS: V-M-MODELS
+#   LINKS: V-M-MODELS, M-MODELS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

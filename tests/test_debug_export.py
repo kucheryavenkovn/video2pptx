@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for debug export artifacts
 #   SCOPE: CSV export, text report, contact sheet
 #   DEPENDS: pytest, video2pptx.debug_export
-#   LINKS: V-M-DEBUG-EXPORT
+#   LINKS: V-M-DEBUG-EXPORT, M-DEBUG-EXPORT
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

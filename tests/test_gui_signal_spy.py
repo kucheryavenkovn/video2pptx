@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for SignalSpy.watch/watch_all
 #   SCOPE: Signal discovery, single signal watch, watch_all
 #   DEPENDS: video2pptx.gui.signal_spy, video2pptx.timeline_model, pytest
-#   LINKS: V-M-GUI-SIGNAL-SPY
+#   LINKS: V-M-GUI-SIGNAL-SPY, M-GUI-SIGNAL-SPY
 # END_MODULE_CONTRACT
 
 from __future__ import annotations

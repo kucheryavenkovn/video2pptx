@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for video decoder backends
 #   SCOPE: Backend selection, OpenCV frame iteration, metadata extraction
 #   DEPENDS: pytest, numpy, cv2, video2pptx.backends
-#   LINKS: V-M-BACKENDS
+#   LINKS: V-M-BACKENDS, M-BACKENDS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

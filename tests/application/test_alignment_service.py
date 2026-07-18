@@ -4,7 +4,7 @@
 #   PURPOSE: Verify AlignmentService dry-run, apply, idempotency, and failure behavior.
 #   SCOPE: Dry-run, apply, cancellation, adapter failure, no side effects on dry-run.
 #   DEPENDS: pytest, video2pptx.application, video2pptx.domain
-#   LINKS: M-APP-ALIGN, V-M-APP-ALIGN
+#   LINKS: M-APP-ALIGN, V-M-APP-ALIGN, M-PORT-ALIGNMENT
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

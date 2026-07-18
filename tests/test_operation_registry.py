@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for MCP Operation Registry lifecycle
 #   SCOPE: create, update, get, wait, cancel, list operations
 #   DEPENDS: pytest, video2pptx.debug.operation_registry
-#   LINKS: V-M-OPERATION-REGISTRY
+#   LINKS: V-M-OPERATION-REGISTRY, M-OPERATION-REGISTRY
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

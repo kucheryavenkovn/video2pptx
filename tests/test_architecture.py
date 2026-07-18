@@ -4,7 +4,7 @@
 #   PURPOSE: Architecture constraint tests — verify clean layering (GUI, MCP, CLI, domain)
 #   SCOPE: Import-level isolation: application does not import gui, MCP does not import MainWindow, etc.
 #   DEPENDS: pytest, ast
-#   LINKS: V-M-ARCHITECTURE
+#   LINKS: V-M-ARCHITECTURE, M-ARCH-OVERVIEW
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

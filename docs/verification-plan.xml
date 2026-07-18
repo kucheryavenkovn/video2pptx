@@ -111,16 +111,37 @@
     <V-M-MODELS MODULE="M-MODELS" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_models.py</file></test-files>
       <module-checks><check-1>pytest tests/test_models.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>Models contract honored: Pydantic data models for slides document.</assertion><assertion>No production import from M-MODELS crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Models fulfills its contract: Pydantic data models for slides document.</scenario-1>
+        <scenario-2 kind="failure">Models rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-MODELS>
 
     <V-M-CONFIG MODULE="M-CONFIG" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_config.py</file></test-files>
       <module-checks><check-1>pytest tests/test_config.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>Config contract honored: Configuration loading — YAML file + CLI arg merge.</assertion><assertion>No production import from M-CONFIG crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Config fulfills its contract: Configuration loading — YAML file + CLI arg merge.</scenario-1>
+        <scenario-2 kind="failure">Config rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-CONFIG>
 
     <V-M-CLI MODULE="M-CLI" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_cli.py</file></test-files>
       <module-checks><check-1>pytest tests/test_cli.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[CLI][detect]`.</assertion><assertion>Successful execution path emits structured log line containing `[CLI][notes]`.</assertion><assertion>V-M-CLI scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">CLI fulfills its contract: Typer CLI entry point for detect, detect-slides, notes, roi-tool, project, export-md, export-pptx, debug, llm-process co.</scenario-1>
+        <scenario-2 kind="failure">CLI rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-CLI>
 
     <V-M-BACKENDS MODULE="M-BACKENDS" PRIORITY="high" STATUS="in_progress">
@@ -132,82 +153,186 @@
         <scenario-3 kind="telemetry">PyAV counts every decoded frame while conversions and RGB bytes equal yielded frames exactly.</scenario-3>
         <scenario-4 kind="telemetry">PyAV keyframe filtering does not suppress decoded-frame counts.</scenario-4>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[PyAV][_pick_hw_device]`.</assertion><assertion>Successful execution path emits structured log line containing `[PyAV][_create_hwaccel]`.</assertion><assertion>V-M-BACKENDS scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
     </V-M-BACKENDS>
 
     <V-M-VIDEO-DECODE MODULE="M-VIDEO-DECODE" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_video_decode.py</file></test-files>
       <module-checks><check-1>pytest tests/test_video_decode.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[VideoDecode][select_backend]`.</assertion><assertion>Successful execution path emits structured log line containing `[VideoDecode][select_backend][BLOCK_FALLBACK_CPU]`.</assertion><assertion>V-M-VIDEO-DECODE scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">VideoDecode fulfills its contract: Video frame decoding and sampling at given fps with multi-backend support.</scenario-1>
+        <scenario-2 kind="failure">VideoDecode rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-VIDEO-DECODE>
 
     <V-M-ROI MODULE="M-ROI" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_roi.py</file></test-files>
       <module-checks><check-1>pytest tests/test_roi.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[ROI][parse_roi]`.</assertion><assertion>Successful execution path emits structured log line containing `[ROI][parse_ignore_rois]`.</assertion><assertion>V-M-ROI scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">ROI fulfills its contract: Slide ROI management — crop and mask ignore regions.</scenario-1>
+        <scenario-2 kind="failure">ROI rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-ROI>
 
     <V-M-FRAME-FEATURES MODULE="M-FRAME-FEATURES" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_frame_features.py</file></test-files>
       <module-checks><check-1>pytest tests/test_frame_features.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>FrameFeatures contract honored: Frame feature extraction: pHash, dHash, histogram, grayscale, pixel MAE, visual distance, quick_extract/quick_visual_distance for fast previ.</assertion><assertion>No production import from M-FRAME-FEATURES crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">FrameFeatures fulfills its contract: Frame feature extraction: pHash, dHash, histogram, grayscale, pixel MAE, visual distance, quick_extract/quick_visual_dis.</scenario-1>
+        <scenario-2 kind="failure">FrameFeatures rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-FRAME-FEATURES>
 
     <V-M-SLIDE-DETECTOR MODULE="M-SLIDE-DETECTOR" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_slide_detector.py</file></test-files>
       <module-checks><check-1>pytest tests/test_slide_detector.py -v</check-1></module-checks>
       <scenarios><scenario-1 kind="structure">Governed ChangeEvent/detect_changes contracts and detect-init/process/debounce anchors remain uniquely paired and ordered.</scenario-1></scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>SlideDetector contract honored: Slide change detection via frame comparison with threshold and debounce.</assertion><assertion>No production import from M-SLIDE-DETECTOR crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-SLIDE-DETECTOR>
 
     <V-M-SEGMENTER MODULE="M-SEGMENTER" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_segmenter.py</file></test-files>
       <module-checks><check-1>pytest tests/test_segmenter.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>Segmenter contract honored: Convert change events to slide intervals with representative timestamps.</assertion><assertion>No production import from M-SEGMENTER crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Segmenter fulfills its contract: Convert change events to slide intervals with representative timestamps.</scenario-1>
+        <scenario-2 kind="failure">Segmenter rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-SEGMENTER>
 
     <V-M-DEDUPE MODULE="M-DEDUPE" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_dedupe.py</file></test-files>
       <module-checks><check-1>pytest tests/test_dedupe.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>Dedupe contract honored: Deduplicate adjacent slide segments via hash/SSIM similarity.</assertion><assertion>No production import from M-DEDUPE crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Dedupe fulfills its contract: Deduplicate adjacent slide segments via hash/SSIM similarity.</scenario-1>
+        <scenario-2 kind="failure">Dedupe rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-DEDUPE>
 
     <V-M-SUBTITLES MODULE="M-SUBTITLES" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_subtitles.py</file></test-files>
       <module-checks><check-1>pytest tests/test_subtitles.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[Subtitles][parse_subtitles]`.</assertion><assertion>V-M-SUBTITLES scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Subtitles fulfills its contract: SRT/VTT parsing and alignment of cues to slide intervals.</scenario-1>
+        <scenario-2 kind="failure">Subtitles rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-SUBTITLES>
 
     <V-M-MD-EXPORT MODULE="M-MD-EXPORT" PRIORITY="medium" STATUS="passed">
       <test-files><file>tests/test_markdown_export.py</file></test-files>
       <module-checks><check-1>pytest tests/test_markdown_export.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>MarkdownExport contract honored: Export slides.json to Marp-formatted deck.md.</assertion><assertion>No production import from M-MD-EXPORT crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">MarkdownExport fulfills its contract: Export slides.json to Marp-formatted deck.md.</scenario-1>
+        <scenario-2 kind="failure">MarkdownExport rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-MD-EXPORT>
 
     <V-M-PPTX-EXPORT MODULE="M-PPTX-EXPORT" PRIORITY="medium" STATUS="passed">
       <test-files><file>tests/test_pptx_export.py</file></test-files>
       <module-checks><check-1>pytest tests/test_pptx_export.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>PptxExport contract honored: Export slides.json to PPTX with slide images and speaker notes.</assertion><assertion>No production import from M-PPTX-EXPORT crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">PptxExport fulfills its contract: Export slides.json to PPTX with slide images and speaker notes.</scenario-1>
+        <scenario-2 kind="failure">PptxExport rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-PPTX-EXPORT>
 
     <V-M-NOTES-PROCESSOR MODULE="M-NOTES-PROCESSOR" PRIORITY="medium" STATUS="passed">
       <test-files><file>tests/test_notes_processor.py</file></test-files>
       <module-checks><check-1>pytest tests/test_notes_processor.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>NotesProcessor contract honored: Process raw transcript into clean speaker notes: basic cleanup or LLM rephrase.</assertion><assertion>No production import from M-NOTES-PROCESSOR crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">NotesProcessor fulfills its contract: Process raw transcript into clean speaker notes: basic cleanup or LLM rephrase.</scenario-1>
+        <scenario-2 kind="failure">NotesProcessor rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-NOTES-PROCESSOR>
 
     <V-M-DEBUG-EXPORT MODULE="M-DEBUG-EXPORT" PRIORITY="low" STATUS="passed">
       <test-files><file>tests/test_debug_export.py</file></test-files>
       <module-checks><check-1>pytest tests/test_debug_export.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[DebugExport][export_debug_csv]`.</assertion><assertion>Successful execution path emits structured log line containing `[DebugExport][export_debug_report]`.</assertion><assertion>V-M-DEBUG-EXPORT scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">DebugExport fulfills its contract: Generate debug artifacts: diff_scores.csv, timeline.png, contact_sheet.jpg.</scenario-1>
+        <scenario-2 kind="failure">DebugExport rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-DEBUG-EXPORT>
 
     <V-M-CLI-E2E MODULE="M-PIPELINE" PRIORITY="high" STATUS="passed">
       <test-files><file>tests/test_cli_e2e.py</file></test-files>
       <module-checks><check-1>pytest tests/test_cli_e2e.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[CLI][detect]`.</assertion><assertion>Successful execution path emits structured log line containing `[CLI][notes]`.</assertion><assertion>V-M-CLI-E2E scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">PipelineOrchestrator fulfills its contract: Wire all modules in CLI detect (all-in-one mode).</scenario-1>
+        <scenario-2 kind="failure">PipelineOrchestrator rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-CLI-E2E>
 
     <V-M-LLM-CLIENT MODULE="M-LLM-CLIENT" PRIORITY="medium" STATUS="passed">
       <test-files><file>tests/test_llm_client.py</file></test-files>
       <module-checks><check-1>pytest tests/test_llm_client.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[LlmClient][fetch_models]`.</assertion><assertion>Successful execution path emits structured log line containing `[LlmClient][load_model]`.</assertion><assertion>V-M-LLM-CLIENT scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">LlmClient fulfills its contract: OpenAI-compatible LLM client with vision support, model lifecycle management.</scenario-1>
+        <scenario-2 kind="failure">LlmClient rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-LLM-CLIENT>
 
     <V-M-SLIDE-ANALYZER MODULE="M-SLIDE-ANALYZER" PRIORITY="medium" STATUS="passed">
       <test-files><file>tests/test_slide_analyzer.py</file></test-files>
       <module-checks><check-1>pytest tests/test_slide_analyzer.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[SlideAnalyzer][_parse_vision_response]`.</assertion><assertion>V-M-SLIDE-ANALYZER scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">SlideAnalyzer fulfills its contract: Analyze slide screenshot via LLM vision: description + key terms extraction.</scenario-1>
+        <scenario-2 kind="failure">SlideAnalyzer rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-SLIDE-ANALYZER>
 
     <V-M-LLM-ORCHESTRATOR MODULE="M-LLM-ORCHESTRATOR" PRIORITY="medium" STATUS="passed">
       <test-files><file>tests/test_llm_orchestrator.py</file></test-files>
       <module-checks><check-1>pytest tests/test_llm_orchestrator.py -v</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[LlmOrchestrator][run_llm_pipeline]`.</assertion><assertion>V-M-LLM-ORCHESTRATOR scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">LlmOrchestrator fulfills its contract: Orchestrate LLM pipeline: load model → analyze slides → rephrase → unload → save.</scenario-1>
+        <scenario-2 kind="failure">LlmOrchestrator rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
     </V-M-LLM-ORCHESTRATOR>
 
     <V-M-DETECT-SLIDES MODULE="M-DETECT-SLIDES" PRIORITY="high" STATUS="in_progress">
@@ -221,6 +346,9 @@
         <scenario-5 kind="failure">Persistence exceptions propagate after unconditional RSS sampler cleanup.</scenario-5>
         <scenario-6 kind="telemetry">rss_peak_mb equals max(rss_before_mb, sampled peak, rss_after_mb).</scenario-6>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[DetectSlides][run_detect_slides]`.</assertion><assertion>V-M-DETECT-SLIDES scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
     </V-M-DETECT-SLIDES>
 
     <V-M-NOTES MODULE="M-NOTES" PRIORITY="high" STATUS="passed">
@@ -232,6 +360,9 @@
         <scenario-3 kind="success">notes command with --notes-mode basic uses _basic_cleanup.</scenario-3>
         <scenario-4 kind="success">Notes mode can be changed and re-run without re-detecting slides.</scenario-4>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[Notes][run_notes]`.</assertion><assertion>V-M-NOTES scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
     </V-M-NOTES>
 
     <V-M-ROI-TOOL MODULE="M-ROI-TOOL" PRIORITY="medium" STATUS="passed">
@@ -242,6 +373,9 @@
         <scenario-2 kind="success">Missing video raises user-friendly error.</scenario-2>
         <scenario-3 kind="success">Coordinates output format is parseable by --ignore-roi.</scenario-3>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[RoiTool][roi_tool_main]`.</assertion><assertion>V-M-ROI-TOOL scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
     </V-M-ROI-TOOL>
 
     <V-M-PROJECT MODULE="M-PROJECT" PRIORITY="high" STATUS="passed">
@@ -260,6 +394,9 @@
         <marker-2>[ProjectManager] Project loaded | path=</marker-2>
         <marker-3>[ProjectManager] State updated | detect_done=</marker-3>
       </log-markers>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[ProjectManager][create_project]`.</assertion><assertion>Successful execution path emits structured log line containing `[ProjectManager][open_project]`.</assertion><assertion>V-M-PROJECT scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
     </V-M-PROJECT>
 
     <V-M-GUI-MAIN MODULE="M-GUI-MAIN" PRIORITY="high" STATUS="passed">
@@ -273,10 +410,14 @@
         <scenario-3 kind="success">Video file selector opens file dialog.</scenario-3>
         <scenario-4 kind="success">Detect button is disabled when no project is open.</scenario-4>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>MainWindow contract honored: Main GUI window with project management, video/backend selection, Detect/QuickDetect buttons, Export dropdown, Save button, manual slides, s.</assertion><assertion>No production import from M-GUI-MAIN crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-GUI-MAIN>
 
-    <V-M-GUI-TIMELINE MODULE="M-GUI-TIMELINE" PRIORITY="high" STATUS="passed">
-      <test-files><file>tests/test_gui_timeline.py</file></test-files>
+    <V-M-GUI-TIMELINE MODULE="M-GUI-TIMELINE" PRIORITY="high" STATUS="blocked">
+      <blocked-reason>Referenced test tests/test_gui_timeline.py does not exist; prior 'passed' status was not reproducible. Related timeline_model test exists but does not isolate the GUI timeline widget contract.</blocked-reason>
+      <test-files><file>tests/test_timeline_model.py</file></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_timeline.py -v</check-1>
       </module-checks>
@@ -286,6 +427,9 @@
         <scenario-3 kind="success">Subtitle panel displays correct text for selected segment.</scenario-3>
         <scenario-4 kind="success">Empty slides list does not crash the widget.</scenario-4>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>TimelineWidget contract honored: Custom timeline widget: QPainter-drawn time axis with colored slide blocks, click-to-select, subtitle panel.</assertion><assertion>No production import from M-GUI-TIMELINE crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-GUI-TIMELINE>
 
     <V-M-GUI-SETTINGS MODULE="M-GUI-SETTINGS" PRIORITY="medium" STATUS="passed">
@@ -299,6 +443,9 @@
         <scenario-3 kind="success">Backend tab lists available backends with selection.</scenario-3>
         <scenario-4 kind="success">Save button persists changes to project.json.</scenario-4>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>SettingsDialog contract honored: Settings dialog with tabs for LLM prompt, GPU/Backend, and Detection configuration.</assertion><assertion>No production import from M-GUI-SETTINGS crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-GUI-SETTINGS>
 
     <V-M-GUI-APPCONFIG MODULE="M-GUI-APPCONFIG" PRIORITY="high" STATUS="passed">
@@ -312,6 +459,9 @@
         <scenario-3 kind="success">New project creation inherits app config defaults (LLM, GPU, snap_mode).</scenario-3>
         <scenario-4 kind="success">Config directory created automatically if missing.</scenario-4>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>AppConfigManager contract honored: App-wide configuration persistence: load/save app-config.yaml in platform config dir. Fields: LLM model/base_url/context_length, GPU backend.</assertion><assertion>No production import from M-GUI-APPCONFIG crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-GUI-APPCONFIG>
 
     <V-M-GUI-SMART-SNAP MODULE="M-GUI-SMART-SNAP" PRIORITY="high" STATUS="passed">
@@ -331,6 +481,9 @@
         <marker-2>[GUI-SmartSnap] fallback_analyze | decoding window original=</marker-2>
         <marker-3>[GUI-SmartSnap] hybrid | flat detected threshold= max-min=</marker-3>
       </log-markers>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>SmartSnap contract honored: Smart snap strategies for manual markers: diff_only, fallback_analyze, hybrid. Find nearest scene boundary within configurable window.</assertion><assertion>No production import from M-GUI-SMART-SNAP crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-GUI-SMART-SNAP>
 
     <V-M-GUI-MARKER-MANAGER MODULE="M-GUI-MARKER-MANAGER" PRIORITY="high" STATUS="passed">
@@ -344,6 +497,9 @@
         <scenario-3 kind="success">Load project with existing markers → markers restored and rendered on timeline.</scenario-3>
         <scenario-4 kind="success">Re-snap marker → re-runs snap with current settings, updates position.</scenario-4>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>MarkerManager contract honored: CRUD for user-defined blue markers on Project. Persisted in project.json. Calls SmartSnap on creation. Stores both original and snapped time.</assertion><assertion>No production import from M-GUI-MARKER-MANAGER crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-GUI-MARKER-MANAGER>
 
     <V-M-GUI-SETTINGS-PROJECT MODULE="M-GUI-SETTINGS-PROJECT" PRIORITY="medium" STATUS="passed">
@@ -357,6 +513,9 @@
         <scenario-3 kind="success">Cancel → no changes to project.json.</scenario-3>
         <scenario-4 kind="success">Invalid ROI format → error message, not saved.</scenario-4>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>ProjectSettingsDialog contract honored: Project Settings QDialog: ROI, ignore_rois, threshold, sample_fps, min_slide_duration, dedupe, min_stable_duration. Read/write via project.j.</assertion><assertion>No production import from M-GUI-SETTINGS-PROJECT crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-GUI-SETTINGS-PROJECT>
 
     <V-M-GUI-SETTINGS-APP MODULE="M-GUI-SETTINGS-APP" PRIORITY="medium" STATUS="passed">
@@ -370,6 +529,9 @@
         <scenario-3 kind="success">Edit GPU backend → saved to app-config.yaml.</scenario-3>
         <scenario-4 kind="success">New project after app settings change inherits new defaults.</scenario-4>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>AppSettingsDialog contract honored: App Settings QDialog: tabs for LLM, GPU/Backend, Snap, Default Paths. Read/write via M-GUI-APPCONFIG.</assertion><assertion>No production import from M-GUI-SETTINGS-APP crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-GUI-SETTINGS-APP>
 
     <V-M-GUI-VIDEOPLAYER MODULE="M-GUI-VIDEOPLAYER" PRIORITY="high" STATUS="passed">
@@ -385,6 +547,9 @@
         <scenario-5 kind="success">Time counter shows formatted MM:SS / total.</scenario-5>
         <scenario-6 kind="success">positionChanged signal emitted during playback.</scenario-6>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>VideoPlayer contract honored: QMediaPlayer + QGraphicsVideoItem with transport controls, subtitle overlay, keyboard navigation (arrows seek, Space play/pause). Emits posi.</assertion><assertion>No production import from M-GUI-VIDEOPLAYER crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-GUI-VIDEOPLAYER>
 
     <V-M-GUI-SUBTITLE-OVERLAY MODULE="M-GUI-SUBTITLE-OVERLAY" PRIORITY="high" STATUS="passed">
@@ -399,10 +564,14 @@
         <scenario-4 kind="success">Between cues → overlay shows nothing.</scenario-4>
         <scenario-5 kind="success">Seeking updates subtitle immediately.</scenario-5>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>SubtitleOverlay contract honored: Parse SRT/VTT via pysubs2, render subtitle text as QLabel over QVideoWidget. Sync with positionChanged. Hidden when no subtitles or between .</assertion><assertion>No production import from M-GUI-SUBTITLE-OVERLAY crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-GUI-SUBTITLE-OVERLAY>
 
-    <V-M-GUI-TIMELINE-V2 MODULE="M-GUI-TIMELINE-V2" PRIORITY="high" STATUS="passed">
-      <test-files><file>tests/test_gui_timeline_v2.py</file></test-files>
+    <V-M-GUI-TIMELINE-V2 MODULE="M-GUI-TIMELINE-V2" PRIORITY="high" STATUS="blocked">
+      <blocked-reason>Referenced test tests/test_gui_timeline_v2.py does not exist on disk; prior 'passed' status was not reproducible. V2 widget needs a dedicated test.</blocked-reason>
+      <test-files></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_timeline_v2.py -v</check-1>
       </module-checks>
@@ -414,6 +583,9 @@
         <scenario-5 kind="success">Click marker → emits marker_selected signal with timestamp.</scenario-5>
         <scenario-6 kind="success">Context menu Delete Marker → emits marker_deleted signal.</scenario-6>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>TimelineV2 contract honored: Enhanced timeline: green (detected) and blue (manual) markers, score waveform graph. Double-click green → open image. Right-click → add/edit.</assertion><assertion>No production import from M-GUI-TIMELINE-V2 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-GUI-TIMELINE-V2>
 
     <V-M-GUI-MENUBAR MODULE="M-GUI-MENUBAR" PRIORITY="high" STATUS="passed">
@@ -429,10 +601,14 @@
         <scenario-5 kind="success">Edit menu contains Project Settings and App Settings items.</scenario-5>
         <scenario-6 kind="success">Menu items disabled when no project loaded (Close, Save, Import, Project Settings).</scenario-6>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>MenuBar contract honored: QMenuBar with File menu (New/Open/Close/Save Project, Import Video/Subtitles, Exit) and Edit menu (Project Settings, App Settings). Keyboard.</assertion><assertion>No production import from M-GUI-MENUBAR crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-GUI-MENUBAR>
 
-    <V-M-GUI-WORKER MODULE="M-GUI-WORKER" PRIORITY="high" STATUS="passed">
-      <test-files><file>tests/test_gui_workers.py</file></test-files>
+    <V-M-GUI-WORKER MODULE="M-GUI-WORKER" PRIORITY="high" STATUS="blocked">
+      <blocked-reason>Referenced test tests/test_gui_workers.py does not exist on disk; prior 'passed' status was not reproducible. GUI workers need a dedicated signal-emission test.</blocked-reason>
+      <test-files></test-files>
       <module-checks>
         <check-1>pytest tests/test_gui_workers.py -v</check-1>
       </module-checks>
@@ -442,8 +618,487 @@
         <scenario-3 kind="success">Error signal on missing video file.</scenario-3>
         <scenario-4 kind="success">Worker can be cancelled via requestInterruption.</scenario-4>
       </scenarios>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>Workers contract honored: QThread-based background workers for detect, quick-detect, notes, and LLM operations with progress signaling.</assertion><assertion>No production import from M-GUI-WORKER crosses a forbidden layer boundary.</assertion></required-trace-assertions>
     </V-M-GUI-WORKER>
-  </ModuleVerification>
+
+    <V-M-APP-BOOTSTRAP MODULE="M-APP-BOOTSTRAP" PRIORITY="medium" STATUS="passed">
+      <test-files><file>tests/test_bootstrap.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/test_bootstrap.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/test_bootstrap.py tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <evidence><result>tests/test_bootstrap.py: 13 passed (Stage 2 run). Application services compose without import cycles.</result></evidence>
+      <scenarios>
+        <scenario-1 kind="success">Application bootstrap composes the service context without import cycles.</scenario-1>
+        <scenario-2 kind="failure">Bootstrap surfaces missing dependency contracts as a structured error.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>ApplicationServicesBootstrap composes ApplicationServiceRunner deterministically.</assertion>
+        <assertion>Bootstrap produces exactly one ServiceContext instance with stable service references.</assertion>
+      </required-trace-assertions>
+    </V-M-APP-BOOTSTRAP>
+
+    <V-M-APP-COMMON MODULE="M-APP-COMMON" PRIORITY="medium" STATUS="passed">
+      <test-files><file>tests/application/test_common.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/application/test_common.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <evidence><result>tests/application/test_common.py: 19 passed (Stage 2 run). Application common helpers behave deterministically.</result></evidence>
+      <scenarios>
+        <scenario-1 kind="success">ApplicationCommon helpers produce deterministic outputs for canonical inputs.</scenario-1>
+        <scenario-2 kind="failure">Malformed input to common helpers raises a typed validation error.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>ApplicationCommon helpers return stable deterministic results across repeated calls.</assertion>
+        <assertion>Common path and input resolution reject ambiguous inputs with a structured error.</assertion>
+      </required-trace-assertions>
+    </V-M-APP-COMMON>
+
+    <V-M-GUI-PIPELINE-CTRL MODULE="M-GUI-PIPELINE-CTRL" PRIORITY="medium" STATUS="passed">
+      <test-files><file>tests/gui/test_pipeline_controller.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/gui/test_pipeline_controller.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/gui -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <evidence><result>tests/gui/test_pipeline_controller.py: 12 passed (Stage 2 run). PipelineController routes commands deterministically.</result></evidence>
+      <scenarios>
+        <scenario-1 kind="success">PipelineController routes detect/export commands to the correct worker.</scenario-1>
+        <scenario-2 kind="failure">Controller suppresses duplicate commands while a pipeline is already running.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>PipelineController emits exactly one worker signal per accepted command.</assertion>
+        <assertion>Concurrent commands are serialized, not dropped silently.</assertion>
+      </required-trace-assertions>
+    </V-M-GUI-PIPELINE-CTRL>
+
+    <V-M-GUI-TIMELINE-CTRL MODULE="M-GUI-TIMELINE-CTRL" PRIORITY="medium" STATUS="passed">
+      <test-files><file>tests/gui/test_timeline_controller.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/gui/test_timeline_controller.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/gui -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <evidence><result>tests/gui/test_timeline_controller.py: 14 passed (Stage 2 run). TimelineController maps model changes to view updates.</result></evidence>
+      <scenarios>
+        <scenario-1 kind="success">TimelineController maps slide model changes to view block updates.</scenario-1>
+        <scenario-2 kind="failure">Controller rejects out-of-range selection indices with a stable no-op.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>TimelineController produces deterministic block updates for canonical slide mutations.</assertion>
+        <assertion>Selection state round-trips through the controller without drift.</assertion>
+      </required-trace-assertions>
+    </V-M-GUI-TIMELINE-CTRL>
+
+    <V-M-DETECT-BENCHMARK MODULE="M-DETECT-BENCHMARK" PRIORITY="medium" STATUS="passed">
+      <test-files><file>tests/test_benchmark_provenance.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/test_benchmark_provenance.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/test_benchmark_provenance.py tests/tools -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <evidence><result>tests/test_benchmark_provenance.py: 14 passed (Stage 2 run). Benchmark provenance captured deterministically.</result></evidence>
+      <scenarios>
+        <scenario-1 kind="success">Benchmark provenance captures canonical inputs and outputs deterministically.</scenario-1>
+        <scenario-2 kind="failure">Benchmark with missing fixture raises a structured provenance error.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>Benchmark provenance round-trips canonical environment and command metadata.</assertion>
+        <assertion>Benchmark output signature equals the committed accepted signature for the same inputs.</assertion>
+      </required-trace-assertions>
+    </V-M-DETECT-BENCHMARK>
+
+    <V-M-GITHUB-PROVIDER MODULE="M-GITHUB-PROVIDER" PRIORITY="low" STATUS="passed">
+      <test-files><file>tests/test_github_release_provider.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/test_github_release_provider.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/test_github_release_provider.py tests/test_update_checker.py -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <evidence><result>tests/test_github_release_provider.py: 11 passed (Stage 2 run). GitHubReleaseProvider handles mocked HTTP transport.</result></evidence>
+      <scenarios>
+        <scenario-1 kind="success">GitHubReleaseProvider fetches and parses release metadata over mocked HTTP.</scenario-1>
+        <scenario-2 kind="failure">Provider surfaces transport errors as a structured error without crashing.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>GitHubReleaseProvider returns deterministic release ordering for canonical responses.</assertion>
+        <assertion>Network errors propagate as structured errors, not raw exceptions.</assertion>
+      </required-trace-assertions>
+    </V-M-GITHUB-PROVIDER>
+
+    <V-M-APP-LLM MODULE="M-APP-LLM" PRIORITY="low" STATUS="planned">
+      <test-files></test-files>
+      <scenarios>
+        <scenario-1 kind="success">LlmEnrichmentService enriches slides via the LLM port (planned, not yet implemented).</scenario-1>
+        <scenario-2 kind="failure">Service surfaces LLM port errors deterministically (planned).</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>LlmEnrichmentService contract is declared but not yet implemented; no test evidence claimed.</assertion>
+      </required-trace-assertions>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-APP-LLM>
+
+    <V-M-PORT-LLM MODULE="M-PORT-LLM" PRIORITY="low" STATUS="planned">
+      <test-files></test-files>
+      <scenarios>
+        <scenario-1 kind="success">LlmEnricherPort abstracts LLM enrichment calls (planned, not yet implemented).</scenario-1>
+        <scenario-2 kind="failure">Port raises NotImplementedError for unimplemented enrichers (planned).</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>LlmEnricherPort is a declared abstract port; no runtime evidence claimed.</assertion>
+      </required-trace-assertions>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-PORT-LLM>
+
+    <V-M-ADAPTERS MODULE="M-ADAPTERS" PRIORITY="medium" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>legacy adapter shim; no dedicated unit test isolating the adapter boundary</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">LegacyPortAdapters fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">LegacyPortAdapters surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: legacy adapter shim; no dedicated unit test isolating the adapter boundary.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-ADAPTERS>
+
+    <V-M-APP-BUILD-META MODULE="M-APP-BUILD-META" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>build metadata module; no isolated test asserting canonical build identity fields</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">BuildMeta fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">BuildMeta surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: build metadata module; no isolated test asserting canonical build identity fields.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-APP-BUILD-META>
+
+    <V-M-APP-IDENTITY MODULE="M-APP-IDENTITY" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>application identity module; no dedicated test asserting identity invariants</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">ApplicationIdentity fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">ApplicationIdentity surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: application identity module; no dedicated test asserting identity invariants.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-APP-IDENTITY>
+
+    <V-M-APP-INPUT-RESOLVER MODULE="M-APP-INPUT-RESOLVER" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>input resolver on application/base; no dedicated test asserting resolution rules</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">InputResolver fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">InputResolver surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: input resolver on application/base; no dedicated test asserting resolution rules.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-APP-INPUT-RESOLVER>
+
+    <V-M-BACKEND-OPENCV MODULE="M-BACKEND-OPENCV" PRIORITY="medium" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>OpenCV backend; no isolated test verifying decode contract without real video fixtures</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">OpenCVBackend fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">OpenCVBackend surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: OpenCV backend; no isolated test verifying decode contract without real video fixtures.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-BACKEND-OPENCV>
+
+    <V-M-BACKEND-PYAV MODULE="M-BACKEND-PYAV" PRIORITY="medium" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>PyAV backend; test_detection_metrics.py exercises it but 3 tests fail on codec_context (see F-0103, OPEN/NON_BLOCKING)</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">PyAVBackend fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">PyAVBackend surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: PyAV backend; test_detection_metrics.py exercises it but 3 tests fail on codec_context (see F-0103, OPEN/NON_BLOCKING).</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <test-files><file>tests/test_detection_metrics.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/test_detection_metrics.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-BACKEND-PYAV>
+
+    <V-M-DESKTOP-BOOTSTRAP MODULE="M-DESKTOP-BOOTSTRAP" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>desktop bootstrap; tests/test_bootstrap.py covers M-APP-BOOTSTRAP, not the desktop entry specifically</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">DesktopBootstrap fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">DesktopBootstrap surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: desktop bootstrap; tests/test_bootstrap.py covers M-APP-BOOTSTRAP, not the desktop entry specifically.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <test-files><file>tests/test_bootstrap.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/test_bootstrap.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-DESKTOP-BOOTSTRAP>
+
+    <V-M-DETECT-METRICS MODULE="M-DETECT-METRICS" PRIORITY="medium" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>test_detection_metrics.py has 3 pre-existing failures in the PyAV section (codec_context, F-0103); metrics core not isolated from backend failures</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">DetectMetrics fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">DetectMetrics surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: test_detection_metrics.py has 3 pre-existing failures in the PyAV section (codec_context, F-0103); metrics core not isolated from backend failures.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <test-files><file>tests/test_detection_metrics.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/test_detection_metrics.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-DETECT-METRICS>
+
+    <V-M-DETECT-PERF-DECISION MODULE="M-DETECT-PERF-DECISION" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>bottleneck decision module backed by a JSON evidence artifact; no executable test asserting the decision boundary</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">BottleneckDecision fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">BottleneckDecision surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: bottleneck decision module backed by a JSON evidence artifact; no executable test asserting the decision boundary.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <module-checks><check-1>python -m pytest tests/tools -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-DETECT-PERF-DECISION>
+
+    <V-M-GUI-ABOUT MODULE="M-GUI-ABOUT" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>About dialog widget; no headless smoke test isolating dialog construction</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">AboutDialog fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">AboutDialog surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: About dialog widget; no headless smoke test isolating dialog construction.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-GUI-ABOUT>
+
+    <V-M-GUI-HELP-MENU MODULE="M-GUI-HELP-MENU" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>help menu is part of M-GUI-MENUBAR; no isolated test for the help submenu specifically</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">HelpMenu fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">HelpMenu surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: help menu is part of M-GUI-MENUBAR; no isolated test for the help submenu specifically.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <test-files><file>tests/test_gui_menu_bar.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/test_gui_menu_bar.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-GUI-HELP-MENU>
+
+    <V-M-GUI-PIPELINE-WORKER MODULE="M-GUI-PIPELINE-WORKER" PRIORITY="medium" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>GUI pipeline worker; no isolated worker signal test</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">GuiPipelineWorker fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">GuiPipelineWorker surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: GUI pipeline worker; no isolated worker signal test.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <test-files><file>tests/gui/test_pipeline_controller.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/gui -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/gui -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-GUI-PIPELINE-WORKER>
+
+    <V-M-GUI-UPDATE-CTRL MODULE="M-GUI-UPDATE-CTRL" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>update controller; no isolated test asserting update-check lifecycle</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">UpdateController fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">UpdateController surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: update controller; no isolated test asserting update-check lifecycle.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <module-checks><check-1>python -m pytest tests/test_update_checker.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-GUI-UPDATE-CTRL>
+
+    <V-M-GUI-WINDOW-UI MODULE="M-GUI-WINDOW-UI" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>main window UI builder; no isolated test asserting UI construction</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">MainWindowUiBuilder fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">MainWindowUiBuilder surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: main window UI builder; no isolated test asserting UI construction.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-GUI-WINDOW-UI>
+
+    <V-M-MCP-ADAPTER MODULE="M-MCP-ADAPTER" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>MCP service adapter in debug layer; no isolated test asserting adapter delegation</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">McpServiceAdapter fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">McpServiceAdapter surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: MCP service adapter in debug layer; no isolated test asserting adapter delegation.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-MCP-ADAPTER>
+
+    <V-M-MCP-COMPOSITION MODULE="M-MCP-COMPOSITION" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>MCP composition root in debug layer; no isolated test asserting composition wiring</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">McpComposition fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">McpComposition surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: MCP composition root in debug layer; no isolated test asserting composition wiring.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-MCP-COMPOSITION>
+
+    <V-M-PERSIST-DETECTION MODULE="M-PERSIST-DETECTION" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>detection config persistence; tests/infra/test_persistence_dto.py targets M-PERSIST-DTO, not detection-config persistence specifically</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">DetectionConfigPersistence fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">DetectionConfigPersistence surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: detection config persistence; tests/infra/test_persistence_dto.py targets M-PERSIST-DTO, not detection-config persistence specifically.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <test-files><file>tests/infra/test_persistence_dto.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/infra/test_persistence_dto.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/infra -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-PERSIST-DETECTION>
+
+    <V-M-PORT-ALIGNMENT MODULE="M-PORT-ALIGNMENT" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>abstract alignment port; tested only transitively via concrete adapters, no port-isolated test</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">AlignmentPort fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">AlignmentPort surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: abstract alignment port; tested only transitively via concrete adapters, no port-isolated test.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <test-files><file>tests/application/test_alignment_service.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/application/test_alignment_service.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-PORT-ALIGNMENT>
+
+    <V-M-PORT-DETECTOR MODULE="M-PORT-DETECTOR" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>abstract detector port; tested only transitively via concrete detectors, no port-isolated test</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">SlideDetectorPort fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">SlideDetectorPort surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: abstract detector port; tested only transitively via concrete detectors, no port-isolated test.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <test-files><file>tests/test_slide_detector.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/test_slide_detector.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-PORT-DETECTOR>
+
+    <V-M-PORT-EXPORT MODULE="M-PORT-EXPORT" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>abstract exporter port; tested only transitively via concrete exporters, no port-isolated test</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">PresentationExporterPort fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">PresentationExporterPort surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: abstract exporter port; tested only transitively via concrete exporters, no port-isolated test.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <test-files><file>tests/application/test_export_service.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/application/test_export_service.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-PORT-EXPORT>
+
+    <V-M-PORT-NOTES MODULE="M-PORT-NOTES" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>abstract notes port; tested only transitively via notes_processor, no port-isolated test</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">NotesProcessorPort fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">NotesProcessorPort surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: abstract notes port; tested only transitively via notes_processor, no port-isolated test.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <test-files><file>tests/test_notes_processor.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/test_notes_processor.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-PORT-NOTES>
+
+    <V-M-PORT-PREVIEW MODULE="M-PORT-PREVIEW" PRIORITY="low" STATUS="blocked">
+      <test-files></test-files>
+      <blocked-reason>abstract preview port; tested only transitively, no port-isolated test</blocked-reason>
+      <scenarios>
+        <scenario-1 kind="success">PreviewAnalyzerPort fulfills its declared contract when a dedicated test exists.</scenario-1>
+        <scenario-2 kind="failure">PreviewAnalyzerPort surfaces contract violations as structured errors.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion>BLOCKED: abstract preview port; tested only transitively, no port-isolated test.</assertion>
+        <assertion>No passed evidence claimed until a dedicated test exists and runs green.</assertion>
+      </required-trace-assertions>
+      <test-files><file>tests/application/test_preview_service.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/application/test_preview_service.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    </V-M-PORT-PREVIEW>
+</ModuleVerification>
 
   <PhaseGates>
     <Gate-Phase-7 PRIORITY="high" STATUS="done">
@@ -510,7 +1165,11 @@
       <scenario-4 kind="success">Track.sort() orders clips by start_sec.</scenario-4>
       <scenario-5 kind="success">Timeline emits durationChanged signal on duration setter.</scenario-5>
     </scenarios>
-  </V-M-TIMELINE-MODEL>
+      <module-checks><check-1>python -m pytest tests/test_timeline_model.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>TimelineModel contract honored: QObject-based timeline data model: Clip(ABC), SlideClip, SubtitleClip, MarkerClip, ScoreClip, Track(QObject), ScoreTrack(Track), Timeline(QO.</assertion><assertion>No production import from M-TIMELINE-MODEL crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-TIMELINE-MODEL>
 
   <V-M-PROJECT-MODEL MODULE="M-PROJECT-MODEL" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/test_project_model.py</file></test-files>
@@ -521,7 +1180,11 @@
       <scenario-4 kind="success">close clears all state, projectClosed emitted, slides list empty.</scenario-4>
       <scenario-5 kind="success">set_scores populates ScoreTrack with correct number of clips.</scenario-5>
     </scenarios>
-  </V-M-PROJECT-MODEL>
+      <module-checks><check-1>python -m pytest tests/test_project_model.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[ProjectModel][open]`.</assertion><assertion>Successful execution path emits structured log line containing `[ProjectModel][refresh_from_disk]`.</assertion><assertion>V-M-PROJECT-MODEL scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+    </V-M-PROJECT-MODEL>
 
   <!-- Debug Infrastructure Verification -->
   <V-M-GUI-LOG-BRIDGE MODULE="M-GUI-LOG-BRIDGE" PRIORITY="medium" STATUS="passed">
@@ -531,7 +1194,11 @@
       <scenario-2 kind="success">Loguru message captured and emitted via newLog signal with correct level/time/message.</scenario-2>
       <scenario-3 kind="success">recent(n) returns entries with correct fields.</scenario-3>
     </scenarios>
-  </V-M-GUI-LOG-BRIDGE>
+      <module-checks><check-1>python -m pytest tests/test_gui_log_bridge.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>LogBridge contract honored: Bridge loguru → Qt signal + ring buffer for DebugDock and MCP server. Singleton pattern via LogBridge.instance().</assertion><assertion>No production import from M-GUI-LOG-BRIDGE crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-GUI-LOG-BRIDGE>
 
   <V-M-GUI-DEBUG-DOCK MODULE="M-GUI-DEBUG-DOCK" PRIORITY="medium" STATUS="passed">
     <test-files><file>tests/test_gui_debug_dock.py</file></test-files>
@@ -541,7 +1208,11 @@
       <scenario-3 kind="success">LogPanel filter combo contains ALL, ERROR levels.</scenario-3>
       <scenario-4 kind="success">StatePanel shows tree from Timeline with correct clip count.</scenario-4>
     </scenarios>
-  </V-M-GUI-DEBUG-DOCK>
+      <module-checks><check-1>python -m pytest tests/test_gui_debug_dock.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>DebugDock contract honored: QDockWidget with LogPanel (live log viewer with color-coded levels + filter) and StatePanel (Timeline→Track→Clip tree view). Toggle via Ctrl.</assertion><assertion>No production import from M-GUI-DEBUG-DOCK crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-GUI-DEBUG-DOCK>
 
   <V-M-GUI-SIGNAL-SPY MODULE="M-GUI-SIGNAL-SPY" PRIORITY="low" STATUS="passed">
     <test-files><file>tests/test_gui_signal_spy.py</file></test-files>
@@ -549,17 +1220,26 @@
       <scenario-1 kind="success">watch subscribes to named Qt signal on QObject.</scenario-1>
       <scenario-2 kind="success">watch_all discovers and subscribes to signals on Timeline/Track.</scenario-2>
     </scenarios>
-  </V-M-GUI-SIGNAL-SPY>
+      <module-checks><check-1>python -m pytest tests/test_gui_signal_spy.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>SignalSpy contract honored: Watch Qt signals on any QObject, log via LogBridge for real-time inspection in DebugDock. Supports individual signal watching and watch_all .</assertion><assertion>No production import from M-GUI-SIGNAL-SPY crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-GUI-SIGNAL-SPY>
 
-  <V-M-DEBUG-ACTION MODULE="M-DEBUG-ACTION" PRIORITY="medium" STATUS="passed">
-    <test-files><file>tests/test_debug_action.py</file></test-files>
+  <V-M-DEBUG-ACTION MODULE="M-DEBUG-ACTION" PRIORITY="medium" STATUS="blocked">
+      <blocked-reason>Referenced test tests/test_debug_action.py does not exist on disk; prior 'passed' status was not reproducible. Module needs a dedicated debug-action test.</blocked-reason>
+    <test-files></test-files>
     <scenarios>
       <scenario-1 kind="success">@mcp_action decorator attaches _mcp_meta with name/desc.</scenario-1>
       <scenario-2 kind="success">ActionRegistry.scan finds decorated methods, skips undecorated.</scenario-2>
       <scenario-3 kind="success">tools() returns MCP descriptors with inputSchema from type hints.</scenario-3>
       <scenario-4 kind="success">call dispatches to bound method with signature-bound args.</scenario-4>
     </scenarios>
-  </V-M-DEBUG-ACTION>
+      <module-checks><check-1>python -m pytest tests/test_debug_action.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>ActionRegistry contract honored: @mcp_action decorator + ActionRegistry. Auto-discovers MCP tools from decorated methods on any object. Converts Python type hints to JSON in.</assertion><assertion>No production import from M-DEBUG-ACTION crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-DEBUG-ACTION>
 
   <!-- Missing entries from audit — now covered -->
   <V-M-GUI-STATUS MODULE="M-GUI-STATUS" PRIORITY="low" STATUS="passed">
@@ -567,50 +1247,79 @@
     <scenarios>
       <scenario-1 kind="success">StatusBarManager.start/update/finish update status bar text.</scenario-1>
     </scenarios>
-  </V-M-GUI-STATUS>
+      <module-checks><check-1>python -m pytest tests/test_gui_main.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>StatusBarManager contract honored: QMainWindow status bar helper — progress, elapsed time, ETA for long operations.</assertion><assertion>No production import from M-GUI-STATUS crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-GUI-STATUS>
 
   <V-M-GUI-SUBTITLE-EDITOR MODULE="M-GUI-SUBTITLE-EDITOR" PRIORITY="low" STATUS="passed">
     <test-files><file>tests/test_gui_main.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">SubtitleEditorDialog opens with slide info, accepts changes on OK.</scenario-1>
     </scenarios>
-  </V-M-GUI-SUBTITLE-EDITOR>
+      <module-checks><check-1>python -m pytest tests/test_gui_main.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>SubtitleEditor contract honored: QDialog for editing slide subtitles with LLM vision analysis and transcript correction.</assertion><assertion>No production import from M-GUI-SUBTITLE-EDITOR crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-GUI-SUBTITLE-EDITOR>
 
   <V-M-GUI-TIMELINE3 MODULE="M-GUI-TIMELINE3" PRIORITY="medium" STATUS="passed">
     <test-files><file>tests/test_gui_main.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">TimelineWidget V3 renders slide blocks and emits signals on interaction.</scenario-1>
     </scenarios>
-  </V-M-GUI-TIMELINE3>
+      <module-checks><check-1>python -m pytest tests/test_gui_main.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[Timeline3][_add_manual_slide]`.</assertion><assertion>V-M-GUI-TIMELINE3 scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+    </V-M-GUI-TIMELINE3>
 
   <V-M-GUI-MARKER-PANEL MODULE="M-GUI-MARKER-PANEL" PRIORITY="low" STATUS="passed">
     <test-files><file>tests/test_gui_main.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">MarkerPanel dialog shows slide list with count.</scenario-1>
     </scenarios>
-  </V-M-GUI-MARKER-PANEL>
+      <module-checks><check-1>python -m pytest tests/test_gui_main.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>MarkerPanel contract honored: Marker list QDialog with table of blue markers, per-row seek/re-snap/delete actions.</assertion><assertion>No production import from M-GUI-MARKER-PANEL crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-GUI-MARKER-PANEL>
 
   <V-M-GUI-ROI-SELECTOR MODULE="M-GUI-ROI-SELECTOR" PRIORITY="low" STATUS="passed">
     <test-files><file>tests/test_gui_main.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">RoiSelectorDialog uses QRubberBand for rectangle selection.</scenario-1>
     </scenarios>
-  </V-M-GUI-ROI-SELECTOR>
+      <module-checks><check-1>python -m pytest tests/test_gui_main.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>RoiSelector contract honored: Visual ROI selector dialog — user draws rectangles over video frame to define ignore ROIs.</assertion><assertion>No production import from M-GUI-ROI-SELECTOR crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-GUI-ROI-SELECTOR>
 
-  <V-M-DEBUG-MCP MODULE="M-DEBUG-MCP" PRIORITY="low" STATUS="passed">
-    <test-files><file>tests/test_debug_action.py</file></test-files>
+  <V-M-DEBUG-MCP MODULE="M-DEBUG-MCP" PRIORITY="low" STATUS="blocked">
+      <blocked-reason>Referenced test tests/test_debug_action.py does not exist on disk; prior 'passed' status was not reproducible. Module needs a dedicated debug-mcp test.</blocked-reason>
+    <test-files></test-files>
     <scenarios>
       <scenario-1 kind="success">McpServer starts on port 9812, tools/list returns expected tools.</scenario-1>
       <scenario-2 kind="success">ActionRegistry integration: @mcp_action methods appear in tools/list.</scenario-2>
     </scenarios>
-  </V-M-DEBUG-MCP>
+      <module-checks><check-1>python -m pytest tests/test_debug_action.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>McpServer contract honored: MCP HTTP/SSE server on :9812 for AI agent debugging. Read tools: get_state, get_project, get_logs, get_clip. Write tools via command queue: .</assertion><assertion>No production import from M-DEBUG-MCP crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-DEBUG-MCP>
 
   <V-M-COLAB MODULE="M-COLAB" PRIORITY="low" STATUS="passed">
     <test-files><file>colab/video2pptx_colab.ipynb</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Colab notebook loads and imports all required modules.</scenario-1>
     </scenarios>
-  </V-M-COLAB>
+      <module-checks><check-1>python -m pytest colab/video2pptx_colab.ipynb -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>ColabDeployment contract honored: Google Colab notebook for running pipeline with free T4 GPU.</assertion><assertion>No production import from M-COLAB crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-COLAB>
 
   <!-- ===== MCP E2E HARDENING verification ===== -->
   <V-M-OPERATION-REGISTRY MODULE="M-OPERATION-REGISTRY" PRIORITY="high" STATUS="passed">
@@ -622,7 +1331,11 @@
       <scenario-4 kind="success">cancel marks non-terminal op cancelled; terminal op unchanged.</scenario-4>
       <scenario-5 kind="success">clear empties registry.</scenario-5>
     </scenarios>
-  </V-M-OPERATION-REGISTRY>
+      <module-checks><check-1>python -m pytest tests/test_operation_registry.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>OperationRegistry contract honored: Operation lifecycle registry for MCP async ops — tracks queued/running/succeeded/failed/cancelled with timestamps, progress, trace_id.</assertion><assertion>No production import from M-OPERATION-REGISTRY crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-OPERATION-REGISTRY>
 
   <V-M-STRUCTURED-ERRORS MODULE="M-STRUCTURED-ERRORS" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/test_structured_errors.py</file></test-files>
@@ -631,7 +1344,11 @@
       <scenario-2 kind="success">to_dict() excludes None fields.</scenario-2>
       <scenario-3 kind="success">full traceback logged but not in JSON response.</scenario-3>
     </scenarios>
-  </V-M-STRUCTURED-ERRORS>
+      <module-checks><check-1>python -m pytest tests/test_structured_errors.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>StructuredErrors contract honored: Typed operation error: type/message/stage/recoverable/trace_id/details. Full traceback to log; never swallow exceptions.</assertion><assertion>No production import from M-STRUCTURED-ERRORS crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-STRUCTURED-ERRORS>
 
   <V-M-CONFIRM-POLICY MODULE="M-CONFIRM-POLICY" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/test_confirm_policy.py</file></test-files>
@@ -640,7 +1357,11 @@
       <scenario-2 kind="success">Non-destructive op proceeds without confirm.</scenario-2>
       <scenario-3 kind="success">VIDEO2PPTX_TEST_MODE=1 still requires explicit confirm for delete/overwrite.</scenario-3>
     </scenarios>
-  </V-M-CONFIRM-POLICY>
+      <module-checks><check-1>python -m pytest tests/test_confirm_policy.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>ConfirmPolicy contract honored: Destructive-op confirmation: require explicit confirm=true. VIDEO2PPTX_TEST_MODE=1 still needs explicit args. No global auto-confirm.</assertion><assertion>No production import from M-CONFIRM-POLICY crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-CONFIRM-POLICY>
 
   <V-M-ATOMIC-JSON MODULE="M-ATOMIC-JSON" PRIORITY="medium" STATUS="planned">
     <test-files><file>tests/test_atomic_json.py</file></test-files>
@@ -649,7 +1370,11 @@
       <scenario-2 kind="success">No temp file left behind on success.</scenario-2>
       <scenario-3 kind="failure">Partial write on exception leaves target intact.</scenario-3>
     </scenarios>
-  </V-M-ATOMIC-JSON>
+      <module-checks><check-1>python -m pytest tests/test_atomic_json.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>AtomicJson contract honored: Atomic JSON writer: temp file + os.replace. Used for all project/slides/alignment writes to prevent partial-file corruption.</assertion><assertion>No production import from M-ATOMIC-JSON crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-ATOMIC-JSON>
 
   <V-M-MCP-OPERATIONS MODULE="M-MCP-OPERATIONS" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/test_mcp_operations.py</file><file>tests/test_app_service_runner.py</file><file>tests/test_mcp_qt_operations.py</file></test-files>
@@ -664,7 +1389,10 @@
       <scenario-5 kind="success">cancel_operation transitions running op→cancelled, worker stops.</scenario-5>
       <scenario-6 kind="success">Concurrent conflicting ops serialized; no concurrent slides.json write.</scenario-6>
     </scenarios>
-  </V-M-MCP-OPERATIONS>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>McpOperations contract honored: Wire OperationRegistry into MCP: write tools create op → run app_service in dedicated OpRunnerThread → return operation_id. Lifecycle tools:.</assertion><assertion>No production import from M-MCP-OPERATIONS crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-MCP-OPERATIONS>
 
   <V-M-MCP-READ-TOOLS MODULE="M-MCP-READ-TOOLS" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/test_mcp_read_tools.py</file></test-files>
@@ -674,7 +1402,11 @@
       <scenario-3 kind="success">get_timeline returns slide/subtitle/score tracks with UID/intervals/manual/image_path.</scenario-3>
       <scenario-4 kind="success">list_artifacts enumerates project files with sizes.</scenario-4>
     </scenarios>
-  </V-M-MCP-READ-TOOLS>
+      <module-checks><check-1>python -m pytest tests/test_mcp_read_tools.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>McpReadTools contract honored: Extended read tools: get_app_state/get_ui_state/get_project(extended)/get_timeline/get_slide/get_subtitle_clip/get_logs/list_artifacts/captu.</assertion><assertion>No production import from M-MCP-READ-TOOLS crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-MCP-READ-TOOLS>
 
   <V-M-MCP-WRITE-TOOLS MODULE="M-MCP-WRITE-TOOLS" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/test_mcp_write_tools.py</file></test-files>
@@ -684,7 +1416,11 @@
       <scenario-3 kind="failure">Missing required arg returns schema error, not silent default.</scenario-3>
       <scenario-4 kind="success">app_shutdown(confirm=true) stops workers+MCP+Qt, frees port, exits 0.</scenario-4>
     </scenarios>
-  </V-M-MCP-WRITE-TOOLS>
+      <module-checks><check-1>python -m pytest tests/test_mcp_write_tools.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>McpWriteTools contract honored: Full write tool set: project/video/subtitle/preview/detect/align/notes/llm/export/auto/slide-CRUD/video-transport/settings/app_shutdown. Eac.</assertion><assertion>No production import from M-MCP-WRITE-TOOLS crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-MCP-WRITE-TOOLS>
 
   <V-M-UI-STATE-READER MODULE="M-UI-STATE-READER" PRIORITY="medium" STATUS="planned">
     <test-files><file>tests/test_ui_state.py</file></test-files>
@@ -692,7 +1428,11 @@
       <scenario-1 kind="success">read_ui_state returns all 7 buttons with visible/enabled/text.</scenario-1>
       <scenario-2 kind="success">busy flag reflects active operation; current_operation set.</scenario-2>
     </scenarios>
-  </V-M-UI-STATE-READER>
+      <module-checks><check-1>python -m pytest tests/test_ui_state.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>UiStateReader contract honored: Read-only snapshot of MainWindow: buttons (visible/enabled/text), window title, status text, busy flag, current_operation. No business logic.</assertion><assertion>No production import from M-UI-STATE-READER crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-UI-STATE-READER>
 
   <V-M-PROJECT-VALIDATOR MODULE="M-PROJECT-VALIDATOR" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/test_project_validator.py</file></test-files>
@@ -703,7 +1443,11 @@
       <scenario-4 kind="failure">Slide count mismatch project.json vs slides.json → error.</scenario-4>
       <scenario-5 kind="success">PPTX re-opens via python-pptx; MD has correct Marp slide count.</scenario-5>
     </scenarios>
-  </V-M-PROJECT-VALIDATOR>
+      <module-checks><check-1>python -m pytest tests/test_project_validator.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>ProjectValidator contract honored: validate_project: schema, file existence, interval invariants, no double paths, slide-count consistency, export freshness, MD/PPTX integrity.</assertion><assertion>No production import from M-PROJECT-VALIDATOR crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-PROJECT-VALIDATOR>
 
   <V-M-PIPELINE-STATES MODULE="M-PIPELINE-STATES" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/test_pipeline_states.py</file></test-files>
@@ -712,25 +1456,37 @@
       <scenario-2 kind="success">Re-detect invalidates downstream (stale=true).</scenario-2>
       <scenario-3 kind="success">Auto with no subs: align/notes status=skipped, not succeeded.</scenario-3>
     </scenarios>
-  </V-M-PIPELINE-STATES>
+      <module-checks><check-1>python -m pytest tests/test_pipeline_states.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[ProjectManager][create_project]`.</assertion><assertion>Successful execution path emits structured log line containing `[ProjectManager][open_project]`.</assertion><assertion>V-M-PIPELINE-STATES scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+    </V-M-PIPELINE-STATES>
 
   <V-M-CANONICAL-COMMANDS MODULE="M-CANONICAL-COMMANDS" PRIORITY="high" STATUS="planned">
-    <test-files><file>tests/test_command_router.py</file></test-files>
+    <test-files><file>tests/test_app_service_runner.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">slide_delete by uid removes correct slide; UIDs of others preserved.</scenario-1>
       <scenario-2 kind="success">slide_index 1-based in public API; off-by-one fixed across paths.</scenario-2>
       <scenario-3 kind="success">GUI/MCP/CLI invoke same canonical command.</scenario-3>
     </scenarios>
-  </V-M-CANONICAL-COMMANDS>
+      <module-checks><check-1>python -m pytest tests/test_command_router.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>CommandRouter contract honored: Unify slide_add/slide_add_ui/slide_move/slide_moved into one canonical path. Public 1-based slide_index, internal 0-based, uid preferred. GU.</assertion><assertion>No production import from M-CANONICAL-COMMANDS crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-CANONICAL-COMMANDS>
 
   <V-M-GUI-CANONICAL-BUTTONS MODULE="M-GUI-CANONICAL-BUTTONS" PRIORITY="high" STATUS="planned">
-    <test-files><file>tests/test_gui_canonical_buttons.py</file></test-files>
+    <test-files></test-files>
     <scenarios>
       <scenario-1 kind="success">5 buttons present: Quick Preview, Detect, Auto Align, Process Notes, Auto.</scenario-1>
       <scenario-2 kind="success">Quick Preview side-effect-free: no slides.json/deck created; scores present.</scenario-2>
       <scenario-3 kind="success">Button enablement reflects project state (no project→disabled; subs+detect→Auto Align enabled).</scenario-3>
     </scenarios>
-  </V-M-GUI-CANONICAL-BUTTONS>
+      <module-checks><check-1>python -m pytest tests/test_gui_canonical_buttons.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>CanonicalButtons contract honored: Rename/wire 5 distinct stages: Quick Preview / Detect / Auto Align / Process Notes / Auto. Each button slot delegates to app_service — no bu.</assertion><assertion>No production import from M-GUI-CANONICAL-BUTTONS crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-GUI-CANONICAL-BUTTONS>
 
   <V-M-AUTO-ALIGN MODULE="M-AUTO-ALIGN" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/test_auto_align.py</file></test-files>
@@ -742,20 +1498,28 @@
       <scenario-5 kind="success">cue-split count after ≤ before; max-overlap assignment.</scenario-5>
       <scenario-6 kind="success">rollback restores visual boundaries from report.</scenario-6>
     </scenarios>
-  </V-M-AUTO-ALIGN>
+      <module-checks><check-1>python -m pytest tests/test_auto_align.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[AutoAlign][rollback]`.</assertion><assertion>V-M-AUTO-ALIGN scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+    </V-M-AUTO-ALIGN>
 
   <V-M-APP-SERVICE MODULE="M-APP-SERVICE" PRIORITY="high" STATUS="planned">
-    <test-files><file>tests/test_app_service.py</file></test-files>
+    <test-files><file>tests/test_app_service_runner.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">run_detect marks downstream stale; no export side-effects.</scenario-1>
       <scenario-2 kind="success">run_auto(full) produces slides.json+deck.md+deck.pptx; auto_done=true only if valid.</scenario-2>
       <scenario-3 kind="success">run_auto(resume) skips non-stale completed stages.</scenario-3>
       <scenario-4 kind="failure">Stage failure halts pipeline, keeps good artifacts, returns failing stage.</scenario-4>
     </scenarios>
-  </V-M-APP-SERVICE>
+      <module-checks><check-1>python -m pytest tests/test_app_service.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>AppService contract honored: Canonical application service — single entry point for GUI slots, MCP tools, and CLI. No Qt, no HTTP.</assertion><assertion>No production import from M-APP-SERVICE crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-APP-SERVICE>
 
   <V-M-MCP-RELIABILITY MODULE="M-MCP-RELIABILITY" PRIORITY="medium" STATUS="planned">
-    <test-files><file>tests/test_mcp_reliability.py</file></test-files>
+    <test-files></test-files>
     <scenarios>
       <scenario-1 kind="success">Port 9812 busy → falls back to 9813..9816; .mcp_port updated.</scenario-1>
       <scenario-2 kind="success">Stale .mcp_port detected and replaced.</scenario-2>
@@ -763,16 +1527,24 @@
       <scenario-4 kind="success">Bind to 127.0.0.1 only (not 0.0.0.0).</scenario-4>
       <scenario-5 kind="success">serverInfo.version matches package version.</scenario-5>
     </scenarios>
-  </V-M-MCP-RELIABILITY>
+      <module-checks><check-1>python -m pytest tests/test_mcp_reliability.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>McpReliability contract honored: Harden McpServer: port 9812–9816 fallback, stale .mcp_port cleanup, registry clear on restart, SSE client stop, localhost-only bind, live se.</assertion><assertion>No production import from M-MCP-RELIABILITY crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-MCP-RELIABILITY>
 
   <V-M-E2E-SNAPSHOT MODULE="M-E2E-SNAPSHOT" PRIORITY="medium" STATUS="planned">
-    <test-files><file>tests/e2e/test_snapshot.py</file></test-files>
+    <test-files><file>tests/e2e/test_mcp_gui_workflow.py</file></test-files>
     <scenarios>
       <scenario-1 kind="success">Snapshot captures app/ui/project/timeline/artifacts/logs keys.</scenario-1>
       <scenario-2 kind="success">project.json + slides.json copied into snapshot dir when present.</scenario-2>
       <scenario-3 kind="success">before/after snapshots diffable (stable key order).</scenario-3>
     </scenarios>
-  </V-M-E2E-SNAPSHOT>
+      <module-checks><check-1>python -m pytest tests/e2e/test_snapshot.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/e2e -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>Snapshot contract honored: Capture full state snapshot: get_app_state/get_ui_state/get_project/get_timeline/list_artifacts/logs/screenshot + copy project.json/slides.j.</assertion><assertion>No production import from M-E2E-SNAPSHOT crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-E2E-SNAPSHOT>
 
   <V-M-E2E-RUNNER MODULE="M-E2E-RUNNER" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/e2e/test_mcp_gui_workflow.py</file></test-files>
@@ -782,7 +1554,11 @@
       <scenario-3 kind="success">Synchronization via wait_operation (no arbitrary sleep).</scenario-3>
       <scenario-4 kind="success">HTML+JSON+junit report emitted; defects.json on failure.</scenario-4>
     </scenarios>
-  </V-M-E2E-RUNNER>
+      <module-checks><check-1>python -m pytest tests/e2e/test_mcp_gui_workflow.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/e2e -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>McpE2eRunner contract honored: Headless E2E runner: launch GUI subprocess, find port, initialize, run scenarios with before/after snapshots + wait_operation, emit HTML/JSO.</assertion><assertion>No production import from M-E2E-RUNNER crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-E2E-RUNNER>
 
   <V-M-E2E-SCENARIOS MODULE="M-E2E-SCENARIOS" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/e2e/test_mcp_gui_workflow.py</file></test-files>
@@ -810,34 +1586,80 @@
       <scenario-E2E-108 kind="success">app_shutdown(confirm=true): clean exit, port freed, code 0.</scenario-E2E-108>
       <scenario-E2E-109 kind="success">Busy port 9812 → fallback discovered by runner.</scenario-E2E-109>
     </scenarios>
-  </V-M-E2E-SCENARIOS>
+      <module-checks><check-1>python -m pytest tests/e2e/test_mcp_gui_workflow.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/e2e -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>E2eScenarios contract honored: pytest E2E-001..015 happy + E2E-101..119 negative, each with before/after snapshot, postcondition assertions, 4-view consistency check.</assertion><assertion>No production import from M-E2E-SCENARIOS crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-E2E-SCENARIOS>
 
   <!-- ===== DOMAIN REFACTORING (Phase-16) ===== -->
   <V-M-ARCH-OVERVIEW MODULE="M-ARCH-OVERVIEW" PRIORITY="high" STATUS="planned">
     <scenarios>
       <scenario-1 kind="success">docs/architecture.md exists with layers, dependency rules, sequence diagrams, migration table.</scenario-1>
     </scenarios>
-  </V-M-ARCH-OVERVIEW>
+      <test-files><file>tests/test_architecture.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/test_architecture.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>ArchitectureOverview contract honored: Target layered architecture: domain/application/infrastructure/adapters with ports and dependency rules. See docs/architecture.md for full c.</assertion><assertion>No production import from M-ARCH-OVERVIEW crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-ARCH-OVERVIEW>
 
   <V-M-DOMAIN-SLIDE MODULE="M-DOMAIN-SLIDE" PRIORITY="medium" STATUS="planned">
     <purpose>Slide entity invariants: stable SlideId, visual/aligned TimeInterval, ArtifactRef, transcript, confidence, manual flag.</purpose>
-  </V-M-DOMAIN-SLIDE>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>SlideEntity contract honored: Slide entity with stable SlideId, visual/aligned TimeInterval, image ArtifactRef, transcript, confidence, manual flag.</assertion><assertion>No production import from M-DOMAIN-SLIDE crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">SlideEntity fulfills its contract: Slide entity with stable SlideId, visual/aligned TimeInterval, image ArtifactRef, transcript, confidence, manual flag.</scenario-1>
+        <scenario-2 kind="failure">SlideEntity rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-DOMAIN-SLIDE>
 
   <V-M-DOMAIN-STATE MODULE="M-DOMAIN-STATE" PRIORITY="medium" STATUS="planned">
     <purpose>Pipeline stage state machine transitions: NOT_STARTED -> RUNNING -> SUCCEEDED/FAILED/CANCELLED/STALE/SKIPPED.</purpose>
-  </V-M-DOMAIN-STATE>
+      <test-files><file>tests/domain/test_pipeline_state.py</file><file>tests/test_pipeline_states.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/domain/test_pipeline_state.py -q</check-1><check-2>python -m pytest tests/test_pipeline_states.py -q</check-2></module-checks>
+      <wave-follow-up>python -m pytest tests/domain -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>PipelineState contract honored: Pipeline stage state machine: NOT_STARTED→RUNNING→SUCCEEDED/FAILED/CANCELLED/STALE/SKIPPED.</assertion><assertion>No production import from M-DOMAIN-STATE crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">PipelineState fulfills its contract: Pipeline stage state machine: NOT_STARTED→RUNNING→SUCCEEDED/FAILED/CANCELLED/STALE/SKIPPED.</scenario-1>
+        <scenario-2 kind="failure">PipelineState rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-DOMAIN-STATE>
 
   <V-M-DOMAIN-EVENTS MODULE="M-DOMAIN-EVENTS" PRIORITY="low" STATUS="planned">
     <purpose>Domain event dataclasses (ProjectCreated, SlidesDetected, SlidesAligned, NotesProcessed, SlideAdded).</purpose>
-  </V-M-DOMAIN-EVENTS>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>DomainEvents contract honored: Domain event dataclasses: ProjectCreated, SlidesDetected, SlidesAligned, NotesProcessed, SlideAdded, etc.</assertion><assertion>No production import from M-DOMAIN-EVENTS crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">DomainEvents fulfills its contract: Domain event dataclasses: ProjectCreated, SlidesDetected, SlidesAligned, NotesProcessed, SlideAdded, etc.</scenario-1>
+        <scenario-2 kind="failure">DomainEvents rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-DOMAIN-EVENTS>
 
   <V-M-PORT-EVENTS MODULE="M-PORT-EVENTS" PRIORITY="low" STATUS="planned">
     <purpose>Synchronous event bus: publish domain events, notify subscribers, Qt signal adapter.</purpose>
-  </V-M-PORT-EVENTS>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion> contract honored: Synchronous event bus: publish domain events, notify subscribers. Adapter for Qt signals.</assertion><assertion>No production import from M-PORT-EVENTS crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success"> fulfills its contract: Synchronous event bus: publish domain events, notify subscribers. Adapter for Qt signals.</scenario-1>
+        <scenario-2 kind="failure"> rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-PORT-EVENTS>
 
   <V-M-APP-PROJECT MODULE="M-APP-PROJECT" PRIORITY="high" STATUS="planned">
     <purpose>Project service use case: create/open/close/save via repository port without direct file access.</purpose>
-  </V-M-APP-PROJECT>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion> contract honored: Create, open, close, save project via repository port. No direct file access.</assertion><assertion>No production import from M-APP-PROJECT crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success"> fulfills its contract: Create, open, close, save project via repository port. No direct file access.</scenario-1>
+        <scenario-2 kind="failure"> rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-APP-PROJECT>
 
   <V-M-DOMAIN-VALUE MODULE="M-DOMAIN-VALUE" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/domain/test_value_objects.py</file></test-files>
@@ -848,7 +1670,11 @@
       <scenario-4 kind="success">ArtifactRef: normalizes path, prevents double prefix, resolves relative to project dir.</scenario-4>
       <scenario-5 kind="success">PipelineState: valid transitions, terminal states, cannot restart from succeeded without force.</scenario-5>
     </scenarios>
-  </V-M-DOMAIN-VALUE>
+      <module-checks><check-1>python -m pytest tests/domain/test_value_objects.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/domain -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>ValueObjects contract honored: Frozen value objects: SlideId, TimeInterval (validated), ArtifactRef (normalized relative path), PipelineState enum.</assertion><assertion>No production import from M-DOMAIN-VALUE crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-DOMAIN-VALUE>
 
   <V-M-DOMAIN-PROJECT MODULE="M-DOMAIN-PROJECT" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/domain/test_project.py</file></test-files>
@@ -860,7 +1686,11 @@
       <scenario-5 kind="success">invalidate_downstream_from('detect'): align/notes/md/pptx all stale.</scenario-5>
       <scenario-6 kind="failure">Adding overlapping slide raises DomainError.</scenario-6>
     </scenarios>
-  </V-M-DOMAIN-PROJECT>
+      <module-checks><check-1>python -m pytest tests/domain/test_project.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/domain -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>ProjectAggregate contract honored: Project aggregate root controlling slide invariants, downstream invalidation, state transitions, and side-effect-free validation. Canonical .</assertion><assertion>No production import from M-DOMAIN-PROJECT crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-DOMAIN-PROJECT>
 
   <V-M-PORT-REPO MODULE="M-PORT-REPO" PRIORITY="high" STATUS="planned">
     <test-files><file>tests/infra/test_file_repository.py</file></test-files>
@@ -870,7 +1700,11 @@
       <scenario-3 kind="success">Schema migration: v1 project.json upgrades to v2 on load.</scenario-3>
       <scenario-4 kind="failure">Loading invalid project.json raises ProjectPersistenceError.</scenario-4>
     </scenarios>
-  </V-M-PORT-REPO>
+      <module-checks><check-1>python -m pytest tests/infra/test_file_repository.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/infra -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion> contract honored: Revision-aware port for loading/saving Project aggregate through LoadedProject and SaveResult.</assertion><assertion>No production import from M-PORT-REPO crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-PORT-REPO>
 
   <V-M-PERSIST-DTO MODULE="M-PERSIST-DTO" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/infra/test_persistence_dto.py</file><file>tests/domain/test_value_objects.py</file></test-files>
@@ -881,7 +1715,10 @@
       <scenario-1 kind="success">ProjectDocumentV2 strictly round-trips every canonical aggregate field.</scenario-1>
       <scenario-2 kind="failure">Unknown canonical fields are rejected outside extensions.</scenario-2>
     </scenarios>
-  </V-M-PERSIST-DTO>
+      <wave-follow-up>python -m pytest tests/infra -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>PersistenceDtoV2 contract honored: Strict schema 2.0 DTO with full pipeline, portable artifacts, extensions, and revision.</assertion><assertion>No production import from M-PERSIST-DTO crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-PERSIST-DTO>
 
   <V-M-PERSIST-MIGRATIONS MODULE="M-PERSIST-MIGRATIONS" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/infra/test_migrations.py</file><file>tests/infra/test_mapper.py</file></test-files>
@@ -893,7 +1730,10 @@
       <scenario-1 kind="success">Schema 1.0 migrates deterministically to schema 2.0 with stable slide IDs.</scenario-1>
       <scenario-2 kind="success">Unknown legacy fields survive under extensions.legacy.</scenario-2>
     </scenarios>
-  </V-M-PERSIST-MIGRATIONS>
+      <wave-follow-up>python -m pytest tests/infra -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>PersistenceMigrations contract honored: Deterministic schema 1.0 → 2.0 migration preserving unknown legacy fields and stable UIDs.</assertion><assertion>No production import from M-PERSIST-MIGRATIONS crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-PERSIST-MIGRATIONS>
 
   <V-M-FILE-REPO MODULE="M-FILE-REPO" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/infra/test_file_repository.py</file><file>tests/infra/test_mapper.py</file></test-files>
@@ -906,7 +1746,10 @@
       <scenario-2 kind="failure">Corrupt canonical storage and revision conflicts fail without overwrite.</scenario-2>
       <scenario-3 kind="success">Derived slides artifact records and validates source_revision.</scenario-3>
     </scenarios>
-  </V-M-FILE-REPO>
+      <wave-follow-up>python -m pytest tests/infra -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>FileProjectRepository contract honored: Canonical atomic commit with revisioned derived slides artifact, strict validation, optimistic concurrency.</assertion><assertion>No production import from M-FILE-REPO crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-FILE-REPO>
 
   <V-M-REF-PERSISTENCE-STABILIZATION MODULE="Phase-16/Step-4.7" DATA_FLOW="DF-PERSIST-01" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/infra/test_persistence_dto.py</file><file>tests/infra/test_migrations.py</file><file>tests/infra/test_mapper.py</file><file>tests/infra/test_file_repository.py</file></test-files>
@@ -927,7 +1770,10 @@
       <scenario-PERSIST-10 kind="success">project.validate() checks aggregate invariants without mutating state.</scenario-PERSIST-10>
       <scenario-PERSIST-11 kind="success">SlideId.new() generates 128-bit UUID; legacy IDs preserved as-is.</scenario-PERSIST-11>
     </scenarios>
-  </V-M-REF-PERSISTENCE-STABILIZATION>
+      <wave-follow-up>python -m pytest tests/infra -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-16/Step-4.7 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-REF-PERSISTENCE-STABILIZATION>
 
   <V-M-APP-PREVIEW MODULE="M-APP-PREVIEW" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_preview_service.py</file></test-files>
@@ -937,7 +1783,11 @@
       <scenario-3 kind="success">Cancellation raises before aggregate mutation.</scenario-3>
       <scenario-4 kind="failure">Revision conflict → PersistenceConflictError.</scenario-4>
     </scenarios>
-  </V-M-APP-PREVIEW>
+      <module-checks><check-1>python -m pytest tests/application/test_preview_service.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>PreviewService contract honored: Canonical waveform-only preview use case with revision-safe persistence and no slide invalidation.</assertion><assertion>No production import from M-APP-PREVIEW crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-APP-PREVIEW>
 
   <V-M-APP-DETECT MODULE="M-APP-DETECT" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_detection_service.py</file></test-files>
@@ -947,7 +1797,11 @@
       <scenario-3 kind="success">No notes/export/align side effects.</scenario-3>
       <scenario-4 kind="failure">Overlapping candidates → rejection before aggregate mutation.</scenario-4>
     </scenarios>
-  </V-M-APP-DETECT>
+      <module-checks><check-1>python -m pytest tests/application/test_detection_service.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion> contract honored: Run full or preview detection via strategy. Project invariant enforcement. Single canonical detect path.</assertion><assertion>No production import from M-APP-DETECT crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-APP-DETECT>
 
   <V-M-APP-ALIGN MODULE="M-APP-ALIGN" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_alignment_service.py</file></test-files>
@@ -957,7 +1811,11 @@
       <scenario-3 kind="success">Idempotent second apply produces identical intervals.</scenario-3>
       <scenario-4 kind="failure">Invalid plan → rejection before aggregate mutation.</scenario-4>
     </scenarios>
-  </V-M-APP-ALIGN>
+      <module-checks><check-1>python -m pytest tests/application/test_alignment_service.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion> contract honored: Align visual boundaries to subtitle anchors via strategy + anchor provider.</assertion><assertion>No production import from M-APP-ALIGN crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-APP-ALIGN>
 
   <V-M-APP-NOTES MODULE="M-APP-NOTES" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_notes_service.py</file></test-files>
@@ -966,7 +1824,11 @@
       <scenario-2 kind="failure">LLM mode with unavailable gateway returns error, no silent fallback.</scenario-2>
       <scenario-3 kind="success">Raw subtitle cues preserved after processing.</scenario-3>
     </scenarios>
-  </V-M-APP-NOTES>
+      <module-checks><check-1>python -m pytest tests/application/test_notes_service.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>NotesService contract honored: Canonical basic/LLM notes use case preserving raw cues and forbidding silent LLM fallback.</assertion><assertion>No production import from M-APP-NOTES crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-APP-NOTES>
 
   <V-M-APP-EXPORT MODULE="M-APP-EXPORT" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_export_service.py</file></test-files>
@@ -975,7 +1837,11 @@
       <scenario-2 kind="success">PPTX reopened through python-pptx, slide/image counts match.</scenario-2>
       <scenario-3 kind="failure">overwrite=false with existing file → controlled error.</scenario-3>
     </scenarios>
-  </V-M-APP-EXPORT>
+      <module-checks><check-1>python -m pytest tests/application/test_export_service.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>ExportService contract honored: Canonical staged Markdown/PPTX exports from immutable aggregate snapshots with output validation.</assertion><assertion>No production import from M-APP-EXPORT crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-APP-EXPORT>
 
   <V-M-APP-VALIDATE MODULE="M-APP-VALIDATE" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_validation_service.py</file></test-files>
@@ -984,7 +1850,11 @@
       <scenario-2 kind="failure">Domain invariant or derived revision mismatch produces a typed validation error.</scenario-2>
       <scenario-3 kind="failure">Missing or structurally invalid export is reported without mutating project state.</scenario-3>
     </scenarios>
-  </V-M-APP-VALIDATE>
+      <module-checks><check-1>python -m pytest tests/application/test_validation_service.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>ValidationService contract honored: Validate storage, aggregate, media, artifacts, exports, and derived revision consistency.</assertion><assertion>No production import from M-APP-VALIDATE crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-APP-VALIDATE>
 
   <V-M-APP-AUTO MODULE="M-APP-AUTO" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_auto_service.py</file></test-files>
@@ -994,7 +1864,11 @@
       <scenario-3 kind="success">Force re-runs all stages.</scenario-3>
       <scenario-4 kind="failure">Stage failure halts pipeline, records which stage failed.</scenario-4>
     </scenarios>
-  </V-M-APP-AUTO>
+      <module-checks><check-1>python -m pytest tests/application/test_auto_service.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion> contract honored: Coordinate full/resume/force by composing stage services without duplicating stage algorithms.</assertion><assertion>No production import from M-APP-AUTO crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-APP-AUTO>
 
   <V-M-REF-APP-SERVICES MODULE="Phase-16/Step-5" DATA_FLOW="DF-APP-01" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/application/test_common.py</file></test-files>
@@ -1007,10 +1881,14 @@
       <scenario-2 kind="success">Cancellation and adapter failures leave aggregate invariants intact and record typed stage failures.</scenario-2>
       <scenario-3 kind="success">Auto composes stage services for full, resume, and force modes without duplicating algorithms.</scenario-3>
     </scenarios>
-  </V-M-REF-APP-SERVICES>
+      <wave-follow-up>python -m pytest tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-16/Step-5 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-REF-APP-SERVICES>
 
-  <V-M-REF-CHAR-TESTS MODULE="Phase-16/Step-1" PRIORITY="high" STATUS="passed">
-    <test-files><file>tests/e2e/test_mcp_gui_workflow.py</file><file>tests/e2e/test_mcp_startup_characterization.py</file><file>tests/test_characterization_adapters.py</file><file>tests/test_characterization_fixtures.py</file></test-files>
+  <V-M-REF-CHAR-TESTS MODULE="Phase-16/Step-1" PRIORITY="high" STATUS="blocked">
+      <blocked-reason>Referenced test tests/test_characterization_adapters.py does not exist; prior 'passed' status was not reproducible. Related characterization tests exist but do not cover the adapters characterization contract.</blocked-reason>
+    <test-files><file>tests/test_cli_characterization.py</file><file>tests/test_characterization_fixtures.py</file></test-files>
     <module-checks><check-1>pytest tests/test_characterization_adapters.py tests/test_characterization_fixtures.py -q</check-1></module-checks>
     <wave-checks><check-1>pytest tests/e2e/test_mcp_startup_characterization.py -q</check-1></wave-checks>
     <phase-checks><check-1>pytest --ignore=tests/e2e -q &amp;&amp; pytest tests/e2e/test_mcp_startup_characterization.py -q</check-1></phase-checks>
@@ -1030,7 +1908,10 @@
       <scenario-CHAR-012 kind="success">Process Notes enriches transcript text and sets notes_done.</scenario-CHAR-012>
       <scenario-CHAR-013 kind="success">Full Auto completes detect+align+notes+export in a single clean project with all artifacts.</scenario-CHAR-013>
     </scenarios>
-  </V-M-REF-CHAR-TESTS>
+      <wave-follow-up>python -m pytest tests/e2e -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-16/Step-1 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-REF-CHAR-TESTS>
 
   <V-M-REF-MCP-ADAPTER MODULE="Phase-16/Step-6" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/test_app_service_runner.py</file><file>tests/application/test_export_service.py</file><file>tests/e2e/test_mcp_startup_characterization.py</file></test-files>
@@ -1045,7 +1926,10 @@
       <scenario-4 kind="success">Markdown and PPTX preserve project title, images, notes, and canonical pipeline state.</scenario-4>
       <scenario-5 kind="success">GUI slide CRUD and save/open retain schema 2.0 and revisioned repository persistence.</scenario-5>
     </scenarios>
-  </V-M-REF-MCP-ADAPTER>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-16/Step-6 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-REF-MCP-ADAPTER>
 
   <V-M-REF-CLI-ADAPTER MODULE="M-CLI-ADAPTER" PRIORITY="high" STATUS="passed">
     <test-files><file>tests/test_cli_characterization.py</file><file>tests/test_cli.py</file><file>tests/test_cli_adapter_core.py</file><file>tests/test_cli_adapter_commands.py</file><file>tests/test_cli_architecture.py</file><file>tests/test_bootstrap.py</file></test-files>
@@ -1067,7 +1951,10 @@
       <condition-2>Stop if canonical project writes regress to legacy project_manager or mutable slides.json.</condition-2>
       <condition-3>Stop if LLM mode silently falls back to basic processing.</condition-3>
     </stop-conditions>
-  </V-M-REF-CLI-ADAPTER>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>CliAdapter contract honored: Thin Typer transport adapter over operation-scoped canonical application services.</assertion><assertion>No production import from M-CLI-ADAPTER crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-REF-CLI-ADAPTER>
 
   <V-M-REF-GUI-ADAPTER MODULE="M-GUI-PROJECT-CTRL" PRIORITY="high" STATUS="passed">
     <purpose>Step 8.5 proves that the real MainWindow uses one canonical project state, asynchronous operation-scoped services, SlideId-only domain mutations, persistent ArtifactRef frames, and non-blocking Qt integration.</purpose>
@@ -1100,7 +1987,10 @@
       <condition-5>Stop if MainWindow is 600 or more physical lines.</condition-5>
       <condition-6>Stop if any required GitHub workflow remains red.</condition-6>
     </stop-conditions>
-  </V-M-REF-GUI-ADAPTER>
+      <wave-follow-up>python -m pytest tests/gui -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+            <required-trace-assertions><assertion>Successful execution path emits structured log line containing `[ProjectController][create]`.</assertion><assertion>Successful execution path emits structured log line containing `[ProjectController][open]`.</assertion><assertion>V-M-REF-GUI-ADAPTER scenarios produce deterministic pass/fail evidence without hidden model reasoning.</assertion></required-trace-assertions>
+    </V-M-REF-GUI-ADAPTER>
 
   <V-M-ARCH-IMPORTS MODULE="Phase-16" PRIORITY="medium" STATUS="planned">
     <scenarios>
@@ -1109,13 +1999,23 @@
       <scenario-3 kind="success">GUI does not import direct json.load/json.dump from persistence.</scenario-3>
       <scenario-4 kind="success">MCP does not import MainWindow.</scenario-4>
     </scenarios>
-  </V-M-ARCH-IMPORTS>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-16 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-ARCH-IMPORTS>
 
   <V-M-REF-LEGACY MODULE="Phase-16/Step-9" PRIORITY="high" STATUS="passed">
     <purpose>Dead legacy modules removed, @mcp_action/ActionRegistry gone, architecture tests enforce clean layering.</purpose>
     <evidence><result>Deleted 6 dead modules (1982 lines), removed ActionRegistry (253 lines), 9 architecture tests pass,
     928 non-E2E tests pass, 11 MCP char tests pass.</result></evidence>
-  </V-M-REF-LEGACY>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-16/Step-9 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Phase-16/Step-9 module-level checks pass for its declared contract.</scenario-1>
+        <scenario-2 kind="failure">Phase-16/Step-9 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-REF-LEGACY>
 
   <V-M-REF-CANONICAL-ROUTE MODULE="Phase-16/Step-9.5" PRIORITY="high" STATUS="passed">
     <purpose>Canonical route closure, DetectionConfig propagation, operation lifecycle.</purpose>
@@ -1123,7 +2023,14 @@
     PipelineController/CLI/MCP use None defaults. Effective config logged in ServiceResult.
     F-0075/F-0076 resolved. CI: 10/13 green (3 Qt segfault/Xvfb env limitations).
     928 non-E2E tests + 20 architecture tests pass.</result></evidence>
-  </V-M-REF-CANONICAL-ROUTE>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-16/Step-9.5 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Phase-16/Step-9.5 module-level checks pass for its declared contract.</scenario-1>
+        <scenario-2 kind="failure">Phase-16/Step-9.5 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-REF-CANONICAL-ROUTE>
 
   <V-M-REF-DETECTION-INPUT MODULE="Phase-16/Step-10" PRIORITY="high" STATUS="passed">
     <purpose>DetectionConfig schema 2.0 persistence round-trip, input resolution contract across all services.</purpose>
@@ -1136,7 +2043,11 @@
       <scenario-6 kind="regression">None override→project value, explicit override wins, missing project→PreconditionError.</scenario-6>
     </scenarios>
     <test-files><file>tests/application/test_detection_service.py</file><file>tests/application/test_preview_service.py</file><file>tests/gui/test_main_window_integration.py</file></test-files>
-  </V-M-REF-DETECTION-INPUT>
+      <module-checks><check-1>python -m pytest tests/application/test_detection_service.py -q</check-1><check-2>python -m pytest tests/application/test_preview_service.py -q</check-2><check-3>python -m pytest tests/gui/test_main_window_integration.py -q</check-3></module-checks>
+      <wave-follow-up>python -m pytest tests/application -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-16/Step-10 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-REF-DETECTION-INPUT>
 
   <V-M-REF-PRODUCT-IDENTITY MODULE="Phase-17/Step-0" PRIORITY="high" STATUS="passed">
     <purpose>Application identity, version consistency, About dialog, Help menu, diagnostic info.</purpose>
@@ -1144,18 +2055,37 @@
     Help menu has About/Logs/GitHub. __version__ is single source. MainWindow under 600 LOC.</result></evidence>
     <test-files><file>tests/gui/test_main_window_integration.py</file><file>tests/test_branding.py</file></test-files>
     <scenarios><scenario-1 kind="runtime">AboutDialog and MainWindow construct with canonical runtime branding imports and visible logo wiring.</scenario-1></scenarios>
-  </V-M-REF-PRODUCT-IDENTITY>
+      <module-checks><check-1>python -m pytest tests/gui/test_main_window_integration.py -q</check-1><check-2>python -m pytest tests/test_branding.py -q</check-2></module-checks>
+      <wave-follow-up>python -m pytest tests/gui -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-17/Step-0 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-REF-PRODUCT-IDENTITY>
 
   <V-M-REF-PACKAGING-INVENTORY MODULE="Phase-17/Step-1" PRIORITY="high" STATUS="passed">
     <purpose>Runtime dependency map, dynamic imports, Qt plugins, native DLLs, video backends.</purpose>
     <evidence><result>packaging/windows/inventory.md documents all dependencies, Qt plugins, native DLLs, backend requirements, dynamic imports, and excluded dev packages.</result></evidence>
-  </V-M-REF-PACKAGING-INVENTORY>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-17/Step-1 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Phase-17/Step-1 module-level checks pass for its declared contract.</scenario-1>
+        <scenario-2 kind="failure">Phase-17/Step-1 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-REF-PACKAGING-INVENTORY>
 
   <V-M-REF-STANDALONE-BUILD MODULE="Phase-17/Step-2" PRIORITY="high" STATUS="passed">
     <purpose>Desktop entry point, PyInstaller onedir spec, COLLECT output, canonical layout.</purpose>
     <evidence><result>dist/windows/Video2PPTX/Video2PPTX.exe is the canonical standalone path. spec produces onedir with COLLECT. build.ps1 validates layout.</result></evidence>
     <test-files><file>packaging/windows/pyinstaller/video2pptx.spec</file><file>packaging/windows/build.ps1</file></test-files>
-  </V-M-REF-STANDALONE-BUILD>
+      <module-checks><check-1>python -m pytest packaging/windows/pyinstaller/video2pptx.spec -q</check-1><check-2>python -m pytest packaging/windows/build.ps1 -q</check-2></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-17/Step-2 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Phase-17/Step-2 module-level checks pass for its declared contract.</scenario-1>
+        <scenario-2 kind="failure">Phase-17/Step-2 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-REF-STANDALONE-BUILD>
 
   <V-M-REF-UPDATE-CHECKER MODULE="M-UPDATE-CHECKER" PRIORITY="high" STATUS="passed">
     <purpose>Update checker: UpdateService, GitHubReleaseProvider, UpdateController, UpdateAvailableDialog.</purpose>
@@ -1188,7 +2118,10 @@
       <scenario-17 kind="success">empty assets tuple when no assets</scenario-17>
       <scenario-18 kind="success">installer asset found by expected pattern</scenario-18>
     </scenarios>
-  </V-M-REF-UPDATE-CHECKER>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>UpdateService contract honored: Application-layer update check: version comparison, channel filtering, PEP 440 semantics.</assertion><assertion>No production import from M-UPDATE-CHECKER crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-REF-UPDATE-CHECKER>
 
   <V-M-REF-PACKAGED-MCP MODULE="Phase-17/Step-8" PRIORITY="high" STATUS="passed">
     <purpose>Packaged MCP smoke test: port discovery, initialize, tools/list, state read, shutdown.</purpose>
@@ -1200,7 +2133,11 @@
       <scenario-4 kind="success">application state readable</scenario-4>
       <scenario-5 kind="success">clean process exit</scenario-5>
     </scenarios>
-  </V-M-REF-PACKAGED-MCP>
+      <module-checks><check-1>python -m pytest packaging/windows/smoke-test.ps1 -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-17/Step-8 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-REF-PACKAGED-MCP>
 
   <V-M-REF-PACKAGING-PARITY MODULE="Phase-17/Step-10.5" PRIORITY="high" STATUS="passed">
     <purpose>Packaged runtime capability verification, BuildInfo propagation, --diagnostics flag.</purpose>
@@ -1211,7 +2148,11 @@
       <scenario-3 kind="success">About dialog shows packaging_tool when available</scenario-3>
       <scenario-4 kind="success">source mode shows BuildType.SOURCE without error</scenario-4>
     </scenarios>
-  </V-M-REF-PACKAGING-PARITY>
+      <module-checks><check-1>python -m pytest src/video2pptx/desktop.py -q</check-1><check-2>python -m pytest src/video2pptx/application/identity.py -q</check-2></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-17/Step-10.5 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-REF-PACKAGING-PARITY>
 
   <V-M-REF-CLEAN-WINDOWS MODULE="Phase-17/Step-6" PRIORITY="high" STATUS="pending">
     <purpose>Clean Windows VM/Sandbox verification of installer and portable ZIP.</purpose>
@@ -1223,7 +2164,10 @@
       <scenario-5 kind="pending">update checker offline behavior works</scenario-5>
       <scenario-6 kind="pending">uninstall removes application but preserves user projects</scenario-6>
     </scenarios>
-  </V-M-REF-CLEAN-WINDOWS>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-17/Step-6 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-REF-CLEAN-WINDOWS>
 
   <V-M-REF-WIN-INSTALLER MODULE="Phase-17/Step-7" PRIORITY="high" STATUS="passed">
     <purpose>Inno Setup installer: canonical layout and icon, accepted README payload, no dead .v2pp association, no invalid --uninstall hook.</purpose>
@@ -1237,7 +2181,10 @@
       <scenario-4 kind="payload">Repository README.md is installed exactly once.</scenario-4>
       <scenario-5 kind="configuration">SetupIconFile occurs exactly once and names the canonical Video2PPTX.ico asset.</scenario-5>
     </scenarios>
-  </V-M-REF-WIN-INSTALLER>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-17/Step-7 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-REF-WIN-INSTALLER>
 
   <V-M-REF-WIN-RELEASE MODULE="Phase-17/Step-9" PRIORITY="high" STATUS="passed">
     <purpose>GitHub Actions release workflow: correct deps, version validation, prerelease parsing.</purpose>
@@ -1250,7 +2197,11 @@
       <scenario-5 kind="success">build metadata uses build_type=standalone (not installer)</scenario-5>
       <scenario-6 kind="success">workflow_dispatch does not create GitHub Release</scenario-6>
     </scenarios>
-  </V-M-REF-WIN-RELEASE>
+      <module-checks><check-1>python -m pytest .github/workflows/release-windows.yml -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-17/Step-9 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+    </V-M-REF-WIN-RELEASE>
 
   <!-- ===== Phase 18 — Detect Performance ===== -->
 
@@ -1292,7 +2243,15 @@
     <notes>Step 18.1 is done. Deterministic instrumentation evidence and the accepted recovered-tree
       r2 benchmark close the baseline gate; F-0093 and F-0094 remain documented environment/test
       isolation gaps and do not change the passed baseline status.</notes>
-  </V-M-PERF-DETECT-BASELINE>
+      <module-checks><check-1>python -m pytest tests/test_detection_metrics.py -q</check-1><check-2>python -m pytest src/video2pptx/detection_metrics.py -q</check-2><check-3>python -m pytest src/video2pptx/detect_slides.py -q</check-3><check-4>python -m pytest src/video2pptx/slide_detector.py -q</check-4><check-5>python -m pytest src/video2pptx/backends/pyav_backend.py -q</check-5><check-6>python -m pytest src/video2pptx/backends/opencv_backend.py -q</check-6><check-7>python -m pytest tests/test_detect_slides.py -q</check-7></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-18/Step-18.1 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Phase-18/Step-18.1 module-level checks pass for its declared contract.</scenario-1>
+        <scenario-2 kind="failure">Phase-18/Step-18.1 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-PERF-DETECT-BASELINE>
 
   <V-M-PERF-DETECT-TWO-PASS MODULE="Phase-18/Step-18.2" PRIORITY="high" STATUS="passed">
     <purpose>Two-pass detection: collapse Pass 3 (screenshot save) into Pass 2 (dedup frame grab).
@@ -1323,7 +2282,15 @@
       <artifact>benchmarks/detect/reference/pre-twopass-3472e62.json</artifact>
       <parity-test>tests/test_twopass_parity.py::test_two_pass_matches_pre_twopass</parity-test>
     </reference>
-  </V-M-PERF-DETECT-TWO-PASS>
+      <module-checks><check-1>python -m pytest tests/test_twopass_parity.py -q</check-1><check-2>python -m pytest tests/test_detect_slides.py -q</check-2><check-3>python -m pytest src/video2pptx/detect_slides.py -q</check-3><check-4>python -m pytest src/video2pptx/slide_detector.py -q</check-4></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-18/Step-18.2 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Phase-18/Step-18.2 module-level checks pass for its declared contract.</scenario-1>
+        <scenario-2 kind="failure">Phase-18/Step-18.2 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-PERF-DETECT-TWO-PASS>
 
   <V-M-PERF-DETECT-SHORT-BENCHMARK MODULE="Phase-18/Step-18.3" PRIORITY="high" STATUS="passed">
     <purpose>Run the immutable short-video benchmark on the recovered tree; historical 8623cd2
@@ -1347,7 +2314,14 @@
       <profile-supporting-evidence>NON_EMPTY; supporting only and excluded from stage accounting</profile-supporting-evidence>
       <decision>PENDING</decision>
     </evidence>
-  </V-M-PERF-DETECT-SHORT-BENCHMARK>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-18/Step-18.3 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Phase-18/Step-18.3 module-level checks pass for its declared contract.</scenario-1>
+        <scenario-2 kind="failure">Phase-18/Step-18.3 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-PERF-DETECT-SHORT-BENCHMARK>
 
   <V-M-PERF-DETECT-BOTTLENECK MODULE="Phase-18/Step-18.4" PRIORITY="high" STATUS="done">
     <purpose>Select a bottleneck class only from accepted recovered-tree benchmark evidence, or honestly report insufficient discrimination.</purpose>
@@ -1405,7 +2379,14 @@
         - benchmarks/detect/evidence/bottleneck_decision.json
         - benchmarks/detect/evidence/bottleneck_decision.md
     </result></evidence>
-  </V-M-PERF-DETECT-BOTTLENECK>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-18/Step-18.4 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Phase-18/Step-18.4 module-level checks pass for its declared contract.</scenario-1>
+        <scenario-2 kind="failure">Phase-18/Step-18.4 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-PERF-DETECT-BOTTLENECK>
 
   <V-M-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION MODULE="M-DETECT-TARGET-DISCRIMINATION-R2" PRIORITY="medium" STATUS="passed">
     <purpose>Discriminate remaining DECODE_FRAME_PIPELINE optimization candidates (C1-C4)
@@ -1450,24 +2431,61 @@
       C2 taxonomy corrected: NOT_VIABLE_PERFORMANCE_FAIL (not NOT_VIABLE_RESOURCE_MODEL).
       Median terminology clarified: median_of_paired_differences vs difference_of_medians explicitly separated.
     </result></evidence>
-  </V-M-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION>
+      <test-files><file>tests/test_target_optimization_discrimination.py</file></test-files>
+      <module-checks><check-1>python -m pytest tests/test_target_optimization_discrimination.py -q</check-1></module-checks>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>TargetOptimizationDiscriminationR2 contract honored: Diagnostic-only Step 18.4C-r2 tooling for reference decode repeatability, exact rolling representative retention, deterministic C3 selection.</assertion><assertion>No production import from M-DETECT-TARGET-DISCRIMINATION-R2 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">TargetOptimizationDiscriminationR2 fulfills its contract: Diagnostic-only Step 18.4C-r2 tooling for reference decode repeatability, exact rolling representative retention, determ.</scenario-1>
+        <scenario-2 kind="failure">TargetOptimizationDiscriminationR2 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-PERF-DETECT-TARGET-OPTIMIZATION-DISCRIMINATION>
 
   <V-M-PERF-DETECT-TARGETED MODULE="Phase-18/Step-18.5" PRIORITY="medium" STATUS="planned">
     <purpose>Verify the single targeted optimization selected by Step 18.4. No optimization is
       selected while the bottleneck decision is incomplete. Step 18.5 remains blocked until
       Step 18.4 selects exactly one optimization with name, code boundaries, and hypothesis.</purpose>
-  </V-M-PERF-DETECT-TARGETED>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-18/Step-18.5 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Phase-18/Step-18.5 module-level checks pass for its declared contract.</scenario-1>
+        <scenario-2 kind="failure">Phase-18/Step-18.5 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-PERF-DETECT-TARGETED>
 
   <V-M-PERF-DETECT-SHORT-REBENCHMARK MODULE="Phase-18/Step-18.6" PRIORITY="high" STATUS="planned">
     <purpose>Compare immutable short-video performance and quality before and after optimization.</purpose>
-  </V-M-PERF-DETECT-SHORT-REBENCHMARK>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-18/Step-18.6 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Phase-18/Step-18.6 module-level checks pass for its declared contract.</scenario-1>
+        <scenario-2 kind="failure">Phase-18/Step-18.6 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-PERF-DETECT-SHORT-REBENCHMARK>
 
   <V-M-PERF-DETECT-HERMES-REBENCHMARK MODULE="Phase-18/Step-18.7" PRIORITY="high" STATUS="planned">
     <purpose>Run the full Hermes benchmark only after short-video re-benchmark acceptance.</purpose>
-  </V-M-PERF-DETECT-HERMES-REBENCHMARK>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-18/Step-18.7 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Phase-18/Step-18.7 module-level checks pass for its declared contract.</scenario-1>
+        <scenario-2 kind="failure">Phase-18/Step-18.7 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-PERF-DETECT-HERMES-REBENCHMARK>
 
   <V-M-PERF-DETECT-ACCEPTANCE MODULE="Phase-18/Step-18.8" PRIORITY="high" STATUS="planned">
     <purpose>Detect performance acceptance gate: Hermes full run &lt; 30 min, missed_slide_rate &lt;= 5%,
       false_split_rate &lt;= 10%, timestamp_error &lt;= 1.5s.</purpose>
-  </V-M-PERF-DETECT-ACCEPTANCE>
+      <wave-follow-up>python -m pytest tests -q</wave-follow-up>
+      <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+      <required-trace-assertions><assertion>No production import from Phase-18/Step-18.8 crosses a forbidden layer boundary.</assertion></required-trace-assertions>
+      <scenarios>
+        <scenario-1 kind="success">Phase-18/Step-18.8 module-level checks pass for its declared contract.</scenario-1>
+        <scenario-2 kind="failure">Phase-18/Step-18.8 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
+      </scenarios>
+    </V-M-PERF-DETECT-ACCEPTANCE>
 </VerificationPlan>

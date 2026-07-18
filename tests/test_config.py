@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for configuration loading and merging
 #   SCOPE: YAML loading, CLI merge, defaults, validation
 #   DEPENDS: pytest, yaml, video2pptx.config
-#   LINKS: V-M-CONFIG
+#   LINKS: V-M-CONFIG, M-CONFIG
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

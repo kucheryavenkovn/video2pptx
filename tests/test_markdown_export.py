@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for Marp Markdown export
 #   SCOPE: Markdown generation, slide rendering, time formatting
 #   DEPENDS: pytest, video2pptx.markdown_export
-#   LINKS: V-M-MD-EXPORT
+#   LINKS: V-M-MD-EXPORT, M-MD-EXPORT
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

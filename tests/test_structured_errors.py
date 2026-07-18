@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for OperationError — typed error envelope with trace_id, to_dict, from_exception
 #   SCOPE: OperationError construction, to_dict, from_exception
 #   DEPENDS: pytest, video2pptx.debug.errors
-#   LINKS: V-M-STRUCTURED-ERRORS
+#   LINKS: V-M-STRUCTURED-ERRORS, M-STRUCTURED-ERRORS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for project manager — create, open, update project.json
 #   SCOPE: Verify project.json creation, round-trip, state/state update, path resolution, error handling
 #   DEPENDS: pytest, loguru, video2pptx.project_manager
-#   LINKS: V-M-PROJECT
+#   LINKS: V-M-PROJECT, M-PROJECT
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

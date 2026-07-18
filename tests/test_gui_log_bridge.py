@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for LogBridge — loguru→Qt signal bridge
 #   SCOPE: Singleton instantiation, sink capture, signal emission, ring buffer, recent()
 #   DEPENDS: video2pptx.gui.log_bridge, pytest
-#   LINKS: V-M-GUI-LOG-BRIDGE
+#   LINKS: V-M-GUI-LOG-BRIDGE, M-GUI-LOG-BRIDGE
 # END_MODULE_CONTRACT
 
 from __future__ import annotations

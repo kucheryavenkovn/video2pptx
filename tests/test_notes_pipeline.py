@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for notes pipeline — load slides.json, align subtitles, process notes
 #   SCOPE: run_notes with synthetic slides.json + SRT, verify transcript/notes fields updated
 #   DEPENDS: pytest, video2pptx.notes_pipeline, video2pptx.models, loguru
-#   LINKS: V-M-NOTES
+#   LINKS: V-M-NOTES, M-NOTES
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for M-GUI-MENUBAR — MenuBarWidget
 #   SCOPE: Verify actions exist, have shortcuts, and emit correct signals
 #   DEPENDS: pytest, PySide6 (offscreen)
-#   LINKS: M-GUI-MENUBAR
+#   LINKS: M-GUI-MENUBAR, M-GUI-HELP-MENU
 #   ROLE: TEST
 #   MAP_MODE: NONE
 # END_MODULE_CONTRACT

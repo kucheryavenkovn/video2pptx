@@ -4,7 +4,7 @@
 #   PURPOSE: Unit tests for ProjectModel
 #   SCOPE: Lifecycle, slide CRUD, timeline sync, signal emission
 #   DEPENDS: video2pptx.project_model, video2pptx.timeline_model, pytest
-#   LINKS: V-M-PROJECT-MODEL
+#   LINKS: V-M-PROJECT-MODEL, M-PROJECT-MODEL
 # END_MODULE_CONTRACT
 
 from __future__ import annotations

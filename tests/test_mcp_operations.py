@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for MCP operation lifecycle — submit, wait, cancel, health, runner
 #   SCOPE: submit, get_operation, wait_operation, cancel_operation, list_operations, health, runner thread
 #   DEPENDS: pytest, video2pptx.debug.mcp_operations
-#   LINKS: V-M-MCP-OPERATIONS
+#   LINKS: V-M-MCP-OPERATIONS, M-MCP-OPERATIONS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

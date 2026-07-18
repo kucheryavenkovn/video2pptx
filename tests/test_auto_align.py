@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for Auto Align algorithm
 #   SCOPE: candidate generation, boundary alignment, invariant validation, dry run, idempotency
 #   DEPENDS: pytest, video2pptx.auto_align
-#   LINKS: V-M-AUTO-ALIGN
+#   LINKS: V-M-AUTO-ALIGN, M-AUTO-ALIGN
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

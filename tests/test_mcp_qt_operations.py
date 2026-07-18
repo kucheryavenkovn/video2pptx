@@ -4,7 +4,7 @@
 #   PURPOSE: Regression tests for Qt-affine MCP operation lifecycle and argument binding.
 #   SCOPE: project_create operation ID, terminal status, project name/path, structured failure.
 #   DEPENDS: pytest, M-DEBUG-MCP, M-PROJECT-MODEL, M-OPERATION-REGISTRY
-#   LINKS: V-M-REF-CHAR-TESTS, E2E-002
+#   LINKS: V-M-REF-CHAR-TESTS, E2E-002, M-MCP-OPERATIONS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for ProjectValidator — schema, files, intervals, exports
 #   SCOPE: validate_project() happy/failure paths
 #   DEPENDS: pytest, video2pptx.validators.project_validator
-#   LINKS: V-M-PROJECT-VALIDATOR
+#   LINKS: V-M-PROJECT-VALIDATOR, M-PROJECT-VALIDATOR
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

@@ -4,7 +4,7 @@
 #   PURPOSE: Smoke tests for DebugDock, LogPanel, StatePanel
 #   SCOPE: Widget creation, log append, state tree population
 #   DEPENDS: video2pptx.gui.debug_dock, video2pptx.timeline_model, pytest-qt
-#   LINKS: V-M-GUI-DEBUG-DOCK
+#   LINKS: V-M-GUI-DEBUG-DOCK, M-GUI-DEBUG-DOCK
 # END_MODULE_CONTRACT
 
 from __future__ import annotations

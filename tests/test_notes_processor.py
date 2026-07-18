@@ -4,7 +4,7 @@
 #   PURPOSE: Unit tests for notes_processor module
 #   SCOPE: Verify basic cleanup (join, punctuate, dedupe) and process_notes dispatch
 #   DEPENDS: pytest, notes_processor, models
-#   LINKS: M-NOTES-PROCESSOR, V-M-NOTES-PROCESSOR
+#   LINKS: M-NOTES-PROCESSOR, V-M-NOTES-PROCESSOR, M-PORT-NOTES
 #   ROLE: TEST
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT

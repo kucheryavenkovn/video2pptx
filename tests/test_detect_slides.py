@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for standalone detect-slides pipeline (no subtitles, no export)
 #   SCOPE: Pipeline output, two-pass decode, and deterministic RSS lifecycle/peak semantics
 #   DEPENDS: pytest, video2pptx.detect_slides, video2pptx.config, loguru
-#   LINKS: V-M-DETECT-SLIDES
+#   LINKS: V-M-DETECT-SLIDES, M-DETECT-SLIDES
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

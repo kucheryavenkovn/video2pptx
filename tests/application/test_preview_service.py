@@ -4,7 +4,7 @@
 #   PURPOSE: Verify PreviewService revision-safe execution, cancellation, and failure behavior.
 #   SCOPE: Success, cancellation before mutation, adapter failure, no slide invalidation.
 #   DEPENDS: pytest, video2pptx.application, video2pptx.domain
-#   LINKS: M-APP-PREVIEW, V-M-APP-PREVIEW
+#   LINKS: M-APP-PREVIEW, V-M-APP-PREVIEW, M-PORT-PREVIEW
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for frame feature extraction and visual distance
 #   SCOPE: Feature extraction, hash computation, distance metrics, auto threshold
 #   DEPENDS: pytest, numpy, video2pptx.frame_features
-#   LINKS: V-M-FRAME-FEATURES
+#   LINKS: V-M-FRAME-FEATURES, M-FRAME-FEATURES
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

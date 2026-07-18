@@ -5,7 +5,7 @@
 #   SCOPE: Async execution, scoped progress, lifecycle ordering, SlideId adaptation,
 #          ArtifactRef persistence, revision ownership, Qt state, playback, and LOC gate.
 #   DEPENDS: M-GUI-MAIN, M-GUI-PROJECT-CTRL, M-GUI-PIPELINE-CTRL, M-GUI-TIMELINE-CTRL
-#   LINKS: V-M-REF-GUI-ADAPTER, F-0058, F-0063, F-0064, F-0065, F-0066, F-0067,
+#   LINKS: V-M-REF-GUI-ADAPTER, F-0058, F-0063, F-0064, F-0065, F-0066, F-0067, M-GUI-PROJECT-CTRL
 #          F-0068, F-0069, F-0070
 #   ROLE: TEST
 #   MAP_MODE: NONE

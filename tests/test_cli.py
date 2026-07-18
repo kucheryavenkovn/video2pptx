@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for CLI commands and argument parsing
 #   SCOPE: detect, export-md, debug commands, help, error handling
 #   DEPENDS: pytest, typer, video2pptx.cli
-#   LINKS: V-M-CLI
+#   LINKS: V-M-CLI, M-CLI, M-CLI-ADAPTER
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

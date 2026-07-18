@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for slide change detection
 #   SCOPE: Change detection, debounce, threshold handling, governed anchor preservation
 #   DEPENDS: pytest, numpy, video2pptx.slide_detector
-#   LINKS: V-M-SLIDE-DETECTOR
+#   LINKS: V-M-SLIDE-DETECTOR, M-PORT-DETECTOR, M-SLIDE-DETECTOR
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

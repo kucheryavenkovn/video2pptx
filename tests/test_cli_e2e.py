@@ -4,7 +4,7 @@
 #   PURPOSE: End-to-end tests for the full pipeline via CLI
 #   SCOPE: Run detect command on synthetic video, verify slides.json and artifacts
 #   DEPENDS: pytest, typer.testing, video2pptx.cli
-#   LINKS: V-M-CLI-E2E
+#   LINKS: V-M-CLI-E2E, M-PIPELINE
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for subtitle parsing and alignment
 #   SCOPE: SRT/VTT parsing, cue alignment, edge cases
 #   DEPENDS: pytest, video2pptx.subtitles
-#   LINKS: V-M-SUBTITLES
+#   LINKS: V-M-SUBTITLES, M-SUBTITLES
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

@@ -4,7 +4,7 @@
 #   PURPOSE: Module-local tests for ApplicationServices neutral composition root.
 #   SCOPE: Service instantiation, lazy creation, shared context, all service types
 #   DEPENDS: video2pptx.bootstrap, video2pptx.application.services
-#   LINKS: M-APP-BOOTSTRAP
+#   LINKS: M-APP-BOOTSTRAP, M-CLI-ADAPTER, M-DESKTOP-BOOTSTRAP
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

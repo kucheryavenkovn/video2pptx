@@ -4,7 +4,7 @@
 #   PURPOSE: Smoke tests for main GUI window — creation, project toolbar, detect button
 #   SCOPE: Verify window opens, toolbar buttons exist, basic layout renders. Uses offscreen platform.
 #   DEPENDS: pytest, PySide6
-#   LINKS: V-M-GUI-MAIN
+#   LINKS: V-M-GUI-MAIN, M-GUI-MAIN, M-GUI-MARKER-PANEL, M-GUI-ROI-SELECTOR, M-GUI-STATUS, M-GUI-SUBTITLE-EDITOR, M-GUI-TIMELINE3
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

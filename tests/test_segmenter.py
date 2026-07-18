@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for slide segment builder
 #   SCOPE: Segment building, representative timestamp, short segment merging
 #   DEPENDS: pytest, video2pptx.segmenter
-#   LINKS: V-M-SEGMENTER
+#   LINKS: V-M-SEGMENTER, M-SEGMENTER
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

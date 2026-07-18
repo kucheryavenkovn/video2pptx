@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for ProjectState pipeline flags — new flags, stale downstream marking, skip behavior
 #   SCOPE: ProjectState field defaults, mark_stale_downstream, update_project_state
 #   DEPENDS: pytest, video2pptx.project_manager
-#   LINKS: V-M-PIPELINE-STATES
+#   LINKS: V-M-PIPELINE-STATES, M-DOMAIN-STATE, M-PIPELINE-STATES
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

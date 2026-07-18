@@ -4,7 +4,7 @@
 #   PURPOSE: Unit tests for the Project aggregate root.
 #   SCOPE: CRUD, replacement, invalidation, serialization, immutable views, and aggregate validation.
 #   DEPENDS: pytest, video2pptx.domain
-#   LINKS: V-M-DOMAIN-PROJECT
+#   LINKS: V-M-DOMAIN-PROJECT, M-DOMAIN-PROJECT
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

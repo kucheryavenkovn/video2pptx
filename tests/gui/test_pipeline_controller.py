@@ -5,7 +5,7 @@
 #            signal emission on success/error for preview/detect/align/notes/export/validate/auto.
 #   SCOPE: signal wiring, service dispatch, error propagation
 #   DEPENDS: PipelineController, pytest, PySide6, pytest-mock
-#   LINKS: M-GUI-PIPELINE-CTRL
+#   LINKS: M-GUI-PIPELINE-CTRL, M-GUI-PIPELINE-WORKER, M-GUI-PROJECT-CTRL
 #   ROLE: TEST
 #   MAP_MODE: NONE
 # END_MODULE_CONTRACT

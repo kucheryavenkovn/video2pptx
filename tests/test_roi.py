@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for ROI crop and ignore mask operations
 #   SCOPE: ROI parsing, cropping, masking
 #   DEPENDS: pytest, numpy, video2pptx.roi
-#   LINKS: V-M-ROI
+#   LINKS: V-M-ROI, M-ROI
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

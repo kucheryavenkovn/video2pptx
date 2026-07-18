@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for confirm policy — destructive ops require confirm=true
 #   SCOPE: require_confirm, is_destructive, ConfirmRequiredError
 #   DEPENDS: pytest, video2pptx.debug.confirm
-#   LINKS: V-M-CONFIRM-POLICY
+#   LINKS: V-M-CONFIRM-POLICY, M-CONFIRM-POLICY
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

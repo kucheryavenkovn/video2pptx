@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for atomic JSON writer — temp file + os.replace
 #   SCOPE: write_json_atomic basic, integrity on failure
 #   DEPENDS: pytest, video2pptx.utils.json_io
-#   LINKS: V-M-ATOMIC-JSON
+#   LINKS: V-M-ATOMIC-JSON, M-ATOMIC-JSON
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

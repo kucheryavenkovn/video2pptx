@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for MCP read tools — get_app_state, get_project, get_timeline, list_artifacts
 #   SCOPE: Read tool output shapes, edge cases (no project, no timeline)
 #   DEPENDS: pytest, video2pptx.debug.mcp_read_tools
-#   LINKS: V-M-MCP-READ-TOOLS
+#   LINKS: V-M-MCP-READ-TOOLS, M-MCP-READ-TOOLS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for settings dialog — tabs, prompt editing, backend selection
 #   SCOPE: Verify dialog opens, tabs exist, save persists changes via project manager
 #   DEPENDS: pytest, PySide6, video2pptx.project_manager
-#   LINKS: V-M-GUI-SETTINGS
+#   LINKS: V-M-GUI-SETTINGS, M-GUI-SETTINGS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

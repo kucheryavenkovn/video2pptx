@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for MCP write tools — tool defs, dispatch, schema validation
 #   SCOPE: get_write_tool_defs, dispatch_write confirm, is_sync_tool
 #   DEPENDS: pytest, video2pptx.debug.mcp_write_tools
-#   LINKS: V-M-MCP-WRITE-TOOLS
+#   LINKS: V-M-MCP-WRITE-TOOLS, M-MCP-WRITE-TOOLS
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

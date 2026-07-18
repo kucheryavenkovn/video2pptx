@@ -4,7 +4,7 @@
 #   PURPOSE: Unit tests for timeline_model classes
 #   SCOPE: Clip hierarchy, Track operations, Timeline container
 #   DEPENDS: video2pptx.timeline_model, pytest
-#   LINKS: V-M-TIMELINE-MODEL
+#   LINKS: V-M-TIMELINE-MODEL, M-GUI-TIMELINE, M-TIMELINE-MODEL
 # END_MODULE_CONTRACT
 
 from __future__ import annotations

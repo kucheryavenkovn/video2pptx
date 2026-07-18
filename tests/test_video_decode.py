@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for VideoDecoder unified interface
 #   SCOPE: Frame iteration, metadata, backend selection, error handling
 #   DEPENDS: pytest, numpy, cv2, video2pptx.video_decode
-#   LINKS: V-M-VIDEO-DECODE
+#   LINKS: V-M-VIDEO-DECODE, M-VIDEO-DECODE
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT

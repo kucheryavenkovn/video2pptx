@@ -4,7 +4,7 @@
 #   PURPOSE: Tests for ROI tool — CLI registration, frame seeking, coordinate format
 #   SCOPE: Verify roi_tool_main frame selection, CLI help, and coordinate output format. GUI interaction (select_roi) is excluded from automated tests.
 #   DEPENDS: pytest, typer.testing, video2pptx.roi_tool, video2pptx.cli
-#   LINKS: V-M-ROI-TOOL
+#   LINKS: V-M-ROI-TOOL, M-ROI-TOOL
 #   ROLE: TEST
 #   MAP_MODE: LOCALS
 # END_MODULE_CONTRACT
