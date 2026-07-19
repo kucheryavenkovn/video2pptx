@@ -170,6 +170,7 @@ class TestConfigPropagation:
         project.detection.decoder_backend = "opencv"
         project.detection.slide_roi = "0,0,100,100"
         project.detection.ignore_rois = ["10,10,20,20"]
+        project.detection.analysis_max_side = 720
         project.video_path = str(tmp_path / "video.mp4")
         Path(project.video_path).write_text("fake")
         repo.create(location, project)
@@ -193,6 +194,7 @@ class TestConfigPropagation:
         assert received["decoder_backend"] == "opencv"
         assert received["slide_roi"] == "0,0,100,100"
         assert received["ignore_rois"] == ["10,10,20,20"]
+        assert received["analysis_max_side"] == 720
 
     def test_detection_service_override_wins(self, tmp_path: Path) -> None:
         repo = FileProjectRepository()
@@ -200,6 +202,7 @@ class TestConfigPropagation:
         project = Project(name="override-test", output_dir=str(location))
         project.detection.sample_fps = 0.5
         project.detection.threshold = "auto"
+        project.detection.analysis_max_side = 480
         project.video_path = str(tmp_path / "video.mp4")
         Path(project.video_path).write_text("fake")
         repo.create(location, project)
@@ -213,7 +216,10 @@ class TestConfigPropagation:
 
         ctx = ServiceContext(repository=repo, cancellation=CancellationToken())
         service = DetectionService(detector=CapturingDetector(), context=ctx)
-        service.execute(location, video_path=None, sample_fps=3.5, threshold=0.123)
+        service.execute(
+            location, video_path=None, sample_fps=3.5, threshold=0.123, analysis_max_side=640
+        )
 
         assert received["sample_fps"] == 3.5
         assert received["threshold"] == 0.123
+        assert received["analysis_max_side"] == 640
