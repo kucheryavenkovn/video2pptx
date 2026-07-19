@@ -106,3 +106,7 @@ mcp_stderr*.log
 
 # Phase 18 benchmark artifacts
 .benchmarks/
+
+# GRACE Atlas generated Obsidian vault (projection only; config stays tracked)
+.grace-atlas/vault/
+**/.grace-atlas/vault/

@@ -1,0 +1,3 @@
+[submodule "tools/grace_atlas"]
+	path = tools/grace_atlas
+	url = https://github.com/kucheryavenkovn/grace-atlas.git

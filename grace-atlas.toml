@@ -1,0 +1,45 @@
+# GRACE Atlas configuration (project-level).
+# Paths are relative to the repository root unless absolute.
+
+[project]
+name = "Video2PPTX"
+
+[grace]
+# Directories scanned for GRACE XML artifacts (and optional grace/ / .grace/).
+search_paths = [
+    ".",
+    "docs",
+    "grace",
+    ".grace",
+]
+# Optional explicit artifact overrides (relative to repo root). Empty = auto-discover.
+# requirements = "docs/requirements.xml"
+# development_plan = "docs/development-plan.xml"
+# knowledge_graph = "docs/knowledge-graph.xml"
+# verification_plan = "docs/verification-plan.xml"
+# operational_packets = "docs/operational-packets.xml"
+# technology = "docs/technology.xml"
+
+[source]
+include = [
+    "src/**/*.py",
+    "tests/**/*.py",
+    "tools/**/*.py",
+]
+exclude = [
+    ".git/**",
+    ".venv/**",
+    "build/**",
+    "dist/**",
+    ".grace-atlas/**",
+    "**/__pycache__/**",
+]
+
+[obsidian]
+vault_path = ".grace-atlas/vault"
+home_note = "Home.md"
+
+[vscode]
+enabled = true
+# If empty, absolute paths from the repository root are used.
+# workspace_folder = ""
