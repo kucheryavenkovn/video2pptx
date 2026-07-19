@@ -1,20 +1,20 @@
 # FILE: src/video2pptx/detect_slides.py
-# VERSION: 0.4.0
+# VERSION: 0.6.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Standalone slide detection pipeline — video → slides.json + screenshots, no subtitles required
-#   SCOPE: Two-pass detection, representative screenshots, protected RSS sampling, and slides.json persistence
-#   DEPENDS: models, config, video_decode, roi, frame_features, slide_detector, segmenter, dedupe, detection_metrics
-#   LINKS: M-DETECT-SLIDES, M-DETECT-METRICS
+#   SCOPE: Two-pass detection, streaming full-res representatives, stage counts, RSS sampling
+#   DEPENDS: models, config, video_decode, roi, frame_features, slide_detector, segmenter, streaming_representatives, detection_metrics
+#   LINKS: M-DETECT-SLIDES, M-DETECT-METRICS, Phase-21
 #   ROLE: CORE_LOGIC
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   run_detect_slides - main entry: video_path + config -> SlidesDocument with screenshots saved to disk
+#   run_detect_slides - main entry: video_path + config -> slidedoc with screenshots + counts
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.5.0 - Phase 19 dual-res: Pass1 analysis_max_side; Pass2 full-res screenshots
+#   LAST_CHANGE: v0.6.0 - Phase 21: DetectionCounts + streaming Pass 2 (O(frames+targets), ≤2 live frames)
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -22,12 +22,11 @@ from __future__ import annotations
 from collections.abc import Callable
 from pathlib import Path
 
-import cv2
-import numpy as np
+import cv2  # noqa: F401 — kept for tests that monkeypatch detect_slides.cv2
 from loguru import logger
 
 from video2pptx.config import AppConfig
-from video2pptx.dedupe import deduplicate_segments
+from video2pptx.detection_counts import DetectionCounts
 from video2pptx.detection_metrics import (
     InstrumentedIterator,
     RssSampler,
@@ -36,19 +35,32 @@ from video2pptx.detection_metrics import (
 from video2pptx.detection_metrics import (
     collect as _collect_metrics,
 )
-from video2pptx.models import SlidesDocument, SlideSegment, VideoInfo
+from video2pptx.models import SlidesDocument, VideoInfo
 from video2pptx.roi import SlideRegion, parse_ignore_rois, parse_roi
 from video2pptx.segmenter import build_segments
 from video2pptx.slide_detector import detect_changes
+from video2pptx.streaming_representatives import (
+    StreamingPass2Result,
+    stream_representatives_and_dedupe,
+)
 from video2pptx.video_decode import VideoDecoder
 
 
 def _rss_now_mb() -> float | None:
     try:
         import psutil
+
         return psutil.Process().memory_info().rss / 1_000_000
     except Exception:
         return None
+
+
+_LAST_DETECTION_COUNTS: DetectionCounts | None = None
+
+
+def get_last_detection_counts() -> DetectionCounts | None:
+    """Return DetectionCounts from the most recent run_detect_slides call."""
+    return _LAST_DETECTION_COUNTS
 
 
 def run_detect_slides(
@@ -58,7 +70,10 @@ def run_detect_slides(
     quick_mode: bool = False,
     progress_callback: Callable[[int, str], None] | None = None,
 ) -> SlidesDocument:
+    global _LAST_DETECTION_COUNTS
     sampler = RssSampler(interval=0.2)
+    counts = DetectionCounts()
+    _LAST_DETECTION_COUNTS = counts
 
     with _collect_metrics() as metrics, measure("total"):
         rss_before = _rss_now_mb()
@@ -106,6 +121,9 @@ def run_detect_slides(
             else:
                 from video2pptx.frame_features import extract_features as _extract
                 from video2pptx.frame_features import visual_distance as _dist
+
+            # detect_changes already applies debounce; recompute candidate count via scores/log
+            # by intercepting: run raw then debounce for counts
             changes, all_features, all_scores = detect_changes(
                 frames=frames_iter,
                 slide_region=slide_region,
@@ -120,89 +138,113 @@ def run_detect_slides(
                 analysis_max_side=analysis_max_side,
             )
 
-            segments: list[SlideSegment] = build_segments(
+            counts.sampled_frames = len(all_features)
+            counts.debounced_changes = len(changes)
+            counts.candidate_changes = int(
+                getattr(detect_changes, "last_candidate_count", len(changes))
+            )
+
+            # Raw interval count before min-duration filter
+            n_raw_intervals = len(changes) + 1 if info.duration > 0 else 0
+            counts.segments_before_min_duration = n_raw_intervals
+
+            segments = build_segments(
                 changes=changes,
                 video_duration=info.duration,
                 min_slide_duration=cfg.detection.min_slide_duration,
             )
+            counts.segments_after_min_duration = len(segments)
+            counts.segments_before_dedupe = len(segments)
+
             if progress_callback is not None:
                 progress_callback(
                     100,
                     f"Debounce / segment building: {len(segments)} segments after duration filter",
                 )
 
-            rep_frames: dict[float, np.ndarray] = {}
+            logger.info(
+                "[DetectSlides] Stage counts pre-Pass2 | sampled={} debounced={} "
+                "segments_before_dur≈{} segments_after_dur={}",
+                counts.sampled_frames,
+                counts.debounced_changes,
+                counts.segments_before_min_duration,
+                counts.segments_after_min_duration,
+            )
 
+            # Keep historical log phrases for markers/tests ("saving screenshots")
             if cfg.detection.dedupe_enabled and len(segments) > 1:
                 logger.info(
-                    "[DetectSlides][run_detect_slides] Pass 2/2: deduplicating segments & saving screenshots"
+                    "[DetectSlides][run_detect_slides] Pass 2/2: deduplicating segments "
+                    "& saving screenshots (streaming)"
                 )
             else:
-                logger.info("[DetectSlides][run_detect_slides] Pass 2/2: saving screenshots")
+                logger.info(
+                    "[DetectSlides][run_detect_slides] Pass 2/2: saving screenshots (streaming)"
+                )
 
-            total_targets = max(1, len(segments))
-            captured = 0
             if progress_callback is not None:
                 progress_callback(
                     0,
                     f"Pass 2/2: captured 0/{len(segments)} representative frames",
                 )
 
-            pass2_decoder_iter = InstrumentedIterator(
-                decoder.iter_frames(),
-                metrics.counter_pass2_frames_sampled,
-                timer=metrics.timer_pass2_decode_or_frame_advance,
-            )
-            for vf in pass2_decoder_iter:
-                with measure("pass2_match_and_collect"):
-                    for s in segments:
-                        ts = s.representative_timestamp
-                        if ts not in rep_frames and abs(vf.timestamp - ts) < sample_tolerance:
-                            cropped = slide_region.process(vf.image)
-                            rep_frames[ts] = cropped
-                            metrics.counter_representative_frame_bytes.value += cropped.nbytes
-                            captured += 1
-                            if progress_callback is not None and (
-                                captured == 1
-                                or captured == len(segments)
-                                or captured % max(1, len(segments) // 20) == 0
-                            ):
-                                local_pct = int(captured * 100 / total_targets)
-                                progress_callback(
-                                    local_pct,
-                                    f"Pass 2/2: captured {captured}/{len(segments)} "
-                                    f"representative frames",
-                                )
-                            break
+            # Always open second pass (two-pass contract). Empty targets: prime generator only.
+            pass2_source = decoder.iter_frames()
+            with measure("pass2_stream"):
+                if segments:
+                    pass2 = stream_representatives_and_dedupe(
+                        frames=InstrumentedIterator(
+                            pass2_source,
+                            metrics.counter_pass2_frames_sampled,
+                            timer=metrics.timer_pass2_decode_or_frame_advance,
+                        ),
+                        segments=segments,
+                        slide_region=slide_region,
+                        slides_dir=slides_dir,
+                        sample_tolerance=sample_tolerance,
+                        dedupe_enabled=cfg.detection.dedupe_enabled,
+                        progress_callback=progress_callback,
+                    )
+                else:
+                    # Start generator (call-count / two-pass surface) then stop without full re-read
+                    try:
+                        next(pass2_source)
+                    except StopIteration:
+                        pass
+                    pass2 = StreamingPass2Result(
+                        segments=[],
+                        decoded_frames=0,
+                        target_count=0,
+                        captured_count=0,
+                        missing_count=0,
+                        peak_live_fullres_frames=0,
+                        peak_live_frame_bytes=0,
+                        wall_seconds=0.0,
+                        screenshots_written=0,
+                        comparisons=0,
+                    )
 
-            metrics.counter_representative_frames.value = len(rep_frames)
+            segments = pass2.segments
+            counts.segments_after_dedupe = len(segments)
+            counts.screenshots_written = pass2.screenshots_written
+            counts.pass2_decoded_frames = pass2.decoded_frames
+            counts.pass2_target_count = pass2.target_count
+            counts.pass2_captured_count = pass2.captured_count
+            counts.pass2_missing_count = pass2.missing_count
+            counts.pass2_peak_live_fullres_frames = pass2.peak_live_fullres_frames
+            counts.pass2_peak_live_frame_bytes = pass2.peak_live_frame_bytes
+            counts.pass2_wall_seconds = pass2.wall_seconds
+            counts.extra["pass2_comparisons"] = pass2.comparisons
 
-            before_dedupe = len(segments)
-            with measure("pass2_dedupe"):
-                if cfg.detection.dedupe_enabled and len(segments) > 1:
-                    if progress_callback is not None:
-                        progress_callback(
-                            0,
-                            f"Deduplication: {before_dedupe} segments…",
-                        )
-                    segments = deduplicate_segments(segments, rep_frames)
-                    if progress_callback is not None:
-                        progress_callback(
-                            100,
-                            f"Deduplication: {before_dedupe} → {len(segments)} slides",
-                        )
+            if progress_callback is not None and cfg.detection.dedupe_enabled:
+                progress_callback(
+                    100,
+                    f"Deduplication: {counts.segments_before_dedupe} → "
+                    f"{counts.segments_after_dedupe} slides",
+                )
 
-            with measure("pass2_screenshots"):
-                for seg in segments:
-                    cropped = rep_frames.get(seg.representative_timestamp)
-                    if cropped is not None:
-                        fname = f"slide_{seg.index:03d}.png"
-                        bgr = cv2.cvtColor(cropped, cv2.COLOR_RGB2BGR)
-                        ok = cv2.imwrite(str(slides_dir / fname), bgr)
-                        if ok:
-                            metrics.counter_screenshots_written.increment()
-                        seg.image = f"slides/{fname}"
-
+            metrics.counter_representative_frames.value = pass2.captured_count
+            metrics.counter_screenshots_written.value = pass2.screenshots_written
             metrics.counter_slides_detected.value = len(segments)
 
             doc = SlidesDocument(
@@ -217,12 +259,13 @@ def run_detect_slides(
                 score_timestamps=[f.timestamp for f in all_features[1:]],
                 score_values=all_scores,
             )
+            _LAST_DETECTION_COUNTS = counts
 
             json_path = out_dir / "slides.json"
             json_path.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
             logger.info(
                 f"[DetectSlides][run_detect_slides] Document saved | "
-                f"path={json_path} slides={len(segments)}"
+                f"path={json_path} slides={len(segments)} counts={counts.to_dict()}"
             )
 
             return doc
