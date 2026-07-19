@@ -1,0 +1,64 @@
+{
+  "wave": 1,
+  "date": "2026-07-19",
+  "project": "out11",
+  "git_head": "f38835085a6dbe4c52b06f68d3a859a8e8d6df84",
+  "branch": "fix/phase21-runtime-detection-timeline",
+  "video": {
+    "path": "E:\\edu\\vibecoding\\Автономные агенты\\05_4. Hermes.mp4",
+    "exists": true,
+    "size_mb": 470.0,
+    "duration_sec_from_slides": 3654.0,
+    "native_dimensions_from_png": [1920, 1080]
+  },
+  "effective_config": {
+    "sample_fps": 2.0,
+    "threshold": "auto",
+    "min_slide_duration": 2.0,
+    "min_stable_duration": 2.0,
+    "dedupe_enabled": true,
+    "slide_roi": "auto",
+    "decoder_backend": "auto",
+    "analysis_max_side": 480
+  },
+  "counts": {
+    "sampled_frames_estimated": 7311,
+    "score_values": 7310,
+    "candidate_changes": null,
+    "after_debounce": null,
+    "segments_before_duration_filter": null,
+    "segments_after_duration_filter": null,
+    "before_dedupe": null,
+    "after_dedupe_final_slides": 403,
+    "screenshots_written_png_files": 222,
+    "slides_with_image_field": 221,
+    "slides_without_image": 182
+  },
+  "timing": {
+    "pass1_wall_seconds": null,
+    "pass2_wall_seconds": null,
+    "note": "Full re-detect not re-run in Wave 1; timing deferred to Wave 8 acceptance after fixes"
+  },
+  "memory": {
+    "peak_rss_mb": null,
+    "note": "Not re-measured in Wave 1; Pass2 full-res retention risk documented in detect-log.txt"
+  },
+  "defects_localized": {
+    "timeline_deleted_item_in_mouse_release": true,
+    "timeline_monkeypatch_in_timeline3_at_head": false,
+    "progress_callback_not_wired_to_gui": true,
+    "progress_stuck_at_10_percent": true,
+    "status_monotonic_guard_missing": true,
+    "eta_shows_zero_early": true,
+    "min_stable_zero_rejected_by_appconfig": true,
+    "debounce_not_time_based_cleanly": true,
+    "pass2_nested_frames_x_segments": true,
+    "pass2_stores_all_fullres_before_dedupe": true,
+    "stage_counts_observability_gap": true
+  },
+  "invariants_checked": {
+    "analysis_max_side_project": 480,
+    "png_full_resolution": true,
+    "png_sample_size": [1920, 1080]
+  }
+}

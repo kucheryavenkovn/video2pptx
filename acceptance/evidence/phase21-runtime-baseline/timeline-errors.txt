@@ -1,0 +1,69 @@
+# Timeline interaction defect forensics (Wave 1 — root cause localization, no fixes)
+
+## Observed / reported exceptions (Phase 21 clean-Windows testing)
+
+1) TypeError: lambda takes 1 positional argument but 2 were given
+2) RuntimeError: Internal C++ object (SlideBlockItem) already deleted
+
+## Reproduction matrix (out11 project — code-path analysis; max 2 manual attempts deferred to Wave 2)
+
+A. simple click on green block  → risk: on_clicked sync; generally safe unless rebuild side-effect
+B. hover over green block       → risk: if virtual method monkeypatched with wrong-arity lambda
+C. Alt+drag move                → FAILS path: mouseRelease → on_moved → project update → reload → rebuild
+D. resize left edge             → FAILS path: mouseRelease → on_resized → reload → rebuild
+E. resize right edge            → FAILS path: same as D
+F. rebuild after change         → FAILS path: scene.clear() deletes C++ item while release still on stack
+
+## Static code analysis findings (HEAD f388350)
+
+### Problem A — Qt virtual method monkeypatches in timeline3
+
+Search for assignment of hoverMoveEvent/mouseReleaseEvent/mousePressEvent in
+src/video2pptx/gui/timeline3:
+
+  RESULT: NO instance monkeypatches found in timeline3 at current HEAD.
+
+Virtual methods currently live correctly on classes:
+  - SlideBlockItem.mousePressEvent / mouseMoveEvent / mouseReleaseEvent / hoverMoveEvent
+  - SubtitleBlockItem.mousePressEvent / mouseReleaseEvent / hoverMoveEvent
+  - TimelineView.mousePressEvent / mouseMoveEvent / mouseReleaseEvent
+
+Instance monkeypatches DO exist outside timeline3 (out of Wave 2 scope but noted):
+  - src/video2pptx/gui/roi_selector.py: mousePressEvent / mouseReleaseEvent assign
+  - src/video2pptx/gui/video_player.py: mousePressEvent assign
+
+Historical report of "lambda takes 1 positional argument but 2 were given" is consistent
+with binding Qt virtuals as zero/one-arg lambdas. At this HEAD timeline3 does not show
+that pattern; Wave 2 still hardens against reintroduction and adds guard tests.
+
+### Problem B — Deleted C++ item during mouseReleaseEvent (CONFIRMED root cause)
+
+Call chain (synchronous, same stack frame):
+
+  SlideBlockItem.mouseReleaseEvent
+    → self._on_moved / self._on_resized   # BEFORE super().mouseReleaseEvent
+      → TimelineView.slide_moved / slide_resized emit
+        → TimelineWidget.slide_moved / slide_resized
+          → MainWindow._on_slide_moved / _on_slide_resized
+            → TimelineController.move_slide / resize_slide  (project mutation + save)
+            → MainWindow._reload_project_state()
+              → project reload + model.open
+                → timeline set_slides → TimelineView._rebuild_scene
+                  → scene.clear()  # DESTROYS current SlideBlockItem C++ object
+            → QTimer.singleShot(0, self._sync_timeline)  # second rebuild also queued
+    → self._drag_mode = None
+    → self.setCursor(...)                # may touch deleted C++ object
+    → super().mouseReleaseEvent(event)  # Qt continues into deleted item → crash
+
+Evidence anchors:
+  - src/video2pptx/gui/timeline3/items.py:143-173  (callback before super)
+  - src/video2pptx/gui/main_window.py:511-533      (reload inside move/resize handlers)
+  - src/video2pptx/gui/timeline3/view.py:116+      (_rebuild_scene clears scene)
+
+## Required fix direction (Wave 2 — not applied in Wave 1)
+
+1. Defer mutation callbacks via QTimer.singleShot(0, ...) after super().mouseReleaseEvent
+2. Deferred lambda must NOT capture self (item)
+3. Optionally use Qt signals moveCommitted/resizeCommitted
+4. While pipeline busy: disable move/resize/delete; allow scroll/view
+5. Never rebuild scene inside active item event stack

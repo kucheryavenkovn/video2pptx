@@ -2653,6 +2653,57 @@
     </scenarios>
   </V-M-ANALYSIS-QUALITY>
 
+  <!-- ===== Phase 21 - Runtime correction waves ===== -->
+  <V-M-PHASE21-RUNTIME MODULE="Phase-21" PRIORITY="high" STATUS="in_progress">
+    <purpose>Phase 21 forensics + integrated runtime acceptance for timeline, progress, detect, Pass2.</purpose>
+    <verification-contract>
+      <scenario-1 kind="success">Wave 1 baseline evidence under acceptance/evidence/phase21-runtime-baseline/.</scenario-1>
+      <scenario-2 kind="success">After Waves 2–7: out11 click/hover/move/resize/rebuild PASS; progress monotonic; PNG full-res.</scenario-2>
+    </verification-contract>
+    <evidence>
+      <file>acceptance/evidence/phase21-runtime-baseline/environment.txt</file>
+      <file>acceptance/evidence/phase21-runtime-baseline/effective-config.txt</file>
+      <file>acceptance/evidence/phase21-runtime-baseline/timeline-errors.txt</file>
+      <file>acceptance/evidence/phase21-runtime-baseline/detect-log.txt</file>
+      <file>acceptance/evidence/phase21-runtime-baseline/baseline-metrics.json</file>
+      <file>docs/plans/phase21-clean-windows-user-journey.md</file>
+    </evidence>
+    <wave-follow-up>python -m pytest tests/domain tests/application tests/gui tests/test_slide_detector.py tests/test_segmenter.py tests/test_detect_slides.py tests/test_analysis_scale.py tests/test_analysis_quality.py tests/test_settings_flow.py -q</wave-follow-up>
+    <required-trace-assertions>
+      <assertion>Phase 19 analysis_max_side default 480 and legacy Native preserved.</assertion>
+      <assertion>Pass2 screenshots remain full-resolution.</assertion>
+    </required-trace-assertions>
+  </V-M-PHASE21-RUNTIME>
+
+  <V-M-PHASE21-PROGRESS MODULE="M-GUI-STATUS" PRIORITY="high" STATUS="planned">
+    <purpose>Monotonic two-pass detect progress reaches StatusBarManager before thread progress events.</purpose>
+    <tests>
+      <file>tests/gui/test_status_manager.py</file>
+      <file>tests/gui/test_pipeline_controller.py</file>
+      <file>tests/application/test_detection_service.py</file>
+      <file>tests/test_detect_progress.py</file>
+    </tests>
+    <wave-follow-up>python -m pytest tests/gui/test_status_manager.py tests/gui/test_pipeline_controller.py tests/application/test_detection_service.py tests/test_detect_progress.py -q</wave-follow-up>
+  </V-M-PHASE21-PROGRESS>
+
+  <V-M-PHASE21-DIAGNOSTICS MODULE="M-DETECT-SLIDES" PRIORITY="medium" STATUS="planned">
+    <purpose>Candidate→final slide counts and threshold score distribution observability.</purpose>
+    <tests>
+      <file>tests/test_detect_slides.py</file>
+      <file>tests/test_slide_detector.py</file>
+    </tests>
+  </V-M-PHASE21-DIAGNOSTICS>
+
+  <V-M-PHASE21-PASS2 MODULE="M-DETECT-SLIDES" PRIORITY="high" STATUS="planned">
+    <purpose>Streaming Pass2: O(frames+targets), peak live full-res frames &lt;= 2, equivalence vs reference.</purpose>
+    <tests>
+      <file>tests/test_streaming_representatives.py</file>
+      <file>tests/test_detect_slides.py</file>
+      <file>tests/test_dedupe.py</file>
+      <file>tests/test_analysis_scale.py</file>
+    </tests>
+  </V-M-PHASE21-PASS2>
+
   <V-M-PHASE19-ACCEPTANCE MODULE="Phase-19/Step-19.9" PRIORITY="high" STATUS="passed">
     <purpose>Phase 19 closeout: quality gates, full-res screenshot invariant, docs refresh, Phase 18 untouched, default 480.</purpose>
     <verification-contract>
