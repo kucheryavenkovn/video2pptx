@@ -215,6 +215,13 @@ class TimelineWidget(QWidget):
     def set_project(self, project) -> None:
         self._view._project = project
 
+    def set_edits_enabled(self, enabled: bool) -> None:
+        """While pipeline busy: block move/resize/delete; allow view/scroll/click."""
+        self._view.set_edits_enabled(enabled)
+
+    def edits_enabled(self) -> bool:
+        return self._view.edits_enabled()
+
     # END_BLOCK_DATA
 
     # START_BLOCK_ZOOM

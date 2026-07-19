@@ -324,6 +324,9 @@ class MainWindow(QMainWindow):
     def _on_busy_changed(self, busy: bool) -> None:
         for btn in self._PIPELINE_BUTTONS:
             btn.setEnabled(not busy)
+        # Timeline: keep view/scroll; block move/resize/delete while pipeline runs
+        if hasattr(self, "_timeline") and self._timeline is not None:
+            self._timeline.set_edits_enabled(not busy)
 
     def _on_pipeline_finished(self, result) -> None:
         key = result.stage
