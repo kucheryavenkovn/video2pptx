@@ -1,11 +1,11 @@
 # FILE: src/video2pptx/gui/settings_project.py
-# VERSION: 0.3.0
+# VERSION: 0.4.0
 # START_MODULE_CONTRACT
-#   PURPOSE: Project Settings QDialog — form-only detection parameters (ROI, thresholds, fps, dedupe).
-#            Does NOT persist. Emits settingsChanged signal with DetectionConfig for caller to save.
-#   SCOPE: QDialog with form fields initialized from DetectionConfig. Return updated settings via signal.
-#   DEPENDS: PySide6, M-DOMAIN-PROJECT, M-GUI-ROI-SELECTOR
-#   LINKS: M-GUI-SETTINGS-PROJECT, V-REF-DETECTION-INPUT
+#   PURPOSE: Project Settings QDialog — form-only detection parameters including analysis quality presets.
+#            Does NOT persist. Returns DetectionConfig for caller to apply via domain path.
+#   SCOPE: QDialog with form fields from DetectionConfig; analysis quality combo + custom spin
+#   DEPENDS: PySide6, M-DOMAIN-PROJECT, M-ANALYSIS-QUALITY, M-GUI-ROI-SELECTOR
+#   LINKS: M-GUI-SETTINGS-PROJECT, Phase-20
 #   ROLE: UI_COMPONENT
 #   MAP_MODE: EXPORTS
 # END_MODULE_CONTRACT
@@ -15,7 +15,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.3.0 - Remove legacy persistence; use canonical DetectionConfig only
+#   LAST_CHANGE: v0.4.0 - Phase 20: «Качество анализа» presets (FAST/DETAILED/NATIVE/CUSTOM)
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -33,12 +33,26 @@ from PySide6.QtWidgets import (
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
+    QLabel,
     QLineEdit,
+    QMessageBox,
     QPushButton,
+    QSpinBox,
     QVBoxLayout,
     QWidget,
 )
 
+from video2pptx.analysis_quality import (
+    ANALYSIS_MAX_SIDE_MAX,
+    ANALYSIS_MAX_SIDE_MIN,
+    FULL_RES_NOTICE,
+    PRESET_DESCRIPTIONS,
+    PRESET_UI_LABELS,
+    AnalysisQualityPreset,
+    max_side_from_preset,
+    preset_from_max_side,
+    validate_custom_max_side,
+)
 from video2pptx.domain.project import DetectionConfig
 from video2pptx.gui.roi_selector import RoiSelectorDialog
 
@@ -47,7 +61,7 @@ class ProjectSettingsDialog(QDialog):
     # START_CONTRACT: ProjectSettingsDialog
     #   PURPOSE: Form-only QDialog for detection settings. Returns updated DetectionConfig.
     #   INPUTS: { config: DetectionConfig, parent: QWidget, frame_grabber: Callable }
-    #   OUTPUTS: Signal: settingsChanged(DetectionConfig)
+    #   OUTPUTS: result_config DetectionConfig after accept
     #   SIDE_EFFECTS: none (caller handles persistence)
     #   LINKS: M-GUI-SETTINGS-PROJECT
     # END_CONTRACT: ProjectSettingsDialog
@@ -63,13 +77,48 @@ class ProjectSettingsDialog(QDialog):
         self._result_config: DetectionConfig | None = None
         self._frame_grabber = frame_grabber
         self.setWindowTitle("Project Settings")
-        self.setMinimumWidth(400)
+        self.setMinimumWidth(440)
         self._setup_ui()
         self._load_values()
 
     # START_BLOCK_SETUP_UI
     def _setup_ui(self) -> None:
         layout = QVBoxLayout(self)
+
+        # --- Analysis quality (Phase 20) ---
+        analysis_group = QGroupBox("Анализ видео")
+        analysis_layout = QFormLayout(analysis_group)
+
+        self._quality_combo = QComboBox()
+        self._preset_order = [
+            AnalysisQualityPreset.FAST,
+            AnalysisQualityPreset.DETAILED,
+            AnalysisQualityPreset.NATIVE,
+            AnalysisQualityPreset.CUSTOM,
+        ]
+        for preset in self._preset_order:
+            # Store enum *value* string — Qt userData can mishandle Enum instances.
+            self._quality_combo.addItem(PRESET_UI_LABELS[preset], preset.value)
+        self._quality_combo.currentIndexChanged.connect(self._on_quality_changed)
+        analysis_layout.addRow("Качество анализа:", self._quality_combo)
+
+        self._quality_desc = QLabel()
+        self._quality_desc.setWordWrap(True)
+        analysis_layout.addRow(self._quality_desc)
+
+        self._custom_spin = QSpinBox()
+        self._custom_spin.setRange(ANALYSIS_MAX_SIDE_MIN, ANALYSIS_MAX_SIDE_MAX)
+        self._custom_spin.setSingleStep(16)
+        self._custom_spin.setSuffix(" пикселей")
+        self._custom_spin.setValue(480)
+        analysis_layout.addRow("Максимальная сторона кадра для анализа:", self._custom_spin)
+
+        notice = QLabel(FULL_RES_NOTICE)
+        notice.setWordWrap(True)
+        notice.setStyleSheet("color: #555;")
+        analysis_layout.addRow(notice)
+
+        layout.addWidget(analysis_group)
 
         # Detection group
         det_group = QGroupBox("Detection")
@@ -129,13 +178,32 @@ class ProjectSettingsDialog(QDialog):
         layout.addWidget(det_group)
         layout.addWidget(export_group)
 
-        # Buttons
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
         buttons.accepted.connect(self._on_accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
     # END_BLOCK_SETUP_UI
+
+    def _current_preset(self) -> AnalysisQualityPreset:
+        data = self._quality_combo.currentData()
+        if isinstance(data, AnalysisQualityPreset):
+            return data
+        if isinstance(data, str):
+            try:
+                return AnalysisQualityPreset(data)
+            except ValueError:
+                pass
+        return AnalysisQualityPreset.FAST
+
+    def _on_quality_changed(self, _index: int = 0) -> None:
+        preset = self._current_preset()
+        self._quality_desc.setText(PRESET_DESCRIPTIONS[preset])
+        is_custom = preset is AnalysisQualityPreset.CUSTOM
+        self._custom_spin.setEnabled(is_custom)
+        self._custom_spin.setVisible(is_custom)
 
     # START_BLOCK_ROI_SELECTOR
     def _on_open_roi_selector(self) -> None:
@@ -176,6 +244,13 @@ class ProjectSettingsDialog(QDialog):
         self._min_dur_spin.setValue(dc.min_slide_duration)
         self._min_stable_spin.setValue(dc.min_stable_duration)
         self._dedupe_check.setChecked(dc.dedupe_enabled)
+
+        preset = preset_from_max_side(dc.analysis_max_side)
+        idx = self._preset_order.index(preset)
+        self._quality_combo.setCurrentIndex(idx)
+        if preset is AnalysisQualityPreset.CUSTOM and dc.analysis_max_side is not None:
+            self._custom_spin.setValue(int(dc.analysis_max_side))
+        self._on_quality_changed()
     # END_BLOCK_LOAD_VALUES
 
     # START_BLOCK_ON_ACCEPT
@@ -203,6 +278,17 @@ class ProjectSettingsDialog(QDialog):
             except ValueError:
                 threshold = raw_thresh
 
+        try:
+            analysis_max_side = max_side_from_preset(
+                self._current_preset(),
+                custom_value=self._custom_spin.value(),
+            )
+            if self._current_preset() is AnalysisQualityPreset.CUSTOM:
+                validate_custom_max_side(analysis_max_side)
+        except ValueError as exc:
+            QMessageBox.warning(self, "Качество анализа", str(exc))
+            return
+
         updated = DetectionConfig(
             sample_fps=self._fps_spin.value(),
             decoder_backend=self._backend_combo.currentText(),
@@ -212,12 +298,13 @@ class ProjectSettingsDialog(QDialog):
             min_slide_duration=self._min_dur_spin.value(),
             min_stable_duration=self._min_stable_spin.value(),
             dedupe_enabled=self._dedupe_check.isChecked(),
+            analysis_max_side=analysis_max_side,
         )
         self._result_config = updated
         logger.info(
             "[GUI-SettingsProject][_on_accept] Settings updated | "
             f"threshold={updated.threshold} fps={updated.sample_fps} "
-            f"backend={updated.decoder_backend}"
+            f"backend={updated.decoder_backend} analysis_max_side={updated.analysis_max_side}"
         )
         self.accept()
 
@@ -226,3 +313,59 @@ class ProjectSettingsDialog(QDialog):
         """Return updated DetectionConfig if dialog was accepted, else None."""
         return self._result_config
     # END_BLOCK_ON_ACCEPT
+
+
+def prompt_detection_settings(
+    parent: QWidget | None,
+    current: DetectionConfig,
+    frame_grabber: Callable[[], QPixmap | None] | None = None,
+) -> DetectionConfig | None:
+    """Show Project Settings dialog; return new DetectionConfig or None if cancelled."""
+    dlg = ProjectSettingsDialog(current, parent, frame_grabber=frame_grabber)
+    if not dlg.exec():
+        return None
+    return dlg.result_config
+
+
+def should_confirm_analysis_quality_change(
+    old: DetectionConfig,
+    new: DetectionConfig,
+    detect_succeeded: bool,
+) -> bool:
+    """True when user must confirm re-detect due to analysis_max_side change after detect."""
+    return detect_succeeded and old.analysis_max_side != new.analysis_max_side
+
+
+def run_project_settings_flow(
+    parent: QWidget,
+    project: object,
+    save_fn: Callable[[], None],
+    status_fn: Callable[[str], None],
+    frame_grabber: Callable[[], QPixmap | None] | None = None,
+) -> None:
+    """Full Project Settings UX: dialog, optional confirm, domain apply, save.
+
+    *project* is domain Project (duck-typed: .detection, .pipeline, .apply_detection_config).
+    """
+    from video2pptx.analysis_quality import ANALYSIS_QUALITY_CHANGE_WARNING
+    from video2pptx.domain.pipeline_state import StageStatus
+
+    new_config = prompt_detection_settings(parent, project.detection, frame_grabber)
+    if new_config is None:
+        return
+    detect_ok = project.pipeline.get("detect").status == StageStatus.SUCCEEDED
+    if should_confirm_analysis_quality_change(project.detection, new_config, detect_ok):
+        reply = QMessageBox.warning(
+            parent,
+            "Качество анализа",
+            ANALYSIS_QUALITY_CHANGE_WARNING,
+            QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Cancel,
+        )
+        if reply != QMessageBox.StandardButton.Ok:
+            return
+    if not project.apply_detection_config(new_config):
+        status_fn("Project settings unchanged")
+        return
+    save_fn()
+    status_fn("Project settings updated")
