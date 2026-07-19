@@ -8,9 +8,9 @@
 
 from __future__ import annotations
 
+from video2pptx.application.project_settings_flow import run_project_settings_flow
 from video2pptx.domain.pipeline_state import StageStatus
 from video2pptx.domain.project import DetectionConfig, Project
-from video2pptx.gui.settings_project import run_project_settings_flow
 
 
 def _cfg(ams: int | None = 480) -> DetectionConfig:

@@ -15,7 +15,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.4.0 - Phase 20: «Качество анализа» presets (FAST/DETAILED/NATIVE/CUSTOM)
+#   LAST_CHANGE: v0.5.0 - Phase 21: Qt adapter; workflow lives in application/project_settings_flow
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -53,8 +53,28 @@ from video2pptx.analysis_quality import (
     preset_from_max_side,
     validate_custom_max_side,
 )
+from video2pptx.application.project_settings_flow import (
+    SettingsApplyResult,
+    restore_detection_and_pipeline,
+    should_confirm_analysis_quality_change,
+    snapshot_detection_config,
+)
+from video2pptx.application.project_settings_flow import (
+    run_project_settings_flow as _run_project_settings_flow_core,
+)
 from video2pptx.domain.project import DetectionConfig
 from video2pptx.gui.roi_selector import RoiSelectorDialog
+
+# Re-export Qt-free names for backward-compatible imports from this module.
+__all__ = [
+    "ProjectSettingsDialog",
+    "SettingsApplyResult",
+    "prompt_detection_settings",
+    "restore_detection_and_pipeline",
+    "run_project_settings_flow",
+    "should_confirm_analysis_quality_change",
+    "snapshot_detection_config",
+]
 
 
 class ProjectSettingsDialog(QDialog):
@@ -327,44 +347,8 @@ def prompt_detection_settings(
     return dlg.result_config
 
 
-def should_confirm_analysis_quality_change(
-    old: DetectionConfig,
-    new: DetectionConfig,
-    detect_succeeded: bool,
-) -> bool:
-    """True when user must confirm re-detect due to analysis_max_side change after detect."""
-    return detect_succeeded and old.analysis_max_side != new.analysis_max_side
-
-
-def _snapshot_detection_config(cfg: DetectionConfig) -> DetectionConfig:
-    """Deep-ish copy of DetectionConfig for local rollback."""
-    return DetectionConfig(
-        sample_fps=cfg.sample_fps,
-        decoder_backend=cfg.decoder_backend,
-        slide_roi=cfg.slide_roi,
-        ignore_rois=list(cfg.ignore_rois),
-        threshold=cfg.threshold,
-        min_slide_duration=cfg.min_slide_duration,
-        min_stable_duration=cfg.min_stable_duration,
-        dedupe_enabled=cfg.dedupe_enabled,
-        analysis_max_side=cfg.analysis_max_side,
-    )
-
-
-def _restore_detection_and_pipeline(
-    project: object,
-    old_detection: DetectionConfig,
-    old_pipeline_dict: dict,
-) -> None:
-    """Restore detection config and pipeline from snapshots (mutable refs replaced)."""
-    from video2pptx.domain.pipeline_state import PipelineState
-
-    project.detection = _snapshot_detection_config(old_detection)
-    project.pipeline = PipelineState.from_dict(old_pipeline_dict)
-
-
 def run_project_settings_flow(
-    parent: QWidget,
+    parent: QWidget | None,
     project: object,
     save_fn: Callable[[], bool],
     status_fn: Callable[[str], None],
@@ -372,53 +356,26 @@ def run_project_settings_flow(
     reload_fn: Callable[[], bool] | None = None,
     confirm_fn: Callable[[str, str], bool] | None = None,
     prompt_fn: Callable[..., DetectionConfig | None] | None = None,
-) -> None:
-    """Full Project Settings UX: dialog, optional confirm, domain apply, save.
+) -> SettingsApplyResult:
+    """Qt adapter: optional QMessageBox confirm, dialog prompt, then Qt-free workflow."""
 
-    *project* is domain Project (duck-typed: .detection, .pipeline, .apply_detection_config).
-    *save_fn* must return True only when persistence succeeded.
-    On save failure: try *reload_fn*; if missing/failed restore local snapshot.
-    Optional *confirm_fn* / *prompt_fn* enable unit tests without Qt dialogs.
-    """
-    from video2pptx.analysis_quality import ANALYSIS_QUALITY_CHANGE_WARNING
-    from video2pptx.domain.pipeline_state import StageStatus
+    def _qt_confirm(title: str, text: str) -> bool:
+        reply = QMessageBox.warning(
+            parent,
+            title,
+            text,
+            QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Cancel,
+        )
+        return reply == QMessageBox.StandardButton.Ok
 
-    prompt = prompt_fn or prompt_detection_settings
-    new_config = prompt(parent, project.detection, frame_grabber)
-    if new_config is None:
-        return
-    detect_ok = project.pipeline.get("detect").status == StageStatus.SUCCEEDED
-    if should_confirm_analysis_quality_change(project.detection, new_config, detect_ok):
-        if confirm_fn is not None:
-            if not confirm_fn("Качество анализа", ANALYSIS_QUALITY_CHANGE_WARNING):
-                return
-        else:
-            reply = QMessageBox.warning(
-                parent,
-                "Качество анализа",
-                ANALYSIS_QUALITY_CHANGE_WARNING,
-                QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
-                QMessageBox.StandardButton.Cancel,
-            )
-            if reply != QMessageBox.StandardButton.Ok:
-                return
-
-    old_detection = _snapshot_detection_config(project.detection)
-    old_pipeline_dict = project.pipeline.to_dict()
-
-    if not project.apply_detection_config(new_config):
-        status_fn("Project settings unchanged")
-        return
-    if save_fn():
-        status_fn("Project settings updated")
-        return
-
-    # Save failed — restore disk or local snapshot (never leave memory/disk divergence).
-    reloaded = False
-    if reload_fn is not None:
-        reloaded = bool(reload_fn())
-    if reloaded:
-        status_fn("Failed to save project settings; persisted state restored")
-        return
-    _restore_detection_and_pipeline(project, old_detection, old_pipeline_dict)
-    status_fn("Failed to save project settings; local changes rolled back")
+    return _run_project_settings_flow_core(
+        parent=parent,
+        project=project,
+        save_fn=save_fn,
+        status_fn=status_fn,
+        frame_grabber=frame_grabber,
+        reload_fn=reload_fn,
+        confirm_fn=confirm_fn if confirm_fn is not None else _qt_confirm,
+        prompt_fn=prompt_fn if prompt_fn is not None else prompt_detection_settings,
+    )
