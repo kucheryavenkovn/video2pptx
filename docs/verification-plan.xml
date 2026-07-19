@@ -2599,18 +2599,24 @@
     </scenarios>
   </V-M-GOLDEN-MEAN-DECISION>
 
-  <V-M-PHASE19-ACCEPTANCE MODULE="Phase-19/Step-19.9" PRIORITY="high" STATUS="planned">
-    <purpose>Phase 19 closeout: quality gates, full-res screenshot invariant, docs refresh, Phase 18 untouched.</purpose>
+  <V-M-PHASE19-ACCEPTANCE MODULE="Phase-19/Step-19.9" PRIORITY="high" STATUS="passed">
+    <purpose>Phase 19 closeout: quality gates, full-res screenshot invariant, docs refresh, Phase 18 untouched, default 480.</purpose>
     <verification-contract>
       <scenario-1 kind="success">missed_slide_rate &lt;= 5%, false_split_rate &lt;= 10% on accepted config (or NONE with native default).</scenario-1>
       <scenario-2 kind="success">Pass2 screenshots remain full-res under accepted analysis_max_side.</scenario-2>
       <scenario-3 kind="success">docs knowledge-graph / development-plan / verification-plan refreshed to actual state.</scenario-3>
       <scenario-4 kind="success">Phase 18 terminal outcome text still T3 / selected_optimization=NONE.</scenario-4>
     </verification-contract>
+    <evidence><result>
+      PASSED 2026-07-18. Hermes decision analysis_max_side=480 (~2.15× wall, extract −93%, gates PASS).
+      Runtime default set to 480; explicit None still works. Full-res PNG invariant tested.
+      Phase 18 bottleneck decision artifacts unchanged. Phase-19 status=done.
+    </result></evidence>
     <wave-follow-up />
     <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
     <required-trace-assertions>
       <assertion>Phase 19 acceptance does not alter Phase 18 bottleneck decision artifacts.</assertion>
+      <assertion>VideoConfig default analysis_max_side == 480.</assertion>
     </required-trace-assertions>
     <scenarios>
       <scenario-1 kind="success">Phase 19 accepted with selected defaults or documented negative outcome.</scenario-1>

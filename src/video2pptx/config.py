@@ -40,10 +40,14 @@ class VideoConfig(BaseModel):
     sample_fps: float = Field(default=0.5, ge=0.1, le=30.0, description="Frame sampling rate")
     decoder_backend: str = Field(default="auto", description="Decoder backend: auto, opencv, pyav, decord, pynv")
     analysis_max_side: int | None = Field(
-        default=None,
+        default=480,
         ge=1,
         le=8192,
-        description="Max side length for Pass1 analysis frames only; None = native (full-res screenshots always)",
+        description=(
+            "Max side length for Pass1 analysis frames only; screenshots always full-res. "
+            "Default 480 from Phase 19 Hermes golden mean (~2.15× wall). Set null only via "
+            "explicit YAML/config override if native analysis is required."
+        ),
     )
 
 

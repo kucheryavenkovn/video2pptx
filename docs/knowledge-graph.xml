@@ -1014,7 +1014,7 @@
     <!-- ===== DETECT PERFORMANCE (Phase-18) ===== -->
     <!-- ===== ANALYSIS RESOLUTION / GOLDEN MEAN (Phase-19) ===== -->
     <M-ANALYSIS-SCALE NAME="AnalysisScale" TYPE="UTILITY" STATUS="implemented">
-      <purpose>Phase 19: pure analysis-resolution policy — downscale frames for detection features after ROI; never upscale; default null = native. Screenshot export resolution remains full-res (Pass 2). Wired into slide_detector.detect_changes + detect_slides + DetectionService.</purpose>
+      <purpose>Phase 19: pure analysis-resolution policy — downscale frames for detection features after ROI; never upscale; default analysis_max_side=480 (Hermes golden mean). Screenshot export remains full-res (Pass 2). Wired into slide_detector.detect_changes + detect_slides + DetectionService.</purpose>
       <path>src/video2pptx/analysis_scale.py</path>
       <depends>M-CONFIG</depends>
       <verification-ref>V-M-ANALYSIS-SCALE, V-M-DETECT-ANALYSIS-SCALE</verification-ref>
@@ -1039,8 +1039,8 @@
       <verification-ref>V-M-GOLDEN-MEAN-DECISION</verification-ref>
       <cross-links>M-GOLDEN-MEAN-SWEEP, M-DETECT-PERF-DECISION, M-ANALYSIS-SCALE</cross-links>
     </M-GOLDEN-MEAN-DECISION>
-    <M-PHASE19-PLAN NAME="Phase19Plan" TYPE="PLAN" STATUS="active">
-      <purpose>Human + GRACE plan for analysis resolution golden mean. Steps 19.0–19.8 done; 19.9 acceptance remaining. Hermes decision: analysis_max_side=480 recommended (default still null).</purpose>
+    <M-PHASE19-PLAN NAME="Phase19Plan" TYPE="PLAN" STATUS="done">
+      <purpose>Phase 19 complete. Hermes golden mean analysis_max_side=480 is runtime default (~2.15× wall). Explicit None = native. Phase 18 not reopened.</purpose>
       <path>docs/plans/phase19-analysis-resolution-golden-mean.md</path>
       <depends>M-DETECT-PERF-DECISION</depends>
       <verification-ref>V-M-PHASE19-PLAN, V-M-PHASE19-ACCEPTANCE</verification-ref>

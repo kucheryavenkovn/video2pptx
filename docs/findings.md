@@ -1068,6 +1068,6 @@
 - Area: detection, performance
 - Finding: On hermes-0000-1000.mp4 (1920×1080@60, 600s, sample_fps=2, 2-run median after warmup), Pass1 analysis downscale after ROI cuts feature CPU dramatically while screenshots stay full-res. Native: wall 243.85s, extract_features 85.95s. analysis_max_side=480: wall 113.25s (−53.6%), extract 5.67s (−93.4%), slides=4 matching native, gates PASS. 320 is slightly faster wall but fails quality (6 slides). Unexpected: pass1_decode_or_frame_advance also fell ~50% on scaled cells after native runs; treat as environmental/order coupling until order-randomized re-run.
 - Symptom/Reproduction: `python tools/sweep_analysis_resolution.py --video .benchmarks/phase18/media/hermes-0000-1000.mp4 --out benchmarks/detect/evidence/phase19-hermes-600s-20260718 --max-sides none,960,640,480,320 --sample-fps 2.0 --runs 2 --warmup`
-- Impact: Practical speedup available without changing export PNG quality; recommended analysis_max_side=480 for 1080p lecture content; default stays None.
-- Resolution/Status: RESOLVED (measured). Product default still opt-in via config.
-- LINKS: F-0104, M-ANALYSIS-SCALE, M-GOLDEN-MEAN-DECISION, V-M-GOLDEN-MEAN-DECISION, tools/sweep_analysis_resolution.py
+- Impact: Practical speedup available without changing export PNG quality; recommended analysis_max_side=480 for 1080p lecture content.
+- Resolution/Status: RESOLVED (measured + shipped). Runtime default set to 480 in VideoConfig / domain DetectionConfig / DTO / config.example.yaml (Step 19.9). Explicit None still enables native analysis.
+- LINKS: F-0104, M-ANALYSIS-SCALE, M-GOLDEN-MEAN-DECISION, V-M-GOLDEN-MEAN-DECISION, V-M-PHASE19-ACCEPTANCE, tools/sweep_analysis_resolution.py

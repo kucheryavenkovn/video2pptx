@@ -89,13 +89,19 @@ class TestScaleForAnalysis:
 
 
 class TestDetectAnalysisScale:
-    def test_native_default_still_detects(self, tmp_path):
+    def test_default_is_golden_mean_480(self, tmp_path):
         cfg = AppConfig()
-        assert cfg.video.analysis_max_side is None
+        assert cfg.video.analysis_max_side == 480
         doc = run_detect_slides(TEST_VIDEO, tmp_path, cfg)
         assert len(doc.slides) >= 1
         for seg in doc.slides:
             assert (tmp_path / seg.image).is_file()
+
+    def test_explicit_native_none_still_detects(self, tmp_path):
+        cfg = AppConfig(video=VideoConfig(sample_fps=0.5, analysis_max_side=None))
+        assert cfg.video.analysis_max_side is None
+        doc = run_detect_slides(TEST_VIDEO, tmp_path, cfg)
+        assert len(doc.slides) >= 1
 
     def test_analysis_max_side_metrics_and_full_res_png(self, tmp_path):
         # Fixture is 640x480 / 12s — use short min durations so segments survive.

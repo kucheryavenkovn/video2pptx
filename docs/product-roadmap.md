@@ -203,18 +203,17 @@ authoritative wording lives in `docs/development-plan.xml`,
 
 ### Phase 19 — Analysis Resolution & Golden Mean
 
-**Status: planned** (plan branch; no production code until approval).
+**Status: done** (accepted 2026-07-18).
 
-A **new** performance/quality research track that does **not** reopen Phase 18.
+Dual-resolution detect path: Pass 1 may downscale for features; Pass 2 screenshots
+remain full resolution. Does **not** reopen Phase 18.
 
-- Motivation: detector decisions already use 48×48 features, but Pass 1 still
-  processes full-resolution RGB after ROI; screenshots need full res only in Pass 2.
-- Lever: `analysis_max_side` (analysis path only) × `sample_fps` grid sweep.
-- Method: hard quality gates (missed ≤5%, false_split ≤10%, timestamp budget);
-  golden mean = best speedup among passers; screenshots stay full-res.
-- Outcome: selected defaults **or** documented `selected_analysis_scale=NONE`.
+- Hermes 600s evidence: `analysis_max_side=480` → ~**2.15×** wall-clock,
+  `extract_features` **−93%**, quality gates PASS vs native.
+- **Runtime default:** `video.analysis_max_side: 480` (override with `null` for native).
 - Plan: `docs/plans/phase19-analysis-resolution-golden-mean.md`
-- Finding: F-0104 (analysis resolution not discriminated in Phase 18)
+- Evidence: `benchmarks/detect/evidence/phase19-hermes-600s-20260718/`
+- Findings: F-0104, F-0105
 
 ### GRACE Stabilization
 

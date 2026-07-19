@@ -30,7 +30,7 @@ class TestVideoConfig:
         vc = VideoConfig()
         assert vc.sample_fps == 0.5
         assert vc.decoder_backend == "auto"
-        assert vc.analysis_max_side is None
+        assert vc.analysis_max_side == 480
 
     def test_custom(self):
         vc = VideoConfig(sample_fps=5.0, decoder_backend="pynv", analysis_max_side=640)

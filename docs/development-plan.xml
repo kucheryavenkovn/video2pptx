@@ -27,7 +27,7 @@
 
     <M-CONFIG NAME="Config" TYPE="UTILITY" LAYER="0" ORDER="2" STATUS="implemented">
       <contract>
-        <purpose>Load configuration from YAML file and merge with CLI arguments. Phase 19 extends VideoConfig with analysis_max_side (optional analysis downscale; default null = native).</purpose>
+        <purpose>Load configuration from YAML file and merge with CLI arguments. Phase 19: VideoConfig.analysis_max_side default 480 (Hermes golden mean); None = native analysis.</purpose>
         <inputs><param name="config_path" type="Path|None" /><param name="cli_kwargs" type="dict" /></inputs>
         <outputs><param name="Config" type="Config object with validated fields" /></outputs>
       </contract>
@@ -1540,7 +1540,7 @@
         Accept performance work only when the recovered-tree quality and timing gates pass.
       </step-18.8>
     </Phase-18>
-    <Phase-19 name="AnalysisResolutionGoldenMean" status="in_progress">
+    <Phase-19 name="AnalysisResolutionGoldenMean" status="done">
       <goal>
         Discriminate analysis-path resolution reduction and sample_fps tradeoffs for slide
         detection. Separate analysis quality budget from screenshot quality budget. Select a
@@ -1584,12 +1584,13 @@
         Artifacts: golden_mean_decision.json + .md.
       </step-19.7>
       <step-19.8 name="AdoptDefaults" status="done" verification="V-M-GOLDEN-MEAN-DECISION">
-        config.example.yaml documents recommended analysis_max_side=480 (commented);
-        runtime default remains null (native) until product opt-in.
+        Runtime default analysis_max_side=480 (VideoConfig, domain DetectionConfig, DTO,
+        config.example.yaml). Explicit None remains supported for native analysis.
       </step-19.8>
-      <step-19.9 name="Phase19Acceptance" status="planned" verification="V-M-PHASE19-ACCEPTANCE">
-        grace-refresh docs; confirm screenshot full-res invariant; quality gates; no Phase 18
-        outcome rewrite. Close Phase 19 with selected defaults or accepted negative outcome.
+      <step-19.9 name="Phase19Acceptance" status="done" verification="V-M-PHASE19-ACCEPTANCE">
+        Accepted 2026-07-18: dual-res path shipped; Hermes evidence shows ~2.15× wall at 480
+        with quality gates PASS vs native; full-res PNG invariant held; default 480 enabled;
+        Phase 18 T3 / selected_optimization=NONE unchanged. Tests green for analysis scale path.
       </step-19.9>
     </Phase-19>
   </ImplementationOrder>
