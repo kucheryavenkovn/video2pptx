@@ -87,7 +87,7 @@ class ProjectController(QObject):
         Emits ``projectOpened`` on success or ``errorOccurred`` on failure.
         """
         location = Path(parent_dir) / name
-        project = Project(name=name, output_dir=str(location))
+        project = Project.create_new(name=name, output_dir=str(location))
         try:
             loaded = self._services.repository.create(location, project)
         except ProjectAlreadyExists as exc:
@@ -124,15 +124,16 @@ class ProjectController(QObject):
         )
         self.projectOpened.emit()
 
-    def save(self) -> None:
+    def save(self) -> bool:
         """Save the current project with optimistic concurrency (revision check).
 
+        Returns True only when repository save succeeds and revision is updated.
         Emits ``stateChanged`` on success or ``errorOccurred`` on failure.
         """
         if self._project is None or self._revision is None:
             logger.warning("[ProjectController][save] No open project to save")
             self.errorOccurred.emit("No open project to save")
-            return
+            return False
         try:
             result = self._services.repository.save(
                 self._project,
@@ -140,16 +141,32 @@ class ProjectController(QObject):
                 expected_revision=self._revision,
             )
             self._revision = result.revision
+            if self._loaded is not None:
+                self._loaded = LoadedProject(
+                    project=self._project,
+                    location=self._loaded.location,
+                    revision=result.revision,
+                    warnings=self._loaded.warnings,
+                    migrated=self._loaded.migrated,
+                )
             logger.info(
                 "[ProjectController][save] Saved | location={} revision={}",
                 self._project.output_dir,
                 result.revision,
             )
             self.stateChanged.emit()
+            return True
         except ProjectRevisionConflict as exc:
             logger.warning("[ProjectController][save] Reloading stale revision | error={}", exc)
+            # Reload restores disk state; emit error only if reload itself fails
+            # (preserves pre-existing GUI contract for concurrent timeline saves).
             if not self.reload(emit=False):
                 self.errorOccurred.emit(str(exc))
+            return False
+        except Exception as exc:
+            logger.exception("[ProjectController][save] Save failed")
+            self.errorOccurred.emit(str(exc))
+            return False
 
     def reload(self, *, emit: bool = True) -> bool:
         """Reload the canonical GUI snapshot and revision from repository storage."""

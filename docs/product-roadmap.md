@@ -210,10 +210,24 @@ remain full resolution. Does **not** reopen Phase 18.
 
 - Hermes 600s evidence: `analysis_max_side=480` → ~**2.15×** wall-clock,
   `extract_features` **−93%**, quality gates PASS vs native.
-- **Runtime default:** `video.analysis_max_side: 480` (override with `null` for native).
 - Plan: `docs/plans/phase19-analysis-resolution-golden-mean.md`
 - Evidence: `benchmarks/detect/evidence/phase19-hermes-600s-20260718/`
 - Findings: F-0104, F-0105
+
+### Phase 20 — Analysis Quality Presets
+
+**Status: in progress / shipping on `feature/analysis-quality-presets`.**
+
+User-facing **«Качество анализа»** in Project Settings:
+
+| Mode | analysis_max_side |
+|------|-------------------|
+| Быстрый — рекомендуется | 480 (new projects) |
+| Повышенная детализация — экспериментально | 720 (no Hermes claim) |
+| Исходная детализация | None (legacy missing field) |
+| Пользовательский | 240–2160 |
+
+Legacy projects without the field stay **native (None)**. Screenshots/PPTX full-res.
 
 ### GRACE Stabilization
 

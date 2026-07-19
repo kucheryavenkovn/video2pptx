@@ -18,8 +18,10 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock
 
+from video2pptx.analysis_quality import UNSET
 from video2pptx.application.base import ServiceContext
 from video2pptx.application.dto import ServiceResult
+from video2pptx.application.errors import PreconditionError
 from video2pptx.application.services.auto_service import AutoService
 from video2pptx.domain import Project, Slide
 from video2pptx.infrastructure.persistence.file_project_repository import FileProjectRepository
@@ -145,3 +147,54 @@ class TestAutoService:
         assert result.data["results"]["notes"].get("skipped") is True
         assert result.data["results"]["export"].get("skipped") is True
         assert result.data["results"]["validate"].get("skipped") is True
+
+    def test_analysis_max_side_propagation(self, tmp_path):
+        repo, location = _make_project(tmp_path)
+        detect = _mock_service("detect")
+        ctx = ServiceContext(repository=repo)
+        svc = AutoService(
+            context=ctx,
+            preview_service=_mock_service("preview"),
+            detection_service=detect,
+            alignment_service=_mock_service("align"),
+            notes_service=_mock_service("notes"),
+            export_service=_mock_service("export"),
+            validation_service=_mock_service("validate"),
+        )
+
+        svc.execute(location, mode="full")
+        assert detect.execute.call_args.kwargs["analysis_max_side"] is UNSET
+
+        detect.reset_mock()
+        svc.execute(location, mode="full", analysis_max_side=None)
+        assert detect.execute.call_args.kwargs["analysis_max_side"] is None
+
+        detect.reset_mock()
+        svc.execute(location, mode="full", analysis_max_side=720)
+        assert detect.execute.call_args.kwargs["analysis_max_side"] == 720
+
+        detect.reset_mock()
+        svc.execute(location, mode="full", analysis_max_side=512)
+        assert detect.execute.call_args.kwargs["analysis_max_side"] == 512
+
+    def test_invalid_analysis_max_side_halts_at_detect(self, tmp_path):
+        repo, location = _make_project(tmp_path)
+        detect = MagicMock()
+        detect.execute.side_effect = PreconditionError(
+            "Invalid analysis_max_side: must be in [240, 2160], got 100"
+        )
+        align = _mock_service("align")
+        ctx = ServiceContext(repository=repo)
+        svc = AutoService(
+            context=ctx,
+            preview_service=_mock_service("preview"),
+            detection_service=detect,
+            alignment_service=align,
+            notes_service=_mock_service("notes"),
+            export_service=_mock_service("export"),
+            validation_service=_mock_service("validate"),
+        )
+        result = svc.execute(location, mode="full", analysis_max_side=100)
+        assert result.data["success"] is False
+        assert result.data["failed_stage"] == "detect"
+        assert align.execute.call_count == 0

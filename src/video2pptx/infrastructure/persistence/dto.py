@@ -166,7 +166,17 @@ class DetectionConfigDocument(BaseModel):
     min_slide_duration: float = 2.0
     min_stable_duration: float = 2.0
     dedupe_enabled: bool = True
-    analysis_max_side: int | None = 480
+    # Default None = legacy missing field loads as native (Phase 20).
+    # New projects write explicit 480 via Project.create_new().
+    analysis_max_side: int | None = None
+
+    @field_validator("analysis_max_side", mode="before")
+    @classmethod
+    def _validate_analysis_max_side(cls, value: object) -> int | None:
+        """Product range only: null or int in [240, 2160]. No silent clamp/480."""
+        from video2pptx.analysis_quality import validate_analysis_max_side
+
+        return validate_analysis_max_side(value, allow_none=True)
 
 
 class ProjectDocumentV2(_StrictDocument):

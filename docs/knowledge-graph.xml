@@ -1013,8 +1013,15 @@
     </M-DETECT-TARGET-DISCRIMINATION-R2>
     <!-- ===== DETECT PERFORMANCE (Phase-18) ===== -->
     <!-- ===== ANALYSIS RESOLUTION / GOLDEN MEAN (Phase-19) ===== -->
+    <M-ANALYSIS-QUALITY NAME="AnalysisQualityPresets" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Phase 20: product presets for analysis quality (FAST=480, DETAILED=720, NATIVE=None, CUSTOM). New-project constant 480; custom bounds 240-2160. Qt-free mapping for domain storage of int|None.</purpose>
+      <path>src/video2pptx/analysis_quality.py</path>
+      <depends>none</depends>
+      <verification-ref>V-M-ANALYSIS-QUALITY</verification-ref>
+      <cross-links>M-ANALYSIS-SCALE, M-DOMAIN-PROJECT, M-GUI-SETTINGS-PROJECT</cross-links>
+    </M-ANALYSIS-QUALITY>
     <M-ANALYSIS-SCALE NAME="AnalysisScale" TYPE="UTILITY" STATUS="implemented">
-      <purpose>Phase 19: pure analysis-resolution policy — downscale frames for detection features after ROI; never upscale; default analysis_max_side=480 (Hermes golden mean). Screenshot export remains full-res (Pass 2). Wired into slide_detector.detect_changes + detect_slides + DetectionService.</purpose>
+      <purpose>Phase 19: pure analysis-resolution policy — downscale frames for detection features after ROI; never upscale. Screenshot export remains full-res (Pass 2). Wired into slide_detector.detect_changes + detect_slides + DetectionService. Phase 20: new projects set 480 explicitly; legacy missing field loads None.</purpose>
       <path>src/video2pptx/analysis_scale.py</path>
       <depends>M-CONFIG</depends>
       <verification-ref>V-M-ANALYSIS-SCALE, V-M-DETECT-ANALYSIS-SCALE</verification-ref>

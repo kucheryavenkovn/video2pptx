@@ -2599,6 +2599,60 @@
     </scenarios>
   </V-M-GOLDEN-MEAN-DECISION>
 
+  <!-- ===== Phase 20 — Analysis Quality Presets ===== -->
+  <V-M-ANALYSIS-QUALITY MODULE="M-ANALYSIS-QUALITY" PRIORITY="high" STATUS="passed">
+    <purpose>Presets, product-range persistence, UNSET CLI override, settings flow save/rollback, full detect downstream STALE.</purpose>
+    <verification-contract>
+      <scenario-1 kind="success">preset_from_max_side maps 480→FAST, 720→DETAILED, None→NATIVE, other→CUSTOM.</scenario-1>
+      <scenario-2 kind="success">Project.create_new sets analysis_max_side=480 and project.json stores 480.</scenario-2>
+      <scenario-3 kind="success">project.json detection without analysis_max_side loads as None.</scenario-3>
+      <scenario-4 kind="success">explicit null round-trips as None.</scenario-4>
+      <scenario-5 kind="success">apply_detection_config 480→720 marks detect and every DOWNSTREAM[detect] STALE.</scenario-5>
+      <scenario-6 kind="success">apply_detection_config no-op leaves SUCCEEDED stages and returns False.</scenario-6>
+      <scenario-7 kind="failure">DTO rejects 239, 2161, 100, bool, str; accepts 240/480/720/2160/None.</scenario-7>
+      <scenario-8 kind="success">canonical CLI detect omitted → UNSET; native → None; 720 → 720.</scenario-8>
+      <scenario-9 kind="failure">CLI 239/2161/abc does not call DetectionService.</scenario-9>
+      <scenario-10 kind="success">run_project_settings_flow: cancel/warn-cancel/noop no save; warn-OK one save; save fail reloads.</scenario-10>
+    </verification-contract>
+    <evidence><result>
+      PASSED 2026-07-19 final correction: DetectionService validates product range before pipeline.start;
+      AutoService propagates UNSET/None/int; Auto CLI full matrix; settings flow local rollback when reload fails;
+      MainWindow._on_save_project success only if save() True.
+      pytest tests/test_analysis_quality.py tests/test_settings_flow.py tests/test_cli_analysis_max_side.py
+      tests/application/test_detection_service.py tests/application/test_auto_service.py
+      tests/gui/test_main_window_integration.py::test_on_save_project_success_message_only_when_save_true
+    </result></evidence>
+    <test-files>
+      <file>tests/test_analysis_quality.py</file>
+      <file>tests/test_gui_settings_project.py</file>
+      <file>tests/test_settings_flow.py</file>
+      <file>tests/test_cli_analysis_max_side.py</file>
+      <file>tests/application/test_detection_service.py</file>
+      <file>tests/application/test_auto_service.py</file>
+      <file>tests/gui/test_main_window_integration.py</file>
+    </test-files>
+    <module-checks>
+      <check-1>python -m pytest tests/test_analysis_quality.py tests/test_settings_flow.py tests/test_cli_analysis_max_side.py tests/application/test_detection_service.py tests/application/test_auto_service.py tests/gui/test_main_window_integration.py::test_on_save_project_success_message_only_when_save_true -q</check-1>
+    </module-checks>
+    <wave-follow-up>python -m pytest tests/domain tests/application tests/gui tests/test_analysis_quality.py tests/test_settings_flow.py tests/test_cli_analysis_max_side.py -q</wave-follow-up>
+    <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    <required-trace-assertions>
+      <assertion>test_analysis_quality asserts create_new analysis_max_side==480 and legacy missing loads None.</assertion>
+      <assertion>test_analysis_quality asserts apply_detection_config invalidates detect and all DOWNSTREAM[detect] stages.</assertion>
+      <assertion>test_analysis_quality asserts DTO rejects analysis_max_side=100 without silent clamp.</assertion>
+      <assertion>test_detection_service asserts PreconditionError for invalid analysis_max_side with zero detector/save calls.</assertion>
+      <assertion>test_auto_service asserts omitted→UNSET, None→None, 720→720 and invalid halts at detect.</assertion>
+      <assertion>test_cli_analysis_max_side asserts detect/auto native→None, omitted→UNSET, invalid no service call.</assertion>
+      <assertion>test_settings_flow asserts save-fail+reload-fail restores detection+pipeline snapshot without success message.</assertion>
+      <assertion>test_on_save_project_success_message_only_when_save_true asserts status bar Project saved only when save returns True.</assertion>
+      <assertion>test_gui_settings_project asserts quality combo yields 480/720/None/custom without 480p labels.</assertion>
+    </required-trace-assertions>
+    <scenarios>
+      <scenario-1 kind="success">Presets, CLI UNSET/native, settings flow, and persistence range hold.</scenario-1>
+      <scenario-2 kind="failure">Corrupted analysis_max_side rejected without silent 480.</scenario-2>
+    </scenarios>
+  </V-M-ANALYSIS-QUALITY>
+
   <V-M-PHASE19-ACCEPTANCE MODULE="Phase-19/Step-19.9" PRIORITY="high" STATUS="passed">
     <purpose>Phase 19 closeout: quality gates, full-res screenshot invariant, docs refresh, Phase 18 untouched, default 480.</purpose>
     <verification-contract>

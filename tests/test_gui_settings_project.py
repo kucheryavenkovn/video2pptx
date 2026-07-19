@@ -87,6 +87,50 @@ class TestProjectSettingsDialog:
         assert result.threshold == 0.15
         assert result.sample_fps == 3.0
 
+    def test_quality_presets_map_to_max_side(self, config) -> None:
+        _ensure_app()
+        from video2pptx.analysis_quality import AnalysisQualityPreset, PRESET_UI_LABELS
+        from video2pptx.gui.settings_project import ProjectSettingsDialog
+
+        dlg = ProjectSettingsDialog(config)
+        # Fast
+        dlg._quality_combo.setCurrentIndex(0)
+        dlg._on_accept()
+        assert dlg.result_config is not None
+        assert dlg.result_config.analysis_max_side == 480
+
+        dlg2 = ProjectSettingsDialog(config)
+        dlg2._quality_combo.setCurrentIndex(1)  # Detailed
+        dlg2._on_accept()
+        assert dlg2.result_config.analysis_max_side == 720
+
+        dlg3 = ProjectSettingsDialog(config)
+        dlg3._quality_combo.setCurrentIndex(2)  # Native
+        dlg3._on_accept()
+        assert dlg3.result_config.analysis_max_side is None
+
+        dlg4 = ProjectSettingsDialog(config)
+        dlg4._quality_combo.setCurrentIndex(3)  # Custom
+        dlg4._custom_spin.setValue(640)
+        dlg4._on_accept()
+        assert dlg4.result_config.analysis_max_side == 640
+
+        labels = [dlg._quality_combo.itemText(i) for i in range(dlg._quality_combo.count())]
+        joined = " ".join(labels)
+        assert "480p" not in joined and "720p" not in joined
+        assert PRESET_UI_LABELS[AnalysisQualityPreset.FAST] in labels
+
+    def test_loads_custom_when_non_preset_value(self, config) -> None:
+        _ensure_app()
+        from video2pptx.analysis_quality import AnalysisQualityPreset
+        from video2pptx.gui.settings_project import ProjectSettingsDialog
+
+        config.analysis_max_side = 640
+        dlg = ProjectSettingsDialog(config)
+        assert dlg._current_preset() is AnalysisQualityPreset.CUSTOM
+        assert dlg._custom_spin.value() == 640
+        assert dlg._custom_spin.isEnabled()
+
     def test_cancel_does_not_return_config(self, config) -> None:
         _ensure_app()
         from video2pptx.gui.settings_project import ProjectSettingsDialog

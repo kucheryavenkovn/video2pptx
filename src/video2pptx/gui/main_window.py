@@ -235,8 +235,7 @@ class MainWindow(QMainWindow):
             self._model.close()
 
     def _on_save_project(self) -> None:
-        self._project_ctrl.save()
-        if self._project_ctrl.revision:
+        if self._project_ctrl.save():
             self.statusBar().showMessage("Project saved")
 
     def _on_import_video(self) -> None:
@@ -426,22 +425,20 @@ class MainWindow(QMainWindow):
         if project is None:
             QMessageBox.information(self, "Project Settings", "Open a project first")
             return
-        from video2pptx.domain.project import DetectionConfig
-        from video2pptx.gui.settings_project import ProjectSettingsDialog
-        dc = project.detection
-        dlg = ProjectSettingsDialog(
-            DetectionConfig(sample_fps=dc.sample_fps, decoder_backend=dc.decoder_backend,
-                            slide_roi=dc.slide_roi, ignore_rois=list(dc.ignore_rois),
-                            threshold=dc.threshold, min_slide_duration=dc.min_slide_duration,
-                            min_stable_duration=dc.min_stable_duration, dedupe_enabled=dc.dedupe_enabled),
-            self, frame_grabber=(lambda: getattr(getattr(self, "_video_player", None), "_view", None).grab() if hasattr(self, "_video_player") and self._video_player and self._video_player._view else None),
+        from video2pptx.gui.settings_project import run_project_settings_flow
+
+        grabber = None
+        vp = getattr(self, "_video_player", None)
+        if vp is not None and getattr(vp, "_view", None) is not None:
+            grabber = lambda: vp._view.grab()  # noqa: E731
+        run_project_settings_flow(
+            self,
+            project,
+            save_fn=self._project_ctrl.save,
+            status_fn=lambda m: self.statusBar().showMessage(m),
+            frame_grabber=grabber,
+            reload_fn=lambda: self._project_ctrl.reload(emit=True),
         )
-        if dlg.exec():
-            new_config = dlg.result_config
-            if new_config is not None:
-                project.detection = new_config
-                self._project_ctrl.save()
-                self.statusBar().showMessage("Project settings updated")
 
     def _on_app_settings(self) -> None:
         from video2pptx.gui.settings_app import AppSettingsDialog
@@ -541,8 +538,8 @@ class MainWindow(QMainWindow):
             return
         from video2pptx.gui.controllers.subtitle_editor_handler import open_subtitle_editor
         if open_subtitle_editor(proj.slides[slide_index], self._subs, self._model.output_dir or "", self):
-            self._project_ctrl.save()
-            self.statusBar().showMessage(f"Slide {slide_index} saved")
+            if self._project_ctrl.save():
+                self.statusBar().showMessage(f"Slide {slide_index} saved")
     # END_BLOCK_TIMELINE_MARKERS
 
     def _sync_timeline(self) -> None:

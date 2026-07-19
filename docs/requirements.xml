@@ -167,6 +167,24 @@
       <Priority>high</Priority>
       <RelatedFlows>DF-014, DF-015</RelatedFlows>
     </UC-016>
+
+    <UC-017>
+      <Actor>User</Actor>
+      <Action>Chooses analysis quality in Project Settings (fast / detailed experimental / native / custom)</Action>
+      <Goal>Control Pass1 analysis frame max side without reducing screenshot or PPTX resolution</Goal>
+      <Preconditions>Project open. Dual-resolution detect path available (Phase 19).</Preconditions>
+      <AcceptanceCriteria>
+        New projects default to fast (analysis_max_side=480).
+        Legacy projects missing the field load as native (None).
+        UI shows «Качество анализа» without 480p/720p labels.
+        Notice states only slide-search is affected; screenshots/PPTX stay full-res.
+        Changing quality after Detect requires confirmation and marks detect+downstream stale.
+        No-op save does not rewrite revision unnecessarily.
+        Detect/Auto use project.detection.analysis_max_side; CLI override still wins when explicit.
+      </AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>Phase-20</RelatedFlows>
+    </UC-017>
   </UseCases>
 
   <NonGoals>

@@ -142,6 +142,21 @@ def test_main_window_is_below_step_8_loc_limit() -> None:
     assert len(source.read_text(encoding="utf-8").splitlines()) < 600
 
 
+def test_on_save_project_success_message_only_when_save_true(qtbot) -> None:
+    window = _window(qtbot)
+    messages: list[str] = []
+    window.statusBar().showMessage = lambda m, *a, **k: messages.append(m)  # type: ignore[method-assign]
+
+    window._project_ctrl.save = MagicMock(return_value=False)  # type: ignore[method-assign]
+    window._on_save_project()
+    assert "Project saved" not in messages
+
+    messages.clear()
+    window._project_ctrl.save = MagicMock(return_value=True)  # type: ignore[method-assign]
+    window._on_save_project()
+    assert messages == ["Project saved"]
+
+
 def test_playback_routes_to_video_player(qtbot) -> None:
     window = _window(qtbot)
     from video2pptx.debug.mcp_operations import clear_registry
