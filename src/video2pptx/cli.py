@@ -63,6 +63,9 @@ def detect(
     config: str | None = typer.Option(None, "--config", "-c", help="Path to YAML config file"),
     sample_fps: float | None = typer.Option(None, "--sample-fps", help="Frame sampling rate"),
     decoder_backend: str | None = typer.Option(None, "--decoder-backend", help="Decoder backend"),
+    analysis_max_side: int | None = typer.Option(
+        None, "--analysis-max-side", help="Pass1 analysis max side (None=native); screenshots stay full-res"
+    ),
     slide_roi: str | None = typer.Option(None, "--slide-roi", help="ROI: auto, full, or x1,y1,x2,y2"),
     ignore_roi: list[str] | None = typer.Option(None, "--ignore-roi", help="Region to ignore"),
     threshold: str | None = typer.Option(None, "--threshold", help="Diff threshold or auto"),
@@ -87,6 +90,7 @@ def detect(
     cli_overrides = _build_cli_overrides(
         sample_fps=sample_fps,
         decoder_backend=decoder_backend,
+        analysis_max_side=analysis_max_side,
         slide_roi=slide_roi,
         ignore_roi=ignore_roi,
         threshold=threshold,
@@ -213,6 +217,9 @@ def detect_slides(
     config: str | None = typer.Option(None, "--config", "-c", help="Path to YAML config file"),
     sample_fps: float | None = typer.Option(None, "--sample-fps", help="Frame sampling rate"),
     decoder_backend: str | None = typer.Option(None, "--decoder-backend", help="Decoder backend"),
+    analysis_max_side: int | None = typer.Option(
+        None, "--analysis-max-side", help="Pass1 analysis max side (None=native); screenshots stay full-res"
+    ),
     slide_roi: str | None = typer.Option(None, "--slide-roi", help="ROI: auto, full, or x1,y1,x2,y2"),
     ignore_roi: list[str] | None = typer.Option(None, "--ignore-roi", help="Region to ignore"),
     threshold: str | None = typer.Option(None, "--threshold", help="Diff threshold or auto"),
@@ -232,6 +239,7 @@ def detect_slides(
     cli_overrides = _build_cli_overrides(
         sample_fps=sample_fps,
         decoder_backend=decoder_backend,
+        analysis_max_side=analysis_max_side,
         slide_roi=slide_roi,
         ignore_roi=ignore_roi,
         threshold=threshold,
@@ -628,6 +636,10 @@ def _build_cli_overrides(**kwargs) -> dict:
     backend = kwargs.get("decoder_backend")
     if backend is not None:
         overrides.setdefault("video", {})["decoder_backend"] = backend
+
+    analysis_max_side = kwargs.get("analysis_max_side")
+    if analysis_max_side is not None:
+        overrides.setdefault("video", {})["analysis_max_side"] = analysis_max_side
 
     roi = kwargs.get("slide_roi")
     if roi is not None:

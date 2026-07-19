@@ -189,6 +189,7 @@ def migrate_v1_to_v2(
             min_slide_duration=legacy_detection.get("min_slide_duration", 2.0),
             min_stable_duration=legacy_detection.get("min_stable_duration", 2.0),
             dedupe_enabled=legacy_detection.get("dedupe_enabled", True),
+            analysis_max_side=legacy_detection.get("analysis_max_side"),
         ),
         extensions={"legacy": legacy_extensions} if legacy_extensions else {},
     )
@@ -208,4 +209,11 @@ def _extract_legacy_detection(data: dict, extensions: dict) -> dict:
         "min_slide_duration": ext_det.get("min_slide_duration", 2.0),
         "min_stable_duration": ext_det.get("min_stable_duration", 2.0),
         "dedupe_enabled": ext_det.get("dedupe_enabled", True),
+        "analysis_max_side": (
+            video_cfg.get("analysis_max_side")
+            if video_cfg.get("analysis_max_side") is not None
+            else ext_video.get("analysis_max_side")
+            if ext_video.get("analysis_max_side") is not None
+            else ext_det.get("analysis_max_side")
+        ),
     }

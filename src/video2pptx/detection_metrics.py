@@ -19,9 +19,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.2.0 — Added pass1_decode_or_frame_advance, pass2_decode_or_frame_advance,
-#                pass2_match_and_collect timers; InstrumentedIterator supports optional MetricsTimer
-#                for wall-clock timing of next() including StopIteration exhaustion and exceptions
+#   LAST_CHANGE: v1.3.0 — Phase 19: gauges analysis_max_side, analysis_height, analysis_width, analysis_scale_factor
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -160,6 +158,11 @@ class DetectionRunMetrics:
     gauge_rss_peak_mb: MetricsGauge = field(default_factory=MetricsGauge)
     gauge_rss_after_mb: MetricsGauge = field(default_factory=MetricsGauge)
     gauge_peak_in_flight: MetricsGauge = field(default_factory=MetricsGauge)
+    # Phase 19 analysis-scale tags (0 = unset/native)
+    gauge_analysis_max_side: MetricsGauge = field(default_factory=MetricsGauge)
+    gauge_analysis_height: MetricsGauge = field(default_factory=MetricsGauge)
+    gauge_analysis_width: MetricsGauge = field(default_factory=MetricsGauge)
+    gauge_analysis_scale_factor: MetricsGauge = field(default_factory=MetricsGauge)
 
     # ------------------------------------------------------------------
     # Schema conversion

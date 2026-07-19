@@ -15,7 +15,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.1.0 - Complete Phase 16 MCP port adapter integration
+#   LAST_CHANGE: v1.2.0 - Pass analysis_max_side into AppConfig video (Phase 19)
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -48,9 +48,14 @@ class LegacySlideDetector(SlideDetectorPort):
         min_slide_duration: float,
         dedupe_enabled: bool,
         decoder_backend: str = "auto",
+        analysis_max_side: int | None = None,
     ) -> DetectionOutput:
         cfg = AppConfig(
-            video={"sample_fps": sample_fps, "decoder_backend": decoder_backend},
+            video={
+                "sample_fps": sample_fps,
+                "decoder_backend": decoder_backend,
+                "analysis_max_side": analysis_max_side,
+            },
             detection={
                 "threshold": threshold,
                 "min_stable_duration": min_stable_duration,

@@ -2449,4 +2449,178 @@
         <scenario-2 kind="failure">Phase-18/Step-18.8 rejects malformed input or surfaces a structured error when the contract is violated.</scenario-2>
       </scenarios>
     </V-M-PERF-DETECT-ACCEPTANCE>
+
+  <!-- ===== Phase 19 — Analysis Resolution & Golden Mean ===== -->
+  <!-- Does NOT reopen Phase 18. Separate optimization class: analysis_max_side × sample_fps. -->
+
+  <V-M-PHASE19-PLAN MODULE="Phase-19/Step-19.0" PRIORITY="high" STATUS="passed">
+    <purpose>Phase 19 plan freeze: human plan + GRACE artifacts exist; no production code before approval.</purpose>
+    <verification-contract>
+      <scenario-1 kind="success">docs/plans/phase19-analysis-resolution-golden-mean.md exists and states dual-res invariant and non-reopen of Phase 18.</scenario-1>
+      <scenario-2 kind="success">development-plan.xml contains Phase-19 with steps 19.0–19.9 and planned modules M-ANALYSIS-SCALE, M-GOLDEN-MEAN-SWEEP, M-GOLDEN-MEAN-DECISION.</scenario-2>
+      <scenario-3 kind="success">knowledge-graph.xml lists planned Phase 19 modules with verification-refs.</scenario-3>
+      <scenario-4 kind="success">F-0104 recorded: analysis resolution not discriminated in Phase 18.</scenario-4>
+    </verification-contract>
+    <test-files />
+    <module-checks>
+      <check-1>Test-Path docs/plans/phase19-analysis-resolution-golden-mean.md</check-1>
+    </module-checks>
+    <wave-follow-up />
+    <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    <required-trace-assertions>
+      <assertion>Plan document declares Phase 18 T3 / selected_optimization=NONE unchanged.</assertion>
+      <assertion>Plan document declares Pass2 screenshots remain full-res.</assertion>
+    </required-trace-assertions>
+    <scenarios>
+      <scenario-1 kind="success">Plan artifacts present and consistent.</scenario-1>
+      <scenario-2 kind="failure">Implementation starts without user approval of Phase 19 plan.</scenario-2>
+    </scenarios>
+  </V-M-PHASE19-PLAN>
+
+  <V-M-ANALYSIS-SCALE MODULE="M-ANALYSIS-SCALE" PRIORITY="high" STATUS="passed">
+    <purpose>Unit contract for analysis downscale helper and VideoConfig.analysis_max_side schema.</purpose>
+    <verification-contract>
+      <scenario-1 kind="success">scale_for_analysis with max_side=None returns identical array (or equal content) and scale_factor=1.0.</scenario-1>
+      <scenario-2 kind="success">max_side smaller than both dimensions produces max(H,W)==max_side and preserved aspect within 1px.</scenario-2>
+      <scenario-3 kind="success">max_side larger than frame does not upscale (identity).</scenario-3>
+      <scenario-4 kind="failure">Invalid analysis_max_side (negative, non-int) rejected by config validation.</scenario-4>
+      <scenario-5 kind="success">Default analysis_max_side is null/None — native parity with pre-Phase-19 behavior.</scenario-5>
+    </verification-contract>
+    <evidence><result>
+      PASSED 2026-07-18: pytest tests/test_analysis_scale.py tests/test_config.py — scale identity,
+      no-upscale, landscape/portrait max_side, config default None, rejects 0/negative.
+    </result></evidence>
+    <test-files>
+      <file>tests/test_analysis_scale.py</file>
+      <file>tests/test_config.py</file>
+    </test-files>
+    <module-checks>
+      <check-1>python -m pytest tests/test_analysis_scale.py tests/test_config.py -q</check-1>
+    </module-checks>
+    <wave-follow-up>python -m pytest tests/test_analysis_scale.py tests/test_config.py -q</wave-follow-up>
+    <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    <required-trace-assertions>
+      <assertion>test_analysis_scale asserts no-upscale and aspect preservation.</assertion>
+      <assertion>test_config asserts analysis_max_side default None and rejects negative values.</assertion>
+    </required-trace-assertions>
+    <scenarios>
+      <scenario-1 kind="success">AnalysisScale fulfills identity / downscale / no-upscale contracts.</scenario-1>
+      <scenario-2 kind="failure">Invalid config rejected.</scenario-2>
+    </scenarios>
+  </V-M-ANALYSIS-SCALE>
+
+  <V-M-DETECT-ANALYSIS-SCALE MODULE="M-DETECT-SLIDES" PRIORITY="high" STATUS="passed">
+    <purpose>Dual-resolution detect path: Pass1 analysis scale; Pass2 full-res screenshots.</purpose>
+    <verification-contract>
+      <scenario-1 kind="success">With analysis_max_side set, detect completes and metrics report analysis dimensions ≤ max_side.</scenario-1>
+      <scenario-2 kind="success">Written PNG screenshots match native ROI crop size (full-res invariant).</scenario-2>
+      <scenario-3 kind="success">analysis_max_side=None preserves prior two-pass detect semantics on fixture video (segment count stable within existing tests).</scenario-3>
+      <scenario-4 kind="failure">If scale were incorrectly applied to Pass2 writes, test asserts PNG shape != expected native crop and fails.</scenario-4>
+    </verification-contract>
+    <evidence><result>
+      PASSED 2026-07-18: analysis_max_side=64 on fixture yields metrics width=64 scale_factor&lt;1;
+      PNG shape equals native 640x480; iter_frames called twice.
+    </result></evidence>
+    <test-files>
+      <file>tests/test_detect_slides.py</file>
+      <file>tests/test_analysis_scale.py</file>
+    </test-files>
+    <module-checks>
+      <check-1>python -m pytest tests/test_detect_slides.py tests/test_analysis_scale.py -q</check-1>
+    </module-checks>
+    <wave-follow-up>python -m pytest tests/test_detect_slides.py -q</wave-follow-up>
+    <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    <required-trace-assertions>
+      <assertion>Detect tests assert Pass2 screenshot full-res invariant when analysis_max_side is set.</assertion>
+      <assertion>Detect path still calls decoder.iter_frames exactly twice (two-pass preserved).</assertion>
+    </required-trace-assertions>
+    <scenarios>
+      <scenario-1 kind="success">Dual-res path works with scaled analysis and full-res PNG.</scenario-1>
+      <scenario-2 kind="failure">Full-res invariant violation is detected by tests.</scenario-2>
+    </scenarios>
+  </V-M-DETECT-ANALYSIS-SCALE>
+
+  <V-M-GOLDEN-MEAN-SWEEP MODULE="M-GOLDEN-MEAN-SWEEP" PRIORITY="medium" STATUS="passed">
+    <purpose>Sweep tool emits grid evidence with quality metrics vs native reference and real wall-clock/stage timers.</purpose>
+    <verification-contract>
+      <scenario-1 kind="success">Tool accepts grid of analysis_max_side × sample_fps and writes per-cell JSON.</scenario-1>
+      <scenario-2 kind="success">Each cell records wall_clock, slides_count, missed_slide_rate, false_split_rate, timestamp_error.</scenario-2>
+      <scenario-3 kind="success">Reference cell is native max_side + baseline sample_fps on same code HEAD.</scenario-3>
+      <scenario-4 kind="failure">Missing reference or empty video path fails with structured error (non-zero exit).</scenario-4>
+    </verification-contract>
+    <evidence><result>
+      PASSED 2026-07-18. Unit tests test_golden_mean_sweep.py. Live runs:
+      phase19-fixture-smoke (extract −72…91%, wall −10…14%);
+      phase19-hermes-600s-20260718 (native wall 243.85s → 480: 113.25s, extract 85.95→5.67s).
+    </result></evidence>
+    <test-files>
+      <file>tests/test_golden_mean_sweep.py</file>
+    </test-files>
+    <module-checks>
+      <check-1>python -m pytest tests/test_golden_mean_sweep.py -q</check-1>
+    </module-checks>
+    <wave-follow-up>python -m pytest tests/test_golden_mean_sweep.py -q</wave-follow-up>
+    <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    <required-trace-assertions>
+      <assertion>Sweep schema includes analysis_max_side, sample_fps, and quality gate fields.</assertion>
+    </required-trace-assertions>
+    <scenarios>
+      <scenario-1 kind="success">Sweep produces complete grid artifacts on fixture video.</scenario-1>
+      <scenario-2 kind="failure">Invalid inputs rejected.</scenario-2>
+    </scenarios>
+  </V-M-GOLDEN-MEAN-SWEEP>
+
+  <V-M-GOLDEN-MEAN-DECISION MODULE="M-GOLDEN-MEAN-DECISION" PRIORITY="high" STATUS="passed">
+    <purpose>Select golden-mean defaults under hard gates or accept selected_analysis_scale=NONE.</purpose>
+    <verification-contract>
+      <scenario-1 kind="success">Decision artifact lists selected analysis_max_side and sample_fps when a gate-passing cell exists.</scenario-1>
+      <scenario-2 kind="success">If no cell passes gates, selected_analysis_scale=NONE with explicit negative terminal rationale.</scenario-2>
+      <scenario-3 kind="success">Tie-break: among passers prefer higher speedup, then higher max_side, then higher sample_fps.</scenario-3>
+      <scenario-4 kind="success">Decision explicitly does not modify Phase 18 selected_optimization=NONE.</scenario-4>
+    </verification-contract>
+    <evidence><result>
+      PASSED 2026-07-18 Hermes decision: selected_analysis_scale=480, sample_fps=2.0,
+      wall_reduction_pct≈53.6, extract_features_reduction_pct≈93.4, phase18_reopened=false.
+      960/640/320 rejected on false_split_rate=0.33 vs native 4-slide reference.
+      See benchmarks/detect/evidence/phase19-hermes-600s-20260718/golden_mean_decision.md.
+    </result></evidence>
+    <test-files />
+    <module-checks>
+      <check-1>Validate golden_mean_decision.json schema when evidence package present</check-1>
+    </module-checks>
+    <wave-follow-up />
+    <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    <required-trace-assertions>
+      <assertion>Decision JSON contains selected_analysis_scale or selected params and phase18_reopened=false.</assertion>
+    </required-trace-assertions>
+    <scenarios>
+      <scenario-1 kind="success">Decision selects a gate-passing cell or NONE.</scenario-1>
+      <scenario-2 kind="failure">Decision that rewrites Phase 18 outcome is rejected.</scenario-2>
+    </scenarios>
+  </V-M-GOLDEN-MEAN-DECISION>
+
+  <V-M-PHASE19-ACCEPTANCE MODULE="Phase-19/Step-19.9" PRIORITY="high" STATUS="passed">
+    <purpose>Phase 19 closeout: quality gates, full-res screenshot invariant, docs refresh, Phase 18 untouched, default 480.</purpose>
+    <verification-contract>
+      <scenario-1 kind="success">missed_slide_rate &lt;= 5%, false_split_rate &lt;= 10% on accepted config (or NONE with native default).</scenario-1>
+      <scenario-2 kind="success">Pass2 screenshots remain full-res under accepted analysis_max_side.</scenario-2>
+      <scenario-3 kind="success">docs knowledge-graph / development-plan / verification-plan refreshed to actual state.</scenario-3>
+      <scenario-4 kind="success">Phase 18 terminal outcome text still T3 / selected_optimization=NONE.</scenario-4>
+    </verification-contract>
+    <evidence><result>
+      PASSED 2026-07-18. Hermes decision analysis_max_side=480 (~2.15× wall, extract −93%, gates PASS).
+      Runtime default set to 480; explicit None still works. Full-res PNG invariant tested.
+      Phase 18 bottleneck decision artifacts unchanged. Phase-19 status=done.
+    </result></evidence>
+    <wave-follow-up />
+    <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    <required-trace-assertions>
+      <assertion>Phase 19 acceptance does not alter Phase 18 bottleneck decision artifacts.</assertion>
+      <assertion>VideoConfig default analysis_max_side == 480.</assertion>
+    </required-trace-assertions>
+    <scenarios>
+      <scenario-1 kind="success">Phase 19 accepted with selected defaults or documented negative outcome.</scenario-1>
+      <scenario-2 kind="failure">Full-res or quality gate failure blocks acceptance.</scenario-2>
+    </scenarios>
+  </V-M-PHASE19-ACCEPTANCE>
 </VerificationPlan>

@@ -15,7 +15,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.1.2 - Document evidence_observer as a trusted intrusive diagnostic hook (mutable ndarray, before extract, can alter detection); runtime semantics unchanged
+#   LAST_CHANGE: v0.2.0 - Phase 19: optional analysis_max_side after ROI before extract; metrics tags; observer still sees native crop
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -25,6 +25,7 @@ from collections.abc import Callable, Iterator
 import numpy as np
 from loguru import logger
 
+from video2pptx.analysis_scale import scale_for_analysis
 from video2pptx.detection_metrics import get as _get_metrics
 from video2pptx.detection_metrics import measure
 from video2pptx.frame_features import compute_threshold, extract_features, visual_distance
@@ -57,28 +58,31 @@ def detect_changes(
     extract_fn: Callable | None = None,
     distance_fn: Callable | None = None,
     quick_mode: bool = False,
+    analysis_max_side: int | None = None,
     # evidence_observer contract (see EVIDENCE_OBSERVER_CONTRACT above):
-    #   - disabled by default (None) -> production path unchanged
-    #   - "sampled_frame" hands the callback the MUTABLE cropped ndarray BEFORE extract
+    #   - disabled by default (None) -> production path unchanged when analysis_max_side is None
+    #   - "sampled_frame" hands the callback the MUTABLE native cropped ndarray AFTER ROI
+    #     and BEFORE analysis scale / extract
     #   - trusted intrusive diagnostic hook; CAN alter detection; not semantically inert
     #   - public production callers MUST NOT use it to mutate the image
     evidence_observer: Callable[[str, dict], None] | None = None,
 ) -> tuple[list[ChangeEvent], list[FrameFeatures], list[float]]:
     # START_CONTRACT: detect_changes
     #   PURPOSE: Scan consecutive frames and identify debounced slide changes
-    #   INPUTS: { frames: timestamp/image iterator, slide_region: SlideRegion|None, threshold: float|str, min_stable_duration: float, sample_fps: float, video_duration: float|None, progress_callback: Callable|None, extract_fn: Callable|None, distance_fn: Callable|None, quick_mode: bool, evidence_observer: optional diagnostic callback }
+    #   INPUTS: { frames, slide_region, threshold, min_stable_duration, sample_fps, video_duration, progress_callback, extract_fn, distance_fn, quick_mode, analysis_max_side, evidence_observer }
     #   OUTPUTS: { tuple[list[ChangeEvent], list[FrameFeatures], list[float]] }
     #   SIDE_EFFECTS: emits progress logs and optional progress callbacks
-    #   LINKS: M-SLIDE-DETECTOR, M-DETECT-METRICS
+    #   LINKS: M-SLIDE-DETECTOR, M-DETECT-METRICS, M-ANALYSIS-SCALE
     #   EVIDENCE_OBSERVER_CONTRACT:
-    #     - Disabled by default (evidence_observer=None). When None, the production
-    #       detection path and its result are byte-for-byte unchanged.
+    #     - Disabled by default (evidence_observer=None). When None and analysis_max_side is
+    #       None, the production detection path matches pre-Phase-19 native semantics.
     #     - When enabled, the "sampled_frame" event is emitted AFTER ROI cropping and
-    #       BEFORE feature extraction, and its payload dict carries the image under the
-    #       key "image" as the MUTABLE cropped ndarray (a live reference, not a copy).
-    #     - Because the ndarray is mutable and is the same buffer subsequently passed to
-    #       extract_features, a callback CAN modify it and therefore CAN alter the
-    #       detection result. The observer is a TRUSTED INTRUSIVE DIAGNOSTIC HOOK, NOT a
+    #       BEFORE analysis scale / feature extraction, and its payload dict carries the
+    #       image under the key "image" as the MUTABLE native cropped ndarray (live ref).
+    #     - analysis_max_side (Phase 19) scales for extract only; observer still sees the
+    #       native crop so full-res retention diagnostics remain valid.
+    #     - Because the ndarray is mutable, a callback CAN modify it and therefore CAN alter
+    #       the detection result. The observer is a TRUSTED INTRUSIVE DIAGNOSTIC HOOK, NOT a
     #       semantically inert observation point.
     #     - Public/production callers MUST NOT use evidence_observer to mutate the image
     #       or otherwise change detection semantics; it exists for trusted diagnostics
@@ -94,6 +98,7 @@ def detect_changes(
     all_scores: list[float] = []
     _extract = extract_fn or extract_features
     _dist = distance_fn or visual_distance
+    analysis_metrics_set = False
     # END_BLOCK_DETECT_INIT
 
     # START_BLOCK_PROCESS_FRAMES
@@ -105,13 +110,25 @@ def detect_changes(
 
         with measure("roi"):
             cropped = slide_region.process(image)
-        # Intrusive observer hook: emitted BEFORE extract_features with the MUTABLE
-        # cropped ndarray. A callback that mutates `cropped` WILL change detection.
+        # Intrusive observer hook: native ROI crop BEFORE analysis scale / extract.
         if evidence_observer is not None:
             evidence_observer("sampled_frame", {"timestamp": timestamp, "image": cropped})
 
+        # START_BLOCK_ANALYSIS_SCALE
+        analysis_frame, scale_factor = scale_for_analysis(cropped, analysis_max_side)
+        if m is not None and not analysis_metrics_set:
+            ah, aw = analysis_frame.shape[:2]
+            m.gauge_analysis_height.value = ah
+            m.gauge_analysis_width.value = aw
+            m.gauge_analysis_scale_factor.value = scale_factor
+            m.gauge_analysis_max_side.value = (
+                int(analysis_max_side) if analysis_max_side is not None and analysis_max_side > 0 else 0
+            )
+            analysis_metrics_set = True
+        # END_BLOCK_ANALYSIS_SCALE
+
         with measure("extract_features"):
-            ff = _extract(cropped)
+            ff = _extract(analysis_frame)
         ff.timestamp = timestamp
         all_features.append(ff)
 

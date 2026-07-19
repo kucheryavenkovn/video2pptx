@@ -101,6 +101,7 @@ class ProjectMapper:
         project.detection.min_slide_duration = dc.min_slide_duration
         project.detection.min_stable_duration = dc.min_stable_duration
         project.detection.dedupe_enabled = dc.dedupe_enabled
+        project.detection.analysis_max_side = dc.analysis_max_side
         # END_BLOCK_DETECTION_TO_DOMAIN
         return project
 
@@ -169,6 +170,7 @@ class ProjectMapper:
                 min_slide_duration=project.detection.min_slide_duration,
                 min_stable_duration=project.detection.min_stable_duration,
                 dedupe_enabled=project.detection.dedupe_enabled,
+                analysis_max_side=project.detection.analysis_max_side,
             ),
             extensions=dict(project.extensions),
         )

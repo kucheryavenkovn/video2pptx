@@ -30,11 +30,13 @@ class TestVideoConfig:
         vc = VideoConfig()
         assert vc.sample_fps == 0.5
         assert vc.decoder_backend == "auto"
+        assert vc.analysis_max_side == 480
 
     def test_custom(self):
-        vc = VideoConfig(sample_fps=5.0, decoder_backend="pynv")
+        vc = VideoConfig(sample_fps=5.0, decoder_backend="pynv", analysis_max_side=640)
         assert vc.sample_fps == 5.0
         assert vc.decoder_backend == "pynv"
+        assert vc.analysis_max_side == 640
 
     def test_invalid_fps_negative(self):
         with pytest.raises(ValidationError):
@@ -43,6 +45,14 @@ class TestVideoConfig:
     def test_invalid_fps_too_high(self):
         with pytest.raises(ValidationError):
             VideoConfig(sample_fps=60.0)
+
+    def test_invalid_analysis_max_side_negative(self):
+        with pytest.raises(ValidationError):
+            VideoConfig(analysis_max_side=-1)
+
+    def test_invalid_analysis_max_side_zero(self):
+        with pytest.raises(ValidationError):
+            VideoConfig(analysis_max_side=0)
 
 
 class TestDetectionConfig:

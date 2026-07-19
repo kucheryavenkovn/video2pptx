@@ -201,6 +201,20 @@ authoritative wording lives in `docs/development-plan.xml`,
 `docs/verification-plan.xml`, `docs/knowledge-graph.xml`, and `docs/findings.md`
 (F-0103).
 
+### Phase 19 — Analysis Resolution & Golden Mean
+
+**Status: done** (accepted 2026-07-18).
+
+Dual-resolution detect path: Pass 1 may downscale for features; Pass 2 screenshots
+remain full resolution. Does **not** reopen Phase 18.
+
+- Hermes 600s evidence: `analysis_max_side=480` → ~**2.15×** wall-clock,
+  `extract_features` **−93%**, quality gates PASS vs native.
+- **Runtime default:** `video.analysis_max_side: 480` (override with `null` for native).
+- Plan: `docs/plans/phase19-analysis-resolution-golden-mean.md`
+- Evidence: `benchmarks/detect/evidence/phase19-hermes-600s-20260718/`
+- Findings: F-0104, F-0105
+
 ### GRACE Stabilization
 
 A body of work whose purpose is **trust in the engineering frame itself**, not

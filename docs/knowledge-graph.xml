@@ -897,6 +897,15 @@
     <CrossLink from="M-GUI-SIGNAL-SPY" to="M-TIMELINE-MODEL" relation="watches Track/Timeline signals" />
     <!-- MCP Server -->
     <CrossLink from="M-DEBUG-MCP" to="M-PROJECT-MODEL" relation="reads ProjectModel for get_project, write tools via command queue" />
+    <!-- Phase 19 Analysis Resolution / Golden Mean -->
+    <CrossLink from="M-ANALYSIS-SCALE" to="M-CONFIG" relation="reads analysis_max_side from VideoConfig" />
+    <CrossLink from="M-ANALYSIS-SCALE" to="M-FRAME-FEATURES" relation="feeds scaled frames into extract_features (Pass1)" />
+    <CrossLink from="M-DETECT-SLIDES" to="M-ANALYSIS-SCALE" relation="Pass1 analysis scale after ROI; Pass2 full-res screenshots" />
+    <CrossLink from="M-GOLDEN-MEAN-SWEEP" to="M-DETECT-SLIDES" relation="runs detect grid cells for evidence" />
+    <CrossLink from="M-GOLDEN-MEAN-SWEEP" to="M-ANALYSIS-SCALE" relation="varies analysis_max_side" />
+    <CrossLink from="M-GOLDEN-MEAN-DECISION" to="M-GOLDEN-MEAN-SWEEP" relation="consumes sweep evidence" />
+    <CrossLink from="M-PHASE19-PLAN" to="M-DETECT-PERF-DECISION" relation="does not reopen Phase 18 T3; new optimization class" />
+
     <CrossLink from="M-DEBUG-MCP" to="M-TIMELINE-MODEL" relation="serializes Timeline for get_state" />
     <CrossLink from="M-DEBUG-MCP" to="M-DEBUG-ACTION" relation="delegates action tools to ActionRegistry" />
     <CrossLink from="M-DEBUG-ACTION" to="M-GUI-MAIN" relation="scanned for @mcp_action decorated methods" />
@@ -1003,6 +1012,41 @@
       <annotations><fn-run_reference_repeatability PURPOSE="Classify exact sampled RGB sequence repeatability across three fresh opens" /><type-RollingRepresentativeRetention PURPOSE="Diagnostic exact online retention observer using production debounce semantics" /><fn-build_aggregate PURPOSE="Derive candidate states and decision outcome only from validated child artifacts" /></annotations>
     </M-DETECT-TARGET-DISCRIMINATION-R2>
     <!-- ===== DETECT PERFORMANCE (Phase-18) ===== -->
+    <!-- ===== ANALYSIS RESOLUTION / GOLDEN MEAN (Phase-19) ===== -->
+    <M-ANALYSIS-SCALE NAME="AnalysisScale" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Phase 19: pure analysis-resolution policy — downscale frames for detection features after ROI; never upscale; default analysis_max_side=480 (Hermes golden mean). Screenshot export remains full-res (Pass 2). Wired into slide_detector.detect_changes + detect_slides + DetectionService.</purpose>
+      <path>src/video2pptx/analysis_scale.py</path>
+      <depends>M-CONFIG</depends>
+      <verification-ref>V-M-ANALYSIS-SCALE, V-M-DETECT-ANALYSIS-SCALE</verification-ref>
+      <cross-links>M-FRAME-FEATURES, M-SLIDE-DETECTOR, M-DETECT-SLIDES, M-CONFIG</cross-links>
+      <annotations>
+        <fn-scale_for_analysis PURPOSE="Downscale RGB frame to analysis_max_side with INTER_AREA; identity if None/smaller" />
+        <fn-normalize_analysis_max_side PURPOSE="Coerce 0/negative/None to None" />
+        <param-analysis_max_side PURPOSE="Optional max side length for Pass1 feature extraction only" />
+      </annotations>
+    </M-ANALYSIS-SCALE>
+    <M-GOLDEN-MEAN-SWEEP NAME="GoldenMeanSweep" TYPE="TOOL" STATUS="implemented">
+      <purpose>Phase 19: grid-sweep analysis_max_side × sample_fps; wall-clock + stage timers; segment quality vs native; evidence under benchmarks/detect/evidence/phase19-*/</purpose>
+      <path>tools/sweep_analysis_resolution.py</path>
+      <depends>M-ANALYSIS-SCALE, M-DETECT-SLIDES, M-DETECT-METRICS</depends>
+      <verification-ref>V-M-GOLDEN-MEAN-SWEEP</verification-ref>
+      <cross-links>M-DETECT-SLIDES, M-DETECT-BENCHMARK, M-ANALYSIS-SCALE</cross-links>
+    </M-GOLDEN-MEAN-SWEEP>
+    <M-GOLDEN-MEAN-DECISION NAME="GoldenMeanDecision" TYPE="DECISION" STATUS="done">
+      <purpose>Phase 19 Hermes: selected analysis_max_side=480 (sample_fps=2) — wall −53.6% / ~2.15×, extract_features −93.4%, gates PASS vs native; phase18_reopened=false. Evidence: phase19-hermes-600s-20260718/</purpose>
+      <path>benchmarks/detect/evidence/phase19-hermes-600s-20260718/golden_mean_decision.json</path>
+      <depends>M-GOLDEN-MEAN-SWEEP</depends>
+      <verification-ref>V-M-GOLDEN-MEAN-DECISION</verification-ref>
+      <cross-links>M-GOLDEN-MEAN-SWEEP, M-DETECT-PERF-DECISION, M-ANALYSIS-SCALE</cross-links>
+    </M-GOLDEN-MEAN-DECISION>
+    <M-PHASE19-PLAN NAME="Phase19Plan" TYPE="PLAN" STATUS="done">
+      <purpose>Phase 19 complete. Hermes golden mean analysis_max_side=480 is runtime default (~2.15× wall). Explicit None = native. Phase 18 not reopened.</purpose>
+      <path>docs/plans/phase19-analysis-resolution-golden-mean.md</path>
+      <depends>M-DETECT-PERF-DECISION</depends>
+      <verification-ref>V-M-PHASE19-PLAN, V-M-PHASE19-ACCEPTANCE</verification-ref>
+      <cross-links>M-ANALYSIS-SCALE, M-GOLDEN-MEAN-SWEEP, M-GOLDEN-MEAN-DECISION, M-DETECT-SLIDES</cross-links>
+    </M-PHASE19-PLAN>
+    <!-- ===== ANALYSIS RESOLUTION / GOLDEN MEAN (Phase-19) ===== -->
     <M-ARCH-OVERVIEW NAME="ArchitectureOverview" TYPE="UTILITY" STATUS="planned">
       <purpose>Target layered architecture: domain/application/infrastructure/adapters with ports and dependency rules. See docs/architecture.md for full context.</purpose>
       <path>docs/architecture.md</path>

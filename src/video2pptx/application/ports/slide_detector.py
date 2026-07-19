@@ -15,7 +15,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.1.0 - Add decoder_backend to detect signature
+#   LAST_CHANGE: v1.2.0 - Optional analysis_max_side (Phase 19 dual-res Pass1)
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -52,5 +52,6 @@ class SlideDetectorPort(Protocol):
         min_slide_duration: float,
         dedupe_enabled: bool,
         decoder_backend: str = "auto",
+        analysis_max_side: int | None = None,
     ) -> DetectionOutput:
         ...

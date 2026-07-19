@@ -8,6 +8,8 @@
     <risk-3>detect-slides is the longest step (2 video passes). Notes and export are fast.</risk-3>
     <risk-4>PySide6 adds ~50MB dependency — must be optional via extras.</risk-4>
     <risk-5>QThread lifecycle bugs may cause crashes when switching projects mid-operation.</risk-5>
+    <risk-6>Analysis downscale may miss text-only or dense-code slide changes; quality must be gated by missed/false_split, not assumed from speedup.</risk-6>
+    <risk-7>Phase 19 dual-res path must never reduce Pass 2 screenshot resolution; analysis and export quality budgets stay separate.</risk-7>
   </ArchitectureNotes>
 
   <Modules>
@@ -25,7 +27,7 @@
 
     <M-CONFIG NAME="Config" TYPE="UTILITY" LAYER="0" ORDER="2" STATUS="implemented">
       <contract>
-        <purpose>Load configuration from YAML file and merge with CLI arguments.</purpose>
+        <purpose>Load configuration from YAML file and merge with CLI arguments. Phase 19: VideoConfig.analysis_max_side default 480 (Hermes golden mean); None = native analysis.</purpose>
         <inputs><param name="config_path" type="Path|None" /><param name="cli_kwargs" type="dict" /></inputs>
         <outputs><param name="Config" type="Config object with validated fields" /></outputs>
       </contract>
@@ -33,6 +35,72 @@
       <verification-ref>V-M-CONFIG</verification-ref>
       <depends>M-MODELS</depends>
     </M-CONFIG>
+
+    <M-ANALYSIS-SCALE NAME="AnalysisScale" TYPE="UTILITY" LAYER="0" ORDER="2.5" STATUS="implemented">
+      <contract>
+        <purpose>Pure analysis-resolution policy: downscale frames for detection features without changing screenshot export resolution.</purpose>
+        <inputs>
+          <param name="image" type="np.ndarray RGB" />
+          <param name="analysis_max_side" type="int|None" />
+        </inputs>
+        <outputs>
+          <param name="scaled_image" type="np.ndarray RGB" />
+          <param name="scale_factor" type="float" />
+        </outputs>
+        <rules>
+          <rule>None/0 max_side = identity</rule>
+          <rule>Never upscale</rule>
+          <rule>INTER_AREA for downscale; preserve aspect ratio</rule>
+          <rule>Applied after ROI/masks on native coordinates</rule>
+        </rules>
+      </contract>
+      <target>
+        <source>src/video2pptx/analysis_scale.py</source>
+        <tests>tests/test_analysis_scale.py</tests>
+      </target>
+      <verification-ref>V-M-ANALYSIS-SCALE</verification-ref>
+      <depends>M-CONFIG</depends>
+    </M-ANALYSIS-SCALE>
+
+    <M-GOLDEN-MEAN-SWEEP NAME="GoldenMeanSweep" TYPE="TOOL" LAYER="0" ORDER="2.6" STATUS="implemented">
+      <contract>
+        <purpose>Grid-sweep analysis_max_side × sample_fps; compare detected segments to native reference; emit quality and wall-clock metrics for golden-mean decision.</purpose>
+        <inputs>
+          <param name="video_path" type="Path" />
+          <param name="grid" type="analysis_max_side list × sample_fps list" />
+        </inputs>
+        <outputs>
+          <param name="evidence package" type="JSON + MD under benchmarks/detect/evidence/phase19-*/" />
+        </outputs>
+      </contract>
+      <target>
+        <source>tools/sweep_analysis_resolution.py</source>
+        <tests>tests/test_golden_mean_sweep.py</tests>
+      </target>
+      <verification-ref>V-M-GOLDEN-MEAN-SWEEP</verification-ref>
+      <depends>M-ANALYSIS-SCALE, M-DETECT-SLIDES, M-DETECT-METRICS</depends>
+    </M-GOLDEN-MEAN-SWEEP>
+
+    <M-GOLDEN-MEAN-DECISION NAME="GoldenMeanDecision" TYPE="DECISION" LAYER="0" ORDER="2.7" STATUS="done">
+      <contract>
+        <purpose>Select golden-mean defaults from sweep evidence under hard quality gates, or accept selected_analysis_scale=NONE. Hermes 2026-07-18: analysis_max_side=480 (~2.15× wall).</purpose>
+        <outputs>
+          <param name="golden_mean_decision.json" type="decision artifact" />
+          <param name="golden_mean_decision.md" type="human rationale" />
+        </outputs>
+        <gates>
+          <gate name="missed_slide_rate" value="&lt;=5%" />
+          <gate name="false_split_rate" value="&lt;=10%" />
+          <gate name="timestamp_error" value="within fps-scaled budget; &lt;=1.5s at sample_fps=2" />
+          <gate name="screenshots_full_res" value="Pass2 PNG crop matches native ROI size" />
+        </gates>
+      </contract>
+      <target>
+        <source>benchmarks/detect/evidence/phase19-hermes-600s-20260718/golden_mean_decision.json</source>
+      </target>
+      <verification-ref>V-M-GOLDEN-MEAN-DECISION</verification-ref>
+      <depends>M-GOLDEN-MEAN-SWEEP</depends>
+    </M-GOLDEN-MEAN-DECISION>
 
     <M-CLI NAME="CLI" TYPE="ENTRY_POINT" LAYER="0" ORDER="3" STATUS="implemented">
       <contract>
@@ -1472,6 +1540,59 @@
         Accept performance work only when the recovered-tree quality and timing gates pass.
       </step-18.8>
     </Phase-18>
+    <Phase-19 name="AnalysisResolutionGoldenMean" status="done">
+      <goal>
+        Discriminate analysis-path resolution reduction and sample_fps tradeoffs for slide
+        detection. Separate analysis quality budget from screenshot quality budget. Select a
+        reproducible golden-mean configuration that passes MVP quality gates with the best
+        measured speedup, or accept a documented negative outcome if no cell passes.
+        Does NOT reopen Phase 18: T3 / selected_optimization=NONE remains accepted for C1/C2/C3.
+      </goal>
+      <plan-doc>docs/plans/phase19-analysis-resolution-golden-mean.md</plan-doc>
+      <step-19.0 name="PlanFreeze" status="done" verification="V-M-PHASE19-PLAN">
+        Freeze GRACE plan artifacts: human plan, development-plan Phase-19, verification entries,
+        knowledge-graph modules, finding F-0104. User approved 2026-07-18.
+      </step-19.0>
+      <step-19.1 name="AnalysisScaleConfig" status="done" verification="V-M-ANALYSIS-SCALE">
+        VideoConfig.analysis_max_side (None|int ge=1). YAML + CLI --analysis-max-side. Domain
+        DetectionConfig + DTO/mapper persistence. Default None = native (behavior parity).
+      </step-19.1>
+      <step-19.2 name="ScaleHelperAndTests" status="done" verification="V-M-ANALYSIS-SCALE">
+        scale_for_analysis in analysis_scale.py (INTER_AREA, no upscale). tests/test_analysis_scale.py.
+      </step-19.2>
+      <step-19.3 name="DualResolutionDetectPath" status="done" verification="V-M-DETECT-ANALYSIS-SCALE">
+        Pass 1: ROI then analysis_scale then extract. Pass 2 full-res PNG invariant tested.
+        Two-pass iter_frames still exactly twice. CLI detect / detect-slides wired.
+      </step-19.3>
+      <step-19.4 name="MetricsTags" status="done" verification="V-M-DETECT-ANALYSIS-SCALE">
+        Gauges: analysis_max_side, analysis_height, analysis_width, analysis_scale_factor.
+      </step-19.4>
+      <step-19.5 name="GoldenMeanSweepTool" status="done" verification="V-M-GOLDEN-MEAN-SWEEP">
+        tools/sweep_analysis_resolution.py: grid analysis_max_side × sample_fps; wall-clock +
+        stage timers (extract_features, p1/p2 decode); quality vs native; evidence under
+        benchmarks/detect/evidence/phase19-*/. tests/test_golden_mean_sweep.py.
+      </step-19.5>
+      <step-19.6 name="ShortClipDiscrimination" status="done" verification="V-M-GOLDEN-MEAN-SWEEP">
+        Fixture smoke + Hermes 600s (1920×1080, sample_fps=2, 2-run median, warmup).
+        Grid max_side in {null,960,640,480,320}. Evidence:
+        phase19-fixture-smoke/, phase19-hermes-600s-20260718/.
+      </step-19.6>
+      <step-19.7 name="GoldenMeanDecision" status="done" verification="V-M-GOLDEN-MEAN-DECISION">
+        Hermes decision: analysis_max_side=480, sample_fps=2.0 — wall −53.6% (~2.15×),
+        extract_features −93.4%, quality gates PASS vs native, full-res PNG OK.
+        960/640/320 fail false_split (6 vs 4 slides). Phase 18 not reopened.
+        Artifacts: golden_mean_decision.json + .md.
+      </step-19.7>
+      <step-19.8 name="AdoptDefaults" status="done" verification="V-M-GOLDEN-MEAN-DECISION">
+        Runtime default analysis_max_side=480 (VideoConfig, domain DetectionConfig, DTO,
+        config.example.yaml). Explicit None remains supported for native analysis.
+      </step-19.8>
+      <step-19.9 name="Phase19Acceptance" status="done" verification="V-M-PHASE19-ACCEPTANCE">
+        Accepted 2026-07-18: dual-res path shipped; Hermes evidence shows ~2.15× wall at 480
+        with quality gates PASS vs native; full-res PNG invariant held; default 480 enabled;
+        Phase 18 T3 / selected_optimization=NONE unchanged. Tests green for analysis scale path.
+      </step-19.9>
+    </Phase-19>
   </ImplementationOrder>
 
   <DeploymentScenarios>

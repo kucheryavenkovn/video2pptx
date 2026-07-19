@@ -4,6 +4,10 @@
 video:
   sample_fps: 0.5
   decoder_backend: auto
+  # Pass1 analysis only; null/omit override for native. Screenshots always full-res (Pass2).
+  # Phase 19 Hermes golden mean: 480 → ~2.15× wall, extract −93%, gates PASS.
+  # Evidence: benchmarks/detect/evidence/phase19-hermes-600s-20260718/golden_mean_decision.md
+  analysis_max_side: 480
 
 detection:
   slide_roi: auto

@@ -16,7 +16,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.1.0 - Resolve video_path/decoder_backend from Project; add effective_video_path
+#   LAST_CHANGE: v1.2.0 - Resolve analysis_max_side from Project.detection (Phase 19)
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -45,7 +45,8 @@ class DetectionService:
     #   INPUTS: { project_location: Path, video_path: str|None, sample_fps: float|str|None,
     #             slide_roi: str|None, ignore_rois: list[str]|None, threshold: float|str|None,
     #             min_stable_duration: float|None, min_slide_duration: float|None,
-    #             dedupe_enabled: bool|None, decoder_backend: str|None }
+    #             dedupe_enabled: bool|None, decoder_backend: str|None,
+    #             analysis_max_side: int|None }
     #   OUTPUTS: ServiceResult with slides_count, effective_config, effective_video_path, warnings
     #   SIDE_EFFECTS: mutates Project, saves via repository
     #   LINKS: M-APP-DETECT
@@ -73,6 +74,7 @@ class DetectionService:
         min_slide_duration: float | None = None,
         dedupe_enabled: bool | None = None,
         decoder_backend: str | None = None,
+        analysis_max_side: int | None = None,
     ) -> ServiceResult:
         repo = self._ctx.repository
         if repo is None:
@@ -95,6 +97,9 @@ class DetectionService:
             eff_min_stable = resolve_detection_override(min_stable_duration, dc.min_stable_duration)
             eff_min_slide = resolve_detection_override(min_slide_duration, dc.min_slide_duration)
             eff_dedupe = resolve_detection_override(dedupe_enabled, dc.dedupe_enabled)
+            eff_analysis_max_side = resolve_detection_override(
+                analysis_max_side, dc.analysis_max_side
+            )
             # END_BLOCK_RESOLVE_INPUTS
 
             project.pipeline.start("detect")
@@ -105,9 +110,9 @@ class DetectionService:
             )
             logger.info(
                 "[DetectionService] Effective config | sample_fps={} threshold={} "
-                "min_slide={} min_stable={} dedupe={} roi={} decoder={}",
+                "min_slide={} min_stable={} dedupe={} roi={} decoder={} analysis_max_side={}",
                 eff_sample_fps, eff_threshold, eff_min_slide,
-                eff_min_stable, eff_dedupe, eff_slide_roi, eff_decoder,
+                eff_min_stable, eff_dedupe, eff_slide_roi, eff_decoder, eff_analysis_max_side,
             )
 
             # START_BLOCK_DETECTOR_CALL
@@ -123,6 +128,7 @@ class DetectionService:
                 min_slide_duration=eff_min_slide,
                 dedupe_enabled=eff_dedupe,
                 decoder_backend=eff_decoder,
+                analysis_max_side=eff_analysis_max_side,
             )
             # END_BLOCK_DETECTOR_CALL
             self._ctx.check_cancelled("detect")
