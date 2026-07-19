@@ -128,16 +128,21 @@ class TestRunProjectSettingsFlow:
         assert statuses == ["Project settings unchanged"]
         assert p.pipeline.get("detect").status == StageStatus.SUCCEEDED
 
-    def test_save_failure_reloads_and_no_false_success(self):
+    def test_save_failure_reload_success_restores(self):
         p = Project.create_new(name="f")
         p.detection.analysis_max_side = 480
+        p.detection.sample_fps = 2.0
+        _succeed(p, "detect", "align")
         reloads: list[bool] = []
         statuses: list[str] = []
         new = _cfg(720)
+        new.sample_fps = 5.0
 
         def _reload() -> bool:
-            # Simulate disk still has 480
             p.detection.analysis_max_side = 480
+            p.detection.sample_fps = 2.0
+            p.pipeline = Project.create_new(name="tmp").pipeline
+            _succeed(p, "detect", "align")
             reloads.append(True)
             return True
 
@@ -151,5 +156,56 @@ class TestRunProjectSettingsFlow:
         )
         assert reloads == [True]
         assert p.detection.analysis_max_side == 480
-        assert statuses == ["Failed to save project settings"]
-        assert "updated" not in " ".join(statuses).lower() or "Failed" in statuses[0]
+        assert p.detection.sample_fps == 2.0
+        assert p.pipeline.get("detect").status == StageStatus.SUCCEEDED
+        assert statuses == ["Failed to save project settings; persisted state restored"]
+        assert not any("updated" == s for s in statuses)
+
+    def test_save_failure_reload_fails_local_rollback(self):
+        from video2pptx.domain.pipeline_state import PIPELINE_STAGES
+
+        p = Project.create_new(name="g")
+        p.detection.analysis_max_side = 480
+        p.detection.sample_fps = 1.5
+        p.detection.threshold = 0.2
+        p.detection.ignore_rois = [[1, 2, 3, 4]]
+        for stage in PIPELINE_STAGES:
+            _succeed(p, stage)
+        statuses: list[str] = []
+        new = _cfg(720)
+        new.sample_fps = 9.0
+        new.threshold = 0.99
+        new.ignore_rois = [[9, 9, 9, 9]]
+
+        run_project_settings_flow(
+            parent=None,  # type: ignore[arg-type]
+            project=p,
+            save_fn=lambda: False,
+            status_fn=statuses.append,
+            prompt_fn=lambda *a, **k: new,
+            reload_fn=lambda: False,
+        )
+        assert p.detection.analysis_max_side == 480
+        assert p.detection.sample_fps == 1.5
+        assert p.detection.threshold == 0.2
+        assert p.detection.ignore_rois == [[1, 2, 3, 4]]
+        for stage in PIPELINE_STAGES:
+            assert p.pipeline.get(stage).status == StageStatus.SUCCEEDED, stage
+        assert statuses == ["Failed to save project settings; local changes rolled back"]
+
+    def test_save_failure_no_reload_fn_local_rollback(self):
+        p = Project.create_new(name="h")
+        p.detection.analysis_max_side = 480
+        _succeed(p, "detect")
+        statuses: list[str] = []
+        run_project_settings_flow(
+            parent=None,  # type: ignore[arg-type]
+            project=p,
+            save_fn=lambda: False,
+            status_fn=statuses.append,
+            prompt_fn=lambda *a, **k: _cfg(720),
+            reload_fn=None,
+        )
+        assert p.detection.analysis_max_side == 480
+        assert p.pipeline.get("detect").status == StageStatus.SUCCEEDED
+        assert statuses == ["Failed to save project settings; local changes rolled back"]

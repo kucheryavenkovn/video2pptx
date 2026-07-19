@@ -100,9 +100,25 @@ class DetectionService:
             eff_min_slide = resolve_detection_override(min_slide_duration, dc.min_slide_duration)
             eff_dedupe = resolve_detection_override(dedupe_enabled, dc.dedupe_enabled)
             if isinstance(analysis_max_side, UnsetType):
-                eff_analysis_max_side: int | None = dc.analysis_max_side
+                candidate = dc.analysis_max_side
             else:
-                eff_analysis_max_side = analysis_max_side
+                candidate = analysis_max_side
+            try:
+                from video2pptx.analysis_quality import (
+                    ANALYSIS_MAX_SIDE_MAX,
+                    ANALYSIS_MAX_SIDE_MIN,
+                    validate_analysis_max_side,
+                )
+
+                eff_analysis_max_side = validate_analysis_max_side(
+                    candidate, allow_none=True
+                )
+            except ValueError as exc:
+                raise PreconditionError(
+                    f"Invalid analysis_max_side: {exc}. "
+                    f"Allowed: null (native) or integer "
+                    f"[{ANALYSIS_MAX_SIDE_MIN}, {ANALYSIS_MAX_SIDE_MAX}]."
+                ) from exc
             # END_BLOCK_RESOLVE_INPUTS
 
             project.pipeline.start("detect")

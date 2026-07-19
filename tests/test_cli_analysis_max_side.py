@@ -119,13 +119,18 @@ class TestCanonicalDetectCli:
 
 
 class TestCanonicalAutoCli:
-    def test_auto_native(self, project_dir: Path):
-        captured: dict = {}
+    def _patch_auto(self):
+        captured: dict = {"calls": 0}
 
         def _exec(self, project_location, **kwargs):
+            captured["calls"] += 1
             captured["analysis_max_side"] = kwargs.get("analysis_max_side", "MISSING")
             return ServiceResult.ok("auto", data={"success": True})
 
+        return captured, _exec
+
+    def test_auto_native(self, project_dir: Path):
+        captured, _exec = self._patch_auto()
         app = build_app()
         with patch(
             "video2pptx.application.services.auto_service.AutoService.execute",
@@ -138,12 +143,7 @@ class TestCanonicalAutoCli:
         assert captured["analysis_max_side"] is None
 
     def test_auto_omitted_unset(self, project_dir: Path):
-        captured: dict = {}
-
-        def _exec(self, project_location, **kwargs):
-            captured["analysis_max_side"] = kwargs.get("analysis_max_side", "MISSING")
-            return ServiceResult.ok("auto", data={"success": True})
-
+        captured, _exec = self._patch_auto()
         app = build_app()
         with patch(
             "video2pptx.application.services.auto_service.AutoService.execute",
@@ -154,3 +154,43 @@ class TestCanonicalAutoCli:
         assert captured["analysis_max_side"] is UNSET or isinstance(
             captured["analysis_max_side"], type(UNSET)
         )
+
+    def test_auto_720(self, project_dir: Path):
+        captured, _exec = self._patch_auto()
+        app = build_app()
+        with patch(
+            "video2pptx.application.services.auto_service.AutoService.execute",
+            _exec,
+        ):
+            result = runner.invoke(
+                app, ["auto", str(project_dir), "--analysis-max-side", "720"]
+            )
+        assert result.exit_code == 0, result.output
+        assert captured["analysis_max_side"] == 720
+
+    def test_auto_custom_512(self, project_dir: Path):
+        captured, _exec = self._patch_auto()
+        app = build_app()
+        with patch(
+            "video2pptx.application.services.auto_service.AutoService.execute",
+            _exec,
+        ):
+            result = runner.invoke(
+                app, ["auto", str(project_dir), "--analysis-max-side", "512"]
+            )
+        assert result.exit_code == 0, result.output
+        assert captured["analysis_max_side"] == 512
+
+    @pytest.mark.parametrize("bad", ["239", "2161", "100", "0", "-1", "abc", "480.0"])
+    def test_auto_invalid_rejected(self, project_dir: Path, bad: str):
+        captured, _exec = self._patch_auto()
+        app = build_app()
+        with patch(
+            "video2pptx.application.services.auto_service.AutoService.execute",
+            _exec,
+        ):
+            result = runner.invoke(
+                app, ["auto", str(project_dir), "--analysis-max-side", bad]
+            )
+        assert result.exit_code != 0
+        assert captured["calls"] == 0

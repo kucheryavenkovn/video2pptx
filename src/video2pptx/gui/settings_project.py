@@ -336,6 +336,33 @@ def should_confirm_analysis_quality_change(
     return detect_succeeded and old.analysis_max_side != new.analysis_max_side
 
 
+def _snapshot_detection_config(cfg: DetectionConfig) -> DetectionConfig:
+    """Deep-ish copy of DetectionConfig for local rollback."""
+    return DetectionConfig(
+        sample_fps=cfg.sample_fps,
+        decoder_backend=cfg.decoder_backend,
+        slide_roi=cfg.slide_roi,
+        ignore_rois=list(cfg.ignore_rois),
+        threshold=cfg.threshold,
+        min_slide_duration=cfg.min_slide_duration,
+        min_stable_duration=cfg.min_stable_duration,
+        dedupe_enabled=cfg.dedupe_enabled,
+        analysis_max_side=cfg.analysis_max_side,
+    )
+
+
+def _restore_detection_and_pipeline(
+    project: object,
+    old_detection: DetectionConfig,
+    old_pipeline_dict: dict,
+) -> None:
+    """Restore detection config and pipeline from snapshots (mutable refs replaced)."""
+    from video2pptx.domain.pipeline_state import PipelineState
+
+    project.detection = _snapshot_detection_config(old_detection)
+    project.pipeline = PipelineState.from_dict(old_pipeline_dict)
+
+
 def run_project_settings_flow(
     parent: QWidget,
     project: object,
@@ -350,8 +377,8 @@ def run_project_settings_flow(
 
     *project* is domain Project (duck-typed: .detection, .pipeline, .apply_detection_config).
     *save_fn* must return True only when persistence succeeded.
-    On save failure, *reload_fn* restores disk state (no false success).
-    Optional *confirm_fn(title, text)->bool* and *prompt_fn* enable unit tests without Qt dialogs.
+    On save failure: try *reload_fn*; if missing/failed restore local snapshot.
+    Optional *confirm_fn* / *prompt_fn* enable unit tests without Qt dialogs.
     """
     from video2pptx.analysis_quality import ANALYSIS_QUALITY_CHANGE_WARNING
     from video2pptx.domain.pipeline_state import StageStatus
@@ -375,12 +402,23 @@ def run_project_settings_flow(
             )
             if reply != QMessageBox.StandardButton.Ok:
                 return
+
+    old_detection = _snapshot_detection_config(project.detection)
+    old_pipeline_dict = project.pipeline.to_dict()
+
     if not project.apply_detection_config(new_config):
         status_fn("Project settings unchanged")
         return
-    if not save_fn():
-        if reload_fn is not None:
-            reload_fn()
-        status_fn("Failed to save project settings")
+    if save_fn():
+        status_fn("Project settings updated")
         return
-    status_fn("Project settings updated")
+
+    # Save failed — restore disk or local snapshot (never leave memory/disk divergence).
+    reloaded = False
+    if reload_fn is not None:
+        reloaded = bool(reload_fn())
+    if reloaded:
+        status_fn("Failed to save project settings; persisted state restored")
+        return
+    _restore_detection_and_pipeline(project, old_detection, old_pipeline_dict)
+    status_fn("Failed to save project settings; local changes rolled back")

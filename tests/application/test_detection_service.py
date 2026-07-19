@@ -247,3 +247,72 @@ class TestConfigPropagation:
         service = DetectionService(detector=CapturingDetector(), context=ctx)
         service.execute(location, video_path=None, analysis_max_side=None)
         assert received["analysis_max_side"] is None
+
+    def test_product_range_validation_before_pipeline(self, tmp_path: Path) -> None:
+        from video2pptx.application.errors import PreconditionError
+        from video2pptx.domain.pipeline_state import StageStatus
+
+        repo = FileProjectRepository()
+        location = tmp_path / "bad-ams"
+        project = Project.create_new(name="bad-ams", output_dir=str(location))
+        project.detection.analysis_max_side = 480
+        project.video_path = str(tmp_path / "video.mp4")
+        Path(project.video_path).write_text("fake")
+        repo.create(location, project)
+
+        calls = {"n": 0}
+
+        class NoCallDetector:
+            def detect(self, *a, **k):
+                calls["n"] += 1
+                raise AssertionError("detector must not run")
+
+        class CountingRepo:
+            def __init__(self, inner):
+                self._inner = inner
+                self.saves = 0
+
+            def load(self, location):
+                return self._inner.load(location)
+
+            def save(self, *a, **k):
+                self.saves += 1
+                return self._inner.save(*a, **k)
+
+            def create(self, *a, **k):
+                return self._inner.create(*a, **k)
+
+        crepo = CountingRepo(repo)
+        ctx = ServiceContext(repository=crepo, cancellation=CancellationToken())
+        service = DetectionService(detector=NoCallDetector(), context=ctx)
+
+        for bad in (239, 2161, 100, 0, -1, True, "480", 480.0):
+            with pytest.raises(PreconditionError) as ei:
+                service.execute(location, video_path=None, analysis_max_side=bad)  # type: ignore[arg-type]
+            assert "analysis_max_side" in str(ei.value)
+            assert calls["n"] == 0
+            assert crepo.saves == 0
+            reloaded = repo.load(location)
+            assert reloaded.project.pipeline.get("detect").status == StageStatus.NOT_STARTED
+
+    def test_bounds_accepted(self, tmp_path: Path) -> None:
+        repo = FileProjectRepository()
+        location = tmp_path / "bounds"
+        project = Project.create_new(name="bounds", output_dir=str(location))
+        project.video_path = str(tmp_path / "video.mp4")
+        Path(project.video_path).write_text("fake")
+        repo.create(location, project)
+        received = {}
+
+        class CapturingDetector:
+            def detect(self, video_path, out_dir, **kw):
+                received["ams"] = kw.get("analysis_max_side")
+                return DetectionOutput(
+                    slides=[], score_timestamps=[], score_values=[], video_duration=0
+                )
+
+        ctx = ServiceContext(repository=repo, cancellation=CancellationToken())
+        service = DetectionService(detector=CapturingDetector(), context=ctx)
+        for val in (240, 2160):
+            service.execute(location, video_path=None, analysis_max_side=val)
+            assert received["ams"] == val

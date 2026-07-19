@@ -235,8 +235,7 @@ class MainWindow(QMainWindow):
             self._model.close()
 
     def _on_save_project(self) -> None:
-        self._project_ctrl.save()
-        if self._project_ctrl.revision:
+        if self._project_ctrl.save():
             self.statusBar().showMessage("Project saved")
 
     def _on_import_video(self) -> None:
@@ -539,8 +538,8 @@ class MainWindow(QMainWindow):
             return
         from video2pptx.gui.controllers.subtitle_editor_handler import open_subtitle_editor
         if open_subtitle_editor(proj.slides[slide_index], self._subs, self._model.output_dir or "", self):
-            self._project_ctrl.save()
-            self.statusBar().showMessage(f"Slide {slide_index} saved")
+            if self._project_ctrl.save():
+                self.statusBar().showMessage(f"Slide {slide_index} saved")
     # END_BLOCK_TIMELINE_MARKERS
 
     def _sync_timeline(self) -> None:

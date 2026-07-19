@@ -2615,8 +2615,12 @@
       <scenario-10 kind="success">run_project_settings_flow: cancel/warn-cancel/noop no save; warn-OK one save; save fail reloads.</scenario-10>
     </verification-contract>
     <evidence><result>
-      PASSED 2026-07-19 correction: pytest tests/test_analysis_quality.py tests/test_settings_flow.py
-      tests/test_cli_analysis_max_side.py tests/test_gui_settings_project.py tests/application/test_detection_service.py
+      PASSED 2026-07-19 final correction: DetectionService validates product range before pipeline.start;
+      AutoService propagates UNSET/None/int; Auto CLI full matrix; settings flow local rollback when reload fails;
+      MainWindow._on_save_project success only if save() True.
+      pytest tests/test_analysis_quality.py tests/test_settings_flow.py tests/test_cli_analysis_max_side.py
+      tests/application/test_detection_service.py tests/application/test_auto_service.py
+      tests/gui/test_main_window_integration.py::test_on_save_project_success_message_only_when_save_true
     </result></evidence>
     <test-files>
       <file>tests/test_analysis_quality.py</file>
@@ -2624,9 +2628,11 @@
       <file>tests/test_settings_flow.py</file>
       <file>tests/test_cli_analysis_max_side.py</file>
       <file>tests/application/test_detection_service.py</file>
+      <file>tests/application/test_auto_service.py</file>
+      <file>tests/gui/test_main_window_integration.py</file>
     </test-files>
     <module-checks>
-      <check-1>python -m pytest tests/test_analysis_quality.py tests/test_settings_flow.py tests/test_cli_analysis_max_side.py tests/test_gui_settings_project.py -q</check-1>
+      <check-1>python -m pytest tests/test_analysis_quality.py tests/test_settings_flow.py tests/test_cli_analysis_max_side.py tests/application/test_detection_service.py tests/application/test_auto_service.py tests/gui/test_main_window_integration.py::test_on_save_project_success_message_only_when_save_true -q</check-1>
     </module-checks>
     <wave-follow-up>python -m pytest tests/domain tests/application tests/gui tests/test_analysis_quality.py tests/test_settings_flow.py tests/test_cli_analysis_max_side.py -q</wave-follow-up>
     <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
@@ -2634,8 +2640,11 @@
       <assertion>test_analysis_quality asserts create_new analysis_max_side==480 and legacy missing loads None.</assertion>
       <assertion>test_analysis_quality asserts apply_detection_config invalidates detect and all DOWNSTREAM[detect] stages.</assertion>
       <assertion>test_analysis_quality asserts DTO rejects analysis_max_side=100 without silent clamp.</assertion>
-      <assertion>test_cli_analysis_max_side asserts native→None and omitted→UNSET via adapters.cli.app CliRunner.</assertion>
-      <assertion>test_settings_flow asserts warning cancel no save and save failure reloads without success message.</assertion>
+      <assertion>test_detection_service asserts PreconditionError for invalid analysis_max_side with zero detector/save calls.</assertion>
+      <assertion>test_auto_service asserts omitted→UNSET, None→None, 720→720 and invalid halts at detect.</assertion>
+      <assertion>test_cli_analysis_max_side asserts detect/auto native→None, omitted→UNSET, invalid no service call.</assertion>
+      <assertion>test_settings_flow asserts save-fail+reload-fail restores detection+pipeline snapshot without success message.</assertion>
+      <assertion>test_on_save_project_success_message_only_when_save_true asserts status bar Project saved only when save returns True.</assertion>
       <assertion>test_gui_settings_project asserts quality combo yields 480/720/None/custom without 480p labels.</assertion>
     </required-trace-assertions>
     <scenarios>

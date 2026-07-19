@@ -83,12 +83,13 @@ Project setting is source of truth for project-bound GUI/Auto/Detect. Global App
 6. GUI presets + main_window confirm/no-op/cancel
 7. Tests + verification
 
-## Correction cycle (20.6–20.9)
+## Correction cycle (20.6–20.13)
 
-- Product validator `validate_analysis_max_side` (240–2160 or None) shared by DTO/GUI/CLI.
+- Product validator `validate_analysis_max_side` (240–2160 or None) shared by DTO/GUI/CLI/**DetectionService**.
 - Internal `normalize_analysis_max_side` / scale still accept any positive int (tests/benchmarks).
 - Canonical CLI `detect`/`auto`: `--analysis-max-side native|N`; omitted → UNSET.
-- `ProjectController.save() -> bool`; settings flow reloads on save failure.
+- `ProjectController.save() -> bool`; MainWindow shows success only when True.
+- Settings flow: snapshot detection+pipeline; on save fail try reload else local rollback.
 
 ---
 

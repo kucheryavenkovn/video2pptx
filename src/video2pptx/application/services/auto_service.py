@@ -25,6 +25,7 @@ from pathlib import Path
 
 from loguru import logger
 
+from video2pptx.analysis_quality import UNSET
 from video2pptx.application.base import ServiceContext
 from video2pptx.application.dto import ServiceResult
 from video2pptx.application.errors import StageFailureError
@@ -77,13 +78,9 @@ class AutoService:
         export_format: str = "markdown",
         export_output_path: str = "",
         dry_run: bool = False,
-        analysis_max_side: object = ...,
+        analysis_max_side: object = UNSET,
     ) -> ServiceResult:
-        from video2pptx.analysis_quality import UNSET
-
-        # Default UNSET when kwarg omitted; explicit None means native.
-        if analysis_max_side is ...:
-            analysis_max_side = UNSET
+        # analysis_max_side: UNSET = use project (default); None = explicit native; int = override
         repo = self._ctx.repository
         if repo is None:
             return ServiceResult.fail("auto", "Repository not configured")

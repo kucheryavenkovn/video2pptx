@@ -1587,6 +1587,18 @@
       <step-20.9 name="CorrectionVerification" status="done" verification="V-M-ANALYSIS-QUALITY">
         Full DOWNSTREAM detect invalidation; CLI tests; ruff/targeted green.
       </step-20.9>
+      <step-20.10 name="ApplicationBoundaryValidation" status="done" verification="V-M-ANALYSIS-QUALITY">
+        DetectionService validates effective analysis_max_side (project or override) via validate_analysis_max_side before pipeline.start.
+      </step-20.10>
+      <step-20.11 name="SaveFailureRollbackHardening" status="done" verification="V-M-ANALYSIS-QUALITY">
+        Manual save success only when save() True; settings flow snapshot rollback if reload fails; status messages distinguish restore/rollback.
+      </step-20.11>
+      <step-20.12 name="AutoOverrideVerification" status="done" verification="V-M-ANALYSIS-QUALITY">
+        AutoService propagates UNSET/None/int; Auto CLI omitted/native/720/custom/invalid covered.
+      </step-20.12>
+      <step-20.13 name="FinalCorrectionVerification" status="done" verification="V-M-ANALYSIS-QUALITY">
+        Targeted + Phase 19 regression + bounded wave + ruff green.
+      </step-20.13>
     </Phase-20>
     <Phase-19 name="AnalysisResolutionGoldenMean" status="done">
       <goal>
