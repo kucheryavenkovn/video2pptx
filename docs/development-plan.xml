@@ -1540,6 +1540,28 @@
         Accept performance work only when the recovered-tree quality and timing gates pass.
       </step-18.8>
     </Phase-18>
+    <Phase-20 name="AnalysisQualityPresets" status="done">
+      <goal>
+        Product UI and persistence for analysis quality presets over Phase 19 analysis_max_side.
+        New projects: explicit 480. Legacy missing field: None (native). Full-res screenshots unchanged.
+      </goal>
+      <plan-doc>docs/plans/phase20-analysis-quality-presets.md</plan-doc>
+      <step-20.1 name="PresetsModule" status="done" verification="V-M-ANALYSIS-QUALITY">
+        M-ANALYSIS-QUALITY: FAST=480, DETAILED=720, NATIVE=None, CUSTOM 240-2160; UI labels Russian.
+      </step-20.1>
+      <step-20.2 name="NewVsLegacySemantics" status="done" verification="V-M-ANALYSIS-QUALITY">
+        Project.create_new sets 480; DetectionConfig default None; DTO missing field → None; explicit null preserved.
+      </step-20.2>
+      <step-20.3 name="ApplyDetectionInvalidation" status="done" verification="V-M-ANALYSIS-QUALITY">
+        Project.apply_detection_config no-op; on change marks detect STALE + downstream.
+      </step-20.3>
+      <step-20.4 name="ProjectSettingsUI" status="done" verification="V-M-GUI-SETTINGS-PROJECT">
+        «Качество анализа» combo + custom spin + full-res notice; main_window confirm/cancel.
+      </step-20.4>
+      <step-20.5 name="Verification" status="done" verification="V-M-ANALYSIS-QUALITY">
+        tests/test_analysis_quality.py + settings_project preset tests.
+      </step-20.5>
+    </Phase-20>
     <Phase-19 name="AnalysisResolutionGoldenMean" status="done">
       <goal>
         Discriminate analysis-path resolution reduction and sample_fps tradeoffs for slide

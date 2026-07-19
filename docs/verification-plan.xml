@@ -2599,6 +2599,42 @@
     </scenarios>
   </V-M-GOLDEN-MEAN-DECISION>
 
+  <!-- ===== Phase 20 — Analysis Quality Presets ===== -->
+  <V-M-ANALYSIS-QUALITY MODULE="M-ANALYSIS-QUALITY" PRIORITY="high" STATUS="passed">
+    <purpose>Presets FAST/DETAILED/NATIVE/CUSTOM; new project 480; legacy missing None; apply_detection_config invalidation and no-op.</purpose>
+    <verification-contract>
+      <scenario-1 kind="success">preset_from_max_side maps 480→FAST, 720→DETAILED, None→NATIVE, other→CUSTOM.</scenario-1>
+      <scenario-2 kind="success">Project.create_new sets analysis_max_side=480 and project.json stores 480.</scenario-2>
+      <scenario-3 kind="success">project.json detection without analysis_max_side loads as None.</scenario-3>
+      <scenario-4 kind="success">explicit null round-trips as None.</scenario-4>
+      <scenario-5 kind="success">apply_detection_config 480→720 marks detect and downstream STALE.</scenario-5>
+      <scenario-6 kind="success">apply_detection_config no-op leaves SUCCEEDED stages and returns False.</scenario-6>
+      <scenario-7 kind="failure">DetectionConfigDocument rejects bool/str/zero analysis_max_side.</scenario-7>
+    </verification-contract>
+    <evidence><result>
+      PASSED 2026-07-19: pytest tests/test_analysis_quality.py tests/test_gui_settings_project.py
+      (preset mapping, new/legacy/null, invalidation, GUI combo).
+    </result></evidence>
+    <test-files>
+      <file>tests/test_analysis_quality.py</file>
+      <file>tests/test_gui_settings_project.py</file>
+    </test-files>
+    <module-checks>
+      <check-1>python -m pytest tests/test_analysis_quality.py tests/test_gui_settings_project.py -q</check-1>
+    </module-checks>
+    <wave-follow-up>python -m pytest tests/domain tests/application tests/test_analysis_quality.py tests/test_gui_settings_project.py -q</wave-follow-up>
+    <phase-follow-up>python -m pytest --ignore=tests/e2e -q</phase-follow-up>
+    <required-trace-assertions>
+      <assertion>test_analysis_quality asserts create_new analysis_max_side==480 and legacy missing loads None.</assertion>
+      <assertion>test_analysis_quality asserts apply_detection_config invalidates detect/align/notes when max_side changes.</assertion>
+      <assertion>test_gui_settings_project asserts quality combo yields 480/720/None/custom without 480p labels.</assertion>
+    </required-trace-assertions>
+    <scenarios>
+      <scenario-1 kind="success">Presets and persistence semantics hold.</scenario-1>
+      <scenario-2 kind="failure">Corrupted analysis_max_side rejected without silent 480.</scenario-2>
+    </scenarios>
+  </V-M-ANALYSIS-QUALITY>
+
   <V-M-PHASE19-ACCEPTANCE MODULE="Phase-19/Step-19.9" PRIORITY="high" STATUS="passed">
     <purpose>Phase 19 closeout: quality gates, full-res screenshot invariant, docs refresh, Phase 18 untouched, default 480.</purpose>
     <verification-contract>
