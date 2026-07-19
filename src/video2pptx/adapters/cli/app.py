@@ -288,7 +288,7 @@ def build_app() -> typer.Typer:
         location = Path(project_dir)
         try:
             from video2pptx.domain.project import Project
-            project = Project(name=name, output_dir=str(location))
+            project = Project.create_new(name=name, output_dir=str(location))
             services.repository.create(location, project)
             if video:
                 loaded = services.repository.load(location)

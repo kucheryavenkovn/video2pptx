@@ -38,14 +38,35 @@ from video2pptx.domain.errors import (
     ValidationError,
 )
 from video2pptx.domain.identifiers import SlideId
-from video2pptx.domain.pipeline_state import PipelineState
+from video2pptx.domain.pipeline_state import PipelineState, StageStatus
 from video2pptx.domain.slide import Slide, SlideView
 from video2pptx.domain.time import TimeInterval
 
 
+def _detection_config_equal(a: DetectionConfig, b: DetectionConfig) -> bool:
+    """Structural equality for DetectionConfig (no-op detection)."""
+    return (
+        a.sample_fps == b.sample_fps
+        and a.decoder_backend == b.decoder_backend
+        and a.slide_roi == b.slide_roi
+        and list(a.ignore_rois) == list(b.ignore_rois)
+        and a.threshold == b.threshold
+        and a.min_slide_duration == b.min_slide_duration
+        and a.min_stable_duration == b.min_stable_duration
+        and a.dedupe_enabled == b.dedupe_enabled
+        and a.analysis_max_side == b.analysis_max_side
+    )
+
+
 @dataclass
 class DetectionConfig:
-    """Canonical detection settings for a Project. Replaces legacy extensions.detection."""
+    """Canonical detection settings for a Project. Replaces legacy extensions.detection.
+
+    analysis_max_side semantics (Phase 20):
+    - Domain default is None (safe / does not invent FAST for accidental constructs).
+    - New projects must set NEW_PROJECT_ANALYSIS_MAX_SIDE (480) explicitly at create time.
+    - Legacy documents missing the field load as None via DTO default None.
+    """
     sample_fps: float = 2.0
     decoder_backend: str = "auto"
     slide_roi: str = "auto"
@@ -54,9 +75,8 @@ class DetectionConfig:
     min_slide_duration: float = 2.0
     min_stable_duration: float = 2.0
     dedupe_enabled: bool = True
-    # Phase 19: Pass1 analysis max side; None = native. Screenshots remain full-res.
-    # Default 480 = Hermes golden mean (gate-passing ~2.15× wall).
-    analysis_max_side: int | None = 480
+    # Pass1 analysis max side only; None = native. Screenshots remain full-res.
+    analysis_max_side: int | None = None
 
 
 class Project:
@@ -88,6 +108,53 @@ class Project:
         self.artifacts: dict[str, ArtifactRef] = dict(artifacts or {})
         self.extensions: dict[str, Any] = dict(extensions or {})
         self.detection: DetectionConfig = DetectionConfig()
+
+    @classmethod
+    def create_new(
+        cls,
+        name: str = "Untitled",
+        video_path: str = "",
+        subtitle_path: str = "",
+        output_dir: str = "",
+    ) -> Project:
+        """Factory for new projects: explicit FAST analysis_max_side=480."""
+        from video2pptx.analysis_quality import NEW_PROJECT_ANALYSIS_MAX_SIDE
+
+        project = cls(
+            name=name,
+            video_path=video_path,
+            subtitle_path=subtitle_path,
+            output_dir=output_dir,
+        )
+        project.detection.analysis_max_side = NEW_PROJECT_ANALYSIS_MAX_SIDE
+        return project
+
+    def apply_detection_config(self, new_config: DetectionConfig) -> bool:
+        # START_CONTRACT: apply_detection_config
+        #   PURPOSE: Apply detection settings; no-op if equal; invalidate detect+downstream if changed
+        #   INPUTS: { new_config: DetectionConfig }
+        #   OUTPUTS: { bool — True if applied and pipeline invalidated, False if no-op }
+        #   SIDE_EFFECTS: mutates detection and pipeline stage statuses when changed
+        # END_CONTRACT: apply_detection_config
+        if _detection_config_equal(self.detection, new_config):
+            return False
+        self.detection = DetectionConfig(
+            sample_fps=new_config.sample_fps,
+            decoder_backend=new_config.decoder_backend,
+            slide_roi=new_config.slide_roi,
+            ignore_rois=list(new_config.ignore_rois),
+            threshold=new_config.threshold,
+            min_slide_duration=new_config.min_slide_duration,
+            min_stable_duration=new_config.min_stable_duration,
+            dedupe_enabled=new_config.dedupe_enabled,
+            analysis_max_side=new_config.analysis_max_side,
+        )
+        # Mark detect itself STALE when it had succeeded (canonical: results obsolete).
+        detect_state = self.pipeline.get("detect")
+        if detect_state.status == StageStatus.SUCCEEDED:
+            detect_state.status = StageStatus.STALE
+        self.invalidate_downstream_from("detect")
+        return True
 
     @property
     def slides(self) -> tuple[SlideView, ...]:

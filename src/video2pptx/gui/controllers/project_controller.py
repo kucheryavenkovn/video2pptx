@@ -87,7 +87,7 @@ class ProjectController(QObject):
         Emits ``projectOpened`` on success or ``errorOccurred`` on failure.
         """
         location = Path(parent_dir) / name
-        project = Project(name=name, output_dir=str(location))
+        project = Project.create_new(name=name, output_dir=str(location))
         try:
             loaded = self._services.repository.create(location, project)
         except ProjectAlreadyExists as exc:

@@ -28,9 +28,11 @@ def normalize_analysis_max_side(value: int | None) -> int | None:
     # START_CONTRACT: normalize_analysis_max_side
     #   PURPOSE: Coerce unset/zero analysis_max_side to None (native identity)
     #   INPUTS: { value: int|None }
-    #   OUTPUTS: { int|None — positive max side or None }
+    #   OUTPUTS: { int|None — positive max side or None for identity }
     #   SIDE_EFFECTS: none
     #   LINKS: M-ANALYSIS-SCALE
+    #   NOTES: Does not enforce product custom range [240,2160]; that is validate_custom_max_side.
+    #          Runtime scale path treats any positive int as a max side (no silent clamp to 480).
     # END_CONTRACT: normalize_analysis_max_side
     if value is None or value <= 0:
         return None

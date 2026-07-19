@@ -166,7 +166,24 @@ class DetectionConfigDocument(BaseModel):
     min_slide_duration: float = 2.0
     min_stable_duration: float = 2.0
     dedupe_enabled: bool = True
-    analysis_max_side: int | None = 480
+    # Default None = legacy missing field loads as native (Phase 20).
+    # New projects write explicit 480 via Project.create_new().
+    analysis_max_side: int | None = None
+
+    @field_validator("analysis_max_side", mode="before")
+    @classmethod
+    def _validate_analysis_max_side(cls, value: object) -> int | None:
+        """Reject bool/str/garbage; allow null and positive ints. No silent 480."""
+        if value is None:
+            return None
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise ValueError(
+                "analysis_max_side must be null or an integer, "
+                f"got {type(value).__name__}"
+            )
+        if value <= 0:
+            raise ValueError(f"analysis_max_side must be positive when set, got {value}")
+        return value
 
 
 class ProjectDocumentV2(_StrictDocument):
