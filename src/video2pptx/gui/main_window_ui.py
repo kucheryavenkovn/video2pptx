@@ -193,6 +193,7 @@ def connect_main_window_signals(window) -> None:
             window._project_ctrl.open(window._model.output_dir)
 
     pipeline = window._pipeline_ctrl
+    pipeline.operationStarted.connect(window._on_pipeline_started)
     pipeline.progress.connect(window._on_worker_progress_msg)
     pipeline.stageFinished.connect(window._on_pipeline_finished)
     pipeline.error.connect(window._on_pipeline_error)

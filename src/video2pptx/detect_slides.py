@@ -125,6 +125,11 @@ def run_detect_slides(
                 video_duration=info.duration,
                 min_slide_duration=cfg.detection.min_slide_duration,
             )
+            if progress_callback is not None:
+                progress_callback(
+                    100,
+                    f"Debounce / segment building: {len(segments)} segments after duration filter",
+                )
 
             rep_frames: dict[float, np.ndarray] = {}
 
@@ -134,6 +139,14 @@ def run_detect_slides(
                 )
             else:
                 logger.info("[DetectSlides][run_detect_slides] Pass 2/2: saving screenshots")
+
+            total_targets = max(1, len(segments))
+            captured = 0
+            if progress_callback is not None:
+                progress_callback(
+                    0,
+                    f"Pass 2/2: captured 0/{len(segments)} representative frames",
+                )
 
             pass2_decoder_iter = InstrumentedIterator(
                 decoder.iter_frames(),
@@ -148,13 +161,36 @@ def run_detect_slides(
                             cropped = slide_region.process(vf.image)
                             rep_frames[ts] = cropped
                             metrics.counter_representative_frame_bytes.value += cropped.nbytes
+                            captured += 1
+                            if progress_callback is not None and (
+                                captured == 1
+                                or captured == len(segments)
+                                or captured % max(1, len(segments) // 20) == 0
+                            ):
+                                local_pct = int(captured * 100 / total_targets)
+                                progress_callback(
+                                    local_pct,
+                                    f"Pass 2/2: captured {captured}/{len(segments)} "
+                                    f"representative frames",
+                                )
                             break
 
             metrics.counter_representative_frames.value = len(rep_frames)
 
+            before_dedupe = len(segments)
             with measure("pass2_dedupe"):
                 if cfg.detection.dedupe_enabled and len(segments) > 1:
+                    if progress_callback is not None:
+                        progress_callback(
+                            0,
+                            f"Deduplication: {before_dedupe} segments…",
+                        )
                     segments = deduplicate_segments(segments, rep_frames)
+                    if progress_callback is not None:
+                        progress_callback(
+                            100,
+                            f"Deduplication: {before_dedupe} → {len(segments)} slides",
+                        )
 
             with measure("pass2_screenshots"):
                 for seg in segments:

@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
@@ -53,5 +54,6 @@ class SlideDetectorPort(Protocol):
         dedupe_enabled: bool,
         decoder_backend: str = "auto",
         analysis_max_side: int | None = None,
+        progress_callback: Callable[[int, str], None] | None = None,
     ) -> DetectionOutput:
         ...

@@ -311,10 +311,14 @@ class MainWindow(QMainWindow):
         result = getattr(self._pipeline_ctrl, f"run_{stage}")(project_dir, **params)
         if result is None:
             return
-        if result.accepted:
-            self._status.start(stage, stage.capitalize())
-        else:
+        # StatusBarManager.start is triggered by operationStarted (before thread.start),
+        # not here after run_* returns — avoids late lifecycle vs first progress events.
+        if result is not None and hasattr(result, "accepted") and not result.accepted:
             self._on_operation_rejected(stage, result.active_stage or "")
+
+    def _on_pipeline_started(self, stage: str) -> None:
+        """Start status lifecycle when PipelineController accepts an operation."""
+        self._status.start(stage, stage.capitalize())
 
     def _on_operation_rejected(self, requested: str, active: str) -> None:
         cap = active.capitalize()

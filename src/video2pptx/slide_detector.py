@@ -158,19 +158,21 @@ def detect_changes(
                 )
 
         if timestamp >= next_progress:
-            pct = (
-                f"{timestamp / video_duration * 100:.0f}%"
-                if video_duration
-                else f"{timestamp:.0f}s"
+            local_pct = (
+                int(timestamp / video_duration * 100)
+                if video_duration and video_duration > 0
+                else 0
             )
             logger.info(
                 f"[SlideDetector][detect_changes] Progress | "
-                f"{pct} ts={timestamp:.0f}s changes={len(changes)}"
+                f"{local_pct}% ts={timestamp:.0f}s changes={len(changes)} "
+                f"frames={len(all_features)}"
             )
-            if progress_callback and video_duration:
+            if progress_callback is not None:
                 progress_callback(
-                    int(timestamp / video_duration * 100),
-                    f"Pass 1/2 — {len(changes)} changes at {timestamp:.0f}s",
+                    local_pct,
+                    f"Pass 1/2: analyzed {len(all_features)} frames, "
+                    f"{len(changes)} candidates",
                 )
             next_progress += progress_step
 
@@ -178,9 +180,16 @@ def detect_changes(
     # END_BLOCK_PROCESS_FRAMES
 
     # START_BLOCK_DEBOUNCE
+    if progress_callback is not None:
+        progress_callback(100, "Pass 1/2: frame analysis complete")
     with measure("debounce"):
         stable_frames = max(1, int(round(sample_fps * min_stable_duration)))
         changes = _debounce_changes(changes, stable_frames)
+    if progress_callback is not None:
+        progress_callback(
+            50,
+            f"Debounce / segment building: {len(changes)} stable change points",
+        )
     if evidence_observer is not None:
         evidence_observer("debounced_changes", {"changes": tuple(changes)})
     # END_BLOCK_DEBOUNCE
