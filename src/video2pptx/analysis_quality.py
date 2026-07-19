@@ -1,8 +1,8 @@
 # FILE: src/video2pptx/analysis_quality.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # START_MODULE_CONTRACT
 #   PURPOSE: Product analysis-quality presets mapping to analysis_max_side (Qt-free)
-#   SCOPE: Preset enum, UI labels, value mapping, custom range validation helpers
+#   SCOPE: Preset enum, UI labels, value mapping, product-range validation, UNSET override sentinel
 #   DEPENDS: none (stdlib only)
 #   LINKS: M-ANALYSIS-QUALITY, M-ANALYSIS-SCALE, Phase-20
 #   ROLE: UTILITY
@@ -12,31 +12,47 @@
 # START_MODULE_MAP
 #   AnalysisQualityPreset - FAST / DETAILED / NATIVE / CUSTOM
 #   NEW_PROJECT_ANALYSIS_MAX_SIDE - explicit default for new projects (480)
-#   ANALYSIS_MAX_SIDE_MIN / MAX - custom validation bounds
-#   preset_from_max_side - map stored int|None → preset
-#   max_side_from_preset - map preset (+ optional custom) → int|None
-#   validate_custom_max_side - raise ValueError if out of range / bad type
-#   PRESET_UI_LABELS - Russian product labels (no 480p/720p)
+#   ANALYSIS_MAX_SIDE_MIN / MAX - product bounds for project/CLI (240-2160)
+#   UNSET - explicit "override absent" sentinel for application layer
+#   validate_analysis_max_side - single product validator (None or int in range)
+#   validate_custom_max_side - alias requiring int (no None)
+#   preset_from_max_side / max_side_from_preset - UI mapping
+#   parse_cli_analysis_max_side_token - parse "native"|digits for CLI
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Phase 20 analysis quality presets
+#   LAST_CHANGE: v1.1.0 - Unified product validator + UNSET + CLI token parse (correction cycle)
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any
 
 # Product default for *new* projects only (not legacy missing-field load).
 NEW_PROJECT_ANALYSIS_MAX_SIDE: int = 480
 
-# Custom analysis max-side bounds (pixels on longer side).
+# Product bounds for project.json / GUI / CLI (not internal Phase 19 scale tests).
 ANALYSIS_MAX_SIDE_MIN: int = 240
 ANALYSIS_MAX_SIDE_MAX: int = 2160
 
-# Preset fixed values (except CUSTOM / NATIVE).
 FAST_ANALYSIS_MAX_SIDE: int = 480
 DETAILED_ANALYSIS_MAX_SIDE: int = 720
+
+
+class UnsetType:
+    """Sentinel: override not provided (use project value). Distinct from None (native)."""
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return "UNSET"
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, UnsetType)
+
+
+UNSET = UnsetType()
 
 
 class AnalysisQualityPreset(str, Enum):
@@ -48,7 +64,6 @@ class AnalysisQualityPreset(str, Enum):
     CUSTOM = "custom"
 
 
-# UI labels — product language only (no 480p/720p).
 PRESET_UI_LABELS: dict[AnalysisQualityPreset, str] = {
     AnalysisQualityPreset.FAST: "Быстрый — рекомендуется",
     AnalysisQualityPreset.DETAILED: "Повышенная детализация — экспериментально",
@@ -85,31 +100,22 @@ ANALYSIS_QUALITY_CHANGE_WARNING: str = (
 )
 
 
-def preset_from_max_side(value: int | None) -> AnalysisQualityPreset:
-    # START_CONTRACT: preset_from_max_side
-    #   PURPOSE: Recover UI preset from stored analysis_max_side
-    #   INPUTS: { value: int|None }
-    #   OUTPUTS: { AnalysisQualityPreset }
-    # END_CONTRACT: preset_from_max_side
+def validate_analysis_max_side(value: Any, *, allow_none: bool = True) -> int | None:
+    # START_CONTRACT: validate_analysis_max_side
+    #   PURPOSE: Single product-range validator for project/CLI analysis_max_side
+    #   INPUTS: { value, allow_none }
+    #   OUTPUTS: { int|None — None only when allow_none and value is None }
+    #   SIDE_EFFECTS: raises ValueError on invalid types/range (no silent clamp)
+    #   LINKS: M-ANALYSIS-QUALITY
+    # END_CONTRACT: validate_analysis_max_side
     if value is None:
-        return AnalysisQualityPreset.NATIVE
-    if value == FAST_ANALYSIS_MAX_SIDE:
-        return AnalysisQualityPreset.FAST
-    if value == DETAILED_ANALYSIS_MAX_SIDE:
-        return AnalysisQualityPreset.DETAILED
-    return AnalysisQualityPreset.CUSTOM
-
-
-def validate_custom_max_side(value: object) -> int:
-    # START_CONTRACT: validate_custom_max_side
-    #   PURPOSE: Accept only int in [240, 2160]; reject bool/str/float/None/OOB
-    #   INPUTS: { value: object }
-    #   OUTPUTS: { int }
-    #   SIDE_EFFECTS: raises ValueError on invalid input
-    # END_CONTRACT: validate_custom_max_side
+        if allow_none:
+            return None
+        raise ValueError("analysis_max_side cannot be null in this context")
+    # Reject bool (subclass of int), float, str, etc.
     if isinstance(value, bool) or not isinstance(value, int):
         raise ValueError(
-            f"analysis_max_side must be an integer in "
+            f"analysis_max_side must be null or an integer in "
             f"[{ANALYSIS_MAX_SIDE_MIN}, {ANALYSIS_MAX_SIDE_MAX}], got {type(value).__name__}"
         )
     if value < ANALYSIS_MAX_SIDE_MIN or value > ANALYSIS_MAX_SIDE_MAX:
@@ -120,15 +126,27 @@ def validate_custom_max_side(value: object) -> int:
     return value
 
 
+def validate_custom_max_side(value: object) -> int:
+    """Require int in product range (no None)."""
+    result = validate_analysis_max_side(value, allow_none=False)
+    assert result is not None
+    return result
+
+
+def preset_from_max_side(value: int | None) -> AnalysisQualityPreset:
+    if value is None:
+        return AnalysisQualityPreset.NATIVE
+    if value == FAST_ANALYSIS_MAX_SIDE:
+        return AnalysisQualityPreset.FAST
+    if value == DETAILED_ANALYSIS_MAX_SIDE:
+        return AnalysisQualityPreset.DETAILED
+    return AnalysisQualityPreset.CUSTOM
+
+
 def max_side_from_preset(
     preset: AnalysisQualityPreset,
     custom_value: int | None = None,
 ) -> int | None:
-    # START_CONTRACT: max_side_from_preset
-    #   PURPOSE: Map preset (+ optional custom int) to analysis_max_side
-    #   INPUTS: { preset, custom_value }
-    #   OUTPUTS: { int|None }
-    # END_CONTRACT: max_side_from_preset
     if preset is AnalysisQualityPreset.FAST:
         return FAST_ANALYSIS_MAX_SIDE
     if preset is AnalysisQualityPreset.DETAILED:
@@ -140,3 +158,28 @@ def max_side_from_preset(
             raise ValueError("custom preset requires custom_value")
         return validate_custom_max_side(custom_value)
     raise ValueError(f"Unknown preset: {preset}")
+
+
+def parse_cli_analysis_max_side_token(token: str) -> int | None:
+    # START_CONTRACT: parse_cli_analysis_max_side_token
+    #   PURPOSE: Parse CLI token "native" or integer string into product analysis_max_side
+    #   INPUTS: { token: str }
+    #   OUTPUTS: { int|None — None means explicit native }
+    #   SIDE_EFFECTS: raises ValueError on invalid token
+    # END_CONTRACT: parse_cli_analysis_max_side_token
+    raw = (token or "").strip()
+    if not raw:
+        raise ValueError("analysis_max_side token is empty")
+    if raw.lower() == "native":
+        return None
+    # Reject floats like "480.0"
+    if any(c in raw for c in ".eE+"):
+        raise ValueError(f"analysis_max_side must be 'native' or an integer, got {token!r}")
+    try:
+        n = int(raw, 10)
+    except ValueError as exc:
+        raise ValueError(
+            f"analysis_max_side must be 'native' or an integer "
+            f"[{ANALYSIS_MAX_SIDE_MIN}-{ANALYSIS_MAX_SIDE_MAX}], got {token!r}"
+        ) from exc
+    return validate_analysis_max_side(n, allow_none=False)

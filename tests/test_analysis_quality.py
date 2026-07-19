@@ -31,7 +31,6 @@ from video2pptx.domain.pipeline_state import StageStatus
 from video2pptx.domain.project import DetectionConfig, Project
 from video2pptx.infrastructure.persistence.dto import DetectionConfigDocument
 from video2pptx.infrastructure.persistence.file_project_repository import FileProjectRepository
-from video2pptx.infrastructure.persistence.mapper import ProjectMapper
 
 
 class TestPresetMapping:
@@ -56,17 +55,38 @@ class TestPresetMapping:
 
 class TestCustomValidation:
     def test_bounds(self):
+        from video2pptx.analysis_quality import validate_analysis_max_side
+
+        assert validate_analysis_max_side(None) is None
         assert validate_custom_max_side(240) == 240
+        assert validate_custom_max_side(480) == 480
+        assert validate_custom_max_side(720) == 720
         assert validate_custom_max_side(2160) == 2160
 
     def test_rejects(self):
-        for bad in (0, -1, 239, 2161, True, False, "480", 480.5, None):
+        from video2pptx.analysis_quality import validate_analysis_max_side
+
+        for bad in (0, -1, 239, 2161, True, False, "480", 480.5, 100):
             with pytest.raises(ValueError):
-                validate_custom_max_side(bad)
+                validate_analysis_max_side(bad, allow_none=True)
+        with pytest.raises(ValueError):
+            validate_custom_max_side(None)
 
     def test_range_constants(self):
         assert ANALYSIS_MAX_SIDE_MIN == 240
         assert ANALYSIS_MAX_SIDE_MAX == 2160
+
+    def test_project_json_100_rejected(self, tmp_path: Path):
+        """Value 100 is not silently clamped — load fails controlled."""
+        project = Project.create_new(name="bad100", output_dir=str(tmp_path / "bad100"))
+        repo = FileProjectRepository()
+        repo.create(tmp_path / "bad100", project)
+        path = tmp_path / "bad100" / "project.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["detection"]["analysis_max_side"] = 100
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        with pytest.raises(Exception):
+            repo.load(tmp_path / "bad100")
 
 
 class TestNewVsLegacy:
@@ -135,8 +155,11 @@ class TestApplyDetectionConfig:
         pipeline.succeed(stage)
 
     def test_change_invalidates_detect_and_downstream(self):
+        from video2pptx.domain.pipeline_state import DOWNSTREAM
+
         p = Project.create_new(name="inv")
-        for stage in ("detect", "align", "notes", "markdown_export", "pptx_export"):
+        stages = ("detect",) + DOWNSTREAM["detect"]
+        for stage in stages:
             self._succeed(p.pipeline, stage)
 
         new = DetectionConfig(
@@ -153,10 +176,8 @@ class TestApplyDetectionConfig:
         assert p.apply_detection_config(new) is True
         assert p.detection.analysis_max_side == 720
         assert p.pipeline.get("detect").status == StageStatus.STALE
-        assert p.pipeline.get("align").status == StageStatus.STALE
-        assert p.pipeline.get("notes").status == StageStatus.STALE
-        assert p.pipeline.get("markdown_export").status == StageStatus.STALE
-        assert p.pipeline.get("pptx_export").status == StageStatus.STALE
+        for stage in DOWNSTREAM["detect"]:
+            assert p.pipeline.get(stage).status == StageStatus.STALE, stage
 
     def test_noop_no_invalidation(self):
         p = Project.create_new(name="noop")

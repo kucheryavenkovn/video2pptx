@@ -438,6 +438,7 @@ class MainWindow(QMainWindow):
             save_fn=self._project_ctrl.save,
             status_fn=lambda m: self.statusBar().showMessage(m),
             frame_grabber=grabber,
+            reload_fn=lambda: self._project_ctrl.reload(emit=True),
         )
 
     def _on_app_settings(self) -> None:

@@ -36,6 +36,20 @@
       <depends>M-MODELS</depends>
     </M-CONFIG>
 
+    <M-ANALYSIS-QUALITY NAME="AnalysisQualityPresets" TYPE="UTILITY" LAYER="0" ORDER="2.4" STATUS="implemented">
+      <contract>
+        <purpose>Product analysis quality presets (FAST/DETAILED/NATIVE/CUSTOM), product-range validation 240-2160, UNSET override sentinel, new-project constant 480.</purpose>
+        <inputs><param name="analysis_max_side" type="int|None" /></inputs>
+        <outputs><param name="preset or validated max side" type="AnalysisQualityPreset|int|None" /></outputs>
+      </contract>
+      <target>
+        <source>src/video2pptx/analysis_quality.py</source>
+        <tests>tests/test_analysis_quality.py, tests/test_cli_analysis_max_side.py, tests/test_settings_flow.py</tests>
+      </target>
+      <verification-ref>V-M-ANALYSIS-QUALITY</verification-ref>
+      <depends>none</depends>
+    </M-ANALYSIS-QUALITY>
+
     <M-ANALYSIS-SCALE NAME="AnalysisScale" TYPE="UTILITY" LAYER="0" ORDER="2.5" STATUS="implemented">
       <contract>
         <purpose>Pure analysis-resolution policy: downscale frames for detection features without changing screenshot export resolution.</purpose>
@@ -1561,6 +1575,18 @@
       <step-20.5 name="Verification" status="done" verification="V-M-ANALYSIS-QUALITY">
         tests/test_analysis_quality.py + settings_project preset tests.
       </step-20.5>
+      <step-20.6 name="PersistenceRangeValidation" status="done" verification="V-M-ANALYSIS-QUALITY">
+        Unified validate_analysis_max_side; DTO rejects 239/2161/100/bool/str; product range 240-2160.
+      </step-20.6>
+      <step-20.7 name="CanonicalCliOverride" status="done" verification="V-M-ANALYSIS-QUALITY">
+        Canonical detect/auto --analysis-max-side native|240-2160; UNSET when omitted; DetectionService explicit None=native.
+      </step-20.7>
+      <step-20.8 name="SettingsFlowVerification" status="done" verification="V-M-ANALYSIS-QUALITY">
+        run_project_settings_flow scenarios A-F; ProjectController.save returns bool; reload on failure.
+      </step-20.8>
+      <step-20.9 name="CorrectionVerification" status="done" verification="V-M-ANALYSIS-QUALITY">
+        Full DOWNSTREAM detect invalidation; CLI tests; ruff/targeted green.
+      </step-20.9>
     </Phase-20>
     <Phase-19 name="AnalysisResolutionGoldenMean" status="done">
       <goal>

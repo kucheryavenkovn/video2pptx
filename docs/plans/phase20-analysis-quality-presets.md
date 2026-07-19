@@ -1,9 +1,9 @@
 # Phase 20 — Analysis Quality Presets
 
-**Branch:** `feature/analysis-quality-presets`  
-**Base:** `plan/phase19-analysis-resolution-golden-mean` @ `80afbbb` (Phase 19 not in master)  
-**Status:** DONE  
-**Date:** 2026-07-19  
+**Branch:** `feature/analysis-quality-presets`
+**Base:** `plan/phase19-analysis-resolution-golden-mean` @ `80afbbb` (Phase 19 not in master)
+**Status:** DONE (correction cycle 20.6–20.9 complete)
+**Date:** 2026-07-19
 
 Does **not** reopen Phase 18 or rewrite Phase 19 evidence. Dual-resolution invariants from Phase 19 remain mandatory.
 
@@ -65,23 +65,30 @@ Project setting is source of truth for project-bound GUI/Auto/Detect. Global App
 
 ## Dual-res invariants (unchanged)
 
-1. ROI/masks in native coordinates  
-2. evidence_observer sees native crop before scale  
-3. Scale only before extract_features  
-4. Pass2 full-res reps/PNG/PPTX  
-5. None disables scale; no upscale  
+1. ROI/masks in native coordinates
+2. evidence_observer sees native crop before scale
+3. Scale only before extract_features
+4. Pass2 full-res reps/PNG/PPTX
+5. None disables scale; no upscale
 
 ---
 
 ## Implementation order
 
-1. Plan + GRACE docs  
-2. `analysis_quality.py` + validation range in `analysis_scale`  
-3. Domain defaults split: new project explicit 480; DetectionConfig default None  
-4. DTO missing → None  
-5. `Project.apply_detection_config` + pipeline STALE for detect+downstream  
-6. GUI presets + main_window confirm/no-op/cancel  
-7. Tests + verification  
+1. Plan + GRACE docs
+2. `analysis_quality.py` + validation range in `analysis_scale`
+3. Domain defaults split: new project explicit 480; DetectionConfig default None
+4. DTO missing → None
+5. `Project.apply_detection_config` + pipeline STALE for detect+downstream
+6. GUI presets + main_window confirm/no-op/cancel
+7. Tests + verification
+
+## Correction cycle (20.6–20.9)
+
+- Product validator `validate_analysis_max_side` (240–2160 or None) shared by DTO/GUI/CLI.
+- Internal `normalize_analysis_max_side` / scale still accept any positive int (tests/benchmarks).
+- Canonical CLI `detect`/`auto`: `--analysis-max-side native|N`; omitted → UNSET.
+- `ProjectController.save() -> bool`; settings flow reloads on save failure.
 
 ---
 

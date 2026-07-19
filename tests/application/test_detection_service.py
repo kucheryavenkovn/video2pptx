@@ -223,3 +223,27 @@ class TestConfigPropagation:
         assert received["sample_fps"] == 3.5
         assert received["threshold"] == 0.123
         assert received["analysis_max_side"] == 640
+
+    def test_explicit_native_none_override(self, tmp_path: Path) -> None:
+        """analysis_max_side=None is explicit native, not 'use project'."""
+        repo = FileProjectRepository()
+        location = tmp_path / "native-ov"
+        project = Project.create_new(name="native-ov", output_dir=str(location))
+        project.detection.analysis_max_side = 480
+        project.video_path = str(tmp_path / "video.mp4")
+        Path(project.video_path).write_text("fake")
+        repo.create(location, project)
+
+        received = {}
+
+        class CapturingDetector:
+            def detect(self, video_path, out_dir, **kw):
+                received.update(kw)
+                return DetectionOutput(
+                    slides=[], score_timestamps=[], score_values=[], video_duration=0
+                )
+
+        ctx = ServiceContext(repository=repo, cancellation=CancellationToken())
+        service = DetectionService(detector=CapturingDetector(), context=ctx)
+        service.execute(location, video_path=None, analysis_max_side=None)
+        assert received["analysis_max_side"] is None

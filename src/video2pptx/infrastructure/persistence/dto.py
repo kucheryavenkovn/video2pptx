@@ -173,17 +173,10 @@ class DetectionConfigDocument(BaseModel):
     @field_validator("analysis_max_side", mode="before")
     @classmethod
     def _validate_analysis_max_side(cls, value: object) -> int | None:
-        """Reject bool/str/garbage; allow null and positive ints. No silent 480."""
-        if value is None:
-            return None
-        if isinstance(value, bool) or not isinstance(value, int):
-            raise ValueError(
-                "analysis_max_side must be null or an integer, "
-                f"got {type(value).__name__}"
-            )
-        if value <= 0:
-            raise ValueError(f"analysis_max_side must be positive when set, got {value}")
-        return value
+        """Product range only: null or int in [240, 2160]. No silent clamp/480."""
+        from video2pptx.analysis_quality import validate_analysis_max_side
+
+        return validate_analysis_max_side(value, allow_none=True)
 
 
 class ProjectDocumentV2(_StrictDocument):

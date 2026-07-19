@@ -25,6 +25,7 @@ from pathlib import Path
 
 from loguru import logger
 
+from video2pptx.analysis_quality import UNSET, UnsetType
 from video2pptx.application.base import (
     ServiceContext,
     normalize_roi,
@@ -74,8 +75,9 @@ class DetectionService:
         min_slide_duration: float | None = None,
         dedupe_enabled: bool | None = None,
         decoder_backend: str | None = None,
-        analysis_max_side: int | None = None,
+        analysis_max_side: int | None | UnsetType = UNSET,
     ) -> ServiceResult:
+        # analysis_max_side: UNSET = use project; None = explicit native; int = forced value
         repo = self._ctx.repository
         if repo is None:
             return ServiceResult.fail("detect", "Repository not configured")
@@ -97,9 +99,10 @@ class DetectionService:
             eff_min_stable = resolve_detection_override(min_stable_duration, dc.min_stable_duration)
             eff_min_slide = resolve_detection_override(min_slide_duration, dc.min_slide_duration)
             eff_dedupe = resolve_detection_override(dedupe_enabled, dc.dedupe_enabled)
-            eff_analysis_max_side = resolve_detection_override(
-                analysis_max_side, dc.analysis_max_side
-            )
+            if isinstance(analysis_max_side, UnsetType):
+                eff_analysis_max_side: int | None = dc.analysis_max_side
+            else:
+                eff_analysis_max_side = analysis_max_side
             # END_BLOCK_RESOLVE_INPUTS
 
             project.pipeline.start("detect")

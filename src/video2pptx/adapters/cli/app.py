@@ -68,6 +68,21 @@ def _make_code(exit_code: CliExitCode) -> int:
     return int(exit_code)
 
 
+def _parse_analysis_max_side_option(raw: str | None) -> object:
+    """Map CLI option to UNSET | None | int for DetectionService/AutoService.
+
+    None raw → UNSET (use project). ``native`` → explicit None. digits → int.
+    """
+    from video2pptx.analysis_quality import UNSET, parse_cli_analysis_max_side_token
+
+    if raw is None:
+        return UNSET
+    try:
+        return parse_cli_analysis_max_side_token(raw)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
 def build_app() -> typer.Typer:
     app = typer.Typer(name="video2pptx")
     project_app = typer.Typer(name="project", help="Manage projects - create, open, info")
@@ -121,10 +136,16 @@ def build_app() -> typer.Typer:
         min_stable_duration: float = typer.Option(2.0, "--min-stable-duration"),
         min_slide_duration: float = typer.Option(2.0, "--min-slide-duration"),
         dedupe: bool = typer.Option(True, "--dedupe/--no-dedupe"),
+        analysis_max_side: str | None = typer.Option(
+            None,
+            "--analysis-max-side",
+            help="Pass1 analysis max side: 'native' or integer 240-2160 (omit = use project)",
+        ),
     ) -> None:
         """Detect slides in a project (CV only)."""
         cli_ctx: CliContext = ctx.obj
         services = ApplicationServices()
+        ams = _parse_analysis_max_side_option(analysis_max_side)
         raise typer.Exit(
             code=_make_code(
                 _run_service(
@@ -134,6 +155,7 @@ def build_app() -> typer.Typer:
                     min_stable_duration=min_stable_duration,
                     min_slide_duration=min_slide_duration,
                     dedupe_enabled=dedupe,
+                    analysis_max_side=ams,
                 )
             )
         )
@@ -255,10 +277,16 @@ def build_app() -> typer.Typer:
         threshold: float = typer.Option(0.95, "--threshold"),
         notes_mode: str = typer.Option("basic", "--notes-mode"),
         export_format: str = typer.Option("markdown", "--export-format"),
+        analysis_max_side: str | None = typer.Option(
+            None,
+            "--analysis-max-side",
+            help="Pass1 analysis max side: 'native' or integer 240-2160 (omit = use project)",
+        ),
     ) -> None:
         """Run full pipeline: detect -> align -> notes -> export."""
         cli_ctx: CliContext = ctx.obj
         services = ApplicationServices()
+        ams = _parse_analysis_max_side_option(analysis_max_side)
         raise typer.Exit(
             code=_make_code(
                 _run_service(
@@ -270,6 +298,7 @@ def build_app() -> typer.Typer:
                     dedupe_enabled=True, notes_mode=notes_mode,
                     export_format=export_format, export_output_path="",
                     dry_run=False,
+                    analysis_max_side=ams,
                 )
             )
         )

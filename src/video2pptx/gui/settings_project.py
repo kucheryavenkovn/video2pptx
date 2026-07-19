@@ -339,33 +339,48 @@ def should_confirm_analysis_quality_change(
 def run_project_settings_flow(
     parent: QWidget,
     project: object,
-    save_fn: Callable[[], None],
+    save_fn: Callable[[], bool],
     status_fn: Callable[[str], None],
     frame_grabber: Callable[[], QPixmap | None] | None = None,
+    reload_fn: Callable[[], bool] | None = None,
+    confirm_fn: Callable[[str, str], bool] | None = None,
+    prompt_fn: Callable[..., DetectionConfig | None] | None = None,
 ) -> None:
     """Full Project Settings UX: dialog, optional confirm, domain apply, save.
 
     *project* is domain Project (duck-typed: .detection, .pipeline, .apply_detection_config).
+    *save_fn* must return True only when persistence succeeded.
+    On save failure, *reload_fn* restores disk state (no false success).
+    Optional *confirm_fn(title, text)->bool* and *prompt_fn* enable unit tests without Qt dialogs.
     """
     from video2pptx.analysis_quality import ANALYSIS_QUALITY_CHANGE_WARNING
     from video2pptx.domain.pipeline_state import StageStatus
 
-    new_config = prompt_detection_settings(parent, project.detection, frame_grabber)
+    prompt = prompt_fn or prompt_detection_settings
+    new_config = prompt(parent, project.detection, frame_grabber)
     if new_config is None:
         return
     detect_ok = project.pipeline.get("detect").status == StageStatus.SUCCEEDED
     if should_confirm_analysis_quality_change(project.detection, new_config, detect_ok):
-        reply = QMessageBox.warning(
-            parent,
-            "Качество анализа",
-            ANALYSIS_QUALITY_CHANGE_WARNING,
-            QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
-            QMessageBox.StandardButton.Cancel,
-        )
-        if reply != QMessageBox.StandardButton.Ok:
-            return
+        if confirm_fn is not None:
+            if not confirm_fn("Качество анализа", ANALYSIS_QUALITY_CHANGE_WARNING):
+                return
+        else:
+            reply = QMessageBox.warning(
+                parent,
+                "Качество анализа",
+                ANALYSIS_QUALITY_CHANGE_WARNING,
+                QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
+                QMessageBox.StandardButton.Cancel,
+            )
+            if reply != QMessageBox.StandardButton.Ok:
+                return
     if not project.apply_detection_config(new_config):
         status_fn("Project settings unchanged")
         return
-    save_fn()
+    if not save_fn():
+        if reload_fn is not None:
+            reload_fn()
+        status_fn("Failed to save project settings")
+        return
     status_fn("Project settings updated")

@@ -77,7 +77,13 @@ class AutoService:
         export_format: str = "markdown",
         export_output_path: str = "",
         dry_run: bool = False,
+        analysis_max_side: object = ...,
     ) -> ServiceResult:
+        from video2pptx.analysis_quality import UNSET
+
+        # Default UNSET when kwarg omitted; explicit None means native.
+        if analysis_max_side is ...:
+            analysis_max_side = UNSET
         repo = self._ctx.repository
         if repo is None:
             return ServiceResult.fail("auto", "Repository not configured")
@@ -121,6 +127,7 @@ class AutoService:
                 export_format=export_format,
                 export_output_path=export_output_path,
                 dry_run=dry_run,
+                analysis_max_side=analysis_max_side,
             )
             results[stage] = result
             if not result.success:
@@ -185,6 +192,7 @@ class AutoService:
                     min_stable_duration=kwargs["min_stable_duration"],
                     min_slide_duration=kwargs["min_slide_duration"],
                     dedupe_enabled=kwargs["dedupe_enabled"],
+                    analysis_max_side=kwargs["analysis_max_side"],
                 )
             elif stage == "align":
                 return self._align.execute(
