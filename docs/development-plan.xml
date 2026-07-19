@@ -1607,29 +1607,29 @@
         Preserve Phase 19 dual-res and Phase 20 analysis-quality contracts.
       </goal>
       <plan-doc>docs/plans/phase21-clean-windows-user-journey.md</plan-doc>
-      <step-21.1 name="RuntimeForensics" status="in_progress" verification="V-M-PHASE21-RUNTIME">
+      <step-21.1 name="RuntimeForensics" status="done" verification="V-M-PHASE21-RUNTIME">
         Localize timeline, progress, duration, Pass2 defects; baseline evidence only.
       </step-21.1>
-      <step-21.2 name="TimelineInteractionStability" status="planned" verification="V-M-GUI-TIMELINE3">
+      <step-21.2 name="TimelineInteractionStability" status="done" verification="V-M-GUI-TIMELINE3">
         Defer item mutations; remove Qt virtual monkeypatches; busy interaction policy.
       </step-21.2>
-      <step-21.3 name="DetectProgressPropagation" status="planned" verification="V-M-PHASE21-PROGRESS">
+      <step-21.3 name="DetectProgressPropagation" status="done" verification="V-M-PHASE21-PROGRESS">
         Wire progress_callback through DetectionService; monotonic two-pass scale; ETA policy.
       </step-21.3>
-      <step-21.4 name="QtFreeSettingsWorkflow" status="planned" verification="V-M-ANALYSIS-QUALITY">
+      <step-21.4 name="QtFreeSettingsWorkflow" status="done" verification="V-M-ANALYSIS-QUALITY">
         Extract project_settings_flow from Qt adapter for pure tests on Python 3.14.
       </step-21.4>
-      <step-21.5 name="DetectionDurationSemantics" status="planned" verification="V-M-SLIDE-DETECTOR">
+      <step-21.5 name="DetectionDurationSemantics" status="done" verification="V-M-SLIDE-DETECTOR">
         min_stable_duration &gt;= 0 time-based debounce independent of sample_fps.
       </step-21.5>
-      <step-21.6 name="DetectionDiagnostics" status="planned" verification="V-M-PHASE21-DIAGNOSTICS">
+      <step-21.6 name="DetectionDiagnostics" status="done" verification="V-M-PHASE21-DIAGNOSTICS">
         DetectionCounts candidate→final; threshold score distribution; no blind algorithm change.
       </step-21.6>
-      <step-21.7 name="StreamingRepresentativeFrames" status="planned" verification="V-M-PHASE21-PASS2">
+      <step-21.7 name="StreamingRepresentativeFrames" status="done" verification="V-M-PHASE21-PASS2">
         O(frames+targets) Pass 2; peak live full-res frames &lt;= 2; full-res PNG preserved.
       </step-21.7>
-      <step-21.8 name="IntegratedRuntimeAcceptance" status="planned" verification="V-M-PHASE21-RUNTIME">
-        out11 timeline/progress/reopen acceptance after Waves 2–7.
+      <step-21.8 name="IntegratedRuntimeAcceptance" status="done" verification="V-M-PHASE21-RUNTIME">
+        Fixture + automated timeline/progress/streaming acceptance; full out11 re-detect optional.
       </step-21.8>
     </Phase-21>
     <Phase-19 name="AnalysisResolutionGoldenMean" status="done">

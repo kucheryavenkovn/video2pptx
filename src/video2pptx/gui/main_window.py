@@ -311,13 +311,11 @@ class MainWindow(QMainWindow):
         result = getattr(self._pipeline_ctrl, f"run_{stage}")(project_dir, **params)
         if result is None:
             return
-        # StatusBarManager.start is triggered by operationStarted (before thread.start),
-        # not here after run_* returns — avoids late lifecycle vs first progress events.
-        if result is not None and hasattr(result, "accepted") and not result.accepted:
+        # Status start is on operationStarted (before thread.start), not here.
+        if hasattr(result, "accepted") and not result.accepted:
             self._on_operation_rejected(stage, result.active_stage or "")
 
     def _on_pipeline_started(self, stage: str) -> None:
-        """Start status lifecycle when PipelineController accepts an operation."""
         self._status.start(stage, stage.capitalize())
 
     def _on_operation_rejected(self, requested: str, active: str) -> None:
@@ -328,8 +326,7 @@ class MainWindow(QMainWindow):
     def _on_busy_changed(self, busy: bool) -> None:
         for btn in self._PIPELINE_BUTTONS:
             btn.setEnabled(not busy)
-        # Timeline: keep view/scroll; block move/resize/delete while pipeline runs
-        if hasattr(self, "_timeline") and self._timeline is not None:
+        if getattr(self, "_timeline", None) is not None:
             self._timeline.set_edits_enabled(not busy)
 
     def _on_pipeline_finished(self, result) -> None:

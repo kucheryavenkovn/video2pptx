@@ -4,8 +4,8 @@
 **Correction branch:** `fix/phase21-runtime-detection-timeline`  
 **Base:** `origin/feature/phase21-clean-windows-user-journey` @ `f388350`  
 **Accepted master:** `f388350`  
-**Status:** in_progress  
-**Verification status:** in_progress  
+**Status:** in_progress (correction waves 21.1–21.8 code complete; installed-GUI smoke optional)
+**Verification status:** in_progress
 **Date:** 2026-07-19
 
 Does **not** reopen Phase 19 golden-mean evidence or Phase 20 preset/rollback contracts.
