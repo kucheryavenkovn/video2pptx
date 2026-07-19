@@ -1,0 +1,370 @@
+%% GRACE Phases and Steps
+flowchart TB
+  Phase_1["Phase-1<br/>Foundation<br/>[done]"]
+  Phase_10["Phase-10<br/>DesktopGUI<br/>[done]"]
+  Phase_11["Phase-11<br/>DesktopGUIEnhancements<br/>[done]"]
+  Phase_12["Phase-12<br/>DomainModelRefactoring<br/>[done]"]
+  Phase_14["Phase-14<br/>DebugInfrastructure<br/>[done]"]
+  Phase_15["Phase-15<br/>McpE2eHardening<br/>[done]"]
+  Phase_16["Phase-16<br/>DomainRefactoring<br/>[done]"]
+  Phase_17["Phase-17<br/>WindowsPackaging<br/>[in_progress]"]
+  Phase_18["Phase-18<br/>DetectPerformance<br/>[in_progress]"]
+  Phase_19["Phase-19<br/>AnalysisResolutionGoldenMean<br/>[done]"]
+  Phase_2["Phase-2<br/>VideoDecoding<br/>[done]"]
+  Phase_20["Phase-20<br/>AnalysisQualityPresets<br/>[done]"]
+  Phase_21["Phase-21<br/>CleanWindowsUserJourneyRuntimeCorrection<br/>[in_progress]"]
+  Phase_3["Phase-3<br/>SlideDetection<br/>[done]"]
+  Phase_4["Phase-4<br/>SubtitlesAndExport<br/>[done]"]
+  Phase_5["Phase-5<br/>PipelineGPTBackendColab<br/>[done]"]
+  Phase_6["Phase-6<br/>PostMVPNotesPptx<br/>[done]"]
+  Phase_7["Phase-7<br/>SplitPipeline<br/>[done]"]
+  Phase_8["Phase-8<br/>RoiTool<br/>[done]"]
+  Phase_9["Phase-9<br/>ProjectManagement<br/>[done]"]
+  V_M_ANALYSIS_QUALITY["V-M-ANALYSIS-QUALITY"]
+  V_M_ANALYSIS_SCALE["V-M-ANALYSIS-SCALE"]
+  V_M_AUTO_ALIGN["V-M-AUTO-ALIGN"]
+  V_M_CLI["V-M-CLI"]
+  V_M_CLI_E2E["V-M-CLI-E2E"]
+  V_M_DEBUG_ACTION["V-M-DEBUG-ACTION"]
+  V_M_DEBUG_EXPORT["V-M-DEBUG-EXPORT"]
+  V_M_DEBUG_MCP["V-M-DEBUG-MCP"]
+  V_M_DETECT_ANALYSIS_SCALE["V-M-DETECT-ANALYSIS-SCALE"]
+  V_M_DETECT_SLIDES["V-M-DETECT-SLIDES"]
+  V_M_E2E_RUNNER["V-M-E2E-RUNNER"]
+  V_M_E2E_SCENARIOS["V-M-E2E-SCENARIOS"]
+  V_M_GOLDEN_MEAN_DECISION["V-M-GOLDEN-MEAN-DECISION"]
+  V_M_GOLDEN_MEAN_SWEEP["V-M-GOLDEN-MEAN-SWEEP"]
+  V_M_GUI_APPCONFIG["V-M-GUI-APPCONFIG"]
+  V_M_GUI_DEBUG_DOCK["V-M-GUI-DEBUG-DOCK"]
+  V_M_GUI_LOG_BRIDGE["V-M-GUI-LOG-BRIDGE"]
+  V_M_GUI_MAIN["V-M-GUI-MAIN"]
+  V_M_GUI_MENUBAR["V-M-GUI-MENUBAR"]
+  V_M_GUI_SETTINGS["V-M-GUI-SETTINGS"]
+  V_M_GUI_SETTINGS_PROJECT["V-M-GUI-SETTINGS-PROJECT"]
+  V_M_GUI_SIGNAL_SPY["V-M-GUI-SIGNAL-SPY"]
+  V_M_GUI_TIMELINE["V-M-GUI-TIMELINE"]
+  V_M_GUI_TIMELINE3["V-M-GUI-TIMELINE3"]
+  V_M_GUI_VIDEOPLAYER["V-M-GUI-VIDEOPLAYER"]
+  V_M_GUI_WORKER["V-M-GUI-WORKER"]
+  V_M_LLM_CLIENT["V-M-LLM-CLIENT"]
+  V_M_LLM_ORCHESTRATOR["V-M-LLM-ORCHESTRATOR"]
+  V_M_MCP_OPERATIONS["V-M-MCP-OPERATIONS"]
+  V_M_MD_EXPORT["V-M-MD-EXPORT"]
+  V_M_NOTES["V-M-NOTES"]
+  V_M_NOTES_PROCESSOR["V-M-NOTES-PROCESSOR"]
+  V_M_OPERATION_REGISTRY["V-M-OPERATION-REGISTRY"]
+  V_M_PERF_DETECT_ACCEPTANCE["V-M-PERF-DETECT-ACCEPTANCE"]
+  V_M_PERF_DETECT_BASELINE["V-M-PERF-DETECT-BASELINE"]
+  V_M_PERF_DETECT_BOTTLENECK["V-M-PERF-DETECT-BOTTLENECK"]
+  V_M_PERF_DETECT_HERMES_REBENCHMARK["V-M-PERF-DETECT-HERMES-REBENCHMARK"]
+  V_M_PERF_DETECT_SHORT_BENCHMARK["V-M-PERF-DETECT-SHORT-BENCHMARK"]
+  V_M_PERF_DETECT_SHORT_REBENCHMARK["V-M-PERF-DETECT-SHORT-REBENCHMARK"]
+  V_M_PERF_DETECT_TARGETED["V-M-PERF-DETECT-TARGETED"]
+  V_M_PHASE19_ACCEPTANCE["V-M-PHASE19-ACCEPTANCE"]
+  V_M_PHASE19_PLAN["V-M-PHASE19-PLAN"]
+  V_M_PHASE21_DIAGNOSTICS["V-M-PHASE21-DIAGNOSTICS"]
+  V_M_PHASE21_PASS2["V-M-PHASE21-PASS2"]
+  V_M_PHASE21_PROGRESS["V-M-PHASE21-PROGRESS"]
+  V_M_PHASE21_RUNTIME["V-M-PHASE21-RUNTIME"]
+  V_M_PIPELINE_STATES["V-M-PIPELINE-STATES"]
+  V_M_PPTX_EXPORT["V-M-PPTX-EXPORT"]
+  V_M_PROJECT["V-M-PROJECT"]
+  V_M_PROJECT_MODEL["V-M-PROJECT-MODEL"]
+  V_M_REF_CANONICAL_ROUTE["V-M-REF-CANONICAL-ROUTE"]
+  V_M_REF_CLEAN_WINDOWS["V-M-REF-CLEAN-WINDOWS"]
+  V_M_REF_PACKAGED_MCP["V-M-REF-PACKAGED-MCP"]
+  V_M_REF_PACKAGING_INVENTORY["V-M-REF-PACKAGING-INVENTORY"]
+  V_M_REF_PACKAGING_PARITY["V-M-REF-PACKAGING-PARITY"]
+  V_M_REF_PERSISTENCE_STABILIZATION["V-M-REF-PERSISTENCE-STABILIZATION"]
+  V_M_REF_PRODUCT_IDENTITY["V-M-REF-PRODUCT-IDENTITY"]
+  V_M_REF_STANDALONE_BUILD["V-M-REF-STANDALONE-BUILD"]
+  V_M_REF_UPDATE_CHECKER["V-M-REF-UPDATE-CHECKER"]
+  V_M_REF_WIN_INSTALLER["V-M-REF-WIN-INSTALLER"]
+  V_M_REF_WIN_RELEASE["V-M-REF-WIN-RELEASE"]
+  V_M_ROI_TOOL["V-M-ROI-TOOL"]
+  V_M_SLIDE_ANALYZER["V-M-SLIDE-ANALYZER"]
+  V_M_SLIDE_DETECTOR["V-M-SLIDE-DETECTOR"]
+  V_M_STRUCTURED_ERRORS["V-M-STRUCTURED-ERRORS"]
+  V_M_SUBTITLES["V-M-SUBTITLES"]
+  V_M_TIMELINE_MODEL["V-M-TIMELINE-MODEL"]
+  step_0["step-0<br/>ProductIdentity<br/>[done]"]
+  step_1["step-1<br/>PackagingInventory<br/>[done]"]
+  step_10["step-10<br/>ReleaseAcceptance<br/>[pending]"]
+  step_10_5["step-10.5<br/>Diagnostics<br/>[done]"]
+  step_11["step-11<br/>step-11<br/>[done]"]
+  step_12["step-12<br/>step-12<br/>[done]"]
+  step_13["step-13<br/>step-13<br/>[done]"]
+  step_14["step-14<br/>step-14<br/>[done]"]
+  step_15["step-15<br/>step-15<br/>[done]"]
+  step_16["step-16<br/>step-16<br/>[done]"]
+  step_17["step-17<br/>step-17<br/>[done]"]
+  step_18["step-18<br/>step-18<br/>[done]"]
+  step_18_1["step-18.1<br/>PerformanceBaseline<br/>[done]"]
+  step_18_2["step-18.2<br/>TwoPassDetection<br/>[done]"]
+  step_18_3["step-18.3<br/>ShortVideoBenchmark<br/>[done]"]
+  step_18_4["step-18.4<br/>BottleneckDecision<br/>[done]"]
+  step_18_4a["step-18.4a<br/>HwAccelRuntimeEvidence<br/>[done]"]
+  step_18_4b["step-18.4b<br/>StrictHwAccelFallbackControl<br/>[done]"]
+  step_18_4c["step-18.4c<br/>TargetOptimizationDiscrimination<br/>[done]"]
+  step_18_5["step-18.5<br/>TargetedOptimization<br/>[planned]"]
+  step_18_6["step-18.6<br/>ShortVideoReBenchmark<br/>[planned]"]
+  step_18_7["step-18.7<br/>HermesFullReBenchmark<br/>[planned]"]
+  step_18_8["step-18.8<br/>QualityAcceptance<br/>[planned]"]
+  step_19["step-19<br/>step-19<br/>[done]"]
+  step_19_0["step-19.0<br/>PlanFreeze<br/>[done]"]
+  step_19_1["step-19.1<br/>AnalysisScaleConfig<br/>[done]"]
+  step_19_2["step-19.2<br/>ScaleHelperAndTests<br/>[done]"]
+  step_19_3["step-19.3<br/>DualResolutionDetectPath<br/>[done]"]
+  step_19_4["step-19.4<br/>MetricsTags<br/>[done]"]
+  step_19_5["step-19.5<br/>GoldenMeanSweepTool<br/>[done]"]
+  step_19_6["step-19.6<br/>ShortClipDiscrimination<br/>[done]"]
+  step_19_7["step-19.7<br/>GoldenMeanDecision<br/>[done]"]
+  step_19_8["step-19.8<br/>AdoptDefaults<br/>[done]"]
+  step_19_9["step-19.9<br/>Phase19Acceptance<br/>[done]"]
+  step_2["step-2<br/>DesktopEntryPoint<br/>[done]"]
+  step_20["step-20<br/>step-20<br/>[done]"]
+  step_20_1["step-20.1<br/>PresetsModule<br/>[done]"]
+  step_20_10["step-20.10<br/>ApplicationBoundaryValidation<br/>[done]"]
+  step_20_11["step-20.11<br/>SaveFailureRollbackHardening<br/>[done]"]
+  step_20_12["step-20.12<br/>AutoOverrideVerification<br/>[done]"]
+  step_20_13["step-20.13<br/>FinalCorrectionVerification<br/>[done]"]
+  step_20_2["step-20.2<br/>NewVsLegacySemantics<br/>[done]"]
+  step_20_3["step-20.3<br/>ApplyDetectionInvalidation<br/>[done]"]
+  step_20_4["step-20.4<br/>ProjectSettingsUI<br/>[done]"]
+  step_20_5["step-20.5<br/>Verification<br/>[done]"]
+  step_20_6["step-20.6<br/>PersistenceRangeValidation<br/>[done]"]
+  step_20_7["step-20.7<br/>CanonicalCliOverride<br/>[done]"]
+  step_20_8["step-20.8<br/>SettingsFlowVerification<br/>[done]"]
+  step_20_9["step-20.9<br/>CorrectionVerification<br/>[done]"]
+  step_21["step-21<br/>step-21<br/>[done]"]
+  step_21_1["step-21.1<br/>RuntimeForensics<br/>[done]"]
+  step_21_2["step-21.2<br/>TimelineInteractionStability<br/>[done]"]
+  step_21_3["step-21.3<br/>DetectProgressPropagation<br/>[done]"]
+  step_21_4["step-21.4<br/>QtFreeSettingsWorkflow<br/>[done]"]
+  step_21_5["step-21.5<br/>DetectionDurationSemantics<br/>[done]"]
+  step_21_6["step-21.6<br/>DetectionDiagnostics<br/>[done]"]
+  step_21_7["step-21.7<br/>StreamingRepresentativeFrames<br/>[done]"]
+  step_21_8["step-21.8<br/>IntegratedRuntimeAcceptance<br/>[done]"]
+  step_22["step-22<br/>step-22<br/>[done]"]
+  step_23["step-23<br/>step-23<br/>[done]"]
+  step_24["step-24<br/>step-24<br/>[done]"]
+  step_25["step-25<br/>step-25<br/>[done]"]
+  step_26["step-26<br/>step-26<br/>[done]"]
+  step_27["step-27<br/>step-27<br/>[done]"]
+  step_28["step-28<br/>step-28<br/>[done]"]
+  step_29["step-29<br/>step-29<br/>[done]"]
+  step_3["step-3<br/>PyInstallerReference<br/>[done]"]
+  step_30["step-30<br/>step-30<br/>[done]"]
+  step_31["step-31<br/>step-31<br/>[done]"]
+  step_32["step-32<br/>step-32<br/>[done]"]
+  step_33["step-33<br/>step-33<br/>[done]"]
+  step_34["step-34<br/>step-34<br/>[done]"]
+  step_35["step-35<br/>step-35<br/>[done]"]
+  step_36["step-36<br/>step-36<br/>[done]"]
+  step_37["step-37<br/>step-37<br/>[done]"]
+  step_38["step-38<br/>step-38<br/>[done]"]
+  step_39["step-39<br/>step-39<br/>[done]"]
+  step_4["step-4<br/>NuitkaReference<br/>[deferred]"]
+  step_4_7["step-4.7<br/>PersistenceContractStabilization<br/>[done]"]
+  step_40["step-40<br/>step-40<br/>[done]"]
+  step_41["step-41<br/>step-41<br/>[done]"]
+  step_42["step-42<br/>step-42<br/>[done]"]
+  step_43["step-43<br/>step-43<br/>[done]"]
+  step_44["step-44<br/>step-44<br/>[done]"]
+  step_45["step-45<br/>step-45<br/>[done]"]
+  step_46["step-46<br/>step-46<br/>[done]"]
+  step_47["step-47<br/>step-47<br/>[done]"]
+  step_48["step-48<br/>step-48<br/>[done]"]
+  step_49["step-49<br/>step-49<br/>[done]"]
+  step_5["step-5<br/>PackagingDecision<br/>[done]"]
+  step_5_5["step-5.5<br/>UpdateChecker<br/>[done]"]
+  step_50["step-50<br/>step-50<br/>[done]"]
+  step_6["step-6<br/>CleanMachineVerification<br/>[pending]"]
+  step_7["step-7<br/>Installer<br/>[done]"]
+  step_8["step-8<br/>PackagedMCP<br/>[done]"]
+  step_9["step-9<br/>ReleaseWorkflow<br/>[done]"]
+  step_9_5["step-9.5<br/>CanonicalRouteClosure<br/>[done]"]
+
+  Phase_17 -->|contains| step_0
+  step_0 -->|verified_by| V_M_REF_PRODUCT_IDENTITY
+  Phase_17 -->|contains| step_1
+  step_1 -->|verified_by| V_M_REF_PACKAGING_INVENTORY
+  Phase_17 -->|contains| step_10
+  Phase_17 -->|contains| step_10_5
+  step_10_5 -->|verified_by| V_M_REF_PACKAGING_PARITY
+  Phase_4 -->|contains| step_11
+  step_11 -->|verified_by| V_M_SUBTITLES
+  Phase_4 -->|contains| step_12
+  step_12 -->|verified_by| V_M_MD_EXPORT
+  Phase_4 -->|contains| step_13
+  step_13 -->|verified_by| V_M_DEBUG_EXPORT
+  Phase_5 -->|contains| step_14
+  step_14 -->|verified_by| V_M_CLI_E2E
+  Phase_5 -->|contains| step_15
+  Phase_5 -->|contains| step_16
+  Phase_5 -->|contains| step_17
+  step_17 -->|verified_by| V_M_LLM_CLIENT
+  Phase_5 -->|contains| step_18
+  step_18 -->|verified_by| V_M_SLIDE_ANALYZER
+  Phase_18 -->|contains| step_18_1
+  step_18_1 -->|verified_by| V_M_PERF_DETECT_BASELINE
+  Phase_18 -->|contains| step_18_2
+  Phase_18 -->|contains| step_18_3
+  step_18_3 -->|verified_by| V_M_PERF_DETECT_SHORT_BENCHMARK
+  Phase_18 -->|contains| step_18_4
+  step_18_4 -->|verified_by| V_M_PERF_DETECT_BOTTLENECK
+  Phase_18 -->|contains| step_18_4a
+  Phase_18 -->|contains| step_18_4b
+  Phase_18 -->|contains| step_18_4c
+  Phase_18 -->|contains| step_18_5
+  step_18_5 -->|verified_by| V_M_PERF_DETECT_TARGETED
+  Phase_18 -->|contains| step_18_6
+  step_18_6 -->|verified_by| V_M_PERF_DETECT_SHORT_REBENCHMARK
+  Phase_18 -->|contains| step_18_7
+  step_18_7 -->|verified_by| V_M_PERF_DETECT_HERMES_REBENCHMARK
+  Phase_18 -->|contains| step_18_8
+  step_18_8 -->|verified_by| V_M_PERF_DETECT_ACCEPTANCE
+  Phase_5 -->|contains| step_19
+  step_19 -->|verified_by| V_M_LLM_ORCHESTRATOR
+  Phase_19 -->|contains| step_19_0
+  step_19_0 -->|verified_by| V_M_PHASE19_PLAN
+  Phase_19 -->|contains| step_19_1
+  step_19_1 -->|verified_by| V_M_ANALYSIS_SCALE
+  Phase_19 -->|contains| step_19_2
+  step_19_2 -->|verified_by| V_M_ANALYSIS_SCALE
+  Phase_19 -->|contains| step_19_3
+  step_19_3 -->|verified_by| V_M_DETECT_ANALYSIS_SCALE
+  Phase_19 -->|contains| step_19_4
+  step_19_4 -->|verified_by| V_M_DETECT_ANALYSIS_SCALE
+  Phase_19 -->|contains| step_19_5
+  step_19_5 -->|verified_by| V_M_GOLDEN_MEAN_SWEEP
+  Phase_19 -->|contains| step_19_6
+  step_19_6 -->|verified_by| V_M_GOLDEN_MEAN_SWEEP
+  Phase_19 -->|contains| step_19_7
+  step_19_7 -->|verified_by| V_M_GOLDEN_MEAN_DECISION
+  Phase_19 -->|contains| step_19_8
+  step_19_8 -->|verified_by| V_M_GOLDEN_MEAN_DECISION
+  Phase_19 -->|contains| step_19_9
+  step_19_9 -->|verified_by| V_M_PHASE19_ACCEPTANCE
+  Phase_17 -->|contains| step_2
+  step_2 -->|verified_by| V_M_REF_STANDALONE_BUILD
+  Phase_6 -->|contains| step_20
+  step_20 -->|verified_by| V_M_PPTX_EXPORT
+  Phase_20 -->|contains| step_20_1
+  step_20_1 -->|verified_by| V_M_ANALYSIS_QUALITY
+  Phase_20 -->|contains| step_20_10
+  step_20_10 -->|verified_by| V_M_ANALYSIS_QUALITY
+  Phase_20 -->|contains| step_20_11
+  step_20_11 -->|verified_by| V_M_ANALYSIS_QUALITY
+  Phase_20 -->|contains| step_20_12
+  step_20_12 -->|verified_by| V_M_ANALYSIS_QUALITY
+  Phase_20 -->|contains| step_20_13
+  step_20_13 -->|verified_by| V_M_ANALYSIS_QUALITY
+  Phase_20 -->|contains| step_20_2
+  step_20_2 -->|verified_by| V_M_ANALYSIS_QUALITY
+  Phase_20 -->|contains| step_20_3
+  step_20_3 -->|verified_by| V_M_ANALYSIS_QUALITY
+  Phase_20 -->|contains| step_20_4
+  step_20_4 -->|verified_by| V_M_GUI_SETTINGS_PROJECT
+  Phase_20 -->|contains| step_20_5
+  step_20_5 -->|verified_by| V_M_ANALYSIS_QUALITY
+  Phase_20 -->|contains| step_20_6
+  step_20_6 -->|verified_by| V_M_ANALYSIS_QUALITY
+  Phase_20 -->|contains| step_20_7
+  step_20_7 -->|verified_by| V_M_ANALYSIS_QUALITY
+  Phase_20 -->|contains| step_20_8
+  step_20_8 -->|verified_by| V_M_ANALYSIS_QUALITY
+  Phase_20 -->|contains| step_20_9
+  step_20_9 -->|verified_by| V_M_ANALYSIS_QUALITY
+  Phase_6 -->|contains| step_21
+  step_21 -->|verified_by| V_M_NOTES_PROCESSOR
+  Phase_21 -->|contains| step_21_1
+  step_21_1 -->|verified_by| V_M_PHASE21_RUNTIME
+  Phase_21 -->|contains| step_21_2
+  step_21_2 -->|verified_by| V_M_GUI_TIMELINE3
+  Phase_21 -->|contains| step_21_3
+  step_21_3 -->|verified_by| V_M_PHASE21_PROGRESS
+  Phase_21 -->|contains| step_21_4
+  step_21_4 -->|verified_by| V_M_ANALYSIS_QUALITY
+  Phase_21 -->|contains| step_21_5
+  step_21_5 -->|verified_by| V_M_SLIDE_DETECTOR
+  Phase_21 -->|contains| step_21_6
+  step_21_6 -->|verified_by| V_M_PHASE21_DIAGNOSTICS
+  Phase_21 -->|contains| step_21_7
+  step_21_7 -->|verified_by| V_M_PHASE21_PASS2
+  Phase_21 -->|contains| step_21_8
+  step_21_8 -->|verified_by| V_M_PHASE21_RUNTIME
+  Phase_7 -->|contains| step_22
+  step_22 -->|verified_by| V_M_DETECT_SLIDES
+  Phase_7 -->|contains| step_23
+  step_23 -->|verified_by| V_M_NOTES
+  Phase_7 -->|contains| step_24
+  step_24 -->|verified_by| V_M_CLI
+  Phase_8 -->|contains| step_25
+  step_25 -->|verified_by| V_M_ROI_TOOL
+  Phase_9 -->|contains| step_26
+  step_26 -->|verified_by| V_M_PROJECT
+  Phase_10 -->|contains| step_27
+  step_27 -->|verified_by| V_M_GUI_MAIN
+  Phase_10 -->|contains| step_28
+  step_28 -->|verified_by| V_M_GUI_TIMELINE
+  Phase_10 -->|contains| step_29
+  step_29 -->|verified_by| V_M_GUI_SETTINGS
+  Phase_17 -->|contains| step_3
+  Phase_10 -->|contains| step_30
+  step_30 -->|verified_by| V_M_GUI_WORKER
+  Phase_11 -->|contains| step_31
+  step_31 -->|verified_by| V_M_GUI_APPCONFIG
+  Phase_11 -->|contains| step_32
+  step_32 -->|verified_by| V_M_GUI_VIDEOPLAYER
+  Phase_11 -->|contains| step_33
+  step_33 -->|verified_by| V_M_GUI_TIMELINE3
+  Phase_11 -->|contains| step_34
+  step_34 -->|verified_by| V_M_GUI_MENUBAR
+  Phase_12 -->|contains| step_35
+  step_35 -->|verified_by| V_M_TIMELINE_MODEL
+  Phase_12 -->|contains| step_36
+  step_36 -->|verified_by| V_M_PROJECT_MODEL
+  Phase_14 -->|contains| step_37
+  step_37 -->|verified_by| V_M_GUI_LOG_BRIDGE
+  Phase_14 -->|contains| step_38
+  step_38 -->|verified_by| V_M_GUI_DEBUG_DOCK
+  Phase_14 -->|contains| step_39
+  step_39 -->|verified_by| V_M_GUI_SIGNAL_SPY
+  Phase_17 -->|contains| step_4
+  Phase_16 -->|contains| step_4_7
+  step_4_7 -->|verified_by| V_M_REF_PERSISTENCE_STABILIZATION
+  Phase_14 -->|contains| step_40
+  step_40 -->|verified_by| V_M_DEBUG_MCP
+  Phase_14 -->|contains| step_41
+  step_41 -->|verified_by| V_M_DEBUG_ACTION
+  Phase_14 -->|contains| step_42
+  step_42 -->|verified_by| V_M_GUI_MAIN
+  Phase_15 -->|contains| step_43
+  step_43 -->|verified_by| V_M_OPERATION_REGISTRY
+  Phase_15 -->|contains| step_44
+  step_44 -->|verified_by| V_M_STRUCTURED_ERRORS
+  Phase_15 -->|contains| step_45
+  step_45 -->|verified_by| V_M_MCP_OPERATIONS
+  Phase_15 -->|contains| step_46
+  step_46 -->|verified_by| V_M_PIPELINE_STATES
+  Phase_15 -->|contains| step_47
+  step_47 -->|verified_by| V_M_AUTO_ALIGN
+  Phase_15 -->|contains| step_48
+  step_48 -->|verified_by| V_M_E2E_RUNNER
+  Phase_15 -->|contains| step_49
+  step_49 -->|verified_by| V_M_E2E_SCENARIOS
+  Phase_17 -->|contains| step_5
+  Phase_17 -->|contains| step_5_5
+  step_5_5 -->|verified_by| V_M_REF_UPDATE_CHECKER
+  Phase_15 -->|contains| step_50
+  Phase_17 -->|contains| step_6
+  step_6 -->|verified_by| V_M_REF_CLEAN_WINDOWS
+  Phase_17 -->|contains| step_7
+  step_7 -->|verified_by| V_M_REF_WIN_INSTALLER
+  Phase_17 -->|contains| step_8
+  step_8 -->|verified_by| V_M_REF_PACKAGED_MCP
+  Phase_17 -->|contains| step_9
+  step_9 -->|verified_by| V_M_REF_WIN_RELEASE
+  Phase_16 -->|contains| step_9_5
+  step_9_5 -->|verified_by| V_M_REF_CANONICAL_ROUTE

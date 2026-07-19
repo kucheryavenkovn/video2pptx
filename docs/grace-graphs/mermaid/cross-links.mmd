@@ -1,0 +1,121 @@
+%% GRACE CrossLinks (knowledge-graph)
+flowchart LR
+  M_BACKENDS["M-BACKENDS"]
+  M_CLI["M-CLI"]
+  M_CONFIG["M-CONFIG"]
+  M_DEBUG_EXPORT["M-DEBUG-EXPORT"]
+  M_DEDUPE["M-DEDUPE"]
+  M_DETECT_METRICS["M-DETECT-METRICS"]
+  M_DETECT_PERF_DECISION["M-DETECT-PERF-DECISION"]
+  M_DETECT_SLIDES["M-DETECT-SLIDES"]
+  M_FRAME_FEATURES["M-FRAME-FEATURES"]
+  M_GUI_APPCONFIG["M-GUI-APPCONFIG"]
+  M_GUI_MAIN["M-GUI-MAIN"]
+  M_GUI_MARKER_PANEL["M-GUI-MARKER-PANEL"]
+  M_GUI_MENUBAR["M-GUI-MENUBAR"]
+  M_GUI_SETTINGS["M-GUI-SETTINGS"]
+  M_GUI_SETTINGS_PROJECT["M-GUI-SETTINGS-PROJECT"]
+  M_GUI_STATUS["M-GUI-STATUS"]
+  M_GUI_SUBTITLE_EDITOR["M-GUI-SUBTITLE-EDITOR"]
+  M_GUI_SUBTITLE_OVERLAY["M-GUI-SUBTITLE-OVERLAY"]
+  M_GUI_TIMELINE["M-GUI-TIMELINE"]
+  M_GUI_TIMELINE3["M-GUI-TIMELINE3"]
+  M_GUI_VIDEOPLAYER["M-GUI-VIDEOPLAYER"]
+  M_GUI_WORKER["M-GUI-WORKER"]
+  M_LLM_CLIENT["M-LLM-CLIENT"]
+  M_LLM_ORCHESTRATOR["M-LLM-ORCHESTRATOR"]
+  M_MD_EXPORT["M-MD-EXPORT"]
+  M_MODELS["M-MODELS"]
+  M_NOTES["M-NOTES"]
+  M_NOTES_PROCESSOR["M-NOTES-PROCESSOR"]
+  M_PIPELINE["M-PIPELINE"]
+  M_PPTX_EXPORT["M-PPTX-EXPORT"]
+  M_PROJECT["M-PROJECT"]
+  M_ROI["M-ROI"]
+  M_ROI_TOOL["M-ROI-TOOL"]
+  M_SEGMENTER["M-SEGMENTER"]
+  M_SLIDE_ANALYZER["M-SLIDE-ANALYZER"]
+  M_SLIDE_DETECTOR["M-SLIDE-DETECTOR"]
+  M_SUBTITLES["M-SUBTITLES"]
+  M_VIDEO_DECODE["M-VIDEO-DECODE"]
+
+  M_CLI -->|reads config, passes to pipeline| M_CONFIG
+  M_CLI -->|orchestrates| M_VIDEO_DECODE
+  M_CLI -->|orchestrates| M_SLIDE_DETECTOR
+  M_CLI -->|orchestrates| M_SEGMENTER
+  M_CLI -->|orchestrates| M_SUBTITLES
+  M_CLI -->|orchestrates| M_MD_EXPORT
+  M_CLI -->|orchestrates| M_PPTX_EXPORT
+  M_CLI -->|orchestrates| M_DEDUPE
+  M_CLI -->|orchestrates| M_ROI
+  M_CLI -->|orchestrates via slide_detector| M_FRAME_FEATURES
+  M_CLI -->|orchestrates| M_DEBUG_EXPORT
+  M_CLI -->|orchestrates for notes| M_NOTES_PROCESSOR
+  M_CLI -->|orchestrates for llm-process| M_LLM_CLIENT
+  M_CLI -->|orchestrates for llm-process| M_LLM_ORCHESTRATOR
+  M_CLI -->|orchestrates for llm-process and notes| M_SLIDE_ANALYZER
+  M_CLI -->|delegates detect-slides command| M_DETECT_SLIDES
+  M_CLI -->|delegates notes command| M_NOTES
+  M_CLI -->|delegates roi-tool command| M_ROI_TOOL
+  M_CLI -->|delegates project subcommands| M_PROJECT
+  M_PROJECT -->|uses Project model| M_MODELS
+  M_PROJECT -->|uses LlmConfig, DetectionConfig| M_CONFIG
+  M_PIPELINE -->|implements| M_CLI
+  M_VIDEO_DECODE -->|selects and uses| M_BACKENDS
+  M_SLIDE_DETECTOR -->|extracts and compares| M_FRAME_FEATURES
+  M_SLIDE_DETECTOR -->|crops and masks| M_ROI
+  M_SEGMENTER -->|deduplicates after segmentation| M_DEDUPE
+  M_DEDUPE -->|uses for comparison| M_FRAME_FEATURES
+  M_MD_EXPORT -->|reads SlidesDocument| M_MODELS
+  M_PPTX_EXPORT -->|reads SlidesDocument| M_MODELS
+  M_PPTX_EXPORT -->|uses for notes cleanup| M_NOTES_PROCESSOR
+  M_DEBUG_EXPORT -->|reads SlideSegment| M_MODELS
+  M_SLIDE_ANALYZER -->|uses for vision calls| M_LLM_CLIENT
+  M_LLM_ORCHESTRATOR -->|loads/unloads model| M_LLM_CLIENT
+  M_LLM_ORCHESTRATOR -->|calls for each slide| M_SLIDE_ANALYZER
+  M_LLM_ORCHESTRATOR -->|uses for transcript rephrase| M_NOTES_PROCESSOR
+  M_DETECT_SLIDES -->|uses for frame iteration| M_VIDEO_DECODE
+  M_DETECT_SLIDES -->|uses for change detection| M_SLIDE_DETECTOR
+  M_DETECT_SLIDES -->|builds intervals| M_SEGMENTER
+  M_DETECT_SLIDES -->|deduplicates| M_DEDUPE
+  M_DETECT_SLIDES -->|crops and masks| M_ROI
+  M_DETECT_SLIDES -->|Phase-18 TwoPassDetection: 3-to-2 passes…| M_DETECT_PERF_DECISION
+  M_DETECT_PERF_DECISION -->|Phase-18 TwoPassDetection: baseline iden…| M_DETECT_METRICS
+  M_NOTES -->|parses and aligns cues| M_SUBTITLES
+  M_NOTES -->|cleans and formats notes| M_NOTES_PROCESSOR
+  M_ROI_TOOL -->|extracts frame| M_VIDEO_DECODE
+  M_GUI_MAIN -->|controls project lifecycle| M_PROJECT
+  M_GUI_MAIN -->|embeds and populates| M_GUI_TIMELINE
+  M_GUI_MAIN -->|opens settings dialog| M_GUI_SETTINGS
+  M_GUI_MAIN -->|creates and starts workers| M_GUI_WORKER
+  M_GUI_MAIN -->|calls via worker| M_DETECT_SLIDES
+  M_GUI_MAIN -->|calls via worker| M_NOTES
+  M_GUI_MAIN -->|queries available backends| M_BACKENDS
+  M_GUI_MAIN -->|creates and shows marker panel| M_GUI_MARKER_PANEL
+  M_GUI_MAIN -->|opens project settings dialog| M_GUI_SETTINGS_PROJECT
+  M_GUI_MAIN -->|embeds TimelineWidget (V3 multi-track)| M_GUI_TIMELINE3
+  M_GUI_MAIN -->|uses StatusBarManager for progress displ…| M_GUI_STATUS
+  M_GUI_MAIN -->|opens SubtitleEditorDialog on context me…| M_GUI_SUBTITLE_EDITOR
+  M_GUI_TIMELINE3 -->|reads SlideSegment list, SlideSegment.ma…| M_MODELS
+  M_GUI_TIMELINE3 -->|emits signals for add_manual_slide, seek…| M_GUI_MAIN
+  M_GUI_TIMELINE3 -->|uses quick_extract/quick_visual_distance…| M_FRAME_FEATURES
+  M_GUI_WORKER -->|QuickDetectWorker uses quick_mode=True f…| M_DETECT_SLIDES
+  M_GUI_WORKER -->|QuickDetectWorker uses quick_extract/qui…| M_FRAME_FEATURES
+  M_GUI_WORKER -->|reads notes_mode config| M_GUI_APPCONFIG
+  M_GUI_STATUS -->|attached to MainWindow.statusBar()| M_GUI_MAIN
+  M_GUI_TIMELINE -->|reads SlideSegment list| M_MODELS
+  M_GUI_SETTINGS -->|reads/writes project config| M_PROJECT
+  M_GUI_SETTINGS -->|reads LlmConfig, DetectionConfig default…| M_CONFIG
+  M_GUI_SETTINGS -->|queries available backends| M_BACKENDS
+  M_GUI_SETTINGS -->|shows SYSTEM_PROMPT_REPHRASE| M_NOTES_PROCESSOR
+  M_GUI_WORKER -->|runs detection in background thread| M_DETECT_SLIDES
+  M_GUI_WORKER -->|runs notes in background thread| M_NOTES
+  M_GUI_WORKER -->|runs LLM processing in background thread| M_LLM_ORCHESTRATOR
+  M_GUI_WORKER -->|updates project state on completion| M_PROJECT
+  M_GUI_WORKER -->|PreviewWorker uses for fast frame iterat…| M_VIDEO_DECODE
+  M_GUI_WORKER -->|PreviewWorker uses for scoring| M_FRAME_FEATURES
+  M_GUI_MENUBAR -->|sends project lifecycle commands| M_PROJECT
+  M_GUI_MENUBAR -->|installed in MainWindow menuBar()| M_GUI_MAIN
+  M_GUI_VIDEOPLAYER -->|emits positionChanged for sync| M_GUI_SUBTITLE_OVERLAY
+  M_GUI_VIDEOPLAYER -->|embedded in central area| M_GUI_MAIN
+  M_GUI_SUBTITLE_OVERLAY -->|positioned over QVideoWidget| M_GUI_VIDEOPLAYER

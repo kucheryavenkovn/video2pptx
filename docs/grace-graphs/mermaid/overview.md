@@ -1,0 +1,22 @@
+# GRACE Overview
+
+```mermaid
+%% GRACE Overview
+flowchart TB
+  CriticalFlows["CriticalFlows<br/>18"]
+  CrossLinks["CrossLinks<br/>187"]
+  DataFlows["DataFlows<br/>26"]
+  DependsEdges["depends_on<br/>258"]
+  Modules["Modules<br/>125"]
+  Phases["Phases<br/>20"]
+  UseCases["UseCases<br/>17"]
+  Verifications["Verifications<br/>66"]
+
+  Modules -->|has| DependsEdges
+  Modules -->|verified_by| Verifications
+  Modules -->|linked| CrossLinks
+  UseCases -->|related| DataFlows
+  UseCases -->|covered_by| CriticalFlows
+  Phases -->|implements| Modules
+  CriticalFlows -->|checks| Verifications
+```

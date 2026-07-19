@@ -2,6 +2,22 @@
 
 Инструменты для разработки, бенчмарков и дискриминации оптимизаций.
 
+## GRACE graphs (Graphviz + Mermaid)
+
+Генератор живёт в submodule **grace-atlas**:
+
+- Upstream: https://github.com/kucheryavenkovn/grace-atlas  
+- Script: `tools/grace_atlas/tools/grace_graphs/generate_grace_graphs.py`  
+- Wrapper: `python tools/grace_graphs.py --project-root .`  
+- Output (Video2PPTX): `docs/grace-graphs/` (DOT + PNG + SVG + Mermaid)  
+- Examples (atlas repo): `examples/grace-graphs/`
+
+```powershell
+git submodule update --init --recursive
+python tools/grace_graphs.py --project-root .
+# needs Graphviz `dot` on PATH for PNG/SVG
+```
+
 ## GRACE Atlas (git submodule)
 
 Проекция GRACE XML + source markup в Obsidian Vault.
@@ -12,10 +28,7 @@
 - Vault (generated, gitignored): `.grace-atlas/vault/`
 
 ```powershell
-# first-time / after clone
 git submodule update --init --recursive
-
-# build vault
 python tools/grace_atlas.py build --project-root .
 python tools/grace_atlas.py status --project-root .
 python tools/grace_atlas.py trace M-APP-AUTO --project-root .

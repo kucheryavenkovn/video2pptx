@@ -1,0 +1,145 @@
+digraph G {
+  rankdir=LR;
+  graph [fontname="Helvetica", fontsize=12, label="GRACE Use Cases ↔ Flows", labelloc=t, overlap=false, splines=true, newrank=true];
+  node [shape=box, style="rounded,filled", fillcolor="#E8F1FF", fontname="Helvetica", fontsize=10];
+  edge [fontname="Helvetica", fontsize=9, color="#555555"];
+
+  subgraph cluster_critical_flow {
+    label="critical_flow";
+    style=rounded;
+    bgcolor="#FFE8E8";
+    VF_001 [label="VF-001\\nDetectHappyPath"];
+    VF_002 [label="VF-002\\nExportMDPath"];
+    VF_003 [label="VF-003\\nGPUAutoFallback"];
+    VF_004 [label="VF-004\\nExportPptxPath"];
+    VF_005 [label="VF-005\\nNotesProcessingPath"];
+    VF_006 [label="VF-006\\nDetectSlidesNoSubtitles"];
+    VF_007 [label="VF-007\\nNotesPostProcess"];
+    VF_008 [label="VF-008\\nRoiToolVisualSelect"];
+    VF_009 [label="VF-009\\nProjectCreateOpen"];
+    VF_010 [label="VF-010\\nDetectInProject"];
+    VF_011 [label="VF-011\\nTimelineInteraction"];
+    VF_012 [label="VF-012\\nSettingsLLMPrompt"];
+    VF_013 [label="VF-013\\nBackendSelection"];
+    VF_014 [label="VF-014\\nMenuBarActions"];
+    VF_015 [label="VF-015\\nProjectAppSettings"];
+    VF_016 [label="VF-016\\nVideoPlaybackSubtitles"];
+    VF_017 [label="VF-017\\nTimelineGreenBlueMarkers"];
+    VF_018 [label="VF-018\\nSmartSnapModes"];
+  }
+
+  subgraph cluster_data_flow {
+    label="data_flow";
+    style=rounded;
+    bgcolor="#FFF6E0";
+    DF_001 [label="DF-001\\nDetectPipeline"];
+    DF_002 [label="DF-002\\nExportMDPipeline"];
+    DF_003 [label="DF-003\\nLlmProcessPipeline"];
+    DF_004 [label="DF-004\\nNotesPipeline"];
+    DF_005 [label="DF-005\\nDetectSlidesPipeline"];
+    DF_006 [label="DF-006\\nRoiToolFlow"];
+    DF_007 [label="DF-007\\nCreateProject"];
+    DF_008 [label="DF-008\\nDetectInProject"];
+    DF_009 [label="DF-009\\nViewTimeline"];
+    DF_010 [label="DF-010\\nLLMProcessInGUI"];
+    DF_011 [label="DF-011\\nProjectLifecycleMenu"];
+    DF_012 [label="DF-012\\nSettingsConfiguration"];
+    DF_013 [label="DF-013\\nVideoPlayback"];
+    DF_014 [label="DF-014\\nTimelineGreenMarkers"];
+    DF_015 [label="DF-015\\nTimelineBlueMarkers"];
+    DF_APP_01 [label="DF-APP-01\\nRevisionSafeApplicationUseCase"];
+    DF_CLI_ADAPTER [label="DF-CLI-ADAPTER\\nCliApplicationDispatch"];
+    DF_E2E_01 [label="DF-E2E-01\\nMcpWriteOperationLifecycle"];
+    DF_E2E_02 [label="DF-E2E-02\\nCanonicalDetectStage"];
+    DF_E2E_03 [label="DF-E2E-03\\nAutoPipelineModes"];
+    DF_E2E_04 [label="DF-E2E-04\\nAutoAlignCoordinated"];
+    DF_E2E_05 [label="DF-E2E-05\\nVerificationStepProtocol"];
+    DF_GUI_PIPELINE [label="DF-GUI-PIPELINE\\nGuiPipelineFlow"];
+    DF_GUI_PROJECT [label="DF-GUI-PROJECT\\nGuiProjectFlow"];
+    DF_GUI_TIMELINE [label="DF-GUI-TIMELINE\\nGuiTimelineFlow"];
+    DF_PERSIST_01 [label="DF-PERSIST-01\\nCanonicalProjectLoadSave"];
+  }
+
+  subgraph cluster_phase {
+    label="phase";
+    style=rounded;
+    bgcolor="#E0F7FA";
+    Phase_20 [label="Phase-20"];
+  }
+
+  subgraph cluster_use_case {
+    label="use_case";
+    style=rounded;
+    bgcolor="#E8FFE8";
+    UC_001 [label="UC-001\\nRuns video2pptx detect with video + subtitles (all-in-one)"];
+    UC_002 [label="UC-002\\nRuns video2pptx export-md with slides.json"];
+    UC_003 [label="UC-003\\nApplies --debug flag during detect"];
+    UC_004 [label="UC-004\\nRuns video2pptx llm-process with slides.json + slides images"];
+    UC_005 [label="UC-005\\nRuns video2pptx detect-slides with video only (no subtitles)"];
+    UC_006 [label="UC-006\\nRuns video2pptx notes with slides.json + subtitles"];
+    UC_007 [label="UC-007\\nRuns video2pptx roi-tool with a video file"];
+    UC_008 [label="UC-008\\nCreates a new project via CLI or GUI"];
+    UC_009 [label="UC-009\\nOpens an existing project and runs slide detection via GUI"];
+    UC_010 [label="UC-010\\nViews detected slides on a timeline and inspects subtitle te"];
+    UC_011 [label="UC-011\\nOpens Settings dialog and edits LLM system prompt"];
+    UC_012 [label="UC-012\\nSelects GPU/decoder backend in Settings"];
+    UC_013 [label="UC-013\\nUses menu bar: File > New/Open/Close/Save Project, Import Vi"];
+    UC_014 [label="UC-014\\nOpens Project Settings and App Settings from Edit menu"];
+    UC_015 [label="UC-015\\nPlays video with subtitle overlay in GUI, controls playback "];
+    UC_016 [label="UC-016\\nViews green detected markers on timeline, clicks to open sli"];
+    UC_017 [label="UC-017\\nChooses analysis quality in Project Settings (fast / detaile"];
+  }
+
+
+  UC_001 -> DF_001 [label="related_flow"];
+  UC_002 -> DF_002 [label="related_flow"];
+  UC_004 -> DF_003 [label="related_flow"];
+  UC_005 -> DF_005 [label="related_flow"];
+  UC_006 -> DF_004 [label="related_flow"];
+  UC_008 -> DF_007 [label="related_flow"];
+  UC_009 -> DF_008 [label="related_flow"];
+  UC_010 -> DF_009 [label="related_flow"];
+  UC_011 -> DF_010 [label="related_flow"];
+  UC_013 -> DF_011 [label="related_flow"];
+  UC_014 -> DF_012 [label="related_flow"];
+  UC_015 -> DF_013 [label="related_flow"];
+  UC_016 -> DF_014 [label="related_flow"];
+  UC_016 -> DF_015 [label="related_flow"];
+  UC_017 -> Phase_20 [label="related_flow"];
+  VF_001 -> UC_001 [label="uses"];
+  VF_001 -> DF_001 [label="data_flow"];
+  VF_002 -> UC_002 [label="uses"];
+  VF_002 -> DF_002 [label="data_flow"];
+  VF_003 -> UC_001 [label="uses"];
+  VF_003 -> DF_001 [label="data_flow"];
+  VF_004 -> UC_002 [label="uses"];
+  VF_004 -> DF_002 [label="data_flow"];
+  VF_005 -> UC_001 [label="uses"];
+  VF_005 -> DF_002 [label="data_flow"];
+  VF_006 -> UC_005 [label="uses"];
+  VF_006 -> DF_005 [label="data_flow"];
+  VF_007 -> UC_006 [label="uses"];
+  VF_007 -> DF_004 [label="data_flow"];
+  VF_008 -> UC_007 [label="uses"];
+  VF_008 -> DF_006 [label="data_flow"];
+  VF_009 -> UC_008 [label="uses"];
+  VF_009 -> DF_007 [label="data_flow"];
+  VF_010 -> UC_009 [label="uses"];
+  VF_010 -> DF_008 [label="data_flow"];
+  VF_011 -> UC_010 [label="uses"];
+  VF_011 -> DF_009 [label="data_flow"];
+  VF_012 -> UC_011 [label="uses"];
+  VF_012 -> DF_010 [label="data_flow"];
+  VF_013 -> UC_012 [label="uses"];
+  VF_014 -> UC_013 [label="uses"];
+  VF_014 -> DF_011 [label="data_flow"];
+  VF_015 -> UC_014 [label="uses"];
+  VF_015 -> DF_012 [label="data_flow"];
+  VF_016 -> UC_015 [label="uses"];
+  VF_016 -> DF_013 [label="data_flow"];
+  VF_017 -> UC_016 [label="uses"];
+  VF_017 -> DF_014 [label="data_flow"];
+  VF_017 -> DF_015 [label="data_flow"];
+  VF_018 -> UC_016 [label="uses"];
+  VF_018 -> DF_015 [label="data_flow"];
+}

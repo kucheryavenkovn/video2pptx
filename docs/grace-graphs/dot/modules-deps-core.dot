@@ -1,0 +1,140 @@
+digraph G {
+  rankdir=LR;
+  graph [fontname="Helvetica", fontsize=12, label="GRACE Module Dependencies", labelloc=t, overlap=false, splines=true, newrank=true];
+  node [shape=box, style="rounded,filled", fillcolor="#E8F1FF", fontname="Helvetica", fontsize=10];
+  edge [fontname="Helvetica", fontsize=9, color="#555555"];
+
+  subgraph cluster_CORE_LOGIC {
+    label="CORE_LOGIC";
+    style=rounded;
+    bgcolor="#BBDEFB";
+    M_APP_ALIGN [label="M-APP-ALIGN\\nAlignmentService\\n[implemented]"];
+    M_APP_AUTO [label="M-APP-AUTO\\nAutoService\\n[implemented]"];
+    M_APP_DETECT [label="M-APP-DETECT\\nDetectionService\\n[implemented]"];
+    M_APP_EXPORT [label="M-APP-EXPORT\\nExportService\\n[implemented]"];
+    M_APP_LLM [label="M-APP-LLM\\nLlmEnrichmentService\\n[planned]"];
+    M_APP_NOTES [label="M-APP-NOTES\\nNotesService\\n[implemented]"];
+    M_APP_PREVIEW [label="M-APP-PREVIEW\\nPreviewService\\n[implemented]"];
+    M_APP_PROJECT [label="M-APP-PROJECT\\nProjectService\\n[planned]"];
+    M_APP_SERVICE [label="M-APP-SERVICE\\nAppService\\n[partial]"];
+    M_APP_VALIDATE [label="M-APP-VALIDATE\\nValidationService\\n[implemented]"];
+    M_AUTO_ALIGN [label="M-AUTO-ALIGN\\nAutoAlign\\n[partial]"];
+    M_CANONICAL_COMMANDS [label="M-CANONICAL-COMMANDS\\nCommandRouter\\n[planned]"];
+    M_DEDUPE [label="M-DEDUPE\\nDedupe\\n[implemented]"];
+    M_DETECT_SLIDES [label="M-DETECT-SLIDES\\nDetectSlides\\n[implemented]"];
+    M_DOMAIN_PROJECT [label="M-DOMAIN-PROJECT\\nProjectAggregate\\n[implemented]"];
+  }
+
+  subgraph cluster_DECISION {
+    label="DECISION";
+    style=rounded;
+    bgcolor="#EEEEEE";
+    M_DETECT_PERF_DECISION [label="M-DETECT-PERF-DECISION\\nBottleneckDecision\\n[done]"];
+  }
+
+  subgraph cluster_DEPLOYMENT {
+    label="DEPLOYMENT";
+    style=rounded;
+    bgcolor="#EEEEEE";
+    M_COLAB [label="M-COLAB\\nColabDeployment\\n[implemented]"];
+  }
+
+  subgraph cluster_ENTRY_POINT {
+    label="ENTRY_POINT";
+    style=rounded;
+    bgcolor="#C8E6C9";
+    M_CLI [label="M-CLI\\nCLI\\n[implemented]"];
+    M_CLI_ADAPTER [label="M-CLI-ADAPTER\\nCliAdapter\\n[active]"];
+    M_DESKTOP_BOOTSTRAP [label="M-DESKTOP-BOOTSTRAP\\nDesktopBootstrap\\n[active]"];
+  }
+
+  subgraph cluster_INTEGRATION {
+    label="INTEGRATION";
+    style=rounded;
+    bgcolor="#FFE0B2";
+    M_ADAPTERS [label="M-ADAPTERS\\nLegacyPortAdapters\\n[implemented]"];
+    M_BACKEND_PYAV [label="M-BACKEND-PYAV\\nPyAVBackend\\n[implemented]"];
+    M_BACKENDS [label="M-BACKENDS\\nBackends\\n[implemented]"];
+    M_DEBUG_MCP [label="M-DEBUG-MCP\\nMcpServer\\n[implemented]"];
+  }
+
+  subgraph cluster_UTILITY {
+    label="UTILITY";
+    style=rounded;
+    bgcolor="#E0E0E0";
+    M_ANALYSIS_SCALE [label="M-ANALYSIS-SCALE\\nAnalysisScale\\n[implemented]"];
+    M_APP_BOOTSTRAP [label="M-APP-BOOTSTRAP\\nApplicationServicesBootstrap\\n[active]"];
+    M_APP_IDENTITY [label="M-APP-IDENTITY\\nApplicationIdentity\\n[active]"];
+    M_APP_INPUT_RESOLVER [label="M-APP-INPUT-RESOLVER\\nInputResolver\\n[active]"];
+    M_ATOMIC_JSON [label="M-ATOMIC-JSON\\nAtomicJson\\n[planned]"];
+    M_CONFIG [label="M-CONFIG\\nConfig\\n[implemented]"];
+    M_CONFIRM_POLICY [label="M-CONFIRM-POLICY\\nConfirmPolicy\\n[planned]"];
+    M_DEBUG_ACTION [label="M-DEBUG-ACTION\\nActionRegistry\\n[implemented]"];
+    M_DEBUG_EXPORT [label="M-DEBUG-EXPORT\\nDebugExport\\n[implemented]"];
+    M_DETECT_BENCHMARK [label="M-DETECT-BENCHMARK\\nDetectBenchmarkPlan\\n[active]"];
+    M_DETECT_METRICS [label="M-DETECT-METRICS\\nDetectMetrics\\n[active]"];
+    M_DETECT_TARGET_DISCRIMINATION_R2 [label="M-DETECT-TARGET-DISCRIMINATION-R2\\nTargetOptimizationDiscriminationR2\\n[verified]"];
+    M_DOMAIN_EVENTS [label="M-DOMAIN-EVENTS\\nDomainEvents\\n[planned]"];
+  }
+
+  subgraph cluster_module {
+    label="module";
+    style=rounded;
+    bgcolor="#E8F1FF";
+    M_APP_ERRORS [label="M-APP-ERRORS\\n"];
+    M_APP_SERVICE_CONTEXT [label="M-APP-SERVICE-CONTEXT\\n"];
+  }
+
+  subgraph cluster_submodule {
+    label="submodule";
+    style=rounded;
+    bgcolor="#EEEEEE";
+    M_BACKEND_OPENCV [label="M-BACKEND-OPENCV\\nOpenCVBackend\\n[implemented]"];
+  }
+
+
+  M_CLI -> M_CONFIG [label="depends_on"];
+  M_CLI -> M_DETECT_SLIDES [label="depends_on"];
+  M_BACKENDS -> M_BACKEND_OPENCV [label="depends_on"];
+  M_BACKENDS -> M_BACKEND_PYAV [label="depends_on"];
+  M_DETECT_SLIDES -> M_DEDUPE [label="depends_on"];
+  M_DETECT_SLIDES -> M_DETECT_METRICS [label="depends_on"];
+  M_DEBUG_MCP -> M_DEBUG_ACTION [label="depends_on"];
+  M_APP_SERVICE -> M_DETECT_SLIDES [label="depends_on"];
+  M_APP_SERVICE -> M_AUTO_ALIGN [label="depends_on"];
+  M_CANONICAL_COMMANDS -> M_APP_SERVICE [label="depends_on"];
+  M_APP_INPUT_RESOLVER -> M_APP_ERRORS [label="depends_on"];
+  M_DESKTOP_BOOTSTRAP -> M_APP_BOOTSTRAP [label="depends_on"];
+  M_DETECT_BENCHMARK -> M_DETECT_SLIDES [label="depends_on"];
+  M_DETECT_BENCHMARK -> M_DETECT_METRICS [label="depends_on"];
+  M_DETECT_PERF_DECISION -> M_DETECT_BENCHMARK [label="depends_on"];
+  M_DETECT_TARGET_DISCRIMINATION_R2 -> M_DETECT_PERF_DECISION [label="depends_on"];
+  M_DETECT_TARGET_DISCRIMINATION_R2 -> M_BACKEND_PYAV [label="depends_on"];
+  M_ANALYSIS_SCALE -> M_CONFIG [label="depends_on"];
+  M_CLI_ADAPTER -> M_APP_BOOTSTRAP [label="depends_on"];
+  M_CLI_ADAPTER -> M_APP_PREVIEW [label="depends_on"];
+  M_CLI_ADAPTER -> M_APP_DETECT [label="depends_on"];
+  M_CLI_ADAPTER -> M_APP_ALIGN [label="depends_on"];
+  M_CLI_ADAPTER -> M_APP_NOTES [label="depends_on"];
+  M_CLI_ADAPTER -> M_APP_EXPORT [label="depends_on"];
+  M_CLI_ADAPTER -> M_APP_VALIDATE [label="depends_on"];
+  M_CLI_ADAPTER -> M_APP_AUTO [label="depends_on"];
+  M_APP_BOOTSTRAP -> M_ADAPTERS [label="depends_on"];
+  M_APP_BOOTSTRAP -> M_APP_AUTO [label="depends_on"];
+  M_APP_LLM -> M_DOMAIN_PROJECT [label="depends_on"];
+  M_APP_PROJECT -> M_DOMAIN_PROJECT [label="depends_on"];
+  M_APP_DETECT -> M_DOMAIN_PROJECT [label="depends_on"];
+  M_APP_ALIGN -> M_DOMAIN_PROJECT [label="depends_on"];
+  M_APP_AUTO -> M_APP_DETECT [label="depends_on"];
+  M_APP_AUTO -> M_APP_ALIGN [label="depends_on"];
+  M_APP_AUTO -> M_APP_NOTES [label="depends_on"];
+  M_APP_AUTO -> M_APP_EXPORT [label="depends_on"];
+  M_APP_AUTO -> M_APP_VALIDATE [label="depends_on"];
+  M_APP_NOTES -> M_DOMAIN_PROJECT [label="depends_on"];
+  M_APP_EXPORT -> M_DOMAIN_PROJECT [label="depends_on"];
+  M_APP_VALIDATE -> M_DOMAIN_PROJECT [label="depends_on"];
+  M_APP_PREVIEW -> M_DOMAIN_PROJECT [label="depends_on"];
+  M_APP_BOOTSTRAP -> M_APP_PROJECT [label="depends_on"];
+  M_APP_BOOTSTRAP -> M_APP_LLM [label="depends_on"];
+  M_BACKEND_PYAV -> M_BACKENDS [label="depends_on"];
+}
