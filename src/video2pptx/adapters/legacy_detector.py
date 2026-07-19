@@ -76,6 +76,10 @@ class LegacySlideDetector(SlideDetectorPort):
         )
 
         slides_domain = [Slide.from_dict(s.model_dump(mode="json")) for s in doc.slides]
+        from video2pptx.detect_slides import get_last_detection_counts
+
+        counts = get_last_detection_counts()
+        counts_dict = counts.to_dict() if counts is not None else None
 
         return DetectionOutput(
             slides=slides_domain,
@@ -83,4 +87,5 @@ class LegacySlideDetector(SlideDetectorPort):
             score_values=list(doc.score_values),
             video_duration=doc.video.duration,
             screenshots_dir=out_dir / "slides",
+            counts=counts_dict,
         )

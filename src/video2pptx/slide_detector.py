@@ -183,6 +183,9 @@ def detect_changes(
     # START_BLOCK_DEBOUNCE
     if progress_callback is not None:
         progress_callback(100, "Pass 1/2: frame analysis complete")
+    candidate_count = len(changes)
+    # Stash for callers that read attribute after return (detect_slides counts)
+    detect_changes.last_candidate_count = candidate_count  # type: ignore[attr-defined]
     with measure("debounce"):
         # Time-based debounce in seconds; independent of sample_fps.
         # sample_fps only controls analysis density, not the unit of min_stable_duration.
@@ -196,9 +199,31 @@ def detect_changes(
         evidence_observer("debounced_changes", {"changes": tuple(changes)})
     # END_BLOCK_DEBOUNCE
 
+    # Auto-threshold diagnostics (INFO summary only — not one line per candidate)
+    if isinstance(threshold, str) and threshold == "auto" and all_scores:
+        from video2pptx.detection_counts import score_distribution_summary
+        from video2pptx.frame_features import compute_threshold
+
+        dist = score_distribution_summary(all_scores)
+        thr = compute_threshold(all_scores)
+        logger.info(
+            "[SlideDetector][detect_changes] Auto-threshold diagnostics | "
+            "threshold={:.4f} score_count={} min={:.4f} median={:.4f} "
+            "p90={:.4f} p95={:.4f} p99={:.4f} max={:.4f}",
+            thr,
+            dist["score_count"],
+            dist["score_min"],
+            dist["score_median"],
+            dist["score_p90"],
+            dist["score_p95"],
+            dist["score_p99"],
+            dist["score_max"],
+        )
+
     logger.info(
         f"[SlideDetector][detect_changes] Detection complete | "
-        f"changes={len(changes)} total_frames={len(all_features)}"
+        f"candidates={candidate_count} after_debounce={len(changes)} "
+        f"total_frames={len(all_features)}"
     )
     return changes, all_features, all_scores
 

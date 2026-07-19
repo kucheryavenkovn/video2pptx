@@ -23,7 +23,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 
 from video2pptx.domain.slide import Slide
 
@@ -35,6 +35,7 @@ class DetectionOutput:
     score_values: list[float] = field(default_factory=list)
     video_duration: float = 0.0
     screenshots_dir: Path | None = None
+    counts: dict[str, Any] | None = None
 
 
 class SlideDetectorPort(Protocol):

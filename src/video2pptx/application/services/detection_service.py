@@ -192,21 +192,29 @@ class DetectionService:
                         "Check detection threshold or use threshold=auto."
                     )
 
+            data: dict = {
+                "slides_count": project.slide_count,
+                "video_duration": output.video_duration,
+                "effective_video_path": effective_video,
+                "effective_config": {
+                    "sample_fps": eff_sample_fps,
+                    "threshold": eff_threshold,
+                    "min_slide_duration": eff_min_slide,
+                    "min_stable_duration": eff_min_stable,
+                    "dedupe_enabled": eff_dedupe,
+                    "decoder_backend": eff_decoder,
+                    "analysis_max_side": eff_analysis_max_side,
+                },
+            }
+            if output.counts:
+                data["detection_counts"] = output.counts
+                logger.info(
+                    "[DetectionService] Stage counts | {}",
+                    output.counts,
+                )
             return ServiceResult.ok(
                 "detect",
-                data={
-                    "slides_count": project.slide_count,
-                    "video_duration": output.video_duration,
-                    "effective_video_path": effective_video,
-                    "effective_config": {
-                        "sample_fps": eff_sample_fps,
-                        "threshold": eff_threshold,
-                        "min_slide_duration": eff_min_slide,
-                        "min_stable_duration": eff_min_stable,
-                        "dedupe_enabled": eff_dedupe,
-                        "decoder_backend": eff_decoder,
-                    },
-                },
+                data=data,
                 revision=save_result.revision,
                 warnings=tuple(warnings),
             )
