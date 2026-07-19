@@ -1,0 +1,23 @@
+# Effective detection config from out11/project.json
+# Source shape matches [DetectionService] Effective config log fields
+
+sample_fps: 2.0
+threshold: auto
+min_slide: 2.0
+min_stable: 2.0
+dedupe: True
+roi: auto
+decoder: auto
+analysis_max_side: 480
+
+Project metadata:
+- schema_version: 2.0
+- revision: 6e5810083d6049009a8105cf818be049
+- name: out11
+- slide_count (project): 403
+- slides with image path: 221
+- slides without image: 182
+- png files on disk: 222
+- sample PNG dimensions: 1920x1080 (full-res invariant holds for screenshots present)
+- score_values count (slides.json): 7310  → ~7311 sampled frames at sample_fps=2
+- last_end: 3654.0 s (~60.9 min lecture)

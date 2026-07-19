@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 
 from video2pptx.application.ports.slide_detector import DetectionOutput, SlideDetectorPort
@@ -49,6 +50,7 @@ class LegacySlideDetector(SlideDetectorPort):
         dedupe_enabled: bool,
         decoder_backend: str = "auto",
         analysis_max_side: int | None = None,
+        progress_callback: Callable[[int, str], None] | None = None,
     ) -> DetectionOutput:
         cfg = AppConfig(
             video={
@@ -70,9 +72,14 @@ class LegacySlideDetector(SlideDetectorPort):
             video_path=Path(video_path),
             out_dir=out_dir,
             cfg=cfg,
+            progress_callback=progress_callback,
         )
 
         slides_domain = [Slide.from_dict(s.model_dump(mode="json")) for s in doc.slides]
+        from video2pptx.detect_slides import get_last_detection_counts
+
+        counts = get_last_detection_counts()
+        counts_dict = counts.to_dict() if counts is not None else None
 
         return DetectionOutput(
             slides=slides_domain,
@@ -80,4 +87,5 @@ class LegacySlideDetector(SlideDetectorPort):
             score_values=list(doc.score_values),
             video_duration=doc.video.duration,
             screenshots_dir=out_dir / "slides",
+            counts=counts_dict,
         )

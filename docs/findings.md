@@ -1071,3 +1071,39 @@
 - Impact: Practical speedup available without changing export PNG quality; recommended analysis_max_side=480 for 1080p lecture content.
 - Resolution/Status: RESOLVED (measured + shipped). Runtime default set to 480 in VideoConfig / domain DetectionConfig / DTO / config.example.yaml (Step 19.9). Explicit None still enables native analysis.
 - LINKS: F-0104, M-ANALYSIS-SCALE, M-GOLDEN-MEAN-DECISION, V-M-GOLDEN-MEAN-DECISION, V-M-PHASE19-ACCEPTANCE, tools/sweep_analysis_resolution.py
+
+### F-0106 — Timeline SlideBlockItem deleted during mouseReleaseEvent
+- Date: 2026-07-19
+- Area: ui
+- Finding: Move/resize of green timeline blocks can destroy the active `SlideBlockItem` C++ object before `mouseReleaseEvent` returns. Callbacks `on_moved`/`on_resized` run synchronously from `SlideBlockItem.mouseReleaseEvent`, which triggers `MainWindow._on_slide_moved/_on_slide_resized` → project save/reload → `TimelineView._rebuild_scene` → `scene.clear()`. Subsequent `setCursor` / `super().mouseReleaseEvent` touch a deleted item → `RuntimeError: Internal C++ object (SlideBlockItem) already deleted`.
+- Symptom/Reproduction: Alt+drag or edge-resize a green block on project `out11`; crash on mouse release. Static chain: `items.py:143-173` → `main_window.py:511-533` → `view.py:_rebuild_scene`.
+- Impact: Timeline editing unusable on Windows user-journey testing.
+- Resolution/Status: Localized in Phase 21 Wave 1; fix deferred to Wave 2 (defer callbacks via QTimer.singleShot(0) after super, no capture of self).
+- LINKS: M-GUI-TIMELINE3, V-M-GUI-TIMELINE3, Phase-21, acceptance/evidence/phase21-runtime-baseline/timeline-errors.txt
+
+### F-0107 — Detect GUI progress stuck at 10% despite detector log progress
+- Date: 2026-07-19
+- Area: detection, ui
+- Finding: `detect_changes` computes Pass1 progress and accepts `progress_callback`, but `LegacySlideDetector` / `DetectionService` never pass a callback. GUI only receives `report_progress(10)` then jumps to 70/100 after the full detect returns. StatusBarManager lacks monotonic `_last_pct` and shows ETA as soon as pct≥10 even when elapsed≪3s.
+- Symptom/Reproduction: Run Detect on long video; status bar shows 10% while logs show `Progress | 20%…90%`.
+- Impact: User cannot observe real Detect progress on long lectures (e.g. Hermes ~60 min).
+- Resolution/Status: Localized Wave 1; fix Wave 3 (wire callback + map_stage_progress + monotonic/ETA guards).
+- LINKS: M-APP-DETECT, M-PORT-DETECTOR, M-GUI-STATUS, M-SLIDE-DETECTOR, Phase-21
+
+### F-0108 — min_stable_duration / debounce unit inconsistency
+- Date: 2026-07-19
+- Area: detection
+- Finding: AppConfig `DetectionConfig.min_stable_duration` uses `Field(ge=0.5)` so 0.0 (debounce off) is rejected, while domain defaults to 2.0 without shared validation. `_debounce_changes` converts time gaps to frames via `gap / max(0.5, 1/30)` rather than pure seconds, so semantics depend on a hard-coded 0.5s unit and `sample_fps` frame count conversion.
+- Symptom/Reproduction: Set Min Stable Duration to 0.0 in GUI vs AppConfig validation; compare debounce at sample_fps 1 vs 10 with same timestamps.
+- Impact: Confusing settings UX and FPS-dependent debounce behavior.
+- Resolution/Status: Localized Wave 1; fix Wave 5 (time-based debounce, ge=0.0, 0 disables).
+- LINKS: M-CONFIG, M-SLIDE-DETECTOR, Phase-21
+
+### F-0109 — Pass 2 nested frames×segments and full-res retention
+- Date: 2026-07-19
+- Area: detection, performance
+- Finding: Pass 2 in `run_detect_slides` re-reads the entire video, matches each frame against all segments (O(frames×segments)), stores every representative full-res crop before dedupe, and does not stop after the last target. out11-scale (~7311×hundreds) yields millions of comparisons and multi-GB peak risk. PNG indices after dedupe are non-sequential (`slide_001`, `slide_003`, …).
+- Symptom/Reproduction: Inspect `detect_slides.py` Pass2 loop; count out11 PNGs vs project slides (222 PNG / 403 slides with many null images).
+- Impact: Long wall time and high RSS on real lectures; incomplete screenshot coverage.
+- Resolution/Status: Localized Wave 1; fix Wave 7 (streaming target iterator + streaming dedupe, peak live frames ≤2).
+- LINKS: M-DETECT-SLIDES, M-DEDUPE, Phase-21, F-0049

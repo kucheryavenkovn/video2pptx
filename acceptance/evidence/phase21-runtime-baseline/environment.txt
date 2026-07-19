@@ -1,0 +1,25 @@
+# Phase 21 Wave 1 — Runtime environment baseline
+# Date: 2026-07-19
+# Method: static forensics + project artifact inspection (no code changes)
+
+git HEAD: f38835085a6dbe4c52b06f68d3a859a8e8d6df84
+branch: fix/phase21-runtime-detection-timeline
+base branch: origin/feature/phase21-clean-windows-user-journey
+accepted master HEAD: f38835085a6dbe4c52b06f68d3a859a8e8d6df84
+
+Python: 3.14.6
+PySide6: 6.11.0
+shiboken: 6.11.0
+Qt: 6.11.0
+Windows build: Windows-11-10.0.26200-SP0
+
+decoder: auto (project detection.decoder_backend)
+video: E:\edu\vibecoding\Автономные агенты\05_4. Hermes.mp4
+video exists: True
+video size_mb: 470.0
+project: D:\git\video2pptx\out11
+
+Notes:
+- Interactive GUI crash reproduction limited to static code-path forensics in this wave
+  (automated Qt headless tests deferred to Wave 2).
+- Full re-detect not re-run for Wave 1 (preserves existing out11 artifacts as baseline).

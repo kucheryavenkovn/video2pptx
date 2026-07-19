@@ -16,11 +16,12 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.2.0 - Resolve analysis_max_side from Project.detection (Phase 19)
+#   LAST_CHANGE: v1.3.0 - Phase 21: wire monotonic two-pass progress_callback to observer
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 
 from loguru import logger
@@ -35,6 +36,7 @@ from video2pptx.application.base import (
 from video2pptx.application.dto import ServiceResult
 from video2pptx.application.errors import PreconditionError, StageFailureError
 from video2pptx.application.ports.slide_detector import SlideDetectorPort
+from video2pptx.application.progress_map import DETECT_STAGE_RANGES, map_stage_progress
 
 
 class DetectionService:
@@ -122,7 +124,11 @@ class DetectionService:
             # END_BLOCK_RESOLVE_INPUTS
 
             project.pipeline.start("detect")
-            self._ctx.report_progress(10, "Starting detection")
+            prep_lo, prep_hi = DETECT_STAGE_RANGES["prepare"]
+            self._ctx.report_progress(
+                map_stage_progress(prep_lo, prep_hi, 40),
+                "Opening video and preparing detection",
+            )
             logger.info(
                 "[DetectionService] Resolved input | project_video={} override_video={} effective_video={}",
                 project.video_path or "(none)", video_path or "(none)", effective_video,
@@ -136,6 +142,7 @@ class DetectionService:
 
             # START_BLOCK_DETECTOR_CALL
             video_path_resolved = effective_video
+            progress_cb = self._detector_progress_callback()
             output = self._detector.detect(
                 video_path_resolved,
                 Path(project_location),
@@ -148,10 +155,15 @@ class DetectionService:
                 dedupe_enabled=eff_dedupe,
                 decoder_backend=eff_decoder,
                 analysis_max_side=eff_analysis_max_side,
+                progress_callback=progress_cb,
             )
             # END_BLOCK_DETECTOR_CALL
             self._ctx.check_cancelled("detect")
-            self._ctx.report_progress(70, f"Detected {len(output.slides)} candidates")
+            persist_lo, persist_hi = DETECT_STAGE_RANGES["persist"]
+            self._ctx.report_progress(
+                map_stage_progress(persist_lo, persist_hi, 20),
+                f"Detected {len(output.slides)} slides — saving project",
+            )
 
             project.replace_detected_slides(output.slides)
             project.score_timestamps = list(output.score_timestamps)
@@ -180,21 +192,29 @@ class DetectionService:
                         "Check detection threshold or use threshold=auto."
                     )
 
+            data: dict = {
+                "slides_count": project.slide_count,
+                "video_duration": output.video_duration,
+                "effective_video_path": effective_video,
+                "effective_config": {
+                    "sample_fps": eff_sample_fps,
+                    "threshold": eff_threshold,
+                    "min_slide_duration": eff_min_slide,
+                    "min_stable_duration": eff_min_stable,
+                    "dedupe_enabled": eff_dedupe,
+                    "decoder_backend": eff_decoder,
+                    "analysis_max_side": eff_analysis_max_side,
+                },
+            }
+            if output.counts:
+                data["detection_counts"] = output.counts
+                logger.info(
+                    "[DetectionService] Stage counts | {}",
+                    output.counts,
+                )
             return ServiceResult.ok(
                 "detect",
-                data={
-                    "slides_count": project.slide_count,
-                    "video_duration": output.video_duration,
-                    "effective_video_path": effective_video,
-                    "effective_config": {
-                        "sample_fps": eff_sample_fps,
-                        "threshold": eff_threshold,
-                        "min_slide_duration": eff_min_slide,
-                        "min_stable_duration": eff_min_stable,
-                        "dedupe_enabled": eff_dedupe,
-                        "decoder_backend": eff_decoder,
-                    },
-                },
+                data=data,
                 revision=save_result.revision,
                 warnings=tuple(warnings),
             )
@@ -203,3 +223,25 @@ class DetectionService:
         except Exception as exc:
             logger.error(f"[DetectionService] Failed | error={exc}")
             raise StageFailureError("detect", str(exc), cause=exc) from exc
+
+    def _detector_progress_callback(self) -> Callable[[int, str], None]:
+        """Map detector-local 0–100 progress into the global Detect scale."""
+
+        def _on_progress(local_percent: int, message: str = "") -> None:
+            msg = message or ""
+            lower = msg.lower()
+            if "pass 1" in lower or "pass1" in lower:
+                lo, hi = DETECT_STAGE_RANGES["pass1"]
+            elif "pass 2" in lower or "pass2" in lower or "representative" in lower:
+                lo, hi = DETECT_STAGE_RANGES["pass2"]
+            elif "dedup" in lower or "duplicate" in lower:
+                lo, hi = DETECT_STAGE_RANGES["dedupe"]
+            elif "debounce" in lower or "segment" in lower:
+                lo, hi = DETECT_STAGE_RANGES["debounce"]
+            else:
+                # Unknown sub-stage: keep within pass1 window rather than raw 0–100
+                lo, hi = DETECT_STAGE_RANGES["pass1"]
+            global_pct = map_stage_progress(lo, hi, local_percent)
+            self._ctx.report_progress(global_pct, msg)
+
+        return _on_progress

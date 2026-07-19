@@ -10,14 +10,14 @@
 # END_MODULE_CONTRACT
 #
 # START_CHANGE_SUMMARY
-#   v0.1.1 - SlideBlockItem.mouseReleaseEvent: update _start_sec/_end_sec after move/resize
+#   LAST_CHANGE: v0.2.0 - Phase 21: defer move/resize commits after super().mouseReleaseEvent
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
 
 from collections.abc import Callable
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 from PySide6.QtWidgets import QGraphicsItem, QGraphicsRectItem
 
@@ -69,6 +69,7 @@ class SlideBlockItem(QGraphicsRectItem):
         self.setAcceptedMouseButtons(Qt.MouseButton.LeftButton)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges, True)
         self._locked_y: float = y
+        self._edits_enabled: bool = True
     # END_BLOCK_CONSTRUCTOR
 
     def slide_index(self) -> int:
@@ -83,14 +84,22 @@ class SlideBlockItem(QGraphicsRectItem):
     def end_sec(self) -> float:
         return self._end_sec
 
+    def set_edits_enabled(self, enabled: bool) -> None:
+        """Allow move/resize only when True (disabled while pipeline busy)."""
+        self._edits_enabled = bool(enabled)
+
+    def edits_enabled(self) -> bool:
+        return self._edits_enabled
+
     # START_BLOCK_INTERACTION
     def mousePressEvent(self, event) -> None:  # noqa: N802
         from PySide6.QtWidgets import QApplication
-        modifiers = QApplication.keyboardModifiers()
+        # Prefer event modifiers (tests + reliable); fall back to app keyboard state.
+        modifiers = event.modifiers() | QApplication.keyboardModifiers()
         pos_x_in_rect = event.pos().x() - self.rect().x()
         w = self.rect().width()
 
-        if modifiers & Qt.KeyboardModifier.AltModifier:
+        if self._edits_enabled and (modifiers & Qt.KeyboardModifier.AltModifier):
             self._drag_mode = "move"
             self._drag_start_item_x = self.pos().x() + self.rect().x()
             self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
@@ -99,7 +108,7 @@ class SlideBlockItem(QGraphicsRectItem):
             super().mousePressEvent(event)
             return
 
-        if pos_x_in_rect <= self.RESIZE_MARGIN:
+        if self._edits_enabled and pos_x_in_rect <= self.RESIZE_MARGIN:
             self._drag_mode = "resize_left"
             r = self.rect()
             self._drag_start_rect = (r.x(), r.y(), r.width(), r.height())
@@ -107,7 +116,7 @@ class SlideBlockItem(QGraphicsRectItem):
             event.accept()
             return
 
-        if pos_x_in_rect >= w - self.RESIZE_MARGIN:
+        if self._edits_enabled and pos_x_in_rect >= w - self.RESIZE_MARGIN:
             self._drag_mode = "resize_right"
             r = self.rect()
             self._drag_start_rect = (r.x(), r.y(), r.width(), r.height())
@@ -115,7 +124,7 @@ class SlideBlockItem(QGraphicsRectItem):
             event.accept()
             return
 
-        # Regular click on body → open image in player
+        # Regular click on body → open image in player (view-only; allowed while busy)
         if self._on_clicked:
             self._on_clicked(self._image_path, self._slide_index)
         event.accept()
@@ -141,36 +150,56 @@ class SlideBlockItem(QGraphicsRectItem):
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event) -> None:  # noqa: N802
+        # START_BLOCK_DEFER_COMMIT
+        # Compute move/resize result, reset drag state, finish Qt event, THEN queue
+        # application callback. Callback must not run while this C++ item is still
+        # mid mouseRelease (project reload can scene.clear() and delete self).
+        pending_cb: Callable[..., None] | None = None
+        pending_args: tuple = ()
+
         if self._drag_mode == "move":
             self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, False)
             new_x = self.pos().x() + self.rect().x()
             if abs(new_x - self._drag_start_item_x) > 0.5 and self.scene() is not None:
                 views = self.scene().views()
                 if views:
-                    px = getattr(views[0], '_px_per_sec', 50.0)
+                    px = getattr(views[0], "_px_per_sec", 50.0)
                     new_start = max(0.0, new_x / px if px > 0 else 0.0)
-                    new_end = max(new_start + 1.0, (new_x + self.rect().width()) / px if px > 0 else 0.0)
+                    new_end = max(
+                        new_start + 1.0,
+                        (new_x + self.rect().width()) / px if px > 0 else 0.0,
+                    )
                     self._start_sec = new_start
                     self._end_sec = new_end
-                    if self._on_moved:
-                        self._on_moved(self._slide_index, new_start, new_end)
+                    if self._on_moved is not None:
+                        pending_cb = self._on_moved
+                        pending_args = (self._slide_index, new_start, new_end)
 
         elif self._drag_mode in ("resize_left", "resize_right") and self.scene() is not None:
             views = self.scene().views()
             if views:
-                px = getattr(views[0], '_px_per_sec', 50.0)
+                px = getattr(views[0], "_px_per_sec", 50.0)
                 rx = self.rect().x()
                 rw = self.rect().width()
                 new_start = max(0.0, rx / px if px > 0 else 0.0)
                 new_end = max(new_start + 1.0, (rx + rw) / px if px > 0 else 0.0)
                 self._start_sec = new_start
                 self._end_sec = new_end
-                if self._on_resized:
-                    self._on_resized(self._slide_index, new_start, new_end)
+                if self._on_resized is not None:
+                    pending_cb = self._on_resized
+                    pending_args = (self._slide_index, new_start, new_end)
 
         self._drag_mode = None
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         super().mouseReleaseEvent(event)
+
+        if pending_cb is not None:
+            # Capture only callables/primitives — never self (item may be deleted).
+            QTimer.singleShot(
+                0,
+                lambda cb=pending_cb, args=pending_args: cb(*args),
+            )
+        # END_BLOCK_DEFER_COMMIT
     # END_BLOCK_INTERACTION
 
     def itemChange(self, change, value):  # noqa: N802

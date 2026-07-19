@@ -21,6 +21,7 @@ import pytest
 
 from video2pptx.application.base import ServiceContext
 from video2pptx.application.cancellation import CancellationToken
+from video2pptx.application.dto import ProgressUpdate
 from video2pptx.application.errors import StageFailureError
 from video2pptx.application.ports.slide_detector import DetectionOutput
 from video2pptx.application.services.detection_service import DetectionService
@@ -28,8 +29,22 @@ from video2pptx.domain import Project, Slide, StageStatus
 from video2pptx.infrastructure.persistence.file_project_repository import FileProjectRepository
 
 
+class RecordingObserver:
+    def __init__(self) -> None:
+        self.updates: list[ProgressUpdate] = []
+
+    def on_progress(self, update: ProgressUpdate) -> None:
+        self.updates.append(update)
+
+
 class FakeDetector:
-    def __init__(self, output: DetectionOutput | None = None, error: Exception | None = None):
+    def __init__(
+        self,
+        output: DetectionOutput | None = None,
+        error: Exception | None = None,
+        *,
+        emit_progress: bool = False,
+    ):
         self._output = output or DetectionOutput(
             slides=[
                 Slide.from_dict({"uid": "d1", "start": 0.0, "end": 3.0}),
@@ -40,10 +55,21 @@ class FakeDetector:
             video_duration=7.0,
         )
         self._error = error
+        self._emit_progress = emit_progress
+        self.last_kwargs: dict = {}
 
     def detect(self, video_path, out_dir, **kwargs):
+        self.last_kwargs = dict(kwargs)
         if self._error:
             raise self._error
+        cb = kwargs.get("progress_callback")
+        if self._emit_progress and cb is not None:
+            cb(0, "Pass 1/2: analyzed 10 frames, 1 candidates")
+            cb(50, "Pass 1/2: analyzed 50 frames, 3 candidates")
+            cb(100, "Pass 1/2: frame analysis complete")
+            cb(50, "Pass 2/2: captured 5/10 representative frames")
+            cb(100, "Pass 2/2: captured 10/10 representative frames")
+            cb(100, "Deduplication: 10 → 2 slides")
         return self._output
 
 
@@ -153,6 +179,49 @@ class TestDetectionService:
         assert loaded.project.pipeline.status("notes") is StageStatus.NOT_STARTED
         assert loaded.project.pipeline.status("markdown_export") is StageStatus.NOT_STARTED
         assert loaded.project.pipeline.status("pptx_export") is StageStatus.NOT_STARTED
+
+    def test_detector_progress_reaches_gui_observer(self, tmp_path):
+        repo, location = _make_project(tmp_path)
+        observer = RecordingObserver()
+        ctx = ServiceContext(repository=repo, observer=observer)
+        service = DetectionService(FakeDetector(emit_progress=True), ctx)
+
+        result = service.execute(
+            location,
+            "vid.mp4",
+            sample_fps=2.0,
+            slide_roi="auto",
+            ignore_rois=[],
+            threshold=0.15,
+            min_stable_duration=1.0,
+            min_slide_duration=1.0,
+        )
+        assert result.success is True
+        percents = [u.percent for u in observer.updates]
+        assert percents, "expected progress updates"
+        # Monotonic non-decreasing after clamps applied by mapping
+        for a, b in zip(percents, percents[1:], strict=False):
+            assert b >= a, f"non-monotonic progress {percents}"
+        # Must leave the old sticky 10% zone and show mapped Pass1 mid values
+        assert any(5 <= p <= 65 for p in percents)
+        assert any(70 <= p <= 93 for p in percents)
+        assert percents[-1] == 100
+        # Fake detector must receive a callback
+        assert callable(FakeDetector(emit_progress=True).detect)  # sanity
+        # Re-run capture: service always passes progress_callback
+        det = FakeDetector(emit_progress=False)
+        DetectionService(det, ServiceContext(repository=repo, observer=observer)).execute(
+            location,
+            "vid.mp4",
+            sample_fps=2.0,
+            slide_roi="auto",
+            ignore_rois=[],
+            threshold=0.15,
+            min_stable_duration=1.0,
+            min_slide_duration=1.0,
+        )
+        assert "progress_callback" in det.last_kwargs
+        assert det.last_kwargs["progress_callback"] is not None
 
 
 class TestConfigPropagation:

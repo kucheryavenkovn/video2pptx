@@ -219,7 +219,16 @@ class TestRssLifecycle:
             def model_dump_json(self, indent):
                 return "{}"
 
-        segment = SimpleNamespace(index=0, representative_timestamp=0.0, image=None)
+        segment = SimpleNamespace(
+            index=1,
+            start=0.0,
+            end=1.0,
+            duration=1.0,
+            representative_timestamp=0.0,
+            image=None,
+            confidence=0.9,
+            model_copy=lambda deep=True: segment,
+        )
         monkeypatch.setattr(detect_slides, "RssSampler", FakeSampler)
         monkeypatch.setattr(detect_slides, "VideoDecoder", FakeDecoder)
         monkeypatch.setattr(detect_slides, "SlidesDocument", FakeDocument)
@@ -229,6 +238,24 @@ class TestRssLifecycle:
             lambda **kwargs: ([], [], []),
         )
         monkeypatch.setattr(detect_slides, "build_segments", lambda **kwargs: [segment])
+
+        def _fake_stream(**kwargs):
+            from video2pptx.streaming_representatives import StreamingPass2Result
+
+            return StreamingPass2Result(
+                segments=[segment],
+                decoded_frames=1,
+                target_count=1,
+                captured_count=1,
+                missing_count=0,
+                peak_live_fullres_frames=1,
+                peak_live_frame_bytes=12,
+                wall_seconds=0.01,
+                screenshots_written=1,
+                comparisons=1,
+            )
+
+        monkeypatch.setattr(detect_slides, "stream_representatives_and_dedupe", _fake_stream)
         monkeypatch.setattr(detect_slides.cv2, "cvtColor", lambda image, code: image)
         monkeypatch.setattr(detect_slides.cv2, "imwrite", lambda path, image: True)
 

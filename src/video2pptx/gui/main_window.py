@@ -311,10 +311,12 @@ class MainWindow(QMainWindow):
         result = getattr(self._pipeline_ctrl, f"run_{stage}")(project_dir, **params)
         if result is None:
             return
-        if result.accepted:
-            self._status.start(stage, stage.capitalize())
-        else:
+        # Status start is on operationStarted (before thread.start), not here.
+        if hasattr(result, "accepted") and not result.accepted:
             self._on_operation_rejected(stage, result.active_stage or "")
+
+    def _on_pipeline_started(self, stage: str) -> None:
+        self._status.start(stage, stage.capitalize())
 
     def _on_operation_rejected(self, requested: str, active: str) -> None:
         cap = active.capitalize()
@@ -324,6 +326,8 @@ class MainWindow(QMainWindow):
     def _on_busy_changed(self, busy: bool) -> None:
         for btn in self._PIPELINE_BUTTONS:
             btn.setEnabled(not busy)
+        if getattr(self, "_timeline", None) is not None:
+            self._timeline.set_edits_enabled(not busy)
 
     def _on_pipeline_finished(self, result) -> None:
         key = result.stage

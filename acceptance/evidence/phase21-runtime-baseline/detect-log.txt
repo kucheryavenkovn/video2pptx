@@ -1,0 +1,78 @@
+# Detection pipeline forensics (Wave 1 — root cause localization, no algorithm changes)
+
+## Progress stuck at 10% — CONFIRMED
+
+Observed symptom: GUI status bar remains at ~10% while loguru shows detector progress 20–90%.
+
+Root cause chain:
+
+  DetectionService.execute
+    → report_progress(10, "Starting detection")     # ONLY early GUI progress
+    → detector.detect(...)                          # NO progress_callback argument
+    → after return: report_progress(70, ...)
+    → after save: report_progress(100, ...)
+
+  LegacySlideDetector.detect
+    → run_detect_slides(...)                        # does NOT pass progress_callback
+
+  run_detect_slides
+    → detect_changes(..., progress_callback=...)    # accepts callback but receives None from adapter
+
+  detect_changes
+    → computes local 0–100 from timestamp/duration
+    → logger.info Progress | {pct}% ...             # visible in logs only
+    → progress_callback(...) if provided            # never connected to GUI observer
+
+Additionally:
+  - PipelineController.operationStarted exists and emits before thread.start
+  - MainWindow._run_pipeline starts StatusBarManager AFTER run_* returns accepted
+    (ordering is OK if start is in _run_pipeline, but not connected to operationStarted)
+  - StatusBarManager.update has no monotonic guard (_last_pct missing)
+  - ETA shown when pct >= 10 even for elapsed << 3s → can show "~0:00 left"
+
+## Effective config (out11)
+
+See effective-config.txt:
+  sample_fps=2.0 threshold=auto min_slide=2.0 min_stable=2.0
+  dedupe=True roi=auto decoder=auto analysis_max_side=480
+
+## Stage counts — observability gap
+
+Currently available from artifacts / code:
+
+  sampled frames:           ~7311 (score_values length 7310 + first frame)
+  candidate changes:        NOT persisted (log DEBUG only)
+  after debounce:           NOT persisted
+  segments before duration: NOT persisted
+  segments after duration:  NOT persisted
+  before dedupe:            NOT persisted
+  after dedupe:             403 (final project slides)
+  screenshots written:      222 PNG files; 221 slides with image field; 182 image=null
+
+Observability gap status: CONFIRMED — Wave 6 will add DetectionCounts model.
+No algorithm changes in Wave 1.
+
+## Duration / debounce semantics defects (localized)
+
+1. AppConfig DetectionConfig.min_stable_duration: Field(ge=0.5) rejects 0.0
+   while product intent needs 0.0 = debounce disabled (Wave 5).
+2. Domain DetectionConfig.min_stable_duration defaults to 2.0 with no ge=0.0 validation
+   at domain layer (inconsistent with AppConfig).
+3. _debounce_changes converts timestamps to "frames" via:
+     gap_frames = round((t2-t1) / max(0.5, 1/30))
+   This hard-codes 0.5s frame duration and is NOT sample_fps-independent in the gap unit.
+4. stable_frames = max(1, round(sample_fps * min_stable_duration)) forces min 1 frame
+   even when min_stable_duration=0 intended to disable debounce.
+
+## Pass 2 inefficiency (localized)
+
+detect_slides.py Pass 2:
+  - Full second sequential video decode via decoder.iter_frames()
+  - Nested loop: for each decoded frame × for each segment (frames × segments)
+  - Stores ALL representative full-res crops in rep_frames dict before dedupe
+  - Dedupe only after all captures
+  - No early stop after last target timestamp
+  - Non-sequential PNG indices after dedupe (slide_001, slide_003, …) observed on disk
+
+For out11 scale (~7311 frames × ~hundreds of segments before dedupe):
+  millions of timestamp comparisons + multi-GB potential full-res retention.

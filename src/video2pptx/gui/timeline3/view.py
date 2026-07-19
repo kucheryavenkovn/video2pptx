@@ -83,6 +83,17 @@ class TimelineView(QGraphicsView):
 
         self._is_panning = False
         self._pan_start = None
+        # When False: allow view/scroll/click-to-open; block move/resize/delete mutations
+        self._edits_enabled: bool = True
+
+    def set_edits_enabled(self, enabled: bool) -> None:
+        """Pipeline-busy policy: disable move/resize/delete; keep view/scroll."""
+        self._edits_enabled = bool(enabled)
+        for item in self._slide_items:
+            item.set_edits_enabled(self._edits_enabled)
+
+    def edits_enabled(self) -> bool:
+        return self._edits_enabled
 
     # START_BLOCK_DATA
     def set_data(
@@ -185,6 +196,7 @@ class TimelineView(QGraphicsView):
                     on_resized=lambda idx, s, e: self.slide_resized.emit(idx, s, e),
                     on_clicked=lambda path, idx: self.open_image.emit(path, idx),
                 )
+                item.set_edits_enabled(self._edits_enabled)
                 self._slide_items.append(item)
                 self._scene.addItem(item)
 
@@ -349,18 +361,22 @@ class TimelineView(QGraphicsView):
                 idx = slide_item.slide_index()
                 menu = QMenu(self)
                 menu.addAction("Open Image", lambda: self._open_slide_image(slide_item))
-                menu.addAction("Set Frame as Slide", lambda: self.set_slide_frame.emit(idx))
-                menu.addAction("Clear Image", lambda: self.clear_slide_image.emit(idx))
+                if self._edits_enabled:
+                    menu.addAction("Set Frame as Slide", lambda: self.set_slide_frame.emit(idx))
+                    menu.addAction("Clear Image", lambda: self.clear_slide_image.emit(idx))
                 menu.addSeparator()
                 menu.addAction("Edit Subtitles", lambda: self.open_subtitle_editor.emit(idx))
                 menu.addSeparator()
                 menu.addAction("Show Subtitles", lambda: self._show_slide_subtitles(slide_item))
-                menu.addSeparator()
-                menu.addAction("Delete Slide", lambda: self.delete_slide.emit(idx))
+                if self._edits_enabled:
+                    menu.addSeparator()
+                    menu.addAction("Delete Slide", lambda: self.delete_slide.emit(idx))
                 menu.exec(event.globalPos())
                 return
 
-        # Click on empty → add manual slide marker
+        # Click on empty → add manual slide marker (blocked while pipeline busy)
+        if not self._edits_enabled:
+            return
         scene_pos = self.mapToScene(event.pos())
         ts = scene_pos.x() / self._px_per_sec if self._px_per_sec > 0 else 0
         ts = max(0, min(ts, self._duration))
