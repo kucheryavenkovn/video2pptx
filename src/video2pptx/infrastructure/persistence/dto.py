@@ -163,8 +163,9 @@ class DetectionConfigDocument(BaseModel):
     slide_roi: str = "auto"
     ignore_rois: list[str] = Field(default_factory=list)
     threshold: float | str = "auto"
-    min_slide_duration: float = 2.0
-    min_stable_duration: float = 2.0
+    min_slide_duration: float = Field(default=2.0, ge=0.5)
+    # 0.0 disables debounce; wall-clock seconds (Phase 21 Wave 5)
+    min_stable_duration: float = Field(default=2.0, ge=0.0)
     dedupe_enabled: bool = True
     # Default None = legacy missing field loads as native (Phase 20).
     # New projects write explicit 480 via Project.create_new().

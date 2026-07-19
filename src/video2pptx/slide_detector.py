@@ -12,10 +12,11 @@
 # START_MODULE_MAP
 #   ChangeEvent - detected change with timestamp and score
 #   detect_changes - scan frames, produce ChangeEvents
+#   debounce_changes - time-based debounce in seconds (0 disables)
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v0.2.0 - Phase 19: optional analysis_max_side after ROI before extract; metrics tags; observer still sees native crop
+#   LAST_CHANGE: v0.3.0 - Phase 21: time-based debounce_changes; min_stable_duration seconds, 0 disables
 # END_CHANGE_SUMMARY
 
 from __future__ import annotations
@@ -183,8 +184,9 @@ def detect_changes(
     if progress_callback is not None:
         progress_callback(100, "Pass 1/2: frame analysis complete")
     with measure("debounce"):
-        stable_frames = max(1, int(round(sample_fps * min_stable_duration)))
-        changes = _debounce_changes(changes, stable_frames)
+        # Time-based debounce in seconds; independent of sample_fps.
+        # sample_fps only controls analysis density, not the unit of min_stable_duration.
+        changes = debounce_changes(changes, min_stable_duration)
     if progress_callback is not None:
         progress_callback(
             50,
@@ -207,19 +209,39 @@ def _resolve_threshold(threshold: float | str, scores: list[float], timestamp: f
     return compute_threshold(scores)
 
 
-def _debounce_changes(changes: list[ChangeEvent], min_stable_frames: int) -> list[ChangeEvent]:
+def debounce_changes(
+    changes: list[ChangeEvent],
+    min_stable_duration: float,
+) -> list[ChangeEvent]:
+    """Filter change events so consecutive retained events are ≥ min_stable_duration seconds apart.
+
+    min_stable_duration <= 0 disables debounce (returns a shallow copy of changes).
+    Semantics use wall-clock timestamps only — not sample_fps frame counts.
+    """
+    # START_CONTRACT: debounce_changes
+    #   PURPOSE: Time-based debounce of ChangeEvents
+    #   INPUTS: { changes: list[ChangeEvent], min_stable_duration: float seconds }
+    #   OUTPUTS: { list[ChangeEvent] }
+    #   SIDE_EFFECTS: debug logs for removed events
+    # END_CONTRACT: debounce_changes
     if len(changes) < 2:
-        return changes
+        return list(changes)
+    if min_stable_duration <= 0:
+        return list(changes)
+
     result: list[ChangeEvent] = [changes[0]]
-    for i in range(1, len(changes)):
-        gap_frames = int(
-            round((changes[i].timestamp - result[-1].timestamp) / max(0.5, 1.0 / 30.0))
-        )
-        if gap_frames >= min_stable_frames:
-            result.append(changes[i])
+    for change in changes[1:]:
+        gap = change.timestamp - result[-1].timestamp
+        if gap >= min_stable_duration:
+            result.append(change)
         else:
             logger.debug(
-                f"[SlideDetector][_debounce_changes] Removed change at {changes[i].timestamp:.2f}s "
-                f"(gap too short)"
+                f"[SlideDetector][debounce_changes] Removed change at {change.timestamp:.2f}s "
+                f"(gap={gap:.3f}s < min_stable={min_stable_duration:.3f}s)"
             )
     return result
+
+
+# Backward-compatible private alias
+def _debounce_changes(changes: list[ChangeEvent], min_stable_duration: float) -> list[ChangeEvent]:
+    return debounce_changes(changes, min_stable_duration)

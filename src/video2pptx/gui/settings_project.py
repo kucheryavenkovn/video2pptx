@@ -178,8 +178,10 @@ class ProjectSettingsDialog(QDialog):
         det_layout.addRow("Min Slide Duration (s):", self._min_dur_spin)
 
         self._min_stable_spin = QDoubleSpinBox()
-        self._min_stable_spin.setRange(0.5, 30.0)
+        # 0.0 = debounce disabled; unit is seconds (not frames)
+        self._min_stable_spin.setRange(0.0, 30.0)
         self._min_stable_spin.setSingleStep(0.5)
+        self._min_stable_spin.setDecimals(2)
         det_layout.addRow("Min Stable Duration (s):", self._min_stable_spin)
 
         self._dedupe_check = QCheckBox("Enable deduplication")
