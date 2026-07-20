@@ -43,3 +43,10 @@ home_note = "Home.md"
 enabled = true
 # If empty, absolute paths from the repository root are used.
 # workspace_folder = ""
+
+# Finding triage (do not suppress without evidence that noise is expected)
+[diagnostics]
+suppress = []
+expected_patterns = []
+# Example (disabled by default):
+# expected_patterns = ["module_without_requirement", "AMBIGUOUS_LINK", "INFERRED_EDGE"]
